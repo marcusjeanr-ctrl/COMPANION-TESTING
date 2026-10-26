@@ -2351,7 +2351,7 @@ async function pushState(chatId, snapshot = null) {
 // Demo mode plays scripted turns (no tokens); Live mode asks the model, with a small
 // world narrator standing in for a bot card.
 
-const RPGC_VERSION = '2.9.6';
+const RPGC_VERSION = '2.9.7';
 const diagLog = [];
 function diagPush(kind, m) { diagLog.push({ at: new Date().toISOString(), kind, text: String(m).slice(0, 400) }); if (diagLog.length > 60) diagLog.shift(); }
 function logW(m) { diagPush('warn', m); return spindle.log.warn(m); }
@@ -12741,10 +12741,15 @@ function agendaNormalize(list) {
 /** "the exam" and "the written exam", "meet Sylphie" and "meet Sylphie at the river": one entry. */
 function agendaSame(a, b) {
     if (a === b) return true;
+    // Reporters append details after an established activity. Compare the anchored
+    // activity first; never equate events from mere overlapping generic words.
+    const core = value => lockKey(value || '').replace(/\s*(?:[,;]|\s+\b(?:after|before|while|including|under|provided|subject to)\b)\s+.*$/u, '').trim();
+    const ac = core(a), bc = core(b);
+    if (ac && bc && ac === bc && trackingWords(ac).size >= 2) return true;
     const A = trackingWords(a), B = trackingWords(b);
     if (!A.size || !B.size) return false;
     let n = 0; for (const word of A) if (B.has(word)) n++;
-    // Never collapse two activities solely because one generic action word matches.
+    // Require full overlap of the shorter activity, not vague similarity.
     return n >= 2 && n === Math.min(A.size, B.size);
 }
 
@@ -15732,7 +15737,15 @@ function agendaApproximate(text) {
 function agendaScheduleCompatible(a, b, dueAt) {
     if (b.moved) return true;
     if (a.scheduleDay !== null && a.scheduleDay !== undefined && b.scheduleDay !== null && b.scheduleDay !== undefined && a.scheduleDay !== b.scheduleDay) return false;
-    if (a.dueAt !== null && dueAt !== null) return a.dueAt === dueAt;
+    if (a.dueAt !== null && dueAt !== null) {
+        if (a.dueAt === dueAt) return true;
+        // "now" refines an earlier before/by deadline on the same day; it is
+        // not a second scheduled occurrence of the same named activity.
+        const immediate = /^(?:now|immediately|right now)$/i.test(String(b.when || b.due || '').trim());
+        const priorWindow = /\b(?:before|by|until)\b/i.test(a.when || '');
+        if (immediate && priorWindow && Math.floor(a.dueAt / 1440) === Math.floor(dueAt / 1440)) return true;
+        return false;
+    }
     if (!a.when || (!b.when && !b.due)) return true;
     const normalize = text => [...new Set(lockKey(text || '').replace(/\bmorning meal\b/g, 'breakfast')
         .replace(/\b(?:half past|quarter past|quarter to)\s+\w+\b|\b\d{1,2}:\d{2}\s*(?:am|pm)?\b/g, '')
