@@ -1,5 +1,22 @@
 # Changelog — RPG Companion HMS Edition
 
+## 2.9.10 RC — Recovery and targeted performance stabilization
+
+- Retry failed leftover-report recovery; record completion after metadata commits.
+  Serialize recovery per reply, distinguish swipe/source fingerprints and bound
+  completed keys. Preserve transactional folds, Save/Continue isolation and schema.
+- Defer automatic state requests and panel DOM updates while hidden; catch up once
+  on opening. Observe the actual drawer/float/popout content independently and
+  preserve generation relay, missed-push recovery and background tracking.
+- Reduce live-metadata read allocations and skip unnecessary unsigned/absent-report
+  fingerprinting, preserving export fallback and signed per-swipe validation.
+- Require an explicit external destination for historical rebuild output; refuse
+  modern-checkout overwrite and symlink redirection. Keep historical tooling intact.
+- Add recovery, metadata-read, rebuild-safety and real Chromium visibility tests.
+  No new dependencies, model calls, polling, prompt text or storage migration.
+- Local measured 600-message warm panel cost improves about 6%; 2,000-message cost
+  is effectively unchanged. See the Phase 3 report for measurements and limits.
+
 ## 2.9.9 RC — Tracking accuracy and continuation
 
 - Keep stable Agenda keys while displaying updated conditions; recognize guarded

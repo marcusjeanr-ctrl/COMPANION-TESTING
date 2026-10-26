@@ -76,14 +76,26 @@ def generate():
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--check', action='store_true')
+    parser.add_argument('--output', type=pathlib.Path, help='Explicit historical output directory outside the checkout')
     args = parser.parse_args()
-    for filename, text in generate().items():
-        target = ROOT / filename
+    destination = args.output.resolve() if args.output else ROOT
+    if args.output:
+        if destination.is_relative_to(ROOT):
+            parser.error('Historical output must be outside the working checkout')
+    elif not args.check or json.loads((ROOT / 'spindle.json').read_text()).get('version') != '2.8.2':
+        parser.error('Historical 2.8.2 generation cannot overwrite a modern release; use --output /outside/checkout')
+    output = generate()
+    # Resolve all paths before any write; a symlink must not redirect output into the checkout.
+    if args.output and any((destination / name).resolve().is_relative_to(ROOT) for name in output):
+        parser.error('Historical output resolves inside the working checkout')
+    for filename, text in output.items():
+        target = destination / filename
         data = text.encode()
         if args.check:
             if target.read_bytes() != data:
                 raise SystemExit(filename + ' is not reproducible')
         else:
+            target.parent.mkdir(parents=True, exist_ok=True)
             target.write_bytes(data)
         print(filename + ': ' + hashlib.sha256(data).hexdigest())
 

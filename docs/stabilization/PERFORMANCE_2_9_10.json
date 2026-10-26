@@ -1,0 +1,539 @@
+{
+  "baseline": "e55dad8a0213ddbc1a6873db5558d6b53f6b613d",
+  "node": "22.22.2",
+  "method": "Five alternating panel rounds; three pipeline/memory rounds; source-bound timings; synthetic host; no network/model/disk latency",
+  "runs": [
+    {
+      "benchmark": "panel",
+      "version": "2.9.9",
+      "round": 0,
+      "replies": 300,
+      "exit": 0,
+      "result": {
+        "messages": 600,
+        "coldMs": 157.57,
+        "medianMs": 45.25,
+        "warnings": 0
+      }
+    },
+    {
+      "benchmark": "panel",
+      "version": "2.9.10",
+      "round": 0,
+      "replies": 300,
+      "exit": 0,
+      "result": {
+        "messages": 600,
+        "coldMs": 154.82,
+        "medianMs": 41.92,
+        "warnings": 0
+      }
+    },
+    {
+      "benchmark": "panel",
+      "version": "2.9.10",
+      "round": 1,
+      "replies": 300,
+      "exit": 0,
+      "result": {
+        "messages": 600,
+        "coldMs": 155.17,
+        "medianMs": 42.25,
+        "warnings": 0
+      }
+    },
+    {
+      "benchmark": "panel",
+      "version": "2.9.9",
+      "round": 1,
+      "replies": 300,
+      "exit": 0,
+      "result": {
+        "messages": 600,
+        "coldMs": 158.97,
+        "medianMs": 42.29,
+        "warnings": 0
+      }
+    },
+    {
+      "benchmark": "panel",
+      "version": "2.9.9",
+      "round": 2,
+      "replies": 300,
+      "exit": 0,
+      "result": {
+        "messages": 600,
+        "coldMs": 158.23,
+        "medianMs": 43.43,
+        "warnings": 0
+      }
+    },
+    {
+      "benchmark": "panel",
+      "version": "2.9.10",
+      "round": 2,
+      "replies": 300,
+      "exit": 0,
+      "result": {
+        "messages": 600,
+        "coldMs": 153.18,
+        "medianMs": 42.5,
+        "warnings": 0
+      }
+    },
+    {
+      "benchmark": "panel",
+      "version": "2.9.10",
+      "round": 3,
+      "replies": 300,
+      "exit": 0,
+      "result": {
+        "messages": 600,
+        "coldMs": 154.08,
+        "medianMs": 42.4,
+        "warnings": 0
+      }
+    },
+    {
+      "benchmark": "panel",
+      "version": "2.9.9",
+      "round": 3,
+      "replies": 300,
+      "exit": 0,
+      "result": {
+        "messages": 600,
+        "coldMs": 156.44,
+        "medianMs": 47.94,
+        "warnings": 0
+      }
+    },
+    {
+      "benchmark": "panel",
+      "version": "2.9.9",
+      "round": 4,
+      "replies": 300,
+      "exit": 0,
+      "result": {
+        "messages": 600,
+        "coldMs": 159.99,
+        "medianMs": 45.19,
+        "warnings": 0
+      }
+    },
+    {
+      "benchmark": "panel",
+      "version": "2.9.10",
+      "round": 4,
+      "replies": 300,
+      "exit": 0,
+      "result": {
+        "messages": 600,
+        "coldMs": 159.83,
+        "medianMs": 49.56,
+        "warnings": 0
+      }
+    },
+    {
+      "benchmark": "panel",
+      "version": "2.9.9",
+      "round": 0,
+      "replies": 1000,
+      "exit": 0,
+      "result": {
+        "messages": 2000,
+        "coldMs": 334.27,
+        "medianMs": 73.23,
+        "warnings": 0
+      }
+    },
+    {
+      "benchmark": "panel",
+      "version": "2.9.10",
+      "round": 0,
+      "replies": 1000,
+      "exit": 0,
+      "result": {
+        "messages": 2000,
+        "coldMs": 336.02,
+        "medianMs": 69.37,
+        "warnings": 0
+      }
+    },
+    {
+      "benchmark": "panel",
+      "version": "2.9.10",
+      "round": 1,
+      "replies": 1000,
+      "exit": 0,
+      "result": {
+        "messages": 2000,
+        "coldMs": 321.5,
+        "medianMs": 68.65,
+        "warnings": 0
+      }
+    },
+    {
+      "benchmark": "panel",
+      "version": "2.9.9",
+      "round": 1,
+      "replies": 1000,
+      "exit": 0,
+      "result": {
+        "messages": 2000,
+        "coldMs": 326.48,
+        "medianMs": 69.02,
+        "warnings": 0
+      }
+    },
+    {
+      "benchmark": "panel",
+      "version": "2.9.9",
+      "round": 2,
+      "replies": 1000,
+      "exit": 0,
+      "result": {
+        "messages": 2000,
+        "coldMs": 334.53,
+        "medianMs": 67.95,
+        "warnings": 0
+      }
+    },
+    {
+      "benchmark": "panel",
+      "version": "2.9.10",
+      "round": 2,
+      "replies": 1000,
+      "exit": 0,
+      "result": {
+        "messages": 2000,
+        "coldMs": 352.63,
+        "medianMs": 68.58,
+        "warnings": 0
+      }
+    },
+    {
+      "benchmark": "panel",
+      "version": "2.9.10",
+      "round": 3,
+      "replies": 1000,
+      "exit": 0,
+      "result": {
+        "messages": 2000,
+        "coldMs": 328.16,
+        "medianMs": 69.11,
+        "warnings": 0
+      }
+    },
+    {
+      "benchmark": "panel",
+      "version": "2.9.9",
+      "round": 3,
+      "replies": 1000,
+      "exit": 0,
+      "result": {
+        "messages": 2000,
+        "coldMs": 342.16,
+        "medianMs": 68.88,
+        "warnings": 0
+      }
+    },
+    {
+      "benchmark": "panel",
+      "version": "2.9.9",
+      "round": 4,
+      "replies": 1000,
+      "exit": 0,
+      "result": {
+        "messages": 2000,
+        "coldMs": 324.43,
+        "medianMs": 67.59,
+        "warnings": 0
+      }
+    },
+    {
+      "benchmark": "panel",
+      "version": "2.9.10",
+      "round": 4,
+      "replies": 1000,
+      "exit": 0,
+      "result": {
+        "messages": 2000,
+        "coldMs": 341.72,
+        "medianMs": 73.54,
+        "warnings": 0
+      }
+    },
+    {
+      "benchmark": "pipeline",
+      "version": "2.9.9",
+      "round": 0,
+      "exit": 0,
+      "result": {
+        "parseReportMedianMs": 0.4085,
+        "processResponseMedianMs": 0.5399,
+        "promptConstructMedianMs": 0.2703,
+        "promptCharacters": 14832,
+        "populatedPromptCharacters": 18528,
+        "warnings": 0
+      }
+    },
+    {
+      "benchmark": "memory",
+      "version": "2.9.9",
+      "round": 0,
+      "exit": 0,
+      "result": {
+        "coldVmInitMs": 24.172471,
+        "warmVmInitMs": [
+          5.210923999999999,
+          4.463978999999995,
+          4.173997999999997,
+          4.199516000000003,
+          4.188699999999997
+        ],
+        "initHeapDelta": 3153496,
+        "messages": 1000,
+        "fixturePlusInitHeapDelta": 11832824,
+        "statesFillAdditionalHeap": 161816,
+        "rssAfterFixture": 67313664,
+        "cachedReports": 1000
+      }
+    },
+    {
+      "benchmark": "pipeline",
+      "version": "2.9.10",
+      "round": 0,
+      "exit": 0,
+      "result": {
+        "parseReportMedianMs": 0.4301,
+        "processResponseMedianMs": 0.5748,
+        "promptConstructMedianMs": 0.2691,
+        "promptCharacters": 14832,
+        "populatedPromptCharacters": 18528,
+        "warnings": 0
+      }
+    },
+    {
+      "benchmark": "memory",
+      "version": "2.9.10",
+      "round": 0,
+      "exit": 0,
+      "result": {
+        "coldVmInitMs": 23.599618000000003,
+        "warmVmInitMs": [
+          5.259349999999998,
+          4.172213999999997,
+          4.030987999999994,
+          4.163710999999992,
+          4.317998000000003
+        ],
+        "initHeapDelta": 3156088,
+        "messages": 1000,
+        "fixturePlusInitHeapDelta": 11820984,
+        "statesFillAdditionalHeap": 164272,
+        "rssAfterFixture": 66781184,
+        "cachedReports": 1000
+      }
+    },
+    {
+      "benchmark": "pipeline",
+      "version": "2.9.10",
+      "round": 1,
+      "exit": 0,
+      "result": {
+        "parseReportMedianMs": 0.4075,
+        "processResponseMedianMs": 0.5515,
+        "promptConstructMedianMs": 0.259,
+        "promptCharacters": 14832,
+        "populatedPromptCharacters": 18528,
+        "warnings": 0
+      }
+    },
+    {
+      "benchmark": "memory",
+      "version": "2.9.10",
+      "round": 1,
+      "exit": 0,
+      "result": {
+        "coldVmInitMs": 23.852172999999997,
+        "warmVmInitMs": [
+          5.013137,
+          4.228424000000004,
+          3.9360110000000077,
+          4.118517999999995,
+          3.9731570000000005
+        ],
+        "initHeapDelta": 3156088,
+        "messages": 1000,
+        "fixturePlusInitHeapDelta": 11835224,
+        "statesFillAdditionalHeap": 164272,
+        "rssAfterFixture": 67059712,
+        "cachedReports": 1000
+      }
+    },
+    {
+      "benchmark": "pipeline",
+      "version": "2.9.9",
+      "round": 1,
+      "exit": 0,
+      "result": {
+        "parseReportMedianMs": 0.4132,
+        "processResponseMedianMs": 0.533,
+        "promptConstructMedianMs": 0.2549,
+        "promptCharacters": 14832,
+        "populatedPromptCharacters": 18528,
+        "warnings": 0
+      }
+    },
+    {
+      "benchmark": "memory",
+      "version": "2.9.9",
+      "round": 1,
+      "exit": 0,
+      "result": {
+        "coldVmInitMs": 23.354584000000003,
+        "warmVmInitMs": [
+          5.032584,
+          4.085434999999997,
+          4.069279000000009,
+          4.211647999999997,
+          4.1398379999999975
+        ],
+        "initHeapDelta": 3153496,
+        "messages": 1000,
+        "fixturePlusInitHeapDelta": 11831448,
+        "statesFillAdditionalHeap": 161816,
+        "rssAfterFixture": 67047424,
+        "cachedReports": 1000
+      }
+    },
+    {
+      "benchmark": "pipeline",
+      "version": "2.9.9",
+      "round": 2,
+      "exit": 0,
+      "result": {
+        "parseReportMedianMs": 0.4029,
+        "processResponseMedianMs": 0.5398,
+        "promptConstructMedianMs": 0.2761,
+        "promptCharacters": 14832,
+        "populatedPromptCharacters": 18528,
+        "warnings": 0
+      }
+    },
+    {
+      "benchmark": "memory",
+      "version": "2.9.9",
+      "round": 2,
+      "exit": 0,
+      "result": {
+        "coldVmInitMs": 26.344683999999994,
+        "warmVmInitMs": [
+          5.1637210000000096,
+          4.208919000000009,
+          4.096958999999998,
+          4.150721000000004,
+          3.8907250000000033
+        ],
+        "initHeapDelta": 3153496,
+        "messages": 1000,
+        "fixturePlusInitHeapDelta": 11831448,
+        "statesFillAdditionalHeap": 161816,
+        "rssAfterFixture": 67076096,
+        "cachedReports": 1000
+      }
+    },
+    {
+      "benchmark": "pipeline",
+      "version": "2.9.10",
+      "round": 2,
+      "exit": 0,
+      "result": {
+        "parseReportMedianMs": 0.4145,
+        "processResponseMedianMs": 0.5371,
+        "promptConstructMedianMs": 0.255,
+        "promptCharacters": 14832,
+        "populatedPromptCharacters": 18528,
+        "warnings": 0
+      }
+    },
+    {
+      "benchmark": "memory",
+      "version": "2.9.10",
+      "round": 2,
+      "exit": 0,
+      "result": {
+        "coldVmInitMs": 23.847368000000003,
+        "warmVmInitMs": [
+          5.532511999999997,
+          4.590372000000002,
+          4.677755000000005,
+          4.419160000000005,
+          4.7789399999999915
+        ],
+        "initHeapDelta": 3156088,
+        "messages": 1000,
+        "fixturePlusInitHeapDelta": 11834808,
+        "statesFillAdditionalHeap": 164272,
+        "rssAfterFixture": 67186688,
+        "cachedReports": 1000
+      }
+    },
+    {
+      "benchmark": "operations",
+      "version": "2.9.9",
+      "exit": 0,
+      "result": {
+        "transport": {
+          "model": 1,
+          "getMessages": 6,
+          "metadataWrites": 1,
+          "storageReads": 2,
+          "storageWrites": 4,
+          "historyElementReads": 0,
+          "traversals": {}
+        },
+        "panel": {
+          "messages": 600,
+          "historyElementReads": 9101,
+          "traversals": {
+            "mtEventLedgerUncached": 1,
+            "atlasObserveHistory": 1,
+            "relReadingsUncached": 1,
+            "hmsTimelineUncached": 1,
+            "simReplies": 1,
+            "spellStoryFoldUncached": 1
+          }
+        }
+      }
+    },
+    {
+      "benchmark": "operations",
+      "version": "2.9.10",
+      "exit": 0,
+      "result": {
+        "transport": {
+          "model": 1,
+          "getMessages": 6,
+          "metadataWrites": 1,
+          "storageReads": 2,
+          "storageWrites": 4,
+          "historyElementReads": 0,
+          "traversals": {}
+        },
+        "panel": {
+          "messages": 600,
+          "historyElementReads": 9101,
+          "traversals": {
+            "mtEventLedgerUncached": 1,
+            "atlasObserveHistory": 1,
+            "relReadingsUncached": 1,
+            "hmsTimelineUncached": 1,
+            "simReplies": 1,
+            "spellStoryFoldUncached": 1
+          }
+        }
+      }
+    }
+  ]
+}

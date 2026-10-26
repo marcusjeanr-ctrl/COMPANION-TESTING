@@ -1125,7 +1125,7 @@ export function setup(ctx) {
         id: 'rpg-companion-hms',
         title: 'RPG Companion (HMS)',
         shortName: 'RPG',
-        headerTitle: 'RPG Companion HMS Edition 2.9.9',
+        headerTitle: 'RPG Companion HMS Edition 2.9.10',
         description: 'The side panel for HMS bots: the HUD as cards, people, quests, the map, fights, the Chronicle, and a guide',
         keywords: ['rpg', 'hms', 'tracker', 'hud', 'quests', 'dice', 'guide'],
         iconSvg: ICON_SVG
@@ -1173,7 +1173,40 @@ export function setup(ctx) {
     // ── backend comms ──
     const send = (payload) => ctx.sendToBackend(payload);
     try { send({ type: 'ui_locale', lang: browserLang() }); } catch { /* backend not ready */ }
-    const requestState = (extra = {}) => send({ type: 'get_state', chatId: state.chatId, characterId: state.characterId, ...extra });
+    let panelVisible = true, panelIntersection = true, panelObserver = null, panelDocument = null;
+    let hiddenRender = false, hiddenRequest = null;
+    const requestState = (extra = {}) => {
+        // The first settings response is needed to restore float/popout mode even while hidden.
+        if (!panelVisible && state.settings) { hiddenRequest = { ...hiddenRequest, ...extra }; return; }
+        send({ type: 'get_state', chatId: state.chatId, characterId: state.characterId, ...extra });
+    };
+    function updatePanelVisibility() {
+        const visible = panelIntersection && panelDocument?.visibilityState !== 'hidden';
+        if (visible === panelVisible) return;
+        panelVisible = visible;
+        if (visible) {
+            if (hiddenRender) { hiddenRender = false; render(true); }
+            const extra = hiddenRequest || {}; hiddenRequest = null;
+            requestState(extra); // catch up once, including missed edits/swipes/chat changes
+        }
+    }
+    function watchPanelVisibility() {
+        panelObserver?.disconnect();
+        panelDocument?.removeEventListener?.('visibilitychange', updatePanelVisibility);
+        panelDocument = root.ownerDocument || document;
+        // Fail open on older hosts; do not infer visibility from the parked drawer when floating.
+        const Observer = panelDocument.defaultView?.IntersectionObserver;
+        panelIntersection = Observer && root.getClientRects ? root.getClientRects().length > 0 : true;
+        panelDocument.addEventListener?.('visibilitychange', updatePanelVisibility);
+        if (Observer) {
+            panelObserver = new Observer(entries => {
+                panelIntersection = entries[entries.length - 1]?.isIntersecting !== false;
+                updatePanelVisibility();
+            });
+            panelObserver.observe(root);
+        }
+        updatePanelVisibility();
+    }
     function requestRefresh() {
         if (!state.chatId || state.busy) return;
         state.busy = true;
@@ -1447,6 +1480,7 @@ export function setup(ctx) {
     let pendingRender = false;
     let deferredEl = null;
     function render(fromBackend = false) {
+        if (!panelVisible) { hiddenRender = true; return; }
         applyLang();
         root.className = 'rpgc' + themeClass();
         if (encModal) encModal.root.className = 'rpgc rpgc-enc' + themeClass();
@@ -6250,7 +6284,7 @@ body{background:${bs ? bs.backgroundColor : '#111'};color:${bs ? bs.color : '#dd
                 const f = (S() && S().uiFloat) || {};
                 floatBox = h('div', { class: 'rpgc-float', role: 'dialog', 'aria-label': 'RPG Companion' });
                 const bar = h('div', { class: 'rpgc-float-bar' }, h('span', { class: 'ttl' }, 'RPG Companion'),
-                    h('button', { class: 'rpgc-mini', 'aria-label': 'Minimise', title: 'Minimise', onclick: () => { floatBox.classList.toggle('min'); fitFloat(); saveFloat(); } }, '\u2013'),
+                    h('button', { class: 'rpgc-mini', 'aria-label': 'Minimise', title: 'Minimise', onclick: () => { floatBox.classList.toggle('min'); fitFloat(); saveFloat(); watchPanelVisibility(); } }, '\u2013'),
                     h('button', { class: 'rpgc-mini', 'aria-label': 'Enlarge', title: 'Enlarge', onclick: () => { floatBox.classList.toggle('big'); fitFloat(); saveFloat(); } }, '\u25A1'),
                     h('button', { class: 'rpgc-mini', 'aria-label': 'Pop out to a new window', title: 'Pop out (second screen)', onclick: () => setPanelMode('popout') }, '\u2197'),
                     h('button', { class: 'rpgc-mini', 'aria-label': 'Back to the drawer', title: 'Back to the drawer', onclick: () => setPanelMode('drawer') }, '\u21E5'));
@@ -6271,7 +6305,7 @@ body{background:${bs ? bs.backgroundColor : '#111'};color:${bs ? bs.color : '#dd
             if (!popWin || popWin.closed) {
                 popWin = window.open('', 'rpgc_popout', 'width=460,height=860');
                 if (!popWin) { state.status = { kind: 'warning', text: 'The browser blocked the pop-out window. Allow pop-ups for Lumiverse and try again.' }; const s = S(); s.uiPanelMode = 'drawer'; return applyPanelMode(); }
-                popWin.document.title = 'RPG Companion HMS Edition 2.9.9 RC';
+                popWin.document.title = 'RPG Companion HMS Edition 2.9.10 RC';
                 syncPopoutLook(popWin);
                 try { if (!popLookObs) { popLookObs = new MutationObserver(() => syncPopoutLook(popWin)); popLookObs.observe(document.documentElement, { attributes: true }); if (document.body) popLookObs.observe(document.body, { attributes: true, attributeFilter: ['class'] }); } } catch { /* optional */ }
                 popWin.addEventListener('beforeunload', () => { popWin = null; if (panelMode() === 'popout') { const s = S(); s.uiPanelMode = 'drawer'; saveSettings(false); applyPanelMode(); render(); } });
@@ -6287,6 +6321,7 @@ body{background:${bs ? bs.backgroundColor : '#111'};color:${bs ? bs.color : '#dd
             if (popWin) { const w = popWin; popWin = null; try { w.close(); } catch { /* gone */ } }
             tab.root.replaceChildren(root);
         }
+        watchPanelVisibility();
     }
     function saveFloat() {
         if (!floatBox) return;
@@ -6376,6 +6411,7 @@ body{background:${bs ? bs.backgroundColor : '#111'};color:${bs ? bs.color : '#dd
 
 
     // ── start ──
+    watchPanelVisibility();
     render();
     syncChat();
     if (!state.chatId) requestState();
@@ -6383,6 +6419,8 @@ body{background:${bs ? bs.backgroundColor : '#111'};color:${bs ? bs.color : '#dd
     return () => {
         try { if (floatBox) floatBox.remove(); if (popWin && !popWin.closed) popWin.close(); } catch { /* gone */ }
         window.removeEventListener?.('resize', floatResize);
+        panelObserver?.disconnect();
+        panelDocument?.removeEventListener?.('visibilitychange', updatePanelVisibility);
         clearInterval(pollTimer);
         clearTimeout(saveTimer);
         clearTimeout(settingsTimer);
