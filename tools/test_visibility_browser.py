@@ -16,6 +16,8 @@ class VisibilityTests(unittest.TestCase):
   self.context=self.browser.new_context(viewport={'width':500,'height':800});self.page=self.context.new_page();self.errors=[];self.page.on('pageerror',lambda e:self.errors.append(str(e)))
   self.page.set_content('<div id="drawer" style="height:100vh;overflow:auto"></div>')
   self.page.evaluate('window.timers=[];window.setInterval=(f,ms)=>{timers.push({f,ms});return timers.length};window.clearInterval=()=>{}')
+  if self._testMethodName=='test_legacy_host_keeps_refresh_without_observer':
+   self.page.evaluate('window.IntersectionObserver=undefined;document.querySelector("#drawer").style.display="none"')
   self.page.add_script_tag(content=SOURCE)
   self.page.evaluate('''() => {window.sent=[];window.hostEvents={};window.activeChat={chatId:'test',characterId:'character'};window.dispose=setup({dom:{addStyle(css){const s=document.createElement('style');s.textContent=css;document.head.append(s);return ()=>s.remove()}},ui:{registerDrawerTab(){return {root:document.querySelector('#drawer'),activate(){},destroy(){}}},registerInputBarAction(){return {onClick(){},setEnabled(){},destroy(){}}}},sendToBackend(x){sent.push(x)},onBackendMessage(fn){window.receive=fn;return ()=>{}},getActiveChat(){return activeChat},events:{on(ev,fn){hostEvents[ev]=fn;return ()=>{}}}})}''')
   self.receive(FIXTURE);self.page.wait_for_timeout(100);self.clear()
@@ -42,6 +44,9 @@ class VisibilityTests(unittest.TestCase):
   payload=json.loads(json.dumps(FIXTURE));payload['settings']['uiPanelMode']='float';self.receive(payload);self.hide();self.ticks();self.assertEqual(len(self.requests()),1)
   self.page.get_by_label('Minimise',exact=True).click();self.page.wait_for_timeout(100);self.clear();self.ticks();self.assertEqual(self.requests(),[])
   self.page.get_by_label('Minimise',exact=True).click();self.page.wait_for_timeout(100);self.assertEqual(len(self.requests()),1)
+ def test_legacy_host_keeps_refresh_without_observer(self):
+  self.ticks();self.assertEqual(len(self.requests()),1,'Unknown visibility must retain the original heartbeat')
+  self.show();self.assertTrue(self.page.locator('.rpgc').inner_text())
  def test_popout_visibility_is_independent_of_drawer(self):
   payload=json.loads(json.dumps(FIXTURE));payload['settings']['uiPanelMode']='popout'
   with self.context.expect_page() as opened:self.receive(payload)

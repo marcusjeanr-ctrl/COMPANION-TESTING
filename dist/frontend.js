@@ -1195,9 +1195,9 @@ export function setup(ctx) {
         panelDocument?.removeEventListener?.('visibilitychange', updatePanelVisibility);
         panelDocument = root.ownerDocument || document;
         // Fail open on older hosts; do not infer visibility from the parked drawer when floating.
-        panelIntersection = root.getClientRects ? root.getClientRects().length > 0 : true;
-        panelDocument.addEventListener?.('visibilitychange', updatePanelVisibility);
         const Observer = panelDocument.defaultView?.IntersectionObserver;
+        panelIntersection = Observer && root.getClientRects ? root.getClientRects().length > 0 : true;
+        panelDocument.addEventListener?.('visibilitychange', updatePanelVisibility);
         if (Observer) {
             panelObserver = new Observer(entries => {
                 panelIntersection = entries[entries.length - 1]?.isIntersecting !== false;
