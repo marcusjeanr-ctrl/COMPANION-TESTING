@@ -1,0 +1,23 @@
+{
+  "version": "2.9.3",
+  "base_commit": "83c1a16e8ff5329ef06b0f1f68e2dcc5e39e3d08",
+  "frontend_byte_identical": true,
+  "files": {
+    "dist/backend.js": {
+      "sha256": "de934c4ce2c09eafd684bb4e74dda171a64ba6ccbc3f7102fec6de1543f0da0a",
+      "bytes": 1135199
+    },
+    "dist/frontend.js": {
+      "sha256": "bda10f2c2830838794f2ef6c95bf8c5950c0b0e880e49dd359f1f7ed8206d2fc",
+      "bytes": 1424408
+    },
+    "spindle.json": {
+      "sha256": "df9b82923035d36ea5e4e25ff86fd4a93a57a5e1bc0080df872b41305d81051a",
+      "bytes": 1535
+    },
+    "preset/HMS_Reporter_beta.json": {
+      "sha256": "f2ea113b3137cd254d3addff69ee75694bb09b11588e65ef12fa7f6c5a9eb9d9",
+      "bytes": 39590
+    }
+  }
+}

@@ -1,0 +1,82 @@
+[
+  {
+    "file": "/tmp/companion-2.8.19-backend.js",
+    "messages": 600,
+    "coldMs": 144.56,
+    "medianMs": 52.62,
+    "warnings": 0,
+    "round": 1
+  },
+  {
+    "file": "Companion/dist/backend.js",
+    "messages": 600,
+    "coldMs": 107.93,
+    "medianMs": 50.73,
+    "warnings": 0,
+    "round": 1
+  },
+  {
+    "file": "Companion/dist/backend.js",
+    "messages": 600,
+    "coldMs": 125.06,
+    "medianMs": 52.38,
+    "warnings": 0,
+    "round": 2
+  },
+  {
+    "file": "/tmp/companion-2.8.19-backend.js",
+    "messages": 600,
+    "coldMs": 115.98,
+    "medianMs": 53.04,
+    "warnings": 0,
+    "round": 2
+  },
+  {
+    "file": "/tmp/companion-2.8.19-backend.js",
+    "messages": 600,
+    "coldMs": 132.89,
+    "medianMs": 52.48,
+    "warnings": 0,
+    "round": 3
+  },
+  {
+    "file": "Companion/dist/backend.js",
+    "messages": 600,
+    "coldMs": 111.07,
+    "medianMs": 51.07,
+    "warnings": 0,
+    "round": 3
+  },
+  {
+    "file": "Companion/dist/backend.js",
+    "messages": 600,
+    "coldMs": 124.45,
+    "medianMs": 51.81,
+    "warnings": 0,
+    "round": 4
+  },
+  {
+    "file": "/tmp/companion-2.8.19-backend.js",
+    "messages": 600,
+    "coldMs": 107.7,
+    "medianMs": 49.04,
+    "warnings": 0,
+    "round": 4
+  },
+  {
+    "file": "/tmp/companion-2.8.19-backend.js",
+    "messages": 600,
+    "coldMs": 125.96,
+    "medianMs": 54.42,
+    "warnings": 0,
+    "round": 5
+  },
+  {
+    "file": "Companion/dist/backend.js",
+    "messages": 600,
+    "coldMs": 105,
+    "medianMs": 53.62,
+    "warnings": 0,
+    "round": 5
+  }
+]

@@ -1,0 +1,11 @@
+PASS equipment: explicit offers and unaccepted actions never become held or worn
+PASS inventory: unopened nearby gifts are pending, accepted wrapped gifts and temporary possessions survive
+PASS quests: unknown percentages stay unknown; explicit progress survives; rejected tasks are omitted
+PASS appointments: requests do not become promises; confirmed events retain lifecycle and context
+PASS relationships: explicit speculation is withheld without deleting established bonds or useful interpretations
+PASS sources: explicit draft/planning prefixes cannot override the final HUD or pollute tracking transport
+PASS HUD safety: repeated headers, quoted examples, tagged reasoning and ordinary prose remain safe
+Prompt characters: 15798 -> 13054
+PASS prompt policy: measured quest progress, explicit promises and accepted acquisitions without added prompt length
+PASS supplied export: final HUD, family, physical presence and explicit held state survive
+Tracking source integrity: 9/9 groups passed.

@@ -1,0 +1,294 @@
+{
+  "reference_commit": "f2e3840a346df977455b9aa0677c0262af155578",
+  "changes": [
+    {
+      "id": "backend-036",
+      "file": "dist/backend.js",
+      "start": 2946,
+      "end": 2947,
+      "reference_start": 3143,
+      "reference_end": 3144,
+      "function": "hudCardValue",
+      "action": "retain verified behavior/dependency at original callsite",
+      "tests": [
+        "test_visual_rank_integrity.cjs",
+        "test_tracking_source_integrity.cjs",
+        "test_six_sided_repairs.cjs"
+      ],
+      "before": "    const dot = v.split(/\\s+·\\s+/);\n",
+      "after": "    const dot = hmsSplitTop(v, /\\s+·\\s+/g);\n"
+    },
+    {
+      "id": "backend-037",
+      "file": "dist/backend.js",
+      "start": 2950,
+      "end": 2951,
+      "reference_start": 3147,
+      "reference_end": 3148,
+      "function": "hudCardValue",
+      "action": "retain verified behavior/dependency at original callsite",
+      "tests": [
+        "test_visual_rank_integrity.cjs",
+        "test_tracking_source_integrity.cjs",
+        "test_six_sided_repairs.cjs"
+      ],
+      "before": "        const parts = v.split(/,\\s+/);\n",
+      "after": "        const parts = hmsSplitTop(v, /,\\s+/g);\n"
+    },
+    {
+      "id": "backend-038",
+      "file": "dist/backend.js",
+      "start": 3065,
+      "end": 3065,
+      "reference_start": 3262,
+      "reference_end": 3263,
+      "function": "renderHudCard",
+      "action": "retain verified behavior/dependency at original callsite",
+      "tests": [
+        "test_visual_rank_integrity.cjs",
+        "test_tracking_source_integrity.cjs",
+        "test_six_sided_repairs.cjs"
+      ],
+      "before": "",
+      "after": "    if (hud.style === 'visual') return text;\n"
+    },
+    {
+      "id": "backend-077",
+      "file": "dist/backend.js",
+      "start": 6144,
+      "end": 6145,
+      "reference_start": 6555,
+      "reference_end": 6556,
+      "function": "encounterRetry",
+      "action": "retain verified behavior/dependency at original callsite",
+      "tests": [
+        "test_visual_rank_integrity.cjs",
+        "test_tracking_source_integrity.cjs",
+        "test_six_sided_repairs.cjs"
+      ],
+      "before": "const HUD_HEAD_RE = /^[ \\t]*(?:\\*\\*)?[ \\t]*(?:#{1,6}[ \\t]*)?WORLD STATE[ \\t]*(?:#{1,6})?[ \\t]*(?:\\*\\*)?[ \\t]*$/im;\n",
+      "after": "const HUD_HEAD_RE = /^[ \\t]*(?:\\*\\*)?[ \\t]*(?:#{1,6}[ \\t]*)?(?:🌐[ \\t]*)?WORLD STATE[ \\t]*(?:#{1,6})?[ \\t]*(?:\\*\\*)?[ \\t]*$/im;\n"
+    },
+    {
+      "id": "backend-078",
+      "file": "dist/backend.js",
+      "start": 6148,
+      "end": 6148,
+      "reference_start": 6559,
+      "reference_end": 6603,
+      "function": "mtCalendar",
+      "action": "retain verified behavior/dependency at original callsite",
+      "tests": [
+        "test_visual_rank_integrity.cjs",
+        "test_tracking_source_integrity.cjs",
+        "test_six_sided_repairs.cjs"
+      ],
+      "before": "",
+      "after": "function mtCalendar(text) {\n    const t = String(text || '');\n    const m = t.match(/Armored Dragon Calendar:\\s*K\\.?\\s*(\\d{3,4})\\s*,\\s*(?:([^,|\\n]+?)\\s*\\(Month\\s*(\\d{1,2})\\)|Month\\s*(\\d{1,2}))\\s*,\\s*Day\\s*(\\d{1,2})\\b/i);\n    if (m) {\n        const year = Number(m[1]), month = Number(m[3] || m[4]), day = Number(m[5]);\n        return month >= 1 && month <= 12 && day >= 1 && day <= 30 ? { year, month, day, monthName: m[2]?.trim() || null } : null;\n    }\n    const old = t.match(/\\bYear:\\s*K\\.?\\s*(\\d{3,4})\\s*\\|\\s*Day:\\s*(\\d{1,3})\\b/i);\n    return old && Number(old[2]) >= 1 && Number(old[2]) <= 360 ? { year: Number(old[1]), month: null, day: Number(old[2]), monthName: null } : null;\n}\nfunction mtCalendarDay(date) {\n    return date.year * 360 + (date.month ? (date.month - 1) * 30 : 0) + date.day - 1;\n}\nfunction mtPowerViews(text) {\n    const t = String(text || '').trim();\n    const m = t.match(/^Shown:\\s*([\\s\\S]*?)\\s*\\|\\s*True:\\s*([\\s\\S]+)$/i);\n    return { shown: m ? m[1].trim() : null, actual: (m ? m[2] : t).split(/\\s*\\|\\s*(?:Reserve|Status):/i)[0].trim() };\n}\nfunction mtRankRows(text, ranks) {\n    return hmsSplitTop(mtPowerViews(text).actual, /\\s*[,;·]\\s*/g).map(part => {\n        const m = part.match(/^(.+?)\\s*:\\s*(.+)$/) || part.match(/^(.+?)\\s*\\(([^)]+)\\)$/) || part.match(/^(.+?)\\s+[—–-]\\s+(.+)$/);\n        if (!m) return null;\n        const rank = ranks.find(x => new RegExp(`\\\\b${x}\\\\b`, 'i').test(m[2])) || (/beginner/i.test(m[2]) ? ranks[0] : null);\n        return { name: m[1].trim(), rank: m[2].trim(), step: rank ? ranks.indexOf(rank) : null };\n    }).filter(Boolean);\n}\n\nfunction mushokuLocationSegments(segments) {\n    if (!Array.isArray(segments)) return [];\n    // Six-Sided combines geographic levels and rooms with commas. Respect brackets and\n    // parentheses so a qualifier is never mistaken for another location.\n    const out = [];\n    for (const segment of segments) {\n        let depth = 0, current = '';\n        for (const ch of String(segment)) {\n            if (ch === '(' || ch === '[') depth++;\n            else if (ch === ')' || ch === ']') depth = Math.max(0, depth - 1);\n            if (ch === ',' && depth === 0) { if (current.trim()) out.push(current.trim()); current = ''; }\n            else current += ch;\n        }\n        if (current.trim()) out.push(current.trim());\n    }\n    return out;\n}\n"
+    },
+    {
+      "id": "backend-079",
+      "file": "dist/backend.js",
+      "start": 6166,
+      "end": 6167,
+      "reference_start": 6621,
+      "reference_end": 6623,
+      "function": "findHud",
+      "action": "retain verified behavior/dependency at original callsite",
+      "tests": [
+        "test_visual_rank_integrity.cjs",
+        "test_tracking_source_integrity.cjs",
+        "test_six_sided_repairs.cjs"
+      ],
+      "before": "    const plain = String(text).replace(/<br\\s*\\/?>/gi, '\\n').replace(/<\\/(p|div|li|h[1-6]|pre)>/gi, '\\n').replace(/<[^>]+>/g, '')\n",
+      "after": "    const plain = String(text).replace(/<(?:pre|code)\\b[^>]*>[\\s\\S]*?<\\/(?:pre|code)>/gi, '')\n        .replace(/<br\\s*\\/?>/gi, '\\n').replace(/<\\/(p|div|li|h[1-6]|pre)>/gi, '\\n').replace(/<[^>]+>/g, '')\n"
+    },
+    {
+      "id": "backend-080",
+      "file": "dist/backend.js",
+      "start": 6176,
+      "end": 6177,
+      "reference_start": 6632,
+      "reference_end": 6635,
+      "function": "findHudRaw",
+      "action": "retain verified behavior/dependency at original callsite",
+      "tests": [
+        "test_visual_rank_integrity.cjs",
+        "test_tracking_source_integrity.cjs",
+        "test_six_sided_repairs.cjs"
+      ],
+      "before": "    const src = String(text).replace(/<think(?:ing)?>[\\s\\S]*?<\\/think(?:ing)?>/gi, (m) => m.replace(/[^\\n]/g, ' '));\n",
+      "after": "    const blank = m => m.replace(/[^\\n]/g, ' ');\n    const src = String(text).replace(/<think(?:ing)?>[\\s\\S]*?<\\/think(?:ing)?>/gi, blank)\n        .replace(/^([ \\t]*)(`{3,}|~{3,})[^\\n]*\\n[\\s\\S]*?^\\1\\2[ \\t]*$/gm, blank).replace(/^[ \\t]*>.*$/gm, blank);\n"
+    },
+    {
+      "id": "backend-081",
+      "file": "dist/backend.js",
+      "start": 6183,
+      "end": 6183,
+      "reference_start": 6641,
+      "reference_end": 6655,
+      "function": "findHudRaw",
+      "action": "retain verified behavior/dependency at original callsite",
+      "tests": [
+        "test_visual_rank_integrity.cjs",
+        "test_tracking_source_integrity.cjs",
+        "test_six_sided_repairs.cjs"
+      ],
+      "before": "",
+      "after": "    // A labelled HUD draft followed by a labelled scene plan is not the story's state.\n    const draft = /(?:^|\\n)[ \\t]*(?:HUD (?:format check|header format check|build|draft|preview))[^\\n]*:/i.test(src.slice(0, heads[0].index));\n    if (draft && /(?:^|\\n)[ \\t]*(?:Scene beats|Prose|Scene plan):/i.test(src.slice(first ? first.bodyEnd : heads[0].index))) {\n        const embedded = new RegExp(HUD_HEAD_RE.source.replace('^', ''), 'gim');\n        embedded.lastIndex = first ? first.bodyEnd : heads[0].index + heads[0][0].length;\n        let final = null;\n        while ((hm = embedded.exec(src)) !== null) {\n            const gap = src.slice(first ? first.bodyEnd : 0, hm.index);\n            if (!/(?:^|\\n)[ \\t]*(?:Scene beats|Prose|Scene plan):/i.test(gap)) continue;\n            const candidate = findHudAt(src, hm);\n            if (candidate && candidate.sepFound) { final = candidate; break; }\n        }\n        if (final) { final.draftPrefix = true; return final; }\n    }\n"
+    },
+    {
+      "id": "backend-082",
+      "file": "dist/backend.js",
+      "start": 6209,
+      "end": 6210,
+      "reference_start": 6681,
+      "reference_end": 6682,
+      "function": "collapseDuplicateHudHeads",
+      "action": "retain verified behavior/dependency at original callsite",
+      "tests": [
+        "test_visual_rank_integrity.cjs",
+        "test_tracking_source_integrity.cjs",
+        "test_six_sided_repairs.cjs"
+      ],
+      "before": "            if (lastHead >= 0) { out.length = lastHead + 1; continue; }\n",
+      "after": "            if (lastHead >= 0) { if (/🌐/.test(line)) out[lastHead] = line; out.length = lastHead + 1; continue; }\n"
+    },
+    {
+      "id": "backend-083",
+      "file": "dist/backend.js",
+      "start": 6257,
+      "end": 6257,
+      "reference_start": 6729,
+      "reference_end": 6754,
+      "function": "findHudAt",
+      "action": "retain verified behavior/dependency at original callsite",
+      "tests": [
+        "test_visual_rank_integrity.cjs",
+        "test_tracking_source_integrity.cjs",
+        "test_six_sided_repairs.cjs"
+      ],
+      "before": "",
+      "after": "const HUD_DECOR_RE = /^\\s*━{4,}\\s*$/;\nconst HUD_FIELD_NAMES = /^(?:Armored Dragon Calendar|Time|Race|Origin|Age|Birth|Born|Era\\s*\\/\\s*Arc|Memory|Game Mode|Mana Capacity|Reserve|Status|Shown|True|Touki(?: \\(Battle Aura\\))?|Sword Style|Martial Style|Magic Tiers|Magic School|Voiceless Casting|Casting Method|Equipment|Guild|Epithet|Renown|Elsewhere|Canon|Guide|Narrative Mode|World event|Next Canon Event|Canon reference|Active Paths|Present|HP|MP|SP|Mana|Health|Stamina)\\s*:/i;\nfunction normalizeHudLine(raw) {\n    let text = String(raw).replace(/\\s+$/, '');\n    const indent = (text.match(/^\\s*/) || [''])[0];\n    let body = text.trim();\n    if (!/^[^\\p{L}\\p{N}]+Checkpoint:/u.test(body) && !/\\*\\*|·/.test(body) && !/^\\[[^\\p{L}\\p{N}]+(?:SOUL TETHER|CURSE|BLESSING|DEMON EYE)/u.test(body) && !/^(?:CURSE(?:\\s*\\/\\s*BLESSING)?|BLESSING|SOUL TETHER|DEMON EYE):/i.test(body)) return text;\n    // Only HUD labels and the location path lose their presentation markup.\n    body = body.replace(/^([^\\p{L}\\p{N}\\[*-]*)(?=\\*\\*|\\[|[\\p{L}])/u, '');\n    if (/^(?:\\*\\*)?Equipment(?:\\*\\*)?\\s*:/i.test(body)) return indent + body.replace(/^\\*\\*Equipment:\\*\\*\\s*/i, 'Equipment: ').replace(/^\\*\\*Equipment\\*\\*:\\s*/i, 'Equipment: ');\n    body = body.replace(/\\*\\*([^*\\n]{1,60}:)\\*\\*/g, '$1').replace(/\\*\\*([^*\\n]{1,60})\\*\\*\\s*:/g, '$1:');\n    if (/^\\*\\*[^\\n]+(?:→|⟶|➜)[^\\n]+\\*\\*$/.test(body)) body = body.slice(2, -2);\n    body = body.replace(/\\s+·\\s+(?=([^·|\\n]+))/g, (whole, tail) => {\n        const clean = tail.replace(/^[^\\p{L}\\p{N}\\[]+/u, '');\n        return HUD_FIELD_NAMES.test(clean) ? ' | ' : whole;\n    });\n    body = body.replace(/(\\|[ \\t]*)[^\\p{L}\\p{N}\\[ \\t]+[ \\t]*(?=[\\p{L}])/gu, '$1');\n    body = body.replace(/^Era\\s*\\/\\s*Arc:\\s*/i, '');\n    body = body.replace(/^\\[([^\\]:]+)\\]:\\s*(.+)$/, '[$1: $2]');\n    body = body.replace(/^\\[([^\\p{L}\\p{N}]*)([\\p{L}][^\\]:]*):/u, '[$2:');\n    const modifier = body.match(/^(CURSE(?:\\s*\\/\\s*BLESSING)?|BLESSING|SOUL TETHER|DEMON EYE):\\s*(.+)$/i);\n    if (modifier) body = `[${modifier[1].toUpperCase()}: ${modifier[2]}]`;\n    return indent + body;\n}\n\n"
+    },
+    {
+      "id": "backend-084",
+      "file": "dist/backend.js",
+      "start": 6258,
+      "end": 6259,
+      "reference_start": 6755,
+      "reference_end": 6756,
+      "function": "classifyHudLine",
+      "action": "retain verified behavior/dependency at original callsite",
+      "tests": [
+        "test_visual_rank_integrity.cjs",
+        "test_tracking_source_integrity.cjs",
+        "test_six_sided_repairs.cjs"
+      ],
+      "before": "    const text = String(raw).replace(/\\s+$/, '');\n",
+      "after": "    const text = normalizeHudLine(raw);\n"
+    },
+    {
+      "id": "backend-085",
+      "file": "dist/backend.js",
+      "start": 6302,
+      "end": 6303,
+      "reference_start": 6799,
+      "reference_end": 6800,
+      "function": "parseHud",
+      "action": "retain verified behavior/dependency at original callsite",
+      "tests": [
+        "test_visual_rank_integrity.cjs",
+        "test_tracking_source_integrity.cjs",
+        "test_six_sided_repairs.cjs"
+      ],
+      "before": "    const lines = f.lines.map(classifyHudLine);\n",
+      "after": "    const lines = f.lines.filter(raw => !HUD_DECOR_RE.test(raw)).map(raw => { const line = classifyHudLine(raw); Object.defineProperty(line, 'raw', {value:raw}); return line; });\n"
+    },
+    {
+      "id": "backend-086",
+      "file": "dist/backend.js",
+      "start": 6335,
+      "end": 6336,
+      "reference_start": 6832,
+      "reference_end": 6838,
+      "function": "parseHud",
+      "action": "retain verified behavior/dependency at original callsite",
+      "tests": [
+        "test_visual_rank_integrity.cjs",
+        "test_tracking_source_integrity.cjs",
+        "test_six_sided_repairs.cjs"
+      ],
+      "before": "    return { lines, find: f, time, location: loc ? loc.segments : null, arc: arcText, quests };\n",
+      "after": "    const location = loc ? loc.segments : null;\n    const mushoku = lines.some(l => /^(?:Armored Dragon Calendar:\\s*K|Year:\\s*K\\.?\\s*\\d+)/i.test(l.text)) &&\n        lines.some(l => /^(?:Magic Tiers|Magic School|Mana Capacity|Sword Style|Martial Style):/i.test(l.text));\n    const result = { lines, find: f, time, location: mushoku && location ? mushokuLocationSegments(location) : location, arc: arcText, quests };\n    Object.defineProperty(result, 'style', {value:/🌐/.test(f.headLine) || f.lines.some(l => /^\\s*(?:[^\\p{L}\\p{N}*]+)?\\*\\*[^*]{1,60}:\\*\\*/u.test(l)) ? 'visual' : 'classic'});\n    return result;\n"
+    },
+    {
+      "id": "backend-087",
+      "file": "dist/backend.js",
+      "start": 6391,
+      "end": 6392,
+      "reference_start": 6893,
+      "reference_end": 6894,
+      "function": "rewriteHud",
+      "action": "retain verified behavior/dependency at original callsite",
+      "tests": [
+        "test_visual_rank_integrity.cjs",
+        "test_tracking_source_integrity.cjs",
+        "test_six_sided_repairs.cjs"
+      ],
+      "before": "    const items = hud.lines.map(l => ({ key: l.key, text: l.text, kind: l.kind, block: l.block || null }));\n",
+      "after": "    const items = hud.find.lines.map((raw, i) => HUD_DECOR_RE.test(raw) ? {key:'frame:'+i,text:raw,kind:'frame',block:'fence',raw} : {...classifyHudLine(raw),raw});\n"
+    },
+    {
+      "id": "backend-088",
+      "file": "dist/backend.js",
+      "start": 6396,
+      "end": 6397,
+      "reference_start": 6898,
+      "reference_end": 6899,
+      "function": "rewriteHud",
+      "action": "retain verified behavior/dependency at original callsite",
+      "tests": [
+        "test_visual_rank_integrity.cjs",
+        "test_tracking_source_integrity.cjs",
+        "test_six_sided_repairs.cjs"
+      ],
+      "before": "    const next = content.slice(0, f.bodyStart) + items.map(i => i.text).join('\\n') + '\\n' + content.slice(f.bodyEnd);\n",
+      "after": "    const next = content.slice(0, f.bodyStart) + items.map(i => i.raw && normalizeHudLine(i.raw) === i.text ? i.raw : hud.style === 'visual' ? hudVisualLine(i.text, i.raw) : i.text).join('\\n') + '\\n' + content.slice(f.bodyEnd);\n"
+    },
+    {
+      "id": "backend-089",
+      "file": "dist/backend.js",
+      "start": 6415,
+      "end": 6415,
+      "reference_start": 6917,
+      "reference_end": 6923,
+      "function": "hudVisualLine",
+      "action": "retain verified behavior/dependency at original callsite",
+      "tests": [
+        "test_visual_rank_integrity.cjs",
+        "test_tracking_source_integrity.cjs",
+        "test_six_sided_repairs.cjs"
+      ],
+      "before": "",
+      "after": "function hudVisualLine(text, old = '') {\n    const icon = (String(old).trim().match(/^[^\\p{L}\\p{N}\\[*-]+/u) || [''])[0].trim();\n    if (LOC_MARK_RE.test(text.trim()) || /^(?:[^:]+→)/.test(text.trim())) return `📍 **${text.trim().replace(LOC_MARK_RE, '').trim()}**`;\n    const body = text.replace(/^([^:|]+):/, '**$1:**').replace(/\\s+\\|\\s+([^:|]+):/g, ' · **$1:**');\n    return `${icon || '•'} ${body}`;\n}\n"
+    },
+    {
+      "id": "backend-090",
+      "file": "dist/backend.js",
+      "start": 6416,
+      "end": 6417,
+      "reference_start": 6924,
+      "reference_end": 6925,
+      "function": "hudToBlock",
+      "action": "retain verified behavior/dependency at original callsite",
+      "tests": [
+        "test_visual_rank_integrity.cjs",
+        "test_tracking_source_integrity.cjs",
+        "test_six_sided_repairs.cjs"
+      ],
+      "before": "    return '### WORLD STATE ###\\n' + hud.lines.map(l => l.text).join('\\n') + '\\n***';\n",
+      "after": "    return (hud.find?.headLine || '### WORLD STATE ###').trim() + '\\n' + (hud.find?.lines || hud.lines.map(l => l.raw || l.text)).join('\\n') + '\\n***';\n"
+    }
+  ]
+}

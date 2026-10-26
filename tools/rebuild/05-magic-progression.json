@@ -1,0 +1,702 @@
+{
+  "reference_commit": "f2e3840a346df977455b9aa0677c0262af155578",
+  "changes": [
+    {
+      "id": "backend-236",
+      "file": "dist/backend.js",
+      "start": 14116,
+      "end": 14117,
+      "reference_start": 14895,
+      "reference_end": 14898,
+      "function": "hmsMagicPanel",
+      "action": "retain verified behavior/dependency at original callsite",
+      "tests": [
+        "test_reading_and_magic.cjs",
+        "test_spell_aliases.cjs",
+        "test_general_tracking.cjs"
+      ],
+      "before": "    const book = st && Array.isArray(st.spellbook) ? st.spellbook.slice(-60) : [];\n",
+      "after": "    const resolve = spellResolver(chatId);\n    const saved = new Map(spellResolveState(chatId, st, spellStoryFold(chat, chatId)).st.spellbook.map(x => { const target = resolve(x.name); return [target.key, { ...x, name: target.name }]; }));\n    const book = [...spellKnown(chat, st, null, chatId)].map(([key, value]) => saved.get(key) || { name: value.name, from: value.from }).slice(-60);\n"
+    },
+    {
+      "id": "backend-237",
+      "file": "dist/backend.js",
+      "start": 14205,
+      "end": 14206,
+      "reference_start": 14986,
+      "reference_end": 14989,
+      "function": "spellsFromEntry",
+      "action": "retain verified behavior/dependency at original callsite",
+      "tests": [
+        "test_reading_and_magic.cjs",
+        "test_spell_aliases.cjs",
+        "test_general_tracking.cjs"
+      ],
+      "before": "        const eff = text.match(/^Effect:\\s*(.+)$/im), ch = text.match(/^(?:Chant|Incantation):\\s*(.+)$/im);\n",
+      "after": "        const eff = text.match(/^Effect:\\s*(.+)$/im), ch = text.match(/^(?:Chant|Incantation)(?:\\s*\\(([^)]+)\\))?:\\s*(.+)$/im);\n        const chant = ch ? ch[2].replace(/\\s*(?:\\[LN[^\\]]*\\]\\s*)+$/i, '').trim().replace(/^[\\\"“]|[\\\"”]$/g, '') : null;\n        const chantSource = ch ? [ch[1], ...(ch[2].match(/\\[LN[^\\]]*\\]/g) || [])].filter(Boolean).join(' ') || null : null;\n"
+    },
+    {
+      "id": "backend-238",
+      "file": "dist/backend.js",
+      "start": 14207,
+      "end": 14208,
+      "reference_start": 14990,
+      "reference_end": 14991,
+      "function": "spellsFromEntry",
+      "action": "retain verified behavior/dependency at original callsite",
+      "tests": [
+        "test_reading_and_magic.cjs",
+        "test_spell_aliases.cjs",
+        "test_general_tracking.cjs"
+      ],
+      "before": "            kind: 'ranked', who: null, needs: [], effect: eff ? spellClip(eff[1], 240) : null, chant: ch ? spellClip(ch[1].replace(/^[\"“]|[\"”]$/g, ''), 200) : null, fan, src: e.id };\n",
+      "after": "            aliases: Array.isArray(e.key) ? e.key : [], kind: 'ranked', who: null, needs: [], effect: eff ? spellClip(eff[1], 240) : null, chant, chantSource, fan, src: e.id };\n"
+    },
+    {
+      "id": "backend-239",
+      "file": "dist/backend.js",
+      "start": 14271,
+      "end": 14272,
+      "reference_start": 15054,
+      "reference_end": 15055,
+      "function": "spellCatalog",
+      "action": "retain verified behavior/dependency at original callsite",
+      "tests": [
+        "test_reading_and_magic.cjs",
+        "test_spell_aliases.cjs",
+        "test_general_tracking.cjs"
+      ],
+      "before": "    const pool = lorePool.get(chatId);\n",
+      "after": "    const pool = loreCatalogPool(chatId);\n"
+    },
+    {
+      "id": "backend-240",
+      "file": "dist/backend.js",
+      "start": 14274,
+      "end": 14275,
+      "reference_start": 15057,
+      "reference_end": 15058,
+      "function": "spellCatalog",
+      "action": "retain verified behavior/dependency at original callsite",
+      "tests": [
+        "test_reading_and_magic.cjs",
+        "test_spell_aliases.cjs",
+        "test_general_tracking.cjs"
+      ],
+      "before": "    if (c && c.at === pool.at) return c.list;\n",
+      "after": "    if (c && c.pool === pool) return c.list;\n"
+    },
+    {
+      "id": "backend-241",
+      "file": "dist/backend.js",
+      "start": 14285,
+      "end": 14285,
+      "reference_start": 15068,
+      "reference_end": 15070,
+      "function": "spellCatalog",
+      "action": "retain verified behavior/dependency at original callsite",
+      "tests": [
+        "test_reading_and_magic.cjs",
+        "test_spell_aliases.cjs",
+        "test_general_tracking.cjs"
+      ],
+      "before": "",
+      "after": "    const dedicated = new Map();\n    for (const row of rows) if (Array.isArray(row.aliases)) dedicated.set(spellKey(row.name).replace(/\\s/g, ''), row);\n"
+    },
+    {
+      "id": "backend-242",
+      "file": "dist/backend.js",
+      "start": 14286,
+      "end": 14287,
+      "reference_start": 15071,
+      "reference_end": 15075,
+      "function": "spellCatalog",
+      "action": "retain verified behavior/dependency at original callsite",
+      "tests": [
+        "test_reading_and_magic.cjs",
+        "test_spell_aliases.cjs",
+        "test_general_tracking.cjs"
+      ],
+      "before": "    for (const r of rows) {\n",
+      "after": "    for (const source of rows) {\n        const explicit = dedicated.get(spellKey(source.name).replace(/\\s/g, ''));\n        const same = explicit && (spellKey(source.name) === spellKey(explicit.name) || explicit.aliases.some(name => spellKey(name) === spellKey(source.name)));\n        const r = same ? { ...source, name: explicit.name, aliases: [...(source.aliases || []), source.name, ...explicit.aliases] } : source;\n"
+    },
+    {
+      "id": "backend-243",
+      "file": "dist/backend.js",
+      "start": 14291,
+      "end": 14291,
+      "reference_start": 15079,
+      "reference_end": 15080,
+      "function": "spellCatalog",
+      "action": "retain verified behavior/dependency at original callsite",
+      "tests": [
+        "test_reading_and_magic.cjs",
+        "test_spell_aliases.cjs",
+        "test_general_tracking.cjs"
+      ],
+      "before": "",
+      "after": "        had.aliases = [...new Set([...(had.aliases || []), ...(r.aliases || [])])];\n"
+    },
+    {
+      "id": "backend-244",
+      "file": "dist/backend.js",
+      "start": 14292,
+      "end": 14293,
+      "reference_start": 15081,
+      "reference_end": 15082,
+      "function": "spellCatalog",
+      "action": "retain verified behavior/dependency at original callsite",
+      "tests": [
+        "test_reading_and_magic.cjs",
+        "test_spell_aliases.cjs",
+        "test_general_tracking.cjs"
+      ],
+      "before": "        for (const f of ['effect', 'chant', 'rank', 'who']) if (!had[f] && r[f]) had[f] = r[f];\n",
+      "after": "        for (const f of ['effect', 'chant', 'chantSource', 'rank', 'who']) if (!had[f] && r[f]) had[f] = r[f];\n"
+    },
+    {
+      "id": "backend-245",
+      "file": "dist/backend.js",
+      "start": 14296,
+      "end": 14297,
+      "reference_start": 15085,
+      "reference_end": 15086,
+      "function": "spellCatalog",
+      "action": "retain verified behavior/dependency at original callsite",
+      "tests": [
+        "test_reading_and_magic.cjs",
+        "test_spell_aliases.cjs",
+        "test_general_tracking.cjs"
+      ],
+      "before": "    spellCatalogCache.set(chatId, { at: pool.at, list });\n",
+      "after": "    spellCatalogCache.set(chatId, { pool, at: pool.at, list });\n"
+    },
+    {
+      "id": "backend-246",
+      "file": "dist/backend.js",
+      "start": 14307,
+      "end": 14308,
+      "reference_start": 15096,
+      "reference_end": 15097,
+      "function": "spellStanding",
+      "action": "retain verified behavior/dependency at original callsite",
+      "tests": [
+        "test_reading_and_magic.cjs",
+        "test_spell_aliases.cjs",
+        "test_general_tracking.cjs"
+      ],
+      "before": "        let m = l.match(/^(?:Magic Schools?|Schools? of Magic|Magic Ranks?|Spell Ranks?|Magic Rank)\\s*:\\s*(.+)$/i);\n",
+      "after": "        let m = l.match(/^(?:Magic Schools?|Magic Tiers?|Schools? of Magic|Magic Ranks?|Spell Ranks?|Magic Rank)\\s*:\\s*(.+)$/i);\n"
+    },
+    {
+      "id": "backend-247",
+      "file": "dist/backend.js",
+      "start": 14310,
+      "end": 14314,
+      "reference_start": 15099,
+      "reference_end": 15100,
+      "function": "spellStanding",
+      "action": "retain verified behavior/dependency at original callsite",
+      "tests": [
+        "test_reading_and_magic.cjs",
+        "test_spell_aliases.cjs",
+        "test_general_tracking.cjs"
+      ],
+      "before": "            for (const part of m[1].split(/\\s*[,;|]\\s*/)) {\n                const k = part.match(/^(.+?)\\s*[:–—]\\s*(.+)$/) || part.match(/^(.+?)\\s*\\(([^)]+)\\)$/) || part.match(/^(.+?)\\s+-\\s+(.+)$/);\n                if (k) put(k[1], k[2].trim(), spellMtStep(k[2]));\n            }\n",
+      "after": "            for (const row of mtRankRows(m[1], SPELL_LADDER.mt)) put(row.name, row.rank, spellMtStep(row.rank));\n"
+    },
+    {
+      "id": "backend-248",
+      "file": "dist/backend.js",
+      "start": 14327,
+      "end": 14329,
+      "reference_start": 15113,
+      "reference_end": 15115,
+      "function": "spellStanding",
+      "action": "retain verified behavior/dependency at original callsite",
+      "tests": [
+        "test_reading_and_magic.cjs",
+        "test_spell_aliases.cjs",
+        "test_general_tracking.cjs"
+      ],
+      "before": "        m = l.match(/^Casting(?:\\s+Method)?\\s*:\\s*(.+)$/i);\n        if (m) { out.casting = m[1].trim(); out.voiceless = /voiceless|silent|chantless|no[- ]?chant|without (?:an? )?incantation|incantation-?less/i.test(m[1]); }\n",
+      "after": "        m = l.match(/^(?:Casting(?:\\s+Method)?|Voiceless Casting)\\s*:\\s*(.+)$/i);\n        if (m) { out.casting = /^Voiceless Casting/i.test(l) ? `Voiceless (${m[1].trim()})` : m[1].trim(); out.voiceless = /^Voiceless Casting/i.test(l) ? /^(active|yes|available|unlocked|enabled)$/i.test(m[1].trim()) : /voiceless|silent|chantless|no[- ]?chant|without (?:an? )?incantation|incantation-?less/i.test(m[1]); }\n"
+    },
+    {
+      "id": "backend-249",
+      "file": "dist/backend.js",
+      "start": 14334,
+      "end": 14336,
+      "reference_start": 15120,
+      "reference_end": 15239,
+      "function": "spellEstablishedList",
+      "action": "retain verified behavior/dependency at original callsite",
+      "tests": [
+        "test_reading_and_magic.cjs",
+        "test_spell_aliases.cjs",
+        "test_general_tracking.cjs"
+      ],
+      "before": "function spellStoryFold(chat) {\n    const learned = new Map(), progress = new Map(), order = new Map();\n",
+      "after": "function spellEstablishedList(content, playerName) {\n    const out = [], seen = new Set();\n    const identity = spellKey(playerName);\n    const clean = value => String(value).replace(/[*_`]/g, '').replace(/^\\s*#{1,6}\\s*/, '').trim();\n    let active = false, fenced = false;\n    for (const raw of String(content || '').split('\\n')) {\n        if (/^\\s*(?:```|~~~)/.test(raw)) { fenced = !fenced; continue; }\n        if (fenced || /^\\s*>/.test(raw)) continue;\n        const line = clean(raw);\n        const heading = line.replace(/\\s*\\([^)]*\\)\\s*$/, '').replace(/:\\s*$/, '').trim();\n        if (/\\bknown spells\\b/i.test(heading)) {\n            const owner = spellKey(heading.replace(/\\bknown spells\\b/i, '').replace(/[’']s\\b/gi, '').replace(/\\b(?:of|for|list)\\b/gi, ''));\n            active = owner === 'your' || owner === 'you' || owner === 'player' || !!identity && owner === identity;\n            continue;\n        }\n        if (/^(?:spells you (?:already )?know|you (?:already )?know (?:these|the following) spells):?$/i.test(line)) { active = true; continue; }\n        if (!active || !line) continue;\n        if (/^(?:not (?:trained|known|learned)|unlearned|unknown spells|available spells|spells to learn|studying|notes?|requirements?|equipment|inventory)\\b/i.test(line)) { active = false; continue; }\n        const tier = /^(?:beginner|elementary|basic|intermediate|advanced|saint|king|emperor|imperial|god|divine|unranked|rank unknown)(?:\\s+(?:tier|rank))?\\s*:\\s*/i;\n        const bullet = /^\\s*[-+•]\\s+/;\n        const listed = bullet.test(raw) || tier.test(line) || line.includes('·');\n        if (!listed) {\n            const school = /(?:\\b(?:rank|tier|magic)\\b|^(?:water|earth|fire|wind|healing|summoning|barrier|other|unranked)$)/i.test(heading);\n            if ((/^\\s*#{1,6}\\s/.test(raw) || /^\\s*\\*\\*[^*]+\\*\\*\\s*$/.test(raw)) && !school) active = false;\n            continue;\n        }\n        if (/\\b(?:can learn|could learn|not learned|not known|not trained|not yet|unlearned|unavailable|do not know|don't know|wish|recommended|requires|costs?|per cast)\\b/i.test(line)) continue;\n        const body = line.replace(bullet, '').replace(tier, '');\n        for (let name of body.split(/\\s*[·;,]\\s*/)) {\n            name = name.replace(/\\s*:\\s+.*$/, '').replace(/\\s+[—–]\\s+.*$/, '').trim();\n            name = name.replace(/\\s*\\((?:beginner|elementary|intermediate|advanced|saint|king|emperor|imperial|god|divine|small-scale\\b[^)]*|localized\\b[^)]*|basic section\\b[^)]*|warming\\b[^)]*)\\)\\s*$/i, '').trim();\n            if (!name || name.length > 80 || name.split(/\\s+/).length > 8 || /[.!?]|^(?:none|unknown|not trained)$/i.test(name)) continue;\n            const key = spellKey(name);\n            if (!key || seen.has(key)) continue;\n            seen.add(key); out.push(name);\n            if (out.length >= 120) return out;\n        }\n    }\n    return out;\n}\n\nconst spellEstablishedCache = new Map();\nfunction spellEstablishedNames(message, playerName) {\n    if (['save','help','continue'].includes(message?._rpgcPurpose)) return [];\n    const text = textOf(message.content);\n    const key = `${message.id}:${message.swipe_id ?? 0}:${spellKey(playerName)}`;\n    const cached = spellEstablishedCache.get(key);\n    if (cached && cached.text === text) return cached.names;\n    const names = /\\bknown spells\\b|\\bspells you (?:already )?know\\b|\\byou (?:already )?know (?:these|the following) spells\\b/i.test(text)\n        ? spellEstablishedList(stripCompanion(stripLeakedReasoning(text)), playerName) : [];\n    spellEstablishedCache.set(key, { text, names });\n    while (spellEstablishedCache.size > 600) spellEstablishedCache.delete(spellEstablishedCache.keys().next().value);\n    return names;\n}\n\nfunction spellStoryFold(chat, chatId = null) {\n    const id = chatId || chatIdOf(chat);\n    return memoRead(chat, `spells:${id || ''}`, () => spellStoryFoldUncached(chat, id));\n}\nconst spellAliasIndexes = new WeakMap();\nfunction spellResolver(chatId) {\n    const catalog = chatId ? spellCatalog(chatId) : [];\n    let index = spellAliasIndexes.get(catalog);\n    if (!index) {\n        index = new Map(catalog.map(row => [row.key, row]));\n        const proposals = new Map();\n        for (const row of catalog) for (const name of row.aliases || []) {\n            const key = spellKey(name);\n            if (!key || index.has(key) || /\\b(?:variation|variant|school)\\b/i.test(key) || /\\bmagic$/i.test(String(name))) continue;\n            if (catalog.some(other => other.key !== row.key && (` ${key} `).includes(` ${other.key} `))) continue;\n            if (!proposals.has(key)) proposals.set(key, row);\n            else if (proposals.get(key) !== row) proposals.set(key, null);\n        }\n        for (const [key, row] of proposals) if (row) index.set(key, row);\n        spellAliasIndexes.set(catalog, index);\n    }\n    return name => {\n        const key = spellKey(name), row = index.get(key);\n        return row ? { key: row.key, name: row.name } : { key, name: String(name || '').trim() };\n    };\n}\nfunction spellResolveState(chatId, st, fold) {\n    const resolve = spellResolver(chatId);\n    const events = source => {\n        const out = new Map();\n        for (const [key, event] of source) {\n            const target = resolve(event.name || key), previous = out.get(target.key);\n            if (!previous || event.at >= previous.at) out.set(target.key, { ...event, name: target.name });\n        }\n        return out;\n    };\n    const anchors = source => {\n        const out = {};\n        for (const [key, id] of Object.entries(isPlainObject(source) ? source : {})) {\n            const target = resolve(key).key;\n            const at = id ? (fold.order.get(id) ?? Infinity) : -1;\n            const previous = out[target] ? (fold.order.get(out[target]) ?? Infinity) : -1;\n            if (!(target in out) || at >= previous) out[target] = id;\n        }\n        return out;\n    };\n    const rows = source => {\n        const out = new Map();\n        for (const row of Array.isArray(source) ? source : []) if (row?.name) {\n            const target = resolve(row.name), previous = out.get(target.key);\n            out.set(target.key, { ...previous, ...row, name: target.name,\n                ...(previous?.from === 'you' ? { from: 'you' } : {}) });\n        }\n        return [...out.values()];\n    };\n    return { st: { ...st, spellbook: rows(st?.spellbook), spellStudy: rows(st?.spellStudy),\n        spellForget: anchors(st?.spellForget), spellStudyStopped: anchors(st?.spellStudyStopped) },\n        fold: { ...fold, established: events(fold.established || new Map()), learned: events(fold.learned), mastered: events(fold.mastered), progress: events(fold.progress) } };\n}\n\nfunction spellStoryFoldUncached(chat, chatId = null) {\n    const playerName = chatId ? userNameCache.get(chatId) || '' : '';\n    const established = new Map();\n    const learned = new Map(), mastered = new Map(), progress = new Map(), order = new Map();\n"
+    },
+    {
+      "id": "backend-250",
+      "file": "dist/backend.js",
+      "start": 14340,
+      "end": 14340,
+      "reference_start": 15243,
+      "reference_end": 15247,
+      "function": "spellStoryFoldUncached",
+      "action": "retain verified behavior/dependency at original callsite",
+      "tests": [
+        "test_reading_and_magic.cjs",
+        "test_spell_aliases.cjs",
+        "test_general_tracking.cjs"
+      ],
+      "before": "",
+      "after": "        for (const name of spellEstablishedNames(m, playerName)) {\n            const key = spellKey(name);\n            if (key) established.set(key, { name, msgId: m.id, at: order.get(m.id) });\n        }\n"
+    },
+    {
+      "id": "backend-251",
+      "file": "dist/backend.js",
+      "start": 14343,
+      "end": 14345,
+      "reference_start": 15250,
+      "reference_end": 15253,
+      "function": "spellStoryFoldUncached",
+      "action": "retain verified behavior/dependency at original callsite",
+      "tests": [
+        "test_reading_and_magic.cjs",
+        "test_spell_aliases.cjs",
+        "test_general_tracking.cjs"
+      ],
+      "before": "        for (const n of Array.isArray(y.learned) ? y.learned : []) { const k = spellKey(n); if (k && !learned.has(k)) learned.set(k, { name: n, msgId: m.id, at: order.get(m.id) }); }\n        for (const s of Array.isArray(y.study) ? y.study : []) if (s && s.spell) progress.set(spellKey(s.spell), { progress: s.progress, note: s.note || null, msgId: m.id });\n",
+      "after": "        for (const n of [...(Array.isArray(y.spells) ? y.spells : []), ...(Array.isArray(y.learned) ? y.learned : [])]) { const k = spellKey(n); if (k) learned.set(k, { name: n, msgId: m.id, at: order.get(m.id) }); }\n        for (const n of Array.isArray(y.mastered) ? y.mastered : []) { const k = spellKey(n); if (k) mastered.set(k, { name: n, msgId: m.id, at: order.get(m.id) }); }\n        for (const s of Array.isArray(y.study) ? y.study : []) if (s && s.spell) progress.set(spellKey(s.spell), { name: s.spell, progress: s.progress, note: s.note || null, msgId: m.id, at: order.get(m.id) });\n"
+    },
+    {
+      "id": "backend-252",
+      "file": "dist/backend.js",
+      "start": 14346,
+      "end": 14347,
+      "reference_start": 15254,
+      "reference_end": 15255,
+      "function": "spellStoryFoldUncached",
+      "action": "retain verified behavior/dependency at original callsite",
+      "tests": [
+        "test_reading_and_magic.cjs",
+        "test_spell_aliases.cjs",
+        "test_general_tracking.cjs"
+      ],
+      "before": "    return { learned, progress, order };\n",
+      "after": "    return { learned, mastered, progress, order, established };\n"
+    },
+    {
+      "id": "backend-253",
+      "file": "dist/backend.js",
+      "start": 14349,
+      "end": 14350,
+      "reference_start": 15257,
+      "reference_end": 15260,
+      "function": "spellStoryFoldUncached",
+      "action": "retain verified behavior/dependency at original callsite",
+      "tests": [
+        "test_reading_and_magic.cjs",
+        "test_spell_aliases.cjs",
+        "test_general_tracking.cjs"
+      ],
+      "before": "function spellSame(a, b) { return a === b || (a.length > 4 && b.length > 4 && (a.includes(b) || b.includes(a))); }\n",
+      "after": "// A shorter spell name is often a different spell (Water Ball / Water Ball Storm).\n// Keys already normalize punctuation and case; substring matches grant abilities too easily.\nfunction spellSame(a, b) { return a === b; }\n"
+    },
+    {
+      "id": "backend-254",
+      "file": "dist/backend.js",
+      "start": 14352,
+      "end": 14354,
+      "reference_start": 15262,
+      "reference_end": 15265,
+      "function": "spellKnown",
+      "action": "retain verified behavior/dependency at original callsite",
+      "tests": [
+        "test_reading_and_magic.cjs",
+        "test_spell_aliases.cjs",
+        "test_general_tracking.cjs"
+      ],
+      "before": "function spellKnown(chat, st, fold) {\n    const f = fold || spellStoryFold(chat);\n",
+      "after": "function spellKnown(chat, st, fold, chatId = null) {\n    const resolved = spellResolveState(chatId || chatIdOf(chat), st, fold || spellStoryFold(chat, chatId));\n    const f = resolved.fold; st = resolved.st;\n"
+    },
+    {
+      "id": "backend-255",
+      "file": "dist/backend.js",
+      "start": 14355,
+      "end": 14355,
+      "reference_start": 15266,
+      "reference_end": 15271,
+      "function": "spellKnown",
+      "action": "retain verified behavior/dependency at original callsite",
+      "tests": [
+        "test_reading_and_magic.cjs",
+        "test_spell_aliases.cjs",
+        "test_general_tracking.cjs"
+      ],
+      "before": "",
+      "after": "    const allowed = (key, event) => {\n        if (!(key in forget)) return true;\n        const anchor = forget[key] ? f.order.get(forget[key]) : -1;\n        return anchor !== undefined && event.at > anchor;\n    };\n"
+    },
+    {
+      "id": "backend-256",
+      "file": "dist/backend.js",
+      "start": 14356,
+      "end": 14360,
+      "reference_start": 15272,
+      "reference_end": 15281,
+      "function": "spellKnown",
+      "action": "retain verified behavior/dependency at original callsite",
+      "tests": [
+        "test_reading_and_magic.cjs",
+        "test_spell_aliases.cjs",
+        "test_general_tracking.cjs"
+      ],
+      "before": "    for (const sp of Array.isArray(st && st.spellbook) ? st.spellbook : []) { const k = spellKey(sp.name); if (k) out.set(k, { name: sp.name, from: sp.from || 'story' }); }\n    for (const [k, v] of f.learned) {\n        if (k in forget) { const at = forget[k] ? f.order.get(forget[k]) : -1; if (at === undefined || v.at <= at) continue; }\n        if (!out.has(k)) out.set(k, { name: v.name, from: 'learned', msgId: v.msgId });\n",
+      "after": "    for (const sp of Array.isArray(st && st.spellbook) ? st.spellbook : []) {\n        const key = spellKey(sp.name);\n        if (key && sp.from !== 'story' && sp.from !== 'fight' && !(key in forget)) out.set(key, { name: sp.name, from: sp.from || 'you' });\n    }\n    for (const [key, event] of f.established) if (!(key in forget) && !out.has(key)) out.set(key, { name: event.name, from: 'established', msgId: event.msgId });\n    for (const [key, event] of f.learned) if (allowed(key, event) && !out.has(key)) out.set(key, { name: event.name, from: 'learned', msgId: event.msgId });\n    for (const [key, event] of f.mastered) if (allowed(key, event)) {\n        if (!out.has(key)) out.set(key, { name: event.name, from: 'mastered', msgId: event.msgId });\n        out.get(key).mastered = true;\n"
+    },
+    {
+      "id": "backend-257",
+      "file": "dist/backend.js",
+      "start": 14364,
+      "end": 14365,
+      "reference_start": 15285,
+      "reference_end": 15300,
+      "function": "spellKnown",
+      "action": "retain verified behavior/dependency at original callsite",
+      "tests": [
+        "test_reading_and_magic.cjs",
+        "test_spell_aliases.cjs",
+        "test_general_tracking.cjs"
+      ],
+      "before": "const SPELL_STATUS_ORDER = { known: 0, study: 1, reach: 2, open: 3, next: 4, special: 5, locked: 6 };\n",
+      "after": "/** Manual study choices and practice the story reported, rebuilt from the active swipes. */\nfunction spellStudyActive(chat, st, fold = null, chatId = null) {\n    const resolved = spellResolveState(chatId || chatIdOf(chat), st, fold || spellStoryFold(chat, chatId));\n    const f = resolved.fold; st = resolved.st;\n    const active = new Map();\n    for (const s of Array.isArray(st && st.spellStudy) ? st.spellStudy : []) if (s && s.name) active.set(spellKey(s.name), s);\n    const stopped = isPlainObject(st && st.spellStudyStopped) ? st.spellStudyStopped : {};\n    for (const [key, p] of f.progress) {\n        const after = stopped[key] && f.order.has(stopped[key]) ? f.order.get(stopped[key]) : -1;\n        if (p.at > after && !active.has(key)) active.set(key, { name: p.name, school: null, rank: null, from: 'story' });\n    }\n    return [...active.values()].slice(-8);\n}\n\nconst SPELL_STATUS_ORDER = { mastered: 0, known: 1, study: 2, reach: 3, next: 4, unranked: 5, open: 6, special: 7, locked: 8 };\n"
+    },
+    {
+      "id": "backend-258",
+      "file": "dist/backend.js",
+      "start": 14368,
+      "end": 14368,
+      "reference_start": 15303,
+      "reference_end": 15304,
+      "function": "spellListPanel",
+      "action": "retain verified behavior/dependency at original callsite",
+      "tests": [
+        "test_reading_and_magic.cjs",
+        "test_spell_aliases.cjs",
+        "test_general_tracking.cjs"
+      ],
+      "before": "",
+      "after": "    loreQueueCatalog(chatId);\n"
+    },
+    {
+      "id": "backend-259",
+      "file": "dist/backend.js",
+      "start": 14377,
+      "end": 14379,
+      "reference_start": 15313,
+      "reference_end": 15316,
+      "function": "spellListPanel",
+      "action": "retain verified behavior/dependency at original callsite",
+      "tests": [
+        "test_reading_and_magic.cjs",
+        "test_spell_aliases.cjs",
+        "test_general_tracking.cjs"
+      ],
+      "before": "    const fold = spellStoryFold(chat);\n    const known = spellKnown(chat, st, fold);\n",
+      "after": "    const resolved = spellResolveState(chatId, st, spellStoryFold(chat, chatId));\n    const fold = resolved.fold; st = resolved.st;\n    const known = spellKnown(chat, st, fold, chatId);\n"
+    },
+    {
+      "id": "backend-260",
+      "file": "dist/backend.js",
+      "start": 14381,
+      "end": 14382,
+      "reference_start": 15318,
+      "reference_end": 15319,
+      "function": "spellListPanel",
+      "action": "retain verified behavior/dependency at original callsite",
+      "tests": [
+        "test_reading_and_magic.cjs",
+        "test_spell_aliases.cjs",
+        "test_general_tracking.cjs"
+      ],
+      "before": "    const study = (Array.isArray(st && st.spellStudy) ? st.spellStudy : []).filter(s => s && s.name);\n",
+      "after": "    const study = spellStudyActive(chat, st, fold, chatId);\n"
+    },
+    {
+      "id": "backend-261",
+      "file": "dist/backend.js",
+      "start": 14389,
+      "end": 14390,
+      "reference_start": 15326,
+      "reference_end": 15328,
+      "function": "spellListPanel",
+      "action": "retain verified behavior/dependency at original callsite",
+      "tests": [
+        "test_reading_and_magic.cjs",
+        "test_spell_aliases.cjs",
+        "test_general_tracking.cjs"
+      ],
+      "before": "        if (isKnown(r.key)) status = 'known';\n",
+      "after": "        if (known.get(r.key)?.mastered) status = 'mastered';\n        else if (isKnown(r.key)) status = 'known';\n"
+    },
+    {
+      "id": "backend-262",
+      "file": "dist/backend.js",
+      "start": 14399,
+      "end": 14400,
+      "reference_start": 15337,
+      "reference_end": 15338,
+      "function": "spellListPanel",
+      "action": "retain verified behavior/dependency at original callsite",
+      "tests": [
+        "test_reading_and_magic.cjs",
+        "test_spell_aliases.cjs",
+        "test_general_tracking.cjs"
+      ],
+      "before": "        else if (r.step === null || sch.step === null) { status = 'reach'; why = 'No rank given — the story decides'; }\n",
+      "after": "        else if (r.step === null || sch.step === null) { status = 'unranked'; why = r.step === null ? 'No spell rank given — the story decides' : 'Your school rank is unknown — the story decides'; }\n"
+    },
+    {
+      "id": "backend-263",
+      "file": "dist/backend.js",
+      "start": 14404,
+      "end": 14406,
+      "reference_start": 15342,
+      "reference_end": 15344,
+      "function": "spellListPanel",
+      "action": "retain verified behavior/dependency at original callsite",
+      "tests": [
+        "test_reading_and_magic.cjs",
+        "test_spell_aliases.cjs",
+        "test_general_tracking.cjs"
+      ],
+      "before": "        return { name: r.name, key: r.key, school: r.school, rank: r.rank, step: r.step, status, why, who: r.who, effect: r.effect, chant: r.chant, fan: !!r.fan,\n            progress: status === 'study' && pr && Number.isFinite(Number(pr.progress)) ? Math.max(0, Math.min(100, Math.round(Number(pr.progress)))) : null,\n",
+      "after": "        return { name: r.name, key: r.key, school: r.school, rank: r.rank, step: r.step, status, why, who: r.who, effect: r.effect, chant: r.chant, chantSource: r.chantSource || null, fan: !!r.fan,\n            progress: status === 'study' && pr && pr.progress !== null && pr.progress !== undefined && Number.isFinite(Number(pr.progress)) ? Math.max(0, Math.min(100, Math.round(Number(pr.progress)))) : null,\n"
+    },
+    {
+      "id": "backend-264",
+      "file": "dist/backend.js",
+      "start": 14410,
+      "end": 14411,
+      "reference_start": 15348,
+      "reference_end": 15349,
+      "function": "spellListPanel",
+      "action": "retain verified behavior/dependency at original callsite",
+      "tests": [
+        "test_reading_and_magic.cjs",
+        "test_spell_aliases.cjs",
+        "test_general_tracking.cjs"
+      ],
+      "before": "    for (const [k, v] of known) if (!catKeys.some(c => spellSame(c, k))) spells.push({ name: v.name, key: k, school: 'Other', rank: null, step: null, status: 'known', why: v.from === 'fight' ? 'Seen in a fight' : v.from === 'you' ? 'Marked by you' : 'From the story', who: null, effect: null, chant: null, fan: false, progress: null, note: null });\n",
+      "after": "    for (const [k, v] of known) if (!catKeys.some(c => spellSame(c, k))) spells.push({ name: v.name, key: k, school: 'Other', rank: null, step: null, status: v.mastered ? 'mastered' : 'known', why: v.from === 'you' ? 'Marked by you' : 'From the story', who: null, effect: null, chant: null, fan: false, progress: null, note: null });\n"
+    },
+    {
+      "id": "backend-265",
+      "file": "dist/backend.js",
+      "start": 14417,
+      "end": 14418,
+      "reference_start": 15355,
+      "reference_end": 15356,
+      "function": "spellListPanel",
+      "action": "retain verified behavior/dependency at original callsite",
+      "tests": [
+        "test_reading_and_magic.cjs",
+        "test_spell_aliases.cjs",
+        "test_general_tracking.cjs"
+      ],
+      "before": "        return { key: g.key, name: g.name, mine: !!mine, rank: mine ? mine.rank : null, step: mine ? mine.step : null, odd: g.spells.every(s => s.status === 'special'), known: n('known'), reach: n('reach') + n('open'), next: n('next'), study: n('study'), total: g.spells.length, spells: g.spells };\n",
+      "after": "        return { key: g.key, name: g.name, mine: !!mine, rank: mine ? mine.rank : null, step: mine ? mine.step : null, odd: g.spells.every(s => s.status === 'special'), known: n('known') + n('mastered'), reach: n('reach') + n('open'), next: n('next'), unranked: n('unranked'), study: n('study'), total: g.spells.length, spells: g.spells };\n"
+    },
+    {
+      "id": "backend-266",
+      "file": "dist/backend.js",
+      "start": 14438,
+      "end": 14440,
+      "reference_start": 15376,
+      "reference_end": 15378,
+      "function": "spellListPanel",
+      "action": "retain verified behavior/dependency at original callsite",
+      "tests": [
+        "test_reading_and_magic.cjs",
+        "test_spell_aliases.cjs",
+        "test_general_tracking.cjs"
+      ],
+      "before": "        return { name: s.name, school: row ? row.school : s.school || null, rank: row ? row.rank : s.rank || null, done: !!(row && row.status === 'known') || isKnown(k),\n            progress: pr && Number.isFinite(Number(pr.progress)) ? Math.max(0, Math.min(100, Math.round(Number(pr.progress)))) : null, note: pr ? pr.note : null, why: row ? row.why : null };\n",
+      "after": "        return { name: s.name, school: row ? row.school : s.school || null, rank: row ? row.rank : s.rank || null, done: !!(row && ['known', 'mastered'].includes(row.status)) || isKnown(k),\n            progress: pr && pr.progress !== null && pr.progress !== undefined && Number.isFinite(Number(pr.progress)) ? Math.max(0, Math.min(100, Math.round(Number(pr.progress)))) : null, note: pr ? pr.note : null, why: row ? row.why : null };\n"
+    },
+    {
+      "id": "backend-267",
+      "file": "dist/backend.js",
+      "start": 14441,
+      "end": 14442,
+      "reference_start": 15379,
+      "reference_end": 15380,
+      "function": "spellListPanel",
+      "action": "retain verified behavior/dependency at original callsite",
+      "tests": [
+        "test_reading_and_magic.cjs",
+        "test_spell_aliases.cjs",
+        "test_general_tracking.cjs"
+      ],
+      "before": "    return { total: cat.length, ladder: stand.ladder, gate: stand.gate, casting: stand.casting, voiceless: stand.voiceless,\n",
+      "after": "    return { eligibilityNote: 'Within reach is a rank/component match, not proof that every learning requirement is met. Only Known or Mastered records confirm learned spells.', total: cat.length, ladder: stand.ladder, gate: stand.gate, casting: stand.casting, voiceless: stand.voiceless,\n"
+    },
+    {
+      "id": "backend-268",
+      "file": "dist/backend.js",
+      "start": 14447,
+      "end": 14448,
+      "reference_start": 15385,
+      "reference_end": 15388,
+      "function": "spellStudyReminder",
+      "action": "retain verified behavior/dependency at original callsite",
+      "tests": [
+        "test_reading_and_magic.cjs",
+        "test_spell_aliases.cjs",
+        "test_general_tracking.cjs"
+      ],
+      "before": "    const study = (Array.isArray(st && st.spellStudy) ? st.spellStudy : []).filter(s => s && s.name);\n",
+      "after": "    const resolved = spellResolveState(chatId, st, spellStoryFold(chat, chatId));\n    const fold = resolved.fold; st = resolved.st;\n    const study = spellStudyActive(chat, st, fold, chatId);\n"
+    },
+    {
+      "id": "backend-269",
+      "file": "dist/backend.js",
+      "start": 14449,
+      "end": 14450,
+      "reference_start": 15389,
+      "reference_end": 15390,
+      "function": "spellStudyReminder",
+      "action": "retain verified behavior/dependency at original callsite",
+      "tests": [
+        "test_reading_and_magic.cjs",
+        "test_spell_aliases.cjs",
+        "test_general_tracking.cjs"
+      ],
+      "before": "    const known = spellKnown(chat, st);\n",
+      "after": "    const known = spellKnown(chat, st, fold, chatId);\n"
+    },
+    {
+      "id": "backend-270",
+      "file": "dist/backend.js",
+      "start": 14452,
+      "end": 14453,
+      "reference_start": 15392,
+      "reference_end": 15392,
+      "function": "spellStudyReminder",
+      "action": "retain verified behavior/dependency at original callsite",
+      "tests": [
+        "test_reading_and_magic.cjs",
+        "test_spell_aliases.cjs",
+        "test_general_tracking.cjs"
+      ],
+      "before": "    const fold = spellStoryFold(chat);\n",
+      "after": ""
+    },
+    {
+      "id": "backend-271",
+      "file": "dist/backend.js",
+      "start": 14460,
+      "end": 14461,
+      "reference_start": 15399,
+      "reference_end": 15400,
+      "function": "spellStudyReminder",
+      "action": "retain verified behavior/dependency at original callsite",
+      "tests": [
+        "test_reading_and_magic.cjs",
+        "test_spell_aliases.cjs",
+        "test_general_tracking.cjs"
+      ],
+      "before": "        rows.push(`- ${r ? r.name : s.name}${bits ? ` (${bits})` : ''}${pr && Number.isFinite(Number(pr.progress)) ? ` — progress so far ${Math.round(Number(pr.progress))}%` : ''}${r && r.effect ? `. Effect: ${r.effect}` : ''}${r && r.chant ? ` Chant: \"${r.chant}\"` : ''}`);\n",
+      "after": "        rows.push(`- ${r ? r.name : s.name}${bits ? ` (${bits})` : ''}${pr && pr.progress !== null && pr.progress !== undefined && Number.isFinite(Number(pr.progress)) ? ` — progress so far ${Math.round(Number(pr.progress))}%` : ''}${r && r.effect ? `. Effect: ${r.effect}` : ''}${r && r.chant ? ` Chant: \"${r.chant}\"` : ''}`);\n"
+    },
+    {
+      "id": "backend-285",
+      "file": "dist/backend.js",
+      "start": 15195,
+      "end": 15197,
+      "reference_start": 16160,
+      "reference_end": 16164,
+      "function": "replyKey",
+      "action": "retain verified behavior/dependency at original callsite",
+      "tests": [
+        "test_reading_and_magic.cjs",
+        "test_spell_aliases.cjs",
+        "test_general_tracking.cjs"
+      ],
+      "before": "                const st = await getChatState(payload.chatId);\n                const name = payload.name.trim().slice(0, 60), k = spellKey(name);\n",
+      "after": "                const chat = await chatApi.getMessages(payload.chatId).catch(() => []);\n                const st = spellResolveState(payload.chatId, await getChatState(payload.chatId), spellStoryFold(chat)).st;\n                const target = spellResolver(payload.chatId)(payload.name.trim().slice(0, 60));\n                const name = target.name, k = target.key;\n"
+    },
+    {
+      "id": "backend-286",
+      "file": "dist/backend.js",
+      "start": 15198,
+      "end": 15198,
+      "reference_start": 16165,
+      "reference_end": 16171,
+      "function": "replyKey",
+      "action": "retain verified behavior/dependency at original callsite",
+      "tests": [
+        "test_reading_and_magic.cjs",
+        "test_spell_aliases.cjs",
+        "test_general_tracking.cjs"
+      ],
+      "before": "",
+      "after": "                if (!isPlainObject(st.spellStudyStopped)) st.spellStudyStopped = {};\n                if (payload.on) delete st.spellStudyStopped[k];\n                else {\n                    const last = [...(chat || [])].reverse().find(m => m.role === 'assistant');\n                    st.spellStudyStopped[k] = last ? last.id : null;\n                }\n"
+    },
+    {
+      "id": "backend-287",
+      "file": "dist/backend.js",
+      "start": 15208,
+      "end": 15210,
+      "reference_start": 16181,
+      "reference_end": 16185,
+      "function": "replyKey",
+      "action": "retain verified behavior/dependency at original callsite",
+      "tests": [
+        "test_reading_and_magic.cjs",
+        "test_spell_aliases.cjs",
+        "test_general_tracking.cjs"
+      ],
+      "before": "                const st = await getChatState(payload.chatId);\n                const name = payload.name.trim().slice(0, 60), k = spellKey(name);\n",
+      "after": "                const chat = await chatApi.getMessages(payload.chatId).catch(() => []);\n                const st = spellResolveState(payload.chatId, await getChatState(payload.chatId), spellStoryFold(chat)).st;\n                const target = spellResolver(payload.chatId)(payload.name.trim().slice(0, 60));\n                const name = target.name, k = target.key;\n"
+    },
+    {
+      "id": "backend-288",
+      "file": "dist/backend.js",
+      "start": 15215,
+      "end": 15215,
+      "reference_start": 16190,
+      "reference_end": 16191,
+      "function": "replyKey",
+      "action": "retain verified behavior/dependency at original callsite",
+      "tests": [
+        "test_reading_and_magic.cjs",
+        "test_spell_aliases.cjs",
+        "test_general_tracking.cjs"
+      ],
+      "before": "",
+      "after": "                    if (isPlainObject(st.spellStudyStopped)) delete st.spellStudyStopped[k];\n"
+    },
+    {
+      "id": "backend-289",
+      "file": "dist/backend.js",
+      "start": 15217,
+      "end": 15218,
+      "reference_start": 16193,
+      "reference_end": 16193,
+      "function": "replyKey",
+      "action": "retain verified behavior/dependency at original callsite",
+      "tests": [
+        "test_reading_and_magic.cjs",
+        "test_spell_aliases.cjs",
+        "test_general_tracking.cjs"
+      ],
+      "before": "                    const chat = await chatApi.getMessages(payload.chatId).catch(() => []);\n",
+      "after": ""
+    }
+  ]
+}

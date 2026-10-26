@@ -1,0 +1,578 @@
+{
+  "policy": {
+    "runs": 5,
+    "relative_slowdown_limit": 0.05,
+    "absolute_slowdown_limit_ms": 1,
+    "rule": "Reject a median slowdown larger than max(5% of the comparator median, 1 ms). Evaluate each comparator and workload independently.",
+    "comparators": [
+      "supplied 2.8.1",
+      "pinned 2.8.21"
+    ],
+    "panel_histories": [
+      600,
+      2000
+    ],
+    "operations": [
+      "cold panel",
+      "warm panel",
+      "report normalization",
+      "response processing",
+      "prompt construction"
+    ],
+    "counts": [
+      "model calls",
+      "chat API reads",
+      "metadata writes",
+      "storage reads",
+      "storage writes",
+      "history element reads",
+      "selected traversal calls"
+    ],
+    "budget": "No added model calls or mandatory fields compared with 2.8.21. Static and populated prompt character counts must not exceed either comparator in the tested profiles. Provider token usage requires the actual provider tokenizer and is not inferred from characters."
+  },
+  "medians": {
+    "2.8.1": {
+      "600:coldMs": 99.73,
+      "600:medianMs": 52.17,
+      "2000:coldMs": 150.75,
+      "2000:medianMs": 72.61,
+      "parseReportMedianMs": 0.3789,
+      "processResponseMedianMs": 0.5223,
+      "promptConstructMedianMs": 4.1086,
+      "promptCharacters": 14471,
+      "populatedPromptCharacters": 16584
+    },
+    "2.8.21": {
+      "600:coldMs": 119.89,
+      "600:medianMs": 54.16,
+      "2000:coldMs": 189.09,
+      "2000:medianMs": 87.04,
+      "parseReportMedianMs": 0.4071,
+      "processResponseMedianMs": 0.5993,
+      "promptConstructMedianMs": 0.2838,
+      "promptCharacters": 15528,
+      "populatedPromptCharacters": 19133
+    },
+    "2.8.2": {
+      "600:coldMs": 76.98,
+      "600:medianMs": 37.47,
+      "2000:coldMs": 117.21,
+      "2000:medianMs": 58.68,
+      "parseReportMedianMs": 0.4041,
+      "processResponseMedianMs": 0.607,
+      "promptConstructMedianMs": 0.2812,
+      "promptCharacters": 13054,
+      "populatedPromptCharacters": 16510
+    }
+  },
+  "operations": [
+    {
+      "transport": {
+        "model": 1,
+        "getMessages": 5,
+        "metadataWrites": 1,
+        "storageReads": 1,
+        "storageWrites": 1,
+        "historyElementReads": 0,
+        "traversals": {}
+      },
+      "panel": {
+        "messages": 600,
+        "historyElementReads": 29471,
+        "traversals": {
+          "relReadings": 14,
+          "hmsTimeline": 18,
+          "simReplies": 1
+        }
+      },
+      "version": "2.8.1"
+    },
+    {
+      "transport": {
+        "model": 1,
+        "getMessages": 6,
+        "metadataWrites": 1,
+        "storageReads": 2,
+        "storageWrites": 4,
+        "historyElementReads": 0,
+        "traversals": {}
+      },
+      "panel": {
+        "messages": 600,
+        "historyElementReads": 9101,
+        "traversals": {
+          "mtEventLedgerUncached": 1,
+          "atlasObserveHistory": 1,
+          "relReadingsUncached": 1,
+          "hmsTimelineUncached": 1,
+          "simReplies": 1,
+          "spellStoryFoldUncached": 1
+        }
+      },
+      "version": "2.8.21"
+    },
+    {
+      "transport": {
+        "model": 1,
+        "getMessages": 6,
+        "metadataWrites": 1,
+        "storageReads": 2,
+        "storageWrites": 4,
+        "historyElementReads": 0,
+        "traversals": {}
+      },
+      "panel": {
+        "messages": 600,
+        "historyElementReads": 9101,
+        "traversals": {
+          "mtEventLedgerUncached": 1,
+          "atlasObserveHistory": 1,
+          "relReadingsUncached": 1,
+          "hmsTimelineUncached": 1,
+          "simReplies": 1,
+          "spellStoryFoldUncached": 1
+        }
+      },
+      "version": "2.8.2"
+    }
+  ],
+  "failures": [],
+  "passed": true,
+  "runs": [
+    {
+      "messages": 600,
+      "coldMs": 118.38,
+      "medianMs": 52.17,
+      "warnings": 0,
+      "version": "2.8.1",
+      "benchmark": "panels",
+      "round": 1
+    },
+    {
+      "messages": 600,
+      "coldMs": 112.82,
+      "medianMs": 53,
+      "warnings": 0,
+      "version": "2.8.21",
+      "benchmark": "panels",
+      "round": 1
+    },
+    {
+      "messages": 600,
+      "coldMs": 76.98,
+      "medianMs": 36.45,
+      "warnings": 0,
+      "version": "2.8.2",
+      "benchmark": "panels",
+      "round": 1
+    },
+    {
+      "messages": 2000,
+      "coldMs": 175.61,
+      "medianMs": 79.92,
+      "warnings": 0,
+      "version": "2.8.1",
+      "benchmark": "panels",
+      "round": 1
+    },
+    {
+      "messages": 2000,
+      "coldMs": 180.26,
+      "medianMs": 85.82,
+      "warnings": 0,
+      "version": "2.8.21",
+      "benchmark": "panels",
+      "round": 1
+    },
+    {
+      "messages": 2000,
+      "coldMs": 130.56,
+      "medianMs": 58.06,
+      "warnings": 0,
+      "version": "2.8.2",
+      "benchmark": "panels",
+      "round": 1
+    },
+    {
+      "parseReportMedianMs": 0.3966,
+      "processResponseMedianMs": 0.5291,
+      "promptConstructMedianMs": 4.1234,
+      "promptCharacters": 14471,
+      "populatedPromptCharacters": 16584,
+      "warnings": 0,
+      "version": "2.8.1",
+      "benchmark": "pipeline",
+      "round": 1
+    },
+    {
+      "parseReportMedianMs": 0.403,
+      "processResponseMedianMs": 0.5993,
+      "promptConstructMedianMs": 0.2856,
+      "promptCharacters": 15528,
+      "populatedPromptCharacters": 19133,
+      "warnings": 0,
+      "version": "2.8.21",
+      "benchmark": "pipeline",
+      "round": 1
+    },
+    {
+      "parseReportMedianMs": 0.3981,
+      "processResponseMedianMs": 0.6034,
+      "promptConstructMedianMs": 0.2765,
+      "promptCharacters": 13054,
+      "populatedPromptCharacters": 16510,
+      "warnings": 0,
+      "version": "2.8.2",
+      "benchmark": "pipeline",
+      "round": 1
+    },
+    {
+      "messages": 600,
+      "coldMs": 133.42,
+      "medianMs": 50.65,
+      "warnings": 0,
+      "version": "2.8.21",
+      "benchmark": "panels",
+      "round": 2
+    },
+    {
+      "messages": 600,
+      "coldMs": 75.06,
+      "medianMs": 40.23,
+      "warnings": 0,
+      "version": "2.8.2",
+      "benchmark": "panels",
+      "round": 2
+    },
+    {
+      "messages": 600,
+      "coldMs": 99.73,
+      "medianMs": 54.2,
+      "warnings": 0,
+      "version": "2.8.1",
+      "benchmark": "panels",
+      "round": 2
+    },
+    {
+      "messages": 2000,
+      "coldMs": 231.34,
+      "medianMs": 88.44,
+      "warnings": 0,
+      "version": "2.8.21",
+      "benchmark": "panels",
+      "round": 2
+    },
+    {
+      "messages": 2000,
+      "coldMs": 112.43,
+      "medianMs": 58.68,
+      "warnings": 0,
+      "version": "2.8.2",
+      "benchmark": "panels",
+      "round": 2
+    },
+    {
+      "messages": 2000,
+      "coldMs": 150.75,
+      "medianMs": 71.28,
+      "warnings": 0,
+      "version": "2.8.1",
+      "benchmark": "panels",
+      "round": 2
+    },
+    {
+      "parseReportMedianMs": 0.3853,
+      "processResponseMedianMs": 0.591,
+      "promptConstructMedianMs": 0.264,
+      "promptCharacters": 15528,
+      "populatedPromptCharacters": 19133,
+      "warnings": 0,
+      "version": "2.8.21",
+      "benchmark": "pipeline",
+      "round": 2
+    },
+    {
+      "parseReportMedianMs": 0.4041,
+      "processResponseMedianMs": 0.607,
+      "promptConstructMedianMs": 0.2812,
+      "promptCharacters": 13054,
+      "populatedPromptCharacters": 16510,
+      "warnings": 0,
+      "version": "2.8.2",
+      "benchmark": "pipeline",
+      "round": 2
+    },
+    {
+      "parseReportMedianMs": 0.377,
+      "processResponseMedianMs": 0.5088,
+      "promptConstructMedianMs": 3.9697,
+      "promptCharacters": 14471,
+      "populatedPromptCharacters": 16584,
+      "warnings": 0,
+      "version": "2.8.1",
+      "benchmark": "pipeline",
+      "round": 2
+    },
+    {
+      "messages": 600,
+      "coldMs": 110.12,
+      "medianMs": 40.14,
+      "warnings": 0,
+      "version": "2.8.2",
+      "benchmark": "panels",
+      "round": 3
+    },
+    {
+      "messages": 600,
+      "coldMs": 89.7,
+      "medianMs": 51.85,
+      "warnings": 0,
+      "version": "2.8.1",
+      "benchmark": "panels",
+      "round": 3
+    },
+    {
+      "messages": 600,
+      "coldMs": 119.89,
+      "medianMs": 55.41,
+      "warnings": 0,
+      "version": "2.8.21",
+      "benchmark": "panels",
+      "round": 3
+    },
+    {
+      "messages": 2000,
+      "coldMs": 148.11,
+      "medianMs": 63.06,
+      "warnings": 0,
+      "version": "2.8.2",
+      "benchmark": "panels",
+      "round": 3
+    },
+    {
+      "messages": 2000,
+      "coldMs": 147.3,
+      "medianMs": 70.63,
+      "warnings": 0,
+      "version": "2.8.1",
+      "benchmark": "panels",
+      "round": 3
+    },
+    {
+      "messages": 2000,
+      "coldMs": 185,
+      "medianMs": 87.04,
+      "warnings": 0,
+      "version": "2.8.21",
+      "benchmark": "panels",
+      "round": 3
+    },
+    {
+      "parseReportMedianMs": 0.4265,
+      "processResponseMedianMs": 0.5827,
+      "promptConstructMedianMs": 0.3079,
+      "promptCharacters": 13054,
+      "populatedPromptCharacters": 16510,
+      "warnings": 0,
+      "version": "2.8.2",
+      "benchmark": "pipeline",
+      "round": 3
+    },
+    {
+      "parseReportMedianMs": 0.4044,
+      "processResponseMedianMs": 0.5522,
+      "promptConstructMedianMs": 4.1086,
+      "promptCharacters": 14471,
+      "populatedPromptCharacters": 16584,
+      "warnings": 0,
+      "version": "2.8.1",
+      "benchmark": "pipeline",
+      "round": 3
+    },
+    {
+      "parseReportMedianMs": 0.4319,
+      "processResponseMedianMs": 0.5885,
+      "promptConstructMedianMs": 0.275,
+      "promptCharacters": 15528,
+      "populatedPromptCharacters": 19133,
+      "warnings": 0,
+      "version": "2.8.21",
+      "benchmark": "pipeline",
+      "round": 3
+    },
+    {
+      "messages": 600,
+      "coldMs": 114.22,
+      "medianMs": 58.8,
+      "warnings": 0,
+      "version": "2.8.1",
+      "benchmark": "panels",
+      "round": 4
+    },
+    {
+      "messages": 600,
+      "coldMs": 119.31,
+      "medianMs": 57.23,
+      "warnings": 0,
+      "version": "2.8.21",
+      "benchmark": "panels",
+      "round": 4
+    },
+    {
+      "messages": 600,
+      "coldMs": 80.31,
+      "medianMs": 37.47,
+      "warnings": 0,
+      "version": "2.8.2",
+      "benchmark": "panels",
+      "round": 4
+    },
+    {
+      "messages": 2000,
+      "coldMs": 191.15,
+      "medianMs": 85.24,
+      "warnings": 0,
+      "version": "2.8.1",
+      "benchmark": "panels",
+      "round": 4
+    },
+    {
+      "messages": 2000,
+      "coldMs": 189.09,
+      "medianMs": 87.05,
+      "warnings": 0,
+      "version": "2.8.21",
+      "benchmark": "panels",
+      "round": 4
+    },
+    {
+      "messages": 2000,
+      "coldMs": 117.21,
+      "medianMs": 57.02,
+      "warnings": 0,
+      "version": "2.8.2",
+      "benchmark": "panels",
+      "round": 4
+    },
+    {
+      "parseReportMedianMs": 0.3758,
+      "processResponseMedianMs": 0.5081,
+      "promptConstructMedianMs": 4.2022,
+      "promptCharacters": 14471,
+      "populatedPromptCharacters": 16584,
+      "warnings": 0,
+      "version": "2.8.1",
+      "benchmark": "pipeline",
+      "round": 4
+    },
+    {
+      "parseReportMedianMs": 0.4071,
+      "processResponseMedianMs": 0.604,
+      "promptConstructMedianMs": 0.2838,
+      "promptCharacters": 15528,
+      "populatedPromptCharacters": 19133,
+      "warnings": 0,
+      "version": "2.8.21",
+      "benchmark": "pipeline",
+      "round": 4
+    },
+    {
+      "parseReportMedianMs": 0.4238,
+      "processResponseMedianMs": 0.6745,
+      "promptConstructMedianMs": 0.2731,
+      "promptCharacters": 13054,
+      "populatedPromptCharacters": 16510,
+      "warnings": 0,
+      "version": "2.8.2",
+      "benchmark": "pipeline",
+      "round": 4
+    },
+    {
+      "messages": 600,
+      "coldMs": 134.39,
+      "medianMs": 54.16,
+      "warnings": 0,
+      "version": "2.8.21",
+      "benchmark": "panels",
+      "round": 5
+    },
+    {
+      "messages": 600,
+      "coldMs": 76.61,
+      "medianMs": 33.56,
+      "warnings": 0,
+      "version": "2.8.2",
+      "benchmark": "panels",
+      "round": 5
+    },
+    {
+      "messages": 600,
+      "coldMs": 95.31,
+      "medianMs": 52.01,
+      "warnings": 0,
+      "version": "2.8.1",
+      "benchmark": "panels",
+      "round": 5
+    },
+    {
+      "messages": 2000,
+      "coldMs": 212.53,
+      "medianMs": 85.89,
+      "warnings": 0,
+      "version": "2.8.21",
+      "benchmark": "panels",
+      "round": 5
+    },
+    {
+      "messages": 2000,
+      "coldMs": 114.2,
+      "medianMs": 61.05,
+      "warnings": 0,
+      "version": "2.8.2",
+      "benchmark": "panels",
+      "round": 5
+    },
+    {
+      "messages": 2000,
+      "coldMs": 146.49,
+      "medianMs": 72.61,
+      "warnings": 0,
+      "version": "2.8.1",
+      "benchmark": "panels",
+      "round": 5
+    },
+    {
+      "parseReportMedianMs": 0.4323,
+      "processResponseMedianMs": 0.6413,
+      "promptConstructMedianMs": 0.2871,
+      "promptCharacters": 15528,
+      "populatedPromptCharacters": 19133,
+      "warnings": 0,
+      "version": "2.8.21",
+      "benchmark": "pipeline",
+      "round": 5
+    },
+    {
+      "parseReportMedianMs": 0.403,
+      "processResponseMedianMs": 0.6486,
+      "promptConstructMedianMs": 0.2816,
+      "promptCharacters": 13054,
+      "populatedPromptCharacters": 16510,
+      "warnings": 0,
+      "version": "2.8.2",
+      "benchmark": "pipeline",
+      "round": 5
+    },
+    {
+      "parseReportMedianMs": 0.3789,
+      "processResponseMedianMs": 0.5223,
+      "promptConstructMedianMs": 4.0394,
+      "promptCharacters": 14471,
+      "populatedPromptCharacters": 16584,
+      "warnings": 0,
+      "version": "2.8.1",
+      "benchmark": "pipeline",
+      "round": 5
+    }
+  ]
+}

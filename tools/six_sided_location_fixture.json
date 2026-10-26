@@ -1,0 +1,1208 @@
+{
+  "total": 1432,
+  "locations": [
+    {
+      "index": 161,
+      "entry": {
+        "id": "161",
+        "key": [
+          "Asura Kingdom"
+        ],
+        "content": "The Asura Kingdom: The largest, wealthiest, and most agriculturally abundant human nation on the Central Continent. Shielded from high-level monsters by the Red Dragon Mountain Range. Characterized by extreme wealth disparity, deeply corrupt nobility, intricate political assassinations, and powerful palace knights.",
+        "extensions": {
+          "category": "2. Nations & Geography"
+        }
+      }
+    },
+    {
+      "index": 177,
+      "entry": {
+        "id": "177",
+        "key": [
+          "Ars",
+          "Asura Capital"
+        ],
+        "content": "Ars: The capital city of the Asura Kingdom. The most heavily defended and opulent city in the human world. Contains the sprawling Royal Palace, the Water God dojo, and is guarded by the elite Palace Knights. The site of Ariel's violent coup d'état to seize the throne.",
+        "extensions": {
+          "category": "2. Nations & Geography"
+        }
+      }
+    },
+    {
+      "index": 197,
+      "entry": {
+        "id": "197",
+        "key": [
+          "Fittoa Region"
+        ],
+        "content": "The Fittoa Region: A sprawling, highly fertile agricultural province in the Asura Kingdom. It was the breadbasket of the nation and the home of the Boreas Greyrat family, Roa city, and Buena Village. In K417, it was entirely atomized by the Mana Calamity, leaving behind a perfectly smooth, barren wasteland.",
+        "extensions": {
+          "category": "2. Nations & Geography"
+        }
+      }
+    },
+    {
+      "index": 205,
+      "entry": {
+        "id": "205",
+        "key": [
+          "The Great Forest Guild"
+        ],
+        "content": "Great Forest Guild: An independent adventurer guild established to protect the forest's ecology from exploitative slaving parties. They act as a paramilitary border patrol, often clashing with human merchant guilds that try to enter the forest without permission.",
+        "extensions": {
+          "category": "4. Factions & Locations"
+        }
+      }
+    },
+    {
+      "index": 214,
+      "entry": {
+        "id": "214",
+        "key": [
+          "Milbotts Region"
+        ],
+        "content": "Milbotts Region: A territory within the Asura Kingdom known for its vast plains and political squabbles among minor nobles. After the Mana Calamity, many refugees from Fittoa were temporarily relocated here, leading to massive economic strain and localized prejudices against the survivors.",
+        "extensions": {
+          "category": "2. Nations & Geography"
+        }
+      }
+    },
+    {
+      "index": 221,
+      "entry": {
+        "id": "221",
+        "key": [
+          "Ranoa Kingdom",
+          "Northern Territories"
+        ],
+        "content": "Ranoa Kingdom: One of the three nations comprising the Magic Triumvirate in the Northern Territories. It is a peaceful, progressive, and highly defended nation covered in snow for much of the year. It hosts the headquarters of the global Magic Guild.",
+        "extensions": {
+          "category": "2. Nations & Geography"
+        }
+      }
+    },
+    {
+      "index": 228,
+      "entry": {
+        "id": "228",
+        "key": [
+          "Kikka Defense Garrison"
+        ],
+        "content": "Kikka Defense Garrison: The permanent military presence at the border of the Northern Territories. Tasked with holding the line against high-rank magical beasts. It is one of the few places where humans, dwarves, and beastfolk serve together in integrated squads.",
+        "extensions": {
+          "category": "4. Factions & Locations"
+        }
+      }
+    },
+    {
+      "index": 240,
+      "entry": {
+        "id": "240",
+        "key": [
+          "Sharia",
+          "Magic City Sharia"
+        ],
+        "content": "Magic City Sharia: The capital of the Ranoa Kingdom. The central hub of global magical research and education. Houses the Ranoa Magic Academy. The city is uniquely tolerant, allowing humans, beastfolk, and demons to intermingle peacefully. Rudeus establishes his permanent home and mercenary base here.",
+        "extensions": {
+          "category": "2. Nations & Geography"
+        }
+      }
+    },
+    {
+      "index": 241,
+      "entry": {
+        "id": "241",
+        "key": [
+          "Dungeon Masters Guild"
+        ],
+        "content": "Dungeon Masters Guild: An underground organization in Rapan that controls access to the teleportation circles in the Teleportation Labyrinth. They sell safe routes to wealthy adventurers and leave the poor to die in trap-laden monster nests.",
+        "extensions": {
+          "category": "4. Factions & Locations"
+        }
+      }
+    },
+    {
+      "index": 253,
+      "entry": {
+        "id": "253",
+        "key": [
+          "Zant Port Smuggling Ring"
+        ],
+        "content": "Zant Port Smuggling Ring: A highly organized criminal network operating on the Demon Continent's coast. They monopolize the illegal transport of goods, slaves, and fugitives across the Ringus Sea, paying off corrupt officials to look the other way.",
+        "extensions": {
+          "category": "4. Factions & Locations"
+        }
+      }
+    },
+    {
+      "index": 255,
+      "entry": {
+        "id": "255",
+        "key": [
+          "Millis Kingdom",
+          "Holy Kingdom of Millis"
+        ],
+        "content": "Holy Kingdom of Millis: A massive, highly religious human kingdom on the Millis Continent. Surrounded by vast green forests and lakes. The capital is Millishion. It is ruled by a dual system: the King and the Pope. The populace strictly adheres to the Millis religion, which holds deep prejudice against demons.",
+        "extensions": {
+          "category": "2. Nations & Geography"
+        }
+      }
+    },
+    {
+      "index": 258,
+      "entry": {
+        "id": "258",
+        "key": [
+          "Millishion"
+        ],
+        "content": "Millishion: The capital of the Millis Kingdom. Visually stunning, featuring massive white cathedrals and a stark division between the ultra-wealthy religious elite (the White District) and the impoverished slums (the Black District). The headquarters of the Temple Knights.",
+        "extensions": {
+          "category": "2. Nations & Geography"
+        }
+      }
+    },
+    {
+      "index": 271,
+      "entry": {
+        "id": "271",
+        "key": [
+          "Chaos Breaker Servants"
+        ],
+        "content": "Chaos Breaker Servants: Perugius's twelve spirit-familiars that maintain the sky fortress. They act as maids, cooks, and gardeners. They are emotionless, completely obedient, and dissolve into light if damaged. They view Perugius as their absolute creator god.",
+        "extensions": {
+          "category": "4. Factions & Locations"
+        }
+      }
+    },
+    {
+      "index": 277,
+      "entry": {
+        "id": "277",
+        "key": [
+          "Ranoa Magic Academy"
+        ],
+        "content": "Ranoa Magic Academy: The premier educational institution for magic. Features a rigorous curriculum ranging from basic cantrips to King-tier elemental theory. The school is heavily warded and divided into dormitories based on magical potential.",
+        "extensions": {
+          "category": "3. Locations & Geography"
+        }
+      }
+    },
+    {
+      "index": 287,
+      "entry": {
+        "id": "287",
+        "key": [
+          "Holy Sword Highway"
+        ],
+        "content": "Holy Sword Highway: A massive, magically protected, monster-free road connecting the borders of the Millis Kingdom to its capital. It allows for perfectly safe merchant travel across the continent, severely boosting the kingdom's immense wealth and logistical superiority.",
+        "extensions": {
+          "category": "2. Nations & Geography"
+        }
+      }
+    },
+    {
+      "index": 288,
+      "entry": {
+        "id": "288",
+        "key": [
+          "Hitogami's Hidden Cult"
+        ],
+        "content": "Hitogami's Hidden Cult: A loose organization of people who have received 'divine' advice from Hitogami and built small, local shrines in his name. They act as eyes and ears for the Man-God, ensuring that information about Orsted's activities reaches him as quickly as possible.",
+        "extensions": {
+          "category": "4. Factions & Locations"
+        }
+      }
+    },
+    {
+      "index": 291,
+      "entry": {
+        "id": "291",
+        "key": [
+          "Fittoa Crater"
+        ],
+        "content": "Fittoa Crater: The massive, glassed-over hole in the earth where the Fittoa Region once existed. It is a site of extreme magical instability. Spontaneous teleportation effects still occasionally occur here, and the land remains toxic, repelling all life.",
+        "extensions": {
+          "category": "3. Locations & Geography"
+        }
+      }
+    },
+    {
+      "index": 293,
+      "entry": {
+        "id": "293",
+        "key": [
+          "Sharia Suburbs"
+        ],
+        "content": "Sharia Suburbs: The peaceful, sprawling residential districts surrounding the Ranoa Magic Academy. Features magically heated homes, student-owned bookstores, and cafes where students practice beginner-tier magic under minimal supervision. It's the most culturally diverse settlement in the human world.",
+        "extensions": {
+          "category": "4. Factions & Locations"
+        }
+      }
+    },
+    {
+      "index": 294,
+      "entry": {
+        "id": "294",
+        "key": [
+          "Shirone Kingdom"
+        ],
+        "content": "Shirone Kingdom: A mid-sized human nation located in the Strife Zone of the Central Continent. Known for its strict military hierarchy and constant border skirmishes. Zanoba and Pax are princes here. Hitogami orchestrates a massive demon invasion here to corner Rudeus and Zanoba.",
+        "extensions": {
+          "category": "2. Nations & Geography"
+        }
+      }
+    },
+    {
+      "index": 305,
+      "entry": {
+        "id": "305",
+        "key": [
+          "Begaritt Continent"
+        ],
+        "content": "Begaritt Continent: A harsh, desert-covered continent filled with labyrinth dungeons. Travel is incredibly difficult due to relentless sandstorms, lack of water, and A-Rank monsters. Adventurers flock here to harvest mana crystals. Home to Labyrinth City Rapan and the deadly Teleportation Labyrinth.",
+        "extensions": {
+          "category": "2. Nations & Geography"
+        }
+      }
+    },
+    {
+      "index": 315,
+      "entry": {
+        "id": "315",
+        "key": [
+          "Red Dragon Mountain Range"
+        ],
+        "content": "Red Dragon Mountain Range: A volcanic range separating the Central Continent. It is the home of the S-Rank Red Dragons. The heat is so extreme that standard magical armor loses structural integrity within hours of entry.",
+        "extensions": {
+          "category": "3. Locations & Geography"
+        }
+      }
+    },
+    {
+      "index": 320,
+      "entry": {
+        "id": "320",
+        "key": [
+          "Holy Sword Highway"
+        ],
+        "content": "Holy Sword Highway: A 500-kilometer road spanning the Millis Kingdom. It is lined with high-level anti-monster wards, making it the safest road in the world for merchant caravans and travelers, provided they pay the heavy entrance tax.",
+        "extensions": {
+          "category": "3. Locations & Geography"
+        }
+      }
+    },
+    {
+      "index": 323,
+      "entry": {
+        "id": "323",
+        "key": [
+          "Teleportation Labyrinth"
+        ],
+        "content": "Teleportation Labyrinth: A highly lethal, six-floor dungeon in Begaritt. There are no stairs. Advancement requires stepping on specific, unmarked magic circles that teleport the party to different rooms. Guarded by the Manatite Hydra. The site of Paul's death and Zenith's rescue.",
+        "extensions": {
+          "category": "2. Nations & Geography"
+        }
+      }
+    },
+    {
+      "index": 334,
+      "entry": {
+        "id": "334",
+        "key": [
+          "City of Kikka"
+        ],
+        "content": "City of Kikka: A heavily fortified border city in the Northern Territories. Serves as the primary checkpoint between the snowy lands of Ranoa and the monster-infested wilderness of the continent's edge. Known for its massive, magically heated defensive walls.",
+        "extensions": {
+          "category": "4. Geography & Deep Lore"
+        }
+      }
+    },
+    {
+      "index": 336,
+      "entry": {
+        "id": "336",
+        "key": [
+          "Red Dragon Mountain Range"
+        ],
+        "content": "Red Dragon Mountain Range: An impassable, massive mountain range splitting the Central Continent. It is heavily populated by A-Rank and S-Rank Red Dragons. It acts as a natural, impenetrable barrier that protects the wealthy Asura Kingdom from the monsters of the Northern Territories and the Demon Continent.",
+        "extensions": {
+          "category": "4. World Geography II"
+        }
+      }
+    },
+    {
+      "index": 339,
+      "entry": {
+        "id": "339",
+        "key": [
+          "Biheiril Kingdom"
+        ],
+        "content": "Biheiril Kingdom: A remote, heavily forested nation on the edge of the Central Continent. It has a surprisingly peaceful relationship with the local Superd village hidden in its woods. The site of the apocalyptic final battle between Orsted's faction and Hitogami's forces.",
+        "extensions": {
+          "category": "2. Nations & Geography"
+        }
+      }
+    },
+    {
+      "index": 342,
+      "entry": {
+        "id": "342",
+        "key": [
+          "Great Labyrinth of Begaritt"
+        ],
+        "content": "Great Labyrinth of Begaritt: The most infamous dungeon in the Begaritt Continent. It functions by rearranging its rooms every 24 hours. The boss, the Manatite Hydra, is protected by magic-negating scales. It is the primary site of adventurer deaths in the south.",
+        "extensions": {
+          "category": "3. Locations & Geography"
+        }
+      }
+    },
+    {
+      "index": 348,
+      "entry": {
+        "id": "348",
+        "key": [
+          "City of Donati"
+        ],
+        "content": "City of Donati: A major trading hub located in the Strife Zone. It frequently changes hands between warring kingdoms. Due to the constant political upheaval, it boasts one of the largest black markets and mercenary hiring boards in the world, making it a hotspot for North God practitioners.",
+        "extensions": {
+          "category": "4. Geography & Deep Lore"
+        }
+      }
+    },
+    {
+      "index": 349,
+      "entry": {
+        "id": "349",
+        "key": [
+          "Rikarisu Crater City"
+        ],
+        "content": "Rikarisu City: A lawless demon settlement inside the fossilized remains of an ancient monster. The ribcage acts as the city wall. It is a hub for trade, assassination contracts, and monster-taming services for those who can survive the Demon Continent's atmosphere.",
+        "extensions": {
+          "category": "3. Locations & Geography"
+        }
+      }
+    },
+    {
+      "index": 350,
+      "entry": {
+        "id": "350",
+        "key": [
+          "Great Forest",
+          "Beastfolk Forest"
+        ],
+        "content": "The Great Forest: A massive, dense, highly dangerous jungle occupying the southern part of the Central Continent. Home to the various beastfolk tribes (Doldia, Adoldia). The forest is humid, filled with predatory plants, giant insects, and territorial beastmen who despise human slavers.",
+        "extensions": {
+          "category": "4. World Geography II"
+        }
+      }
+    },
+    {
+      "index": 355,
+      "entry": {
+        "id": "355",
+        "key": [
+          "King Dragon Realm"
+        ],
+        "content": "King Dragon Realm: A powerful nation formed from the remnants of the King Dragon King's territory. Known for its elite knights who ride wyverns and lesser dragons. A major geopolitical player that gets dragged into the arms race during the final war against Hitogami.",
+        "extensions": {
+          "category": "2. Nations & Geography"
+        }
+      }
+    },
+    {
+      "index": 363,
+      "entry": {
+        "id": "363",
+        "key": [
+          "Doldia Village"
+        ],
+        "content": "Doldia Village: The primary settlement of the cat-beastfolk deep within the Great Forest. Built into massive ancient trees. The village observes a strict hierarchy based on combat strength. Ghislaine Dedoldia's birthplace. Men are rarely allowed in during the mating season.",
+        "extensions": {
+          "category": "4. World Geography II"
+        }
+      }
+    },
+    {
+      "index": 370,
+      "entry": {
+        "id": "370",
+        "key": [
+          "Chaos Breaker"
+        ],
+        "content": "Chaos Breaker: Perugius's floating sky fortress. An engineering marvel from the Age of Myths. It hovers continuously over the world, acting as a neutral ground for diplomacy and a devastating aerial weapon if provoked.",
+        "extensions": {
+          "category": "3. Locations & Geography"
+        }
+      }
+    },
+    {
+      "index": 372,
+      "entry": {
+        "id": "372",
+        "key": [
+          "The Sacred Tree"
+        ],
+        "content": "The Sacred Tree: A colossal, ancient tree located in the absolute center of the Great Forest. It radiates immense spiritual energy and is the birthplace of the Dryads. The beastfolk revere it as a deity. It acts as a massive natural barrier that prevents high-tier monsters from migrating into the villages.",
+        "extensions": {
+          "category": "4. Geography & Deep Lore"
+        }
+      }
+    },
+    {
+      "index": 375,
+      "entry": {
+        "id": "375",
+        "key": [
+          "East Port",
+          "West Port"
+        ],
+        "content": "East Port and West Port: The two massive harbor cities on the Millis Continent. East Port connects to the Demon Continent (Zant Port), while West Port facilitates trade with the Central Continent. Both cities are heavily guarded by Millis Temple Knights enforcing strict anti-demon entry laws.",
+        "extensions": {
+          "category": "4. World Geography II"
+        }
+      }
+    },
+    {
+      "index": 377,
+      "entry": {
+        "id": "377",
+        "key": [
+          "Red Dragon Valley"
+        ],
+        "content": "Red Dragon Valley: A deep, volcanic gorge in the Red Dragon Mountain Range. It is the primary nesting ground for S-Rank Red Dragons. The heat is so intense that standard armor melts upon entry. It is the site of Orsted's initial, fatal encounter with Rudeus.",
+        "extensions": {
+          "category": "4. Geography & Deep Lore"
+        }
+      }
+    },
+    {
+      "index": 384,
+      "entry": {
+        "id": "384",
+        "key": [
+          "Doldia Sacred Tree"
+        ],
+        "content": "Doldia Sacred Tree: An ancient tree at the center of the Great Forest. It is a conduit of planetary mana. All Doldia rituals take place here. It is guarded by elite beastfolk warriors and serves as the ultimate spiritual sanctuary in the forest.",
+        "extensions": {
+          "category": "3. Locations & Geography"
+        }
+      }
+    },
+    {
+      "index": 390,
+      "entry": {
+        "id": "390",
+        "key": [
+          "Blue Dragon Glacier"
+        ],
+        "content": "Blue Dragon Glacier: A massive, perpetually frozen wasteland in the northernmost reaches of the world. Home to the Blue Dragons. The ambient mana here is heavily aspected toward ice magic, making it a popular, albeit deadly, pilgrimage site for high-tier Water Mages seeking to master 'Absolute Zero'.",
+        "extensions": {
+          "category": "4. Geography & Deep Lore"
+        }
+      }
+    },
+    {
+      "index": 393,
+      "entry": {
+        "id": "393",
+        "key": [
+          "The Barren World"
+        ],
+        "content": "The Barren World: A featureless white void in the center of the Six-Sided World. It is the prison of Hitogami. It contains no matter, no mana, and no time, forcing the Man-God to exist as a purely psychic entity unable to manifest physically.",
+        "extensions": {
+          "category": "3. Locations & Geography"
+        }
+      }
+    },
+    {
+      "index": 394,
+      "entry": {
+        "id": "394",
+        "key": [
+          "Blue Dragon Mountains"
+        ],
+        "content": "Blue Dragon Mountains: A freezing, jagged mountain range in the Northern Territories. Populated by Blue Dragons, which breathe ice instead of fire. The harsh terrain isolates the Magic Triumvirate from the rest of the continent.",
+        "extensions": {
+          "category": "4. World Geography II"
+        }
+      }
+    },
+    {
+      "index": 408,
+      "entry": {
+        "id": "408",
+        "key": [
+          "Shirone Kingdom Borders"
+        ],
+        "content": "Shirone Kingdom Borders: Heavily entrenched, trench-warfare zones filled with earthen fortifications, spiked barricades, and heavy infantry battalions. They are designed to hold off the constant, low-level demon incursions from the north. The mud here is permanently stained with blood.",
+        "extensions": {
+          "category": "4. Geography & Deep Lore"
+        }
+      }
+    },
+    {
+      "index": 414,
+      "entry": {
+        "id": "414",
+        "key": [
+          "Strife Zone"
+        ],
+        "content": "The Strife Zone: A massive, chaotic region in the southern Central Continent. Comprised of dozens of small, warring kingdoms (including the Shirone Kingdom). Borders are constantly shifting, and mercenary work is the primary economy. Hitogami frequently manipulates this region's instability.",
+        "extensions": {
+          "category": "4. World Geography II"
+        }
+      }
+    },
+    {
+      "index": 417,
+      "entry": {
+        "id": "417",
+        "key": [
+          "Dragon King's Roost"
+        ],
+        "content": "Dragon King's Roost: The highest peak in the Central Continent. Mythological lore states it was the original landing point of the Dragon Gods after the destruction of the Dragon World. It is completely inaccessible to humans due to the lack of oxygen and dense, crushing atmospheric mana.",
+        "extensions": {
+          "category": "4. Geography & Deep Lore"
+        }
+      }
+    },
+    {
+      "index": 422,
+      "entry": {
+        "id": "422",
+        "key": [
+          "Magic Triumvirate"
+        ],
+        "content": "Magic Triumvirate: An alliance of three nations in the Northern Territories: the Ranoa Kingdom, the Kingdom of Neris, and the Kingdom of Basant. They pooled their resources to establish the global Magic Guild, ensuring they remain the absolute authority on magical research and education.",
+        "extensions": {
+          "category": "4. World Geography II"
+        }
+      }
+    },
+    {
+      "index": 436,
+      "entry": {
+        "id": "436",
+        "key": [
+          "Kingdom of Neris",
+          "Kingdom of Basant"
+        ],
+        "content": "Neris and Basant: The two sister-nations to Ranoa in the Magic Triumvirate. Neris specializes in the mass production of magical implements and staves, while Basant focuses on alchemy, potion-brewing, and agricultural magic to survive the freezing northern climate.",
+        "extensions": {
+          "category": "4. World Geography II"
+        }
+      }
+    },
+    {
+      "index": 444,
+      "entry": {
+        "id": "444",
+        "key": [
+          "White District",
+          "Millishion White District"
+        ],
+        "content": "Millishion White District: The opulent, heavily guarded sector of the Millis capital. Characterized by pristine white cathedrals, noble estates, and immaculate streets. The Temple Knights patrol here constantly. It serves as the political and religious heart of the kingdom.",
+        "extensions": {
+          "category": "4. Detailed Locations"
+        }
+      }
+    },
+    {
+      "index": 446,
+      "entry": {
+        "id": "446",
+        "key": [
+          "Ringus Sea"
+        ],
+        "content": "Ringus Sea: The vast ocean separating the Central Continent, Demon Continent, and Millis Continent. Travel is strictly limited to massive, magically armored galleons because the waters are infested with S-Rank sea monsters capable of sinking standard fleets.",
+        "extensions": {
+          "category": "4. World Geography II"
+        }
+      }
+    },
+    {
+      "index": 467,
+      "entry": {
+        "id": "467",
+        "key": [
+          "Black District",
+          "Millishion Black District"
+        ],
+        "content": "Millishion Black District: The slum sector of the Millis capital. A stark contrast to the White District, it is filled with poverty, crime, and illicit smuggling. The Millis Church largely turns a blind eye to the suffering here, highlighting the hypocrisy of their religion.",
+        "extensions": {
+          "category": "4. Detailed Locations"
+        }
+      }
+    },
+    {
+      "index": 469,
+      "entry": {
+        "id": "469",
+        "key": [
+          "Heaven Continent",
+          "Heaven Race"
+        ],
+        "content": "Heaven Continent: A landmass consisting entirely of floating islands high above the clouds. Accessible only to the winged Heaven Race. Highly isolationist, observing the world below with neutrality. The altitude makes the air too thin for humans to breathe without specialized magic.",
+        "extensions": {
+          "category": "4. World Geography II"
+        }
+      }
+    },
+    {
+      "index": 475,
+      "entry": {
+        "id": "475",
+        "key": [
+          "Millis Church Headquarters"
+        ],
+        "content": "Millis Church Headquarters: A colossal, fortress-like cathedral in the center of the White District. It houses the Pope, the Cardinal, and the Miko. It is heavily enchanted with absolute anti-demon and anti-magic barriers, making it a nearly impenetrable fortress.",
+        "extensions": {
+          "category": "4. Detailed Locations"
+        }
+      }
+    },
+    {
+      "index": 478,
+      "entry": {
+        "id": "478",
+        "key": [
+          "Sea Continent",
+          "Sea Race"
+        ],
+        "content": "Sea Continent: A completely submerged, underwater realm occupying the ocean floors. Ruled by the Sea Race (merfolk and aquatic beastmen). They have a completely separate political system and are largely unaffected by the wars of the land-dwellers.",
+        "extensions": {
+          "category": "4. World Geography II"
+        }
+      }
+    },
+    {
+      "index": 494,
+      "entry": {
+        "id": "494",
+        "key": [
+          "Shirone Royal Palace"
+        ],
+        "content": "Shirone Royal Palace: A heavily fortified, militaristic castle. Reflecting Shirone's status as a nation in the Strife Zone, the palace is designed more as a defensive bunker than a place of luxury. Pax Shirone turns it into a hostage trap using powerful magical barriers.",
+        "extensions": {
+          "category": "4. Detailed Locations"
+        }
+      }
+    },
+    {
+      "index": 511,
+      "entry": {
+        "id": "511",
+        "key": [
+          "Ranoa Magic Academy Library"
+        ],
+        "content": "Ranoa Magic Academy Library: A massive, multi-story archive containing thousands of grimoires, historical texts, and magical research papers. Access to the restricted upper floors is granted only to Academy faculty and Special Students like Rudeus and Fitz.",
+        "extensions": {
+          "category": "4. Detailed Locations"
+        }
+      }
+    },
+    {
+      "index": 512,
+      "entry": {
+        "id": "512",
+        "key": [
+          "Biheiril Hidden Village"
+        ],
+        "content": "Biheiril Hidden Village: The secret sanctuary of the surviving Superd race. Located deep within an ancient, magically dense forest in the Biheiril Kingdom. The village is built into the massive roots of giant trees, heavily camouflaged from aerial scouting and human patrols.",
+        "extensions": {
+          "category": "4. Geography & Deep Lore"
+        }
+      }
+    },
+    {
+      "index": 513,
+      "entry": {
+        "id": "513",
+        "key": [
+          "Ranoa Academy Dormitories"
+        ],
+        "content": "Ranoa Academy Dormitories: Strictly separated by gender. The female dormitories are heavily warded against intrusion. Rudeus's room becomes a frequent gathering spot for Zanoba, Cliff, and Fitz. The beastfolk princesses essentially rule their dorm through intimidation.",
+        "extensions": {
+          "category": "4. Detailed Locations"
+        }
+      }
+    },
+    {
+      "index": 515,
+      "entry": {
+        "id": "515",
+        "key": [
+          "Ranoa Sharia Suburbs"
+        ],
+        "content": "Sharia Suburbs: The peaceful, sprawling residential districts surrounding the Ranoa Magic Academy. Characterized by wide, snow-cleared streets, magically heated homes, and a heavily integrated population of beastfolk, humans, and demons living in rare harmony.",
+        "extensions": {
+          "category": "4. Geography & Deep Lore"
+        }
+      }
+    },
+    {
+      "index": 536,
+      "entry": {
+        "id": "536",
+        "key": [
+          "Chaos Breaker"
+        ],
+        "content": "Chaos Breaker: Perugius's massive, floating fortress. It hovers high above the clouds and contains libraries of lost magic, magical research laboratories, and a small, independent ecosystem of artificial spirits. Only reachable via high-tier flight magic or Perugius's specific teleportation monoliths.",
+        "extensions": {
+          "category": "4. Geography & Deep Lore"
+        }
+      }
+    },
+    {
+      "index": 540,
+      "entry": {
+        "id": "540",
+        "key": [
+          "Chaos Breaker Teleportation Circles"
+        ],
+        "content": "Chaos Breaker Teleportation Circles: Perugius's sky fortress is equipped with a network of ancient, perfectly stable teleportation circles. Perugius can grant access tokens to trusted allies, allowing them to instantly teleport to the fortress from specific monuments on the ground.",
+        "extensions": {
+          "category": "4. Detailed Locations"
+        }
+      }
+    },
+    {
+      "index": 551,
+      "entry": {
+        "id": "551",
+        "key": [
+          "Great Forest Sacrificial Altar"
+        ],
+        "content": "Great Forest Sacrificial Altar: An ancient, moss-covered structure deep in the Great Forest of Tob. It is a site of dark, ancient rituals once used by early beastfolk to appease primal gods. It radiates a powerful, chaotic mana that drives nearby monsters into frenzy.",
+        "extensions": {
+          "category": "4. Geography & Deep Lore"
+        }
+      }
+    },
+    {
+      "index": 552,
+      "entry": {
+        "id": "552",
+        "key": [
+          "Rapan Oasis",
+          "Lapan"
+        ],
+        "content": "Rapan Oasis: The only major source of water in the central Begaritt Continent. The Labyrinth City of Rapan was built entirely around it. Control of the oasis equates to absolute economic control over the local adventurer guilds.",
+        "extensions": {
+          "category": "4. Detailed Locations"
+        }
+      }
+    },
+    {
+      "index": 560,
+      "entry": {
+        "id": "560",
+        "key": [
+          "Red Dragon Mountain Range"
+        ],
+        "content": "Red Dragon Mountain Range: An impassable, massive mountain range splitting the Central Continent. It is heavily populated by A-Rank and S-Rank Red Dragons. The heat is so intense that standard armor melts upon entry. It is the site of Orsted's initial, fatal encounter with Rudeus.",
+        "extensions": {
+          "category": "4. Geography & Deep Lore"
+        }
+      }
+    },
+    {
+      "index": 566,
+      "entry": {
+        "id": "566",
+        "key": [
+          "Begaritt Desert Sandstorms"
+        ],
+        "content": "Begaritt Desert Sandstorms: Violent, magically charged weather anomalies on the Begaritt Continent. They reduce visibility to zero, scramble directional magic, and carry abrasive, glass-like sand that shreds unprotected skin. They force travelers to rely on highly specialized local guides.",
+        "extensions": {
+          "category": "4. Detailed Locations"
+        }
+      }
+    },
+    {
+      "index": 571,
+      "entry": {
+        "id": "571",
+        "key": [
+          "Buena Village Layout"
+        ],
+        "content": "Buena Village Layout: A modest, circular farming village surrounded by wooden palisades. Features vast batra fields on the outskirts, a small central square, Paul's relatively large estate, and scattered peasant homes. Completely wiped off the map in K417.",
+        "extensions": {
+          "category": "4. Detailed Locations"
+        }
+      }
+    },
+    {
+      "index": 576,
+      "entry": {
+        "id": "576",
+        "key": [
+          "Blue Dragon Glacier"
+        ],
+        "content": "Blue Dragon Glacier: A massive, perpetually frozen wasteland in the northernmost reaches of the world. Home to the Blue Dragons. The ambient mana here is heavily aspected toward ice magic, making it a popular, albeit deadly, pilgrimage site for high-tier Water Mages seeking to master 'Absolute Zero'.",
+        "extensions": {
+          "category": "4. Geography & Deep Lore"
+        }
+      }
+    },
+    {
+      "index": 590,
+      "entry": {
+        "id": "590",
+        "key": [
+          "Shirone Kingdom Border"
+        ],
+        "content": "Shirone Kingdom Border: Heavily entrenched, trench-warfare zones filled with earthen fortifications, spiked barricades, and heavy infantry battalions. They are designed to hold off the constant, low-level demon incursions from the north. The mud here is permanently stained with blood.",
+        "extensions": {
+          "category": "4. Geography & Deep Lore"
+        }
+      }
+    },
+    {
+      "index": 662,
+      "entry": {
+        "id": "662",
+        "key": [
+          "Sharia Suburbs"
+        ],
+        "content": "Sharia Suburbs: The peaceful, sprawling residential districts surrounding the Ranoa Magic Academy. Characterized by wide, snow-cleared streets, magically heated homes, and a heavily integrated population of beastfolk, humans, and demons living in rare harmony.",
+        "extensions": {
+          "category": "4. Geography & Landmarks"
+        }
+      }
+    },
+    {
+      "index": 675,
+      "entry": {
+        "id": "675",
+        "key": [
+          "Ranoa Castle"
+        ],
+        "content": "Ranoa Castle: The seat of power for the Ranoa Kingdom. Unlike the opulent Asura Palace, Ranoa Castle is built like a massive, practical fortress of stone and ice, heavily fortified with advanced magical anti-siege barriers to repel Northern Territory monsters.",
+        "extensions": {
+          "category": "4. Geography & Landmarks"
+        }
+      }
+    },
+    {
+      "index": 688,
+      "entry": {
+        "id": "688",
+        "key": [
+          "Buena Village Ruins"
+        ],
+        "content": "Buena Village Ruins: Following the Mana Calamity, the village was completely erased. The location is now a perfectly smooth, completely barren depression in the earth, devoid of grass, trees, or life. It serves as a haunting monument to the devastating power of spatial displacement.",
+        "extensions": {
+          "category": "4. Geography & Landmarks"
+        }
+      }
+    },
+    {
+      "index": 699,
+      "entry": {
+        "id": "699",
+        "key": [
+          "Roa Ruins"
+        ],
+        "content": "Roa Ruins: The former bustling capital of the Fittoa Region. After the Calamity, nothing remains but a massive, glassy crater. Scavengers occasionally search the edges hoping to find teleported artifacts, but the area is considered cursed and highly unstable.",
+        "extensions": {
+          "category": "4. Geography & Landmarks"
+        }
+      }
+    },
+    {
+      "index": 711,
+      "entry": {
+        "id": "711",
+        "key": [
+          "Red Dragon Lower Valley"
+        ],
+        "content": "Red Dragon Lower Valley: The treacherous foothills leading up to the Red Dragon Mountain Range. It is littered with the charred bones of adventurers and destroyed caravans. The ambient heat is suffocating, and the sky is constantly choked with ash and smoke from the dragons above.",
+        "extensions": {
+          "category": "4. Geography & Landmarks"
+        }
+      }
+    },
+    {
+      "index": 755,
+      "entry": {
+        "id": "755",
+        "key": [
+          "Blue Dragon Summit"
+        ],
+        "content": "Blue Dragon Summit: The highest, most lethal peak in the Northern Territories. Temperatures here drop so low that breathing unprotected instantly freezes the lungs. High-tier Blue Dragons nest here, making it a suicidal destination for anyone below King-tier combat ability.",
+        "extensions": {
+          "category": "4. Geography & Landmarks"
+        }
+      }
+    },
+    {
+      "index": 841,
+      "entry": {
+        "id": "841",
+        "key": [
+          "King Dragon Realm Capital"
+        ],
+        "content": "King Dragon Realm Capital: A highly vertical, militaristic city built into the side of a massive canyon. Wyverns and lesser dragons fly freely through the airspace, serving as the kingdom's primary mode of military transport and defense. The architecture is sharp, imposing, and functional.",
+        "extensions": {
+          "category": "4. Geography & Landmarks"
+        }
+      }
+    },
+    {
+      "index": 850,
+      "entry": {
+        "id": "850",
+        "key": [
+          "Biheiril Hidden Village"
+        ],
+        "content": "Biheiril Hidden Village: The secret sanctuary of the surviving Superd race. Located deep within an ancient, magically dense forest in the Biheiril Kingdom. The village is built into the massive roots of giant trees, heavily camouflaged from aerial scouting and human patrols.",
+        "extensions": {
+          "category": "4. Geography & Landmarks"
+        }
+      }
+    },
+    {
+      "index": 862,
+      "entry": {
+        "id": "862",
+        "key": [
+          "The Fittoa Region"
+        ],
+        "content": "The Fittoa Region: A sprawling, highly fertile agricultural province in the Asura Kingdom. It was the breadbasket of the nation and the home of the Boreas Greyrat family, Roa city, and Buena Village. In K417, it was entirely atomized by the Mana Calamity, leaving behind a perfectly smooth, barren wasteland.",
+        "extensions": {
+          "category": "Geography & Locations"
+        }
+      }
+    },
+    {
+      "index": 863,
+      "entry": {
+        "id": "863",
+        "key": [
+          "Millishion Slums"
+        ],
+        "content": "Millishion Slums: The 'Black District' of the Holy Capital. A sprawling, impoverished maze of cramped wooden shacks, open sewers, and illicit black markets. Criminals, exiled demons, and disgraced nobles hide here, completely ignored by the corrupt Temple Knights above.",
+        "extensions": {
+          "category": "4. Geography & Landmarks"
+        }
+      }
+    },
+    {
+      "index": 873,
+      "entry": {
+        "id": "873",
+        "key": [
+          "Roa",
+          "City of Roa"
+        ],
+        "content": "City of Roa: The capital city of the Fittoa Region. A massive, walled, prosperous trading hub ruled by Mayor Philip Boreas Greyrat. It was where Rudeus spent three years tutoring Eris. Completely annihilated during the Mana Calamity.",
+        "extensions": {
+          "category": "Geography & Locations"
+        }
+      }
+    },
+    {
+      "index": 877,
+      "entry": {
+        "id": "877",
+        "key": [
+          "Millishion Grand Cathedral"
+        ],
+        "content": "Millishion Grand Cathedral: The absolute center of the Millis religion. A colossal, blindingly white structure adorned with gold and stained glass. It houses the Pope's throne and the highly restricted underground archives containing the true, unaltered history of the Human-Demon wars.",
+        "extensions": {
+          "category": "4. Geography & Landmarks"
+        }
+      }
+    },
+    {
+      "index": 890,
+      "entry": {
+        "id": "890",
+        "key": [
+          "Asura Royal Gardens"
+        ],
+        "content": "Asura Royal Gardens: A massive, perfectly manicured estate within the Asura Palace. Filled with exotic plants, magical fountains, and rare beasts kept as pets. It is the primary location for the nobility's treacherous tea parties, where alliances are formed and assassinations are plotted.",
+        "extensions": {
+          "category": "4. Geography & Landmarks"
+        }
+      }
+    },
+    {
+      "index": 894,
+      "entry": {
+        "id": "894",
+        "key": [
+          "Buena Village"
+        ],
+        "content": "Buena Village: A tiny, peaceful farming village at the edge of the Fittoa region. Famous for its batra fields. The birthplace of Rudeus Greyrat and Sylphiette. Paul Greyrat served as its resident knight. Erased from existence by the Mana Calamity.",
+        "extensions": {
+          "category": "Geography & Locations"
+        }
+      }
+    },
+    {
+      "index": 966,
+      "entry": {
+        "id": "966",
+        "key": [
+          "Demon Continent Badlands"
+        ],
+        "content": "Demon Continent Badlands: The vast, featureless stretches of toxic desert between demon cities. The ground is jagged, the air is thick with poisonous magicules, and high-rank monsters camouflage themselves in the terrain. Traveling without an elite escort is immediate suicide.",
+        "extensions": {
+          "category": "4. Geography & Landmarks"
+        }
+      }
+    },
+    {
+      "index": 968,
+      "entry": {
+        "id": "968",
+        "key": [
+          "Ars",
+          "Capital Ars"
+        ],
+        "content": "Ars: The capital city of the Asura Kingdom. The most heavily defended and opulent city in the human world. Contains the Royal Palace, the Water God dojo, and is guarded by the elite Palace Knights. The site of Ariel's violent coup d'état in Arc 14.",
+        "extensions": {
+          "category": "Geography & Locations"
+        }
+      }
+    },
+    {
+      "index": 972,
+      "entry": {
+        "id": "972",
+        "key": [
+          "Rikarisu Crater"
+        ],
+        "content": "Rikarisu Crater: The city of Rikarisu is built inside the fossilized ribcage of an impossibly large, ancient demon beast that was slain during the Laplace War. The ribs act as a natural, towering defensive wall against the relentless monster hordes outside.",
+        "extensions": {
+          "category": "4. Geography & Landmarks"
+        }
+      }
+    },
+    {
+      "index": 975,
+      "entry": {
+        "id": "975",
+        "key": [
+          "Rikarisu",
+          "City of Rikarisu"
+        ],
+        "content": "Rikarisu: A massive city on the Demon Continent, uniquely constructed inside the skeletal crater of a colossal, ancient demon beast. It is the first major civilization Rudeus, Eris, and Ruijerd encounter. Ruled by competing demon gangs and extorting adventurers.",
+        "extensions": {
+          "category": "Geography & Locations"
+        }
+      }
+    },
+    {
+      "index": 988,
+      "entry": {
+        "id": "988",
+        "key": [
+          "Begaritt Glass Desert"
+        ],
+        "content": "Begaritt Glass Desert: A specific region in Begaritt where immense, historical Fire magic attacks superheated the sand, turning miles of the desert into jagged, razor-sharp fields of obsidian glass. Sandstorms here carry glass shards that shred unprotected adventurers to the bone.",
+        "extensions": {
+          "category": "4. Geography & Landmarks"
+        }
+      }
+    },
+    {
+      "index": 989,
+      "entry": {
+        "id": "989",
+        "key": [
+          "Rapan",
+          "Labyrinth City Rapan",
+          "Lapan"
+        ],
+        "content": "Labyrinth City Rapan: An oasis city on the harsh Begaritt Continent. Its entire economy is based on adventurers diving into the surrounding labyrinths to harvest mana crystals and magical items. It is hot, dangerous, and lawless. Home to the Teleportation Labyrinth.",
+        "extensions": {
+          "category": "Geography & Locations"
+        }
+      }
+    },
+    {
+      "index": 993,
+      "entry": {
+        "id": "993",
+        "key": [
+          "Millishion"
+        ],
+        "content": "Millishion: The capital of the Holy Kingdom of Millis. Visually stunning, featuring massive cathedrals and a stark division between the ultra-wealthy religious elite and the impoverished slums. Surrounded by lakes and the magically protected Holy Sword Highway.",
+        "extensions": {
+          "category": "Geography & Locations"
+        }
+      }
+    },
+    {
+      "index": 999,
+      "entry": {
+        "id": "999",
+        "key": [
+          "Heaven Continent Skyport"
+        ],
+        "content": "Heaven Continent Skyport: The only known access point to the floating islands of the Heaven Race. A massive, floating dock composed of ancient white stone. Only accessible via flight magic or tamed flying beasts. Heavily guarded by winged warriors who despise surface-dwellers.",
+        "extensions": {
+          "category": "4. Geography & Landmarks"
+        }
+      }
+    },
+    {
+      "index": 1002,
+      "entry": {
+        "id": "1002",
+        "key": [
+          "Zant Port",
+          "West Port",
+          "East Port"
+        ],
+        "content": "Continental Ports: Zant Port (Demon Continent) connects to West Port (Millis Continent). Travel across the oceans is highly restricted due to massive sea monsters. Smuggling is rampant. Dead End had to bypass the exorbitant Superd travel fees here by allying with the smuggler Gallus.",
+        "extensions": {
+          "category": "Geography & Locations"
+        }
+      }
+    },
+    {
+      "index": 1012,
+      "entry": {
+        "id": "1012",
+        "key": [
+          "Teleportation Labyrinth Floors"
+        ],
+        "content": "Teleportation Labyrinth Interior: A six-floor, highly lethal dungeon in Begaritt. There are no stairs. Advancement requires stepping on specific, unmarked magic circles that teleport the party to different rooms. A single wrong step drops the party into a monster nest or a dead end. Guarded by the Manatite Hydra.",
+        "extensions": {
+          "category": "Geography & Locations"
+        }
+      }
+    },
+    {
+      "index": 1018,
+      "entry": {
+        "id": "1018",
+        "key": [
+          "Chaos Breaker Interior"
+        ],
+        "content": "Chaos Breaker: Perugius's flying fortress. Powered by ancient, lost magic. The interior is opulent, filled with marble, pristine gardens, and high art. It is heavily guarded by twelve unique elemental familiars. It serves as the ultimate neutral ground and tactical base for Orsted's faction.",
+        "extensions": {
+          "category": "Geography & Locations"
+        }
+      }
+    },
+    {
+      "index": 1028,
+      "entry": {
+        "id": "1028",
+        "key": [
+          "Ranoa Academy Campus"
+        ],
+        "content": "Ranoa Magic Academy: A massive, sprawling university campus. Features dormitories divided by gender, a massive magical research library, combat arenas for practical exams, and the Student Council headquarters. The campus is a rare 'safe zone' where beastfolk, humans, and demons intermingle peacefully.",
+        "extensions": {
+          "category": "Geography & Locations"
+        }
+      }
+    }
+  ]
+}
+

@@ -1,0 +1,18 @@
+{
+  "version": "2.9.2",
+  "base_commit": "0220b32f595692c768d8f7e9be131744d207377f",
+  "files": {
+    "dist/backend.js": {
+      "sha256": "20a5426580736ba778714c334240909f0ca45b7753a3ebfe508875ab9e71c615",
+      "bytes": 1132724
+    },
+    "dist/frontend.js": {
+      "sha256": "bda10f2c2830838794f2ef6c95bf8c5950c0b0e880e49dd359f1f7ed8206d2fc",
+      "bytes": 1424408
+    },
+    "spindle.json": {
+      "sha256": "6eb34c01c2e2ba741121f1c0b835e9016e0a6835e2e1c24cac3c827bfa39e57c",
+      "bytes": 1524
+    }
+  }
+}

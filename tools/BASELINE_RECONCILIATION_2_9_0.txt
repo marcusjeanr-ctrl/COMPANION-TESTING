@@ -1,0 +1,17 @@
+FAIL appointments: same report retains different participants, places and schedules: Normalization lost distinct appointments
+
+1 !== 4
+
+FAIL relationships: mood-only reports preserve standing, bond, minor and numerical readings: Expected values to be strictly equal:
+
+null !== 'mentor'
+
+FAIL numbers: unknown stays null, real zero and finite numeric strings survive: Unknown value became a number: null
+
+0 !== null
+
+FAIL secrets: owners isolate fuzzy descriptions, identical descriptions and manual edits: Fuzzy description matching merged different owners
+
+1 !== 2
+
+Reconciliation integrity: 0/4 groups passed.

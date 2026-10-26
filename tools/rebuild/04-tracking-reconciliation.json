@@ -1,0 +1,1314 @@
+{
+  "reference_commit": "f2e3840a346df977455b9aa0677c0262af155578",
+  "changes": [
+    {
+      "id": "backend-135",
+      "file": "dist/backend.js",
+      "start": 9255,
+      "end": 9256,
+      "reference_start": 9867,
+      "reference_end": 9868,
+      "function": "stripLeakedReasoning",
+      "action": "retain verified behavior/dependency at original callsite",
+      "tests": [
+        "test_reconciliation_integrity.cjs",
+        "test_tracking_source_integrity.cjs",
+        "test_panel_tracking.cjs"
+      ],
+      "before": "    if (!dropped) return text;\n",
+      "after": "    if (!dropped && !f.draftPrefix) return text;\n"
+    },
+    {
+      "id": "backend-136",
+      "file": "dist/backend.js",
+      "start": 9257,
+      "end": 9258,
+      "reference_start": 9869,
+      "reference_end": 9870,
+      "function": "stripLeakedReasoning",
+      "action": "retain verified behavior/dependency at original callsite",
+      "tests": [
+        "test_reconciliation_integrity.cjs",
+        "test_tracking_source_integrity.cjs",
+        "test_panel_tracking.cjs"
+      ],
+      "before": "    return (src.slice(0, after) + kept).replace(/\\n{3,}/g, '\\n\\n').replace(/\\s+$/, '');\n",
+      "after": "    return (src.slice(f.draftPrefix ? f.headStart : 0, after) + kept).replace(/\\n{3,}/g, '\\n\\n').replace(/\\s+$/, '');\n"
+    },
+    {
+      "id": "backend-138",
+      "file": "dist/backend.js",
+      "start": 9271,
+      "end": 9271,
+      "reference_start": 9885,
+      "reference_end": 9886,
+      "function": "parseCompanion",
+      "action": "retain verified behavior/dependency at original callsite",
+      "tests": [
+        "test_reconciliation_integrity.cjs",
+        "test_tracking_source_integrity.cjs",
+        "test_panel_tracking.cjs"
+      ],
+      "before": "",
+      "after": "    text = stripThink(text);\n"
+    },
+    {
+      "id": "backend-139",
+      "file": "dist/backend.js",
+      "start": 9281,
+      "end": 9282,
+      "reference_start": 9896,
+      "reference_end": 9897,
+      "function": "parseCompanion",
+      "action": "retain verified behavior/dependency at original callsite",
+      "tests": [
+        "test_reconciliation_integrity.cjs",
+        "test_tracking_source_integrity.cjs",
+        "test_panel_tracking.cjs"
+      ],
+      "before": "        const p = parseResponse(stripThink(text));\n",
+      "after": "        const p = parseResponse(text);\n"
+    },
+    {
+      "id": "backend-140",
+      "file": "dist/backend.js",
+      "start": 9291,
+      "end": 9292,
+      "reference_start": 9906,
+      "reference_end": 9907,
+      "function": "parseCompanion",
+      "action": "retain verified behavior/dependency at original callsite",
+      "tests": [
+        "test_reconciliation_integrity.cjs",
+        "test_tracking_source_integrity.cjs",
+        "test_panel_tracking.cjs"
+      ],
+      "before": "        const sn = Number(y.sanity), xp = Number(y.xp);\n",
+      "after": "        const sn = y.sanity === null || y.sanity === undefined || y.sanity === '' ? NaN : Number(y.sanity), xp = Number(y.xp);\n"
+    },
+    {
+      "id": "backend-141",
+      "file": "dist/backend.js",
+      "start": 9297,
+      "end": 9299,
+      "reference_start": 9912,
+      "reference_end": 9915,
+      "function": "parseCompanion",
+      "action": "retain verified behavior/dependency at original callsite",
+      "tests": [
+        "test_reconciliation_integrity.cjs",
+        "test_tracking_source_integrity.cjs",
+        "test_panel_tracking.cjs"
+      ],
+      "before": "            study: Array.isArray(y.study) ? y.study.filter(x => isPlainObject(x) && typeof (x.spell || x.name) === 'string' && (x.spell || x.name).trim()).map(x => { const n = Number(x.progress); return { spell: String(x.spell || x.name).trim().slice(0, 60), progress: Number.isFinite(n) ? Math.max(0, Math.min(100, Math.round(n))) : null, note: partyText(x.note, 80) }; }).slice(0, 8) : [],\n            got: pocketList(y.got), lost: pocketList(y.lost) };\n",
+      "after": "            mastered: Array.isArray(y.mastered) ? y.mastered.filter(x => typeof x === 'string' && x.trim()).map(x => x.trim().slice(0, 60)).slice(0, 6) : [],\n            study: Array.isArray(y.study) ? y.study.filter(x => isPlainObject(x) && typeof (x.spell || x.name) === 'string' && (x.spell || x.name).trim()).map(x => { const n = x.progress === null || x.progress === undefined || x.progress === '' ? NaN : Number(x.progress); return { spell: String(x.spell || x.name).trim().slice(0, 60), progress: Number.isFinite(n) ? Math.max(0, Math.min(100, Math.round(n))) : null, note: partyText(x.note, 80) }; }).slice(0, 8) : [],\n            got: pocketList(y.got, true), lost: pocketList(y.lost) };\n"
+    },
+    {
+      "id": "backend-142",
+      "file": "dist/backend.js",
+      "start": 9352,
+      "end": 9353,
+      "reference_start": 9968,
+      "reference_end": 9974,
+      "function": "companionWanted",
+      "action": "retain verified behavior/dependency at original callsite",
+      "tests": [
+        "test_reconciliation_integrity.cjs",
+        "test_tracking_source_integrity.cjs",
+        "test_panel_tracking.cjs"
+      ],
+      "before": "    return isPresentCharactersEnabled() || partyActive(st) || !!(sv.enabled && sv.askCompanion) || relCfg().on || commsCfg().on || simWanted();\n",
+      "after": "    const plot = plotCfg();\n    const modules = [famCfg(), gearCfg(), agendaCfg(), holdCfg(), moneyCfg(), factionCfg(), secretCfg()];\n    return isPresentCharactersEnabled() || partyActive(st) || !!(sv.enabled && sv.askCompanion) ||\n        relCfg().on || commsCfg().on || simWanted() || youCfg().on || magicCfg().on ||\n        plot.plot || plot.objectives || questsDetailOn() || modules.some(c => c.on && c.ask) ||\n        !!(chronCfg().enabled && chronCfg().moments) || !!(chat && injActive(chat));\n"
+    },
+    {
+      "id": "backend-143",
+      "file": "dist/backend.js",
+      "start": 9362,
+      "end": 9363,
+      "reference_start": 9983,
+      "reference_end": 9984,
+      "function": "plotRequest",
+      "action": "retain verified behavior/dependency at original callsite",
+      "tests": [
+        "test_reconciliation_integrity.cjs",
+        "test_tracking_source_integrity.cjs",
+        "test_panel_tracking.cjs"
+      ],
+      "before": "function plotRequest(userName) {\n",
+      "after": "function plotRequest(userName, mushoku = false) {\n"
+    },
+    {
+      "id": "backend-144",
+      "file": "dist/backend.js",
+      "start": 9366,
+      "end": 9367,
+      "reference_start": 9987,
+      "reference_end": 9988,
+      "function": "plotRequest",
+      "action": "retain verified behavior/dependency at original callsite",
+      "tests": [
+        "test_reconciliation_integrity.cjs",
+        "test_tracking_source_integrity.cjs",
+        "test_panel_tracking.cjs"
+      ],
+      "before": "        json.push('\"plot\": {\"now\": \"where the main story stands, one line\", \"threads\": [{\"name\": \"a few words\", \"state\": \"open|advanced|resolved\", \"note\": \"one line\"}]}');\n",
+      "after": "        json.push(`\"plot\": {\"now\": \"where the main story stands, one line\", \"threads\": [{\"name\": \"a few words\", \"state\": \"open|advanced|resolved\", \"note\": \"one line\"}]${mushoku ? ', \"canonEvents\": [{\"name\": \"specific event\", \"state\": \"occurred|changed|prevented\", \"detail\": \"what the story established\", \"arc\": \"arc number or null\"}]' : ''}}`);\n"
+    },
+    {
+      "id": "backend-145",
+      "file": "dist/backend.js",
+      "start": 9368,
+      "end": 9368,
+      "reference_start": 9989,
+      "reference_end": 9990,
+      "function": "plotRequest",
+      "action": "retain verified behavior/dependency at original callsite",
+      "tests": [
+        "test_reconciliation_integrity.cjs",
+        "test_tracking_source_integrity.cjs",
+        "test_panel_tracking.cjs"
+      ],
+      "before": "",
+      "after": "        if (mushoku) rules.push('\"plot.canonEvents\" contains only Mushoku canon events explicitly shown to occur, change, or be prevented in this reply or the player\\u2019s last message. [] if none. A date, worldbook entry, prediction, rumor, or the canonical Rudeus arc does not prove an event happened to the player. Name the actual event and record its observed outcome; never overwrite an established divergence with an unobserved canon outcome.');\n"
+    },
+    {
+      "id": "backend-146",
+      "file": "dist/backend.js",
+      "start": 9370,
+      "end": 9372,
+      "reference_start": 9992,
+      "reference_end": 9994,
+      "function": "plotRequest",
+      "action": "retain verified behavior/dependency at original callsite",
+      "tests": [
+        "test_reconciliation_integrity.cjs",
+        "test_tracking_source_integrity.cjs",
+        "test_panel_tracking.cjs"
+      ],
+      "before": "        json.push('\"objectives\": [{\"text\": \"one line\", \"state\": \"active|done|failed\", \"quest\": \"quest name or null\"}]');\n        rules.push(`\"objectives\" are what ${userName} is trying to do right now, as the story stands \\u2014 up to five, the nearest first; done when this reply achieved one, failed when it became impossible.`);\n",
+      "after": "        json.push('\"objectives\": [{\"text\": \"one line\", \"state\": \"active|done|failed|abandoned\", \"quest\": \"quest name or null\"}]');\n        rules.push(`\"objectives\" are goals ${userName} has personally chosen or accepted, up to five, the nearest first. Another character proposing, ordering, or inviting ${userName} to do something does not make it ${userName}'s objective unless ${userName} agrees or acts on it; A player intention is not a completed act. Omit suggestions and unaccepted orders; mark abandoned when the player drops a goal, done only when achieved, failed when impossible. NPCs may still pursue their own goals.`);\n"
+    },
+    {
+      "id": "backend-147",
+      "file": "dist/backend.js",
+      "start": 9379,
+      "end": 9380,
+      "reference_start": 10001,
+      "reference_end": 10021,
+      "function": "plotNormalize",
+      "action": "retain verified behavior/dependency at original callsite",
+      "tests": [
+        "test_reconciliation_integrity.cjs",
+        "test_tracking_source_integrity.cjs",
+        "test_panel_tracking.cjs"
+      ],
+      "before": "    return now || threads.length ? { now, threads } : null;\n",
+      "after": "    const canonEvents = Array.isArray(p.canonEvents) ? p.canonEvents.filter(isPlainObject).map(e => ({\n        name: immText(e.name, 80), state: ['occurred', 'changed', 'prevented'].includes(e.state) ? e.state : null,\n        detail: immText(e.detail, 200), arc: /^\\d{1,2}$/.test(String(e.arc ?? '')) ? Number(e.arc) : null\n    })).filter(e => e.name && e.state && e.detail).slice(0, 8) : [];\n    return now || threads.length || canonEvents.length ? { now, threads, canonEvents } : null;\n}\nfunction mtEventLedger(chat) {\n    return memoRead(chat, 'canonEvents', () => mtEventLedgerUncached(chat));\n}\nfunction mtEventLedgerUncached(chat) {\n    const events = new Map();\n    for (const m of chat || []) {\n        if (m.role !== 'assistant') continue;\n        const d = getSwipeData(m);\n        for (const e of d?.plot?.canonEvents || []) if (e && e.name && e.state && e.detail) {\n            const key = lockKey(e.name);\n            if (key) events.set(key, { name: e.name, state: e.state, detail: e.detail, arc: e.arc || null, msgId: m.id });\n        }\n    }\n    return [...events.values()].slice(-30);\n"
+    },
+    {
+      "id": "backend-148",
+      "file": "dist/backend.js",
+      "start": 9383,
+      "end": 9385,
+      "reference_start": 10024,
+      "reference_end": 10035,
+      "function": "objectivesNormalize",
+      "action": "retain verified behavior/dependency at original callsite",
+      "tests": [
+        "test_reconciliation_integrity.cjs",
+        "test_tracking_source_integrity.cjs",
+        "test_panel_tracking.cjs"
+      ],
+      "before": "    const out = list.filter(isPlainObject).map(o => ({ text: immText(o.text, 160), state: ['active', 'done', 'failed'].includes(o.state) ? o.state : 'active', quest: immText(o.quest, 60) })).filter(o => o.text).slice(0, 6);\n    return out.length ? out : null;\n",
+      "after": "    const states = { accepted: 'active', completed: 'done', abandoned: 'abandoned', cancelled: 'abandoned', canceled: 'abandoned' };\n    const out = [];\n    for (const o of list) {\n        if (!isPlainObject(o) || o.accepted === false || reportSpeculative(o)) continue;\n        const raw = String(o.state || 'active').toLowerCase();\n        const state = states[raw] || raw;\n        const text = immText(o.text, 160);\n        if (!text || !['active', 'done', 'failed', 'abandoned'].includes(state)) continue;\n        out.push({ text, state, quest: immText(o.quest, 60) });\n    }\n    return out.length || !list.length ? out.slice(0, 6) : null;\n"
+    },
+    {
+      "id": "backend-149",
+      "file": "dist/backend.js",
+      "start": 9489,
+      "end": 9489,
+      "reference_start": 10139,
+      "reference_end": 10143,
+      "function": "buildCompanionInstruction",
+      "action": "retain verified behavior/dependency at original callsite",
+      "tests": [
+        "test_reconciliation_integrity.cjs",
+        "test_tracking_source_integrity.cjs",
+        "test_panel_tracking.cjs"
+      ],
+      "before": "",
+      "after": "    if (chat) chat = trackingBefore(chat, opts.excludeId);\n    return withReadPass(chat, () => buildCompanionInstructionRead(committed, userName, locks, st, chat, separate, opts));\n}\nfunction buildCompanionInstructionRead(committed, userName, locks, st = null, chat = null, separate = false, opts = {}) {\n"
+    },
+    {
+      "id": "backend-150",
+      "file": "dist/backend.js",
+      "start": 9519,
+      "end": 9522,
+      "reference_start": 10173,
+      "reference_end": 10179,
+      "function": "buildCompanionInstructionRead",
+      "action": "retain verified behavior/dependency at original callsite",
+      "tests": [
+        "test_reconciliation_integrity.cjs",
+        "test_tracking_source_integrity.cjs",
+        "test_panel_tracking.cjs"
+      ],
+      "before": "        if (magicSeen) yf.push('\"spells\": [\"names learned or cast this reply\"]');\n        const studying = magicSeen && st && Array.isArray(st.spellStudy) ? st.spellStudy.filter(x => x && x.name).map(x => x.name).slice(0, 8) : [];\n        if (studying.length) yf.push(`\"learned\": [\"a spell ${userName} truly learned this reply: a first clean cast, or a teacher's sign-off; else leave empty\"], \"study\": [{\"spell\": \"one of: ${studying.join(', ')}\", \"progress\": 0..100, \"note\": \"what moved it this reply, a few words\"}]`);\n",
+      "after": "        if (magicSeen) yf.push('\"spells\": [\"named spells the player demonstrably learned or successfully cast this reply; never spells merely listed, demonstrated by another person, or attempted unsuccessfully\"]');\n        const mushokuMagic = magicSeen && tlNow.length && worldOf(worldLines(tlNow[tlNow.length - 1].hud)) === 'mushoku';\n        const studying = magicSeen ? spellStudyActive(chat, st).map(x => x.name).slice(0, 8) : [];\n        if (mushokuMagic || studying.length) yf.push(`\"learned\": [\"a spell ${userName} truly learned this reply: a first clean cast, or a teacher's sign-off; else leave empty\"], \"study\": [{\"spell\": \"${mushokuMagic ? 'a named spell intentionally practiced this turn' : `one of: ${studying.join(', ')}`}\", \"progress\": \"number only if the story explicitly measures it; otherwise null\", \"note\": \"observed practice, or null\"}]`);\n        if (mushokuMagic)\n            yf.push(`\"mastered\": [\"named spell only when the story explicitly establishes reliable or exceptional mastery by ${userName}; otherwise empty\"]`);\n"
+    },
+    {
+      "id": "backend-151",
+      "file": "dist/backend.js",
+      "start": 9525,
+      "end": 9526,
+      "reference_start": 10182,
+      "reference_end": 10183,
+      "function": "buildCompanionInstructionRead",
+      "action": "retain verified behavior/dependency at original callsite",
+      "tests": [
+        "test_reconciliation_integrity.cjs",
+        "test_tracking_source_integrity.cjs",
+        "test_panel_tracking.cjs"
+      ],
+      "before": "    const plotReq = plotRequest(userName);\n",
+      "after": "    const plotReq = plotRequest(userName, !!(tlNow.length && worldOf(worldLines(tlNow[tlNow.length - 1].hud)) === 'mushoku'));\n"
+    },
+    {
+      "id": "backend-152",
+      "file": "dist/backend.js",
+      "start": 9531,
+      "end": 9532,
+      "reference_start": 10188,
+      "reference_end": 10189,
+      "function": "buildCompanionInstructionRead",
+      "action": "retain verified behavior/dependency at original callsite",
+      "tests": [
+        "test_reconciliation_integrity.cjs",
+        "test_tracking_source_integrity.cjs",
+        "test_panel_tracking.cjs"
+      ],
+      "before": "    if (wantQuests) parts.push('\"quests\": [{\"name\": \"…\", \"objective\": \"current step\", \"progress\": 0..100, \"giver\": \"or null\", \"where\": \"or null\", \"deadline\": \"in-world time or null\", \"reward\": \"or null\", \"category\": \"main|side|personal|party\"}]');\n",
+      "after": "    if (wantQuests) parts.push('\"quests\": [{\"name\": \"…\", \"objective\": \"current step\", \"progress\": \"measured % or null\", \"giver\": \"or null\", \"where\": \"or null\", \"deadline\": \"in-world time or null\", \"reward\": \"or null\", \"category\": \"main|side|personal|party\"}]');\n"
+    },
+    {
+      "id": "backend-153",
+      "file": "dist/backend.js",
+      "start": 9578,
+      "end": 9580,
+      "reference_start": 10235,
+      "reference_end": 10238,
+      "function": "buildCompanionInstructionRead",
+      "action": "retain verified behavior/dependency at original callsite",
+      "tests": [
+        "test_reconciliation_integrity.cjs",
+        "test_tracking_source_integrity.cjs",
+        "test_panel_tracking.cjs"
+      ],
+      "before": "    if (yc.on) s += `\\n\"you\" also holds ${userName}'s own state at the end of this reply: mood, ${wantSurvival ? '' : 'stress (L), '}sanity (100 steady, 0 broken)${askXp ? ', and xp earned in this reply for a real accomplishment (0 if none) with why' : ''}. \"got\" and \"lost\": physical things ${userName} was handed, picked up, gave away, used up or lost — in their own last message or on screen in this reply — that the HUD does not list (a handout, a key, a note, a booklet), a few words each; [] when nothing changed hands. A message, a notice or news is not a thing.`;\n    if (wantQuests) s += '\\n\"quests\": details of quests active in the story, one entry each — details only; the story decides which quests exist.';\n",
+      "after": "    if (yc.on) s += `\\n\"you\": ${userName}'s established mood, ${wantSurvival ? '' : 'stress (L), '}sanity (100 steady, 0 broken)${askXp ? ', xp for real accomplishments (0 otherwise), with why' : ''}. \"got\"/\"lost\": completed physical transfers in the player's last action or this reply, excluding HUD-listed items and news. Offered or nearby items are not acquired. Unopened or wrapped gifts require established acceptance or transfer. A proposal, plan or reaching gesture is not a completed action; [] if unchanged.`;\n    if (magicSeen && tlNow.length && worldOf(worldLines(tlNow[tlNow.length - 1].hud)) === 'mushoku') s += `\\nIn \"you.study\", report only a named spell ${userName} intentionally practiced or was taught in the player's last message or this reply; [] if no practice occurred. A demonstration by someone else, a spell list, or a failed combat attempt is not study. Never invent a progress percentage. In \"you.learned\" report only spells demonstrably learned, not merely attempted.`;\n    if (wantQuests) s += '\\n\"quests\": established quests only, not routine scene details or unaccepted requests. Progress is an explicitly measured percentage or null; never estimate it from scene beats. Complete only after achievement.';\n"
+    },
+    {
+      "id": "backend-154",
+      "file": "dist/backend.js",
+      "start": 9636,
+      "end": 9637,
+      "reference_start": 10294,
+      "reference_end": 10295,
+      "function": "hmsProcessContent",
+      "action": "retain verified behavior/dependency at original callsite",
+      "tests": [
+        "test_reconciliation_integrity.cjs",
+        "test_tracking_source_integrity.cjs",
+        "test_panel_tracking.cjs"
+      ],
+      "before": "    let out = String(content || '');\n",
+      "after": "    let out = stripLeakedReasoning(stripThink(String(content || '')));\n"
+    },
+    {
+      "id": "backend-155",
+      "file": "dist/backend.js",
+      "start": 9663,
+      "end": 9664,
+      "reference_start": 10321,
+      "reference_end": 10322,
+      "function": "hmsProcessContent",
+      "action": "retain verified behavior/dependency at original callsite",
+      "tests": [
+        "test_reconciliation_integrity.cjs",
+        "test_tracking_source_integrity.cjs",
+        "test_panel_tracking.cjs"
+      ],
+      "before": "    out = stripHiddenTags(stripCompanion(stripLeakedReasoning(out)));\n",
+      "after": "    out = stripHiddenTags(stripCompanion(out));\n"
+    },
+    {
+      "id": "backend-181",
+      "file": "dist/backend.js",
+      "start": 11292,
+      "end": 11293,
+      "reference_start": 11976,
+      "reference_end": 11977,
+      "function": "relPrevious",
+      "action": "retain verified behavior/dependency at original callsite",
+      "tests": [
+        "test_reconciliation_integrity.cjs",
+        "test_tracking_source_integrity.cjs",
+        "test_panel_tracking.cjs"
+      ],
+      "before": "        if (d && Array.isArray(d.relations)) for (const r of d.relations) if (r && r.key) last.set(r.key, r);\n",
+      "after": "        if (d && Array.isArray(d.relations)) for (const r of d.relations) if (r && r.key) last.set(r.key, relReconcile(last.get(r.key), r, rc));\n"
+    },
+    {
+      "id": "backend-182",
+      "file": "dist/backend.js",
+      "start": 11329,
+      "end": 11330,
+      "reference_start": 12013,
+      "reference_end": 12014,
+      "function": "relNormalize",
+      "action": "retain verified behavior/dependency at original callsite",
+      "tests": [
+        "test_reconciliation_integrity.cjs",
+        "test_tracking_source_integrity.cjs",
+        "test_panel_tracking.cjs"
+      ],
+      "before": "        if (!isPlainObject(e) || typeof e.name !== 'string' || !e.name.trim()) continue;\n",
+      "after": "        if (!isPlainObject(e) || typeof e.name !== 'string' || !e.name.trim() || reportSpeculative(e)) continue;\n"
+    },
+    {
+      "id": "backend-183",
+      "file": "dist/backend.js",
+      "start": 11333,
+      "end": 11334,
+      "reference_start": 12017,
+      "reference_end": 12018,
+      "function": "relNormalize",
+      "action": "retain verified behavior/dependency at original callsite",
+      "tests": [
+        "test_reconciliation_integrity.cjs",
+        "test_tracking_source_integrity.cjs",
+        "test_panel_tracking.cjs"
+      ],
+      "before": "        const r = { key, name, standing: null, bond: partyText(e.bond, 60), minor: e.minor === true, mood: partyText(e.mood, 40), why: partyText(e.why, 140), reasons: {} };\n",
+      "after": "        const r = { key, name, standing: null, bond: partyText(e.bond, 60), minor: typeof e.minor === 'boolean' ? e.minor : null, mood: partyText(e.mood, 40), why: partyText(e.why, 140), reasons: {} };\n"
+    },
+    {
+      "id": "backend-184",
+      "file": "dist/backend.js",
+      "start": 11337,
+      "end": 11338,
+      "reference_start": 12021,
+      "reference_end": 12023,
+      "function": "relNormalize",
+      "action": "retain verified behavior/dependency at original callsite",
+      "tests": [
+        "test_reconciliation_integrity.cjs",
+        "test_tracking_source_integrity.cjs",
+        "test_panel_tracking.cjs"
+      ],
+      "before": "            const v = Number(e[b.id]);\n",
+      "after": "            const raw = e[b.id];\n            const v = typeof raw === 'number' || (typeof raw === 'string' && raw.trim()) ? Number(raw) : NaN;\n"
+    },
+    {
+      "id": "backend-185",
+      "file": "dist/backend.js",
+      "start": 11368,
+      "end": 11368,
+      "reference_start": 12053,
+      "reference_end": 12063,
+      "function": "relReconcile",
+      "action": "retain verified behavior/dependency at original callsite",
+      "tests": [
+        "test_reconciliation_integrity.cjs",
+        "test_tracking_source_integrity.cjs",
+        "test_panel_tracking.cjs"
+      ],
+      "before": "",
+      "after": "function relReconcile(previous, reading, rc, pin = null) {\n    const out = { ...reading };\n    if (previous) {\n        for (const field of ['standing', 'bond', 'minor', 'mood', ...rc.bars.map(b => b.id)]) {\n            if (out[field] === null || out[field] === undefined) out[field] = previous[field] ?? null;\n        }\n    }\n    return relGuard(out, pin, rc);\n}\n\n"
+    },
+    {
+      "id": "backend-186",
+      "file": "dist/backend.js",
+      "start": 11388,
+      "end": 11389,
+      "reference_start": 12083,
+      "reference_end": 12084,
+      "function": "hmsRelationsPanel",
+      "action": "retain verified behavior/dependency at original callsite",
+      "tests": [
+        "test_reconciliation_integrity.cjs",
+        "test_tracking_source_integrity.cjs",
+        "test_panel_tracking.cjs"
+      ],
+      "before": "            p.readings.push({ ...relGuard(r, pins[r.key], rc), at, msgId: m.id });\n",
+      "after": "            p.readings.push({ ...relReconcile(p.readings[p.readings.length - 1], r, rc, pins[r.key]), at, msgId: m.id });\n"
+    },
+    {
+      "id": "backend-187",
+      "file": "dist/backend.js",
+      "start": 11727,
+      "end": 11727,
+      "reference_start": 12422,
+      "reference_end": 12423,
+      "function": "gearState",
+      "action": "retain verified behavior/dependency at original callsite",
+      "tests": [
+        "test_reconciliation_integrity.cjs",
+        "test_tracking_source_integrity.cjs",
+        "test_panel_tracking.cjs"
+      ],
+      "before": "",
+      "after": "    if (/\\b(?:offered|presented|held out|proposed|planned|not (?:yet )?(?:taken|accepted|equipped|held|worn))\\b/i.test(s)) return null;\n"
+    },
+    {
+      "id": "backend-188",
+      "file": "dist/backend.js",
+      "start": 11737,
+      "end": 11738,
+      "reference_start": 12433,
+      "reference_end": 12435,
+      "function": "gearNormalize",
+      "action": "retain verified behavior/dependency at original callsite",
+      "tests": [
+        "test_reconciliation_integrity.cjs",
+        "test_tracking_source_integrity.cjs",
+        "test_panel_tracking.cjs"
+      ],
+      "before": "        if (!isPlainObject(e)) continue;\n",
+      "after": "        if (!isPlainObject(e) || e.accepted === false || reportSpeculative(e)) continue;\n        if (/\\b(?:offered|presented|held out|proposed|planned|not (?:yet )?(?:taken|accepted))\\b/i.test(String(e.state ?? e.status ?? e.how ?? ''))) continue;\n"
+    },
+    {
+      "id": "backend-189",
+      "file": "dist/backend.js",
+      "start": 11840,
+      "end": 11841,
+      "reference_start": 12537,
+      "reference_end": 12538,
+      "function": "gearRead",
+      "action": "retain verified behavior/dependency at original callsite",
+      "tests": [
+        "test_reconciliation_integrity.cjs",
+        "test_tracking_source_integrity.cjs",
+        "test_panel_tracking.cjs"
+      ],
+      "before": "        for (const n of Array.isArray(y.got) ? y.got : []) { if (pocketIsMessage(n)) continue; const it = ensure(n, 'story'); if (it && (!it.state || it.state === 'gone')) apply(it, 'on body', null, null, at, m.id, idx); }\n",
+      "after": "        for (const n of Array.isArray(y.got) ? y.got : []) { if (pocketIsMessage(n) || pocketAcquisitionPending(n)) continue; const it = ensure(n, 'story'); if (it && (!it.state || it.state === 'gone')) apply(it, 'on body', null, null, at, m.id, idx); }\n"
+    },
+    {
+      "id": "backend-190",
+      "file": "dist/backend.js",
+      "start": 11909,
+      "end": 11910,
+      "reference_start": 12606,
+      "reference_end": 12607,
+      "function": "gearRequest",
+      "action": "retain verified behavior/dependency at original callsite",
+      "tests": [
+        "test_reconciliation_integrity.cjs",
+        "test_tracking_source_integrity.cjs",
+        "test_panel_tracking.cjs"
+      ],
+      "before": "    let rules = `\"gear\": every change in how or where ${userName} carries a physical thing — from what ${userName} did in their own last message and from what happened in this reply: drawing or sheathing a weapon, putting on or taking off armour, clothes or a bag, putting something into a bag, pouch or pocket or taking it out, setting it down, leaving it somewhere, dropping it, handing it over, picking it up, using it up. \"in hand\" is held; \"sheathed\" is in its sheath, scabbard or holster; \"on body\" is slung, strapped or hung on ${userName} (back, belt, shoulder), with \"where\"; \"in container\" names the container in \"inside\"; \"stowed\" is left somewhere off ${userName}, with \"where\"; \"gone\" is given away, used up, lost or destroyed. Take what ${userName} says they do with their things as done, unless this reply shows it failed or was stopped. Name each item exactly as the HUD or the \"Gear now\" list spells it, so it stays one item. Only items whose state changed; [] when none. The HUD stays the record of what ${userName} owns; this only says how it is carried.`;\n",
+      "after": "    let rules = `\"gear\": established changes in how ${userName} carries possessions, from accepted player actions or narrated events. \"in hand\": held; \"worn\": clothing or armour; \"sheathed\": sheath or holster; \"on body\": slung or strapped, with \"where\"; \"in container\": name it in \"inside\"; \"stowed\": stored off-person; \"dropped\": set down; \"gone\": transferred away, consumed, lost or destroyed. Storage and unequipping preserve ownership. Offers, nearby items, NPC possessions and planned actions confer no possession. An unopened gift needs an actual accepted transfer. Don't assume narrator-assigned player decisions were authorized; report what is established, without inventing consent or undoing explicit physical facts. Keep HUD/Gear-now item names, report only changed items, [] otherwise. Damage alone never removes an item; HUD ownership stays authoritative.`;\n"
+    },
+    {
+      "id": "backend-191",
+      "file": "dist/backend.js",
+      "start": 11955,
+      "end": 11956,
+      "reference_start": 12652,
+      "reference_end": 12653,
+      "function": "hmsGearEdit",
+      "action": "retain verified behavior/dependency at original callsite",
+      "tests": [
+        "test_reconciliation_integrity.cjs",
+        "test_tracking_source_integrity.cjs",
+        "test_panel_tracking.cjs"
+      ],
+      "before": "const AGENDA_STATES = ['open', 'kept', 'missed', 'cancelled'];\n",
+      "after": "const AGENDA_STATES = ['open', 'in_progress', 'kept', 'missed', 'cancelled'];\n"
+    },
+    {
+      "id": "backend-192",
+      "file": "dist/backend.js",
+      "start": 11965,
+      "end": 11967,
+      "reference_start": 12662,
+      "reference_end": 12664,
+      "function": "agendaWhen",
+      "action": "retain verified behavior/dependency at original callsite",
+      "tests": [
+        "test_reconciliation_integrity.cjs",
+        "test_tracking_source_integrity.cjs",
+        "test_panel_tracking.cjs"
+      ],
+      "before": "function agendaWhen(due, when, at) {\n    for (const t of [due, when]) { if (!t) continue; try { const v = hmsParseWhen(t, at); if (v !== null && v !== undefined && Number.isFinite(v)) return v; } catch { /* next */ } }\n",
+      "after": "function agendaWhen(due, when, at, hud = null) {\n    for (const t of [due, when]) { if (!t) continue; try { const v = hmsParseWhen(t, at, hud); if (v !== null && v !== undefined && Number.isFinite(v)) return v; } catch { /* next */ } }\n"
+    },
+    {
+      "id": "backend-193",
+      "file": "dist/backend.js",
+      "start": 11970,
+      "end": 11970,
+      "reference_start": 12667,
+      "reference_end": 12668,
+      "function": "agendaWhen",
+      "action": "retain verified behavior/dependency at original callsite",
+      "tests": [
+        "test_reconciliation_integrity.cjs",
+        "test_tracking_source_integrity.cjs",
+        "test_panel_tracking.cjs"
+      ],
+      "before": "",
+      "after": "    if (/^\\s*(?:right now|now|immediately)\\s*$/.test(t)) return at;\n"
+    },
+    {
+      "id": "backend-194",
+      "file": "dist/backend.js",
+      "start": 11998,
+      "end": 12002,
+      "reference_start": 12696,
+      "reference_end": 12707,
+      "function": "agendaNormalize",
+      "action": "retain verified behavior/dependency at original callsite",
+      "tests": [
+        "test_reconciliation_integrity.cjs",
+        "test_tracking_source_integrity.cjs",
+        "test_panel_tracking.cjs"
+      ],
+      "before": "        if (!key || out.some(x => x.key === key)) continue;\n        const kind = String(e.kind || '').toLowerCase(), state = String(e.state || '').toLowerCase();\n        out.push({ key, what, with: partyText(e.with ?? e.who, 60), where: partyText(e.where, 80), when: partyText(e.when, 60), due: partyText(e.due, 40),\n            kind: AGENDA_KINDS.includes(kind) ? kind : 'meeting', state: AGENDA_STATES.includes(state) ? state : state === 'moved' ? 'open' : 'open' });\n",
+      "after": "        if (!key) continue;\n        const kind = String(e.kind || '').toLowerCase();\n        if (/^(?:request|instruction|invitation|expectation|proposal|suggestion)$/.test(kind) && e.accepted !== true) continue;\n        const rawState = String(e.state || '').toLowerCase().replace(/[ -]+/g, '_');\n        const state = ['started', 'active', 'underway'].includes(rawState) ? 'in_progress' : ['abandoned', 'canceled'].includes(rawState) ? 'cancelled' : rawState === 'moved' ? 'open' : rawState;\n        if (e.accepted === false || reportSpeculative(e) || (state && !AGENDA_STATES.includes(state))) continue;\n        const row = { key, what, with: partyText(e.with ?? e.who, 60), where: partyText(e.where, 80), when: partyText(e.when, 60), due: partyText(e.due, 40),\n            kind: AGENDA_KINDS.includes(kind) ? kind : 'meeting', state: AGENDA_STATES.includes(state) ? state : 'open' };\n        if (out.some(x => x.key === key && ['with', 'where', 'when', 'due'].every(f => lockKey(x[f] || '') === lockKey(row[f] || '')))) continue;\n        if (rawState === 'moved') row.moved = true;\n        out.push(row);\n"
+    },
+    {
+      "id": "backend-195",
+      "file": "dist/backend.js",
+      "start": 12016,
+      "end": 12016,
+      "reference_start": 12721,
+      "reference_end": 12746,
+      "function": "agendaItemKey",
+      "action": "retain verified behavior/dependency at original callsite",
+      "tests": [
+        "test_reconciliation_integrity.cjs",
+        "test_tracking_source_integrity.cjs",
+        "test_panel_tracking.cjs"
+      ],
+      "before": "",
+      "after": "function agendaItemKey(items, row) {\n    const title = lockKey(row.what);\n    const base = `${title} :: ${lockKey(row.with || '')} :: ${lockKey(row.where || '')} :: ${lockKey(row.when || row.due || '')}`;\n    let key = row.key || title;\n    for (let n = 1; items.some(x => x.key === key); n++) key = n === 1 ? base : `${base} :: ${n}`;\n    return key;\n}\n\nfunction agendaActivityState(item, data) {\n    const stop = new Set(['the', 'and', 'with', 'for', 'from', 'against', 'this', 'that', 'your', 'you', 'will', 'allowed', 'called', 'breaks', 'begin', 'begins', 'started', 'starting']);\n    const words = text => new Set(lockKey(text || '').split(/[^\\p{L}\\p{N}]+/u).filter(word => word.length > 2 && !stop.has(word)));\n    const title = words(item.what);\n    const context = words(`${item.with || ''} ${item.where || ''}`);\n    const cues = [data?.plot?.now, ...(Array.isArray(data?.agendas) ? data.agendas.map(row => `${row.name || ''} ${row.doing || ''}`) : [])].filter(Boolean);\n    for (const cue of cues) {\n        const match = words(cue);\n        const overlap = [...title].filter(word => match.has(word));\n        if (overlap.length < 2 || !overlap.some(word => !context.has(word))) continue;\n        if (/\\b(?:will|would|might|plans? to|about to|yet to|waiting|not yet|has not|hasn't|before|when|if)\\b/i.test(cue)) continue;\n        if (/\\b(?:finished|completed|concluded|ended|ends)\\b/i.test(cue)) continue;\n        if (/\\b(?:begins?|began|started|underway|in progress|fighting|attending|practicing|practising|studying|working)\\b/i.test(cue)) return 'in_progress';\n    }\n    return null;\n}\n\n"
+    },
+    {
+      "id": "backend-196",
+      "file": "dist/backend.js",
+      "start": 12025,
+      "end": 12026,
+      "reference_start": 12755,
+      "reference_end": 12764,
+      "function": "agendaRead",
+      "action": "retain verified behavior/dependency at original callsite",
+      "tests": [
+        "test_reconciliation_integrity.cjs",
+        "test_tracking_source_integrity.cjs",
+        "test_panel_tracking.cjs"
+      ],
+      "before": "    const find = (key) => items.find(x => agendaSame(x.key, key)) || null;\n",
+      "after": "    const compatible = (x, row, dueAt = null) => (!row?.with || !x.with || lockKey(row.with) === lockKey(x.with)) &&\n        (!row?.where || !x.where || row.moved || lockKey(row.where) === lockKey(x.where)) &&\n        (!row || row.moved || (!row.when && !row.due) || (dueAt !== null && x.dueAt !== null ? dueAt === x.dueAt :\n            !x.when || lockKey(row.when || row.due) === lockKey(x.when)));\n    const find = (key, row = null, dueAt = null) => {\n        if (!row) { const exact = items.find(x => x.key === key); if (exact) return exact; }\n        const matches = items.filter(x => (lockKey(x.what) === key || agendaSame(lockKey(x.what), key)) && compatible(x, row, dueAt));\n        return matches.length === 1 ? matches[0] : null;\n    };\n"
+    },
+    {
+      "id": "backend-197",
+      "file": "dist/backend.js",
+      "start": 12032,
+      "end": 12034,
+      "reference_start": 12770,
+      "reference_end": 12777,
+      "function": "agendaRead",
+      "action": "retain verified behavior/dependency at original callsite",
+      "tests": [
+        "test_reconciliation_integrity.cjs",
+        "test_tracking_source_integrity.cjs",
+        "test_panel_tracking.cjs"
+      ],
+      "before": "            let it = find(r.key);\n            if (!it) { it = { key: r.key, what: r.what, with: null, where: null, when: null, dueAt: null, kind: r.kind, state: 'open', madeAt: at, msgId: m.id, idx, from: 'story', changedIn: m.id, history: [] }; items.push(it); }\n",
+      "after": "            if (!r || typeof r.key !== 'string' || typeof r.what !== 'string') continue;\n            const dueAt = r.when || r.due ? agendaWhen(r.due, r.when, at, e && e.hud) : null;\n            let it = find(r.key, r, dueAt);\n            if (!it) {\n                if (!r.with && !r.where && !r.when && !r.due && items.some(x => agendaSame(lockKey(x.what), r.key))) continue;\n                const key = agendaItemKey(items, r);\n                it = { key, what: r.what, with: null, where: null, when: null, dueAt: null, kind: r.kind, state: 'open', madeAt: at, msgId: m.id, idx, from: 'story', changedIn: m.id, history: [] }; items.push(it); }\n"
+    },
+    {
+      "id": "backend-198",
+      "file": "dist/backend.js",
+      "start": 12036,
+      "end": 12037,
+      "reference_start": 12779,
+      "reference_end": 12780,
+      "function": "agendaRead",
+      "action": "retain verified behavior/dependency at original callsite",
+      "tests": [
+        "test_reconciliation_integrity.cjs",
+        "test_tracking_source_integrity.cjs",
+        "test_panel_tracking.cjs"
+      ],
+      "before": "            if (r.when || r.due) { const v = agendaWhen(r.due, r.when, at); if (r.when) it.when = r.when; if (v !== null) it.dueAt = v; else if (r.due) it.when = r.when || r.due; }\n",
+      "after": "            if (r.when || r.due) { if (r.when) it.when = r.when; if (dueAt !== null) it.dueAt = dueAt; else if (r.due) it.when = r.when || r.due; }\n"
+    },
+    {
+      "id": "backend-199",
+      "file": "dist/backend.js",
+      "start": 12041,
+      "end": 12041,
+      "reference_start": 12784,
+      "reference_end": 12788,
+      "function": "agendaRead",
+      "action": "retain verified behavior/dependency at original callsite",
+      "tests": [
+        "test_reconciliation_integrity.cjs",
+        "test_tracking_source_integrity.cjs",
+        "test_panel_tracking.cjs"
+      ],
+      "before": "",
+      "after": "        for (const it of items) if (it.state === 'open' || it.state === 'in_progress') {\n            const state = agendaActivityState(it, d);\n            if (state && state !== it.state) { it.history.push({ from: it.state, to: state, at }); it.state = state; it.idx = idx; it.changedIn = m.id; }\n        }\n"
+    },
+    {
+      "id": "backend-200",
+      "file": "dist/backend.js",
+      "start": 12044,
+      "end": 12047,
+      "reference_start": 12791,
+      "reference_end": 12795,
+      "function": "agendaRead",
+      "action": "retain verified behavior/dependency at original callsite",
+      "tests": [
+        "test_reconciliation_integrity.cjs",
+        "test_tracking_source_integrity.cjs",
+        "test_panel_tracking.cjs"
+      ],
+      "before": "        const key = lockKey(a.what);\n        if (find(key)) continue;\n        items.push({ key, what: a.what, with: a.with || null, where: a.where || null, when: a.when || null, dueAt: agendaWhen(null, a.when, a.at ?? now), kind: a.kind || 'promise', state: 'open', madeAt: a.at ?? null, msgId: null, idx: -1, from: 'you', changedIn: null, history: [] });\n",
+      "after": "        const dueAt = agendaWhen(null, a.when, a.at ?? now, tl.length ? tl[tl.length - 1].hud : null);\n        if (find(lockKey(a.what), a, dueAt)) continue;\n        const key = agendaItemKey(items, a);\n        items.push({ key, what: a.what, with: a.with || null, where: a.where || null, when: a.when || null, dueAt, kind: a.kind || 'promise', state: 'open', madeAt: a.at ?? null, msgId: null, idx: -1, from: 'you', changedIn: null, history: [] });\n"
+    },
+    {
+      "id": "backend-201",
+      "file": "dist/backend.js",
+      "start": 12050,
+      "end": 12051,
+      "reference_start": 12798,
+      "reference_end": 12799,
+      "function": "agendaRead",
+      "action": "retain verified behavior/dependency at original callsite",
+      "tests": [
+        "test_reconciliation_integrity.cjs",
+        "test_tracking_source_integrity.cjs",
+        "test_panel_tracking.cjs"
+      ],
+      "before": "        const it = items.find(x => x.key === k) || find(k);\n",
+      "after": "        const it = find(k);\n"
+    },
+    {
+      "id": "backend-202",
+      "file": "dist/backend.js",
+      "start": 12069,
+      "end": 12070,
+      "reference_start": 12817,
+      "reference_end": 12818,
+      "function": "hmsAgendaPanel",
+      "action": "retain verified behavior/dependency at original callsite",
+      "tests": [
+        "test_reconciliation_integrity.cjs",
+        "test_tracking_source_integrity.cjs",
+        "test_panel_tracking.cjs"
+      ],
+      "before": "    const rank = { overdue: 0, soon: 1, upcoming: 2, unset: 3, kept: 4, missed: 5, cancelled: 6 };\n",
+      "after": "    const rank = { in_progress: -1, overdue: 0, soon: 1, upcoming: 2, unset: 3, kept: 4, missed: 5, cancelled: 6 };\n"
+    },
+    {
+      "id": "backend-203",
+      "file": "dist/backend.js",
+      "start": 12078,
+      "end": 12079,
+      "reference_start": 12826,
+      "reference_end": 12827,
+      "function": "agendaRequest",
+      "action": "retain verified behavior/dependency at original callsite",
+      "tests": [
+        "test_reconciliation_integrity.cjs",
+        "test_tracking_source_integrity.cjs",
+        "test_panel_tracking.cjs"
+      ],
+      "before": "    let rules = `\"agenda\": appointments, promises and set times involving ${userName} — made, kept, broken, moved or called off in ${userName}'s own last message or in this reply (\"I'll meet you at the river tomorrow\", \"the exam is on Friday\", \"be back before dark\"). One entry for each that changed, reusing the same \"what\" for one already listed; [] when nothing changed. \"kept\" when it happened, \"missed\" when its time passed without it, \"cancelled\" when called off. Report only — the story decides what the world does about it.`;\n",
+      "after": "    let rules = `\"agenda\": confirmed appointments, scheduled events, external deadlines or activities actually begun involving ${userName}. A promise requires explicit player commitment; NPC orders, requests, invitations and expectations alone are not promises. Omit unaccepted proposals; retain externally scheduled events as events. Preserve participants, place, timing and each existing \"what\". Report changed entries only, [] otherwise. \"in_progress\": actually begun; \"kept\": fulfilled, never merely planned; \"missed\": an unfulfilled appointment passed; \"cancelled\": called off. Rescheduling changes the time or place without inventing fulfillment. Report events, never decide them.`;\n"
+    },
+    {
+      "id": "backend-204",
+      "file": "dist/backend.js",
+      "start": 12081,
+      "end": 12083,
+      "reference_start": 12829,
+      "reference_end": 12831,
+      "function": "agendaRequest",
+      "action": "retain verified behavior/dependency at original callsite",
+      "tests": [
+        "test_reconciliation_integrity.cjs",
+        "test_tracking_source_integrity.cjs",
+        "test_panel_tracking.cjs"
+      ],
+      "before": "        try { open = hmsAgendaPanel(chat, st).items.filter(x => x.state === 'open'); } catch { open = []; }\n        if (open.length) rules += `\\nAgenda now — ${open.slice(0, 8).map(x => `${x.what}${x.with ? ` (with ${x.with})` : ''}${x.where ? ` at ${x.where}` : ''}: ${x.dueIn === null ? (x.when || 'no set time') : x.dueIn < -60 ? `${hmsSpan(-x.dueIn)} overdue` : x.dueIn <= 0 ? 'due now' : `due in ${hmsSpan(x.dueIn)}`}`).join('; ')}.`;\n",
+      "after": "        try { open = hmsAgendaPanel(chat, st).items.filter(x => x.state === 'open' || x.state === 'in_progress'); } catch { open = []; }\n        if (open.length) rules += `\\nAgenda now — ${open.slice(0, 8).map(x => `${x.what}${x.with ? ` (with ${x.with})` : ''}${x.where ? ` at ${x.where}` : ''}: ${x.state === 'in_progress' ? 'in progress' : x.dueIn === null ? (x.when || 'no set time') : x.dueIn < -60 ? `${hmsSpan(-x.dueIn)} overdue` : x.dueIn <= 0 ? 'due now' : `due in ${hmsSpan(x.dueIn)}`}`).join('; ')}.`;\n"
+    },
+    {
+      "id": "backend-205",
+      "file": "dist/backend.js",
+      "start": 12101,
+      "end": 12102,
+      "reference_start": 12849,
+      "reference_end": 12854,
+      "function": "hmsAgendaEdit",
+      "action": "retain verified behavior/dependency at original callsite",
+      "tests": [
+        "test_reconciliation_integrity.cjs",
+        "test_tracking_source_integrity.cjs",
+        "test_panel_tracking.cjs"
+      ],
+      "before": "        if (!g.added.some(a => lockKey(a.what) === key)) g.added.push({ what, with: partyText(p.with, 60), where: partyText(p.where, 80), when: partyText(p.when, 60), kind: AGENDA_KINDS.includes(p.kind) ? p.kind : 'promise', at: tl.length ? tl[tl.length - 1].clock : null });\n",
+      "after": "        const row = { what, with: partyText(p.with, 60), where: partyText(p.where, 80), when: partyText(p.when, 60), kind: AGENDA_KINDS.includes(p.kind) ? p.kind : 'promise', at: tl.length ? tl[tl.length - 1].clock : null };\n        if (!g.added.some(a => lockKey(a.what) === key && ['with', 'where', 'when'].every(f => lockKey(a[f] || '') === lockKey(row[f] || '')))) {\n            row.key = agendaItemKey(g.added, { ...row, key: `manual :: ${key} :: ${lockKey(row.with || '')} :: ${lockKey(row.where || '')} :: ${lockKey(row.when || '')}` });\n            g.added.push(row);\n        }\n"
+    },
+    {
+      "id": "backend-206",
+      "file": "dist/backend.js",
+      "start": 12106,
+      "end": 12107,
+      "reference_start": 12858,
+      "reference_end": 12859,
+      "function": "hmsAgendaEdit",
+      "action": "retain verified behavior/dependency at original callsite",
+      "tests": [
+        "test_reconciliation_integrity.cjs",
+        "test_tracking_source_integrity.cjs",
+        "test_panel_tracking.cjs"
+      ],
+      "before": "        if (s === 'removed') g.added = g.added.filter(a => lockKey(a.what) !== key);\n",
+      "after": "        if (s === 'removed') g.added = g.added.filter(a => (a.key || lockKey(a.what)) !== key);\n"
+    },
+    {
+      "id": "backend-207",
+      "file": "dist/backend.js",
+      "start": 12597,
+      "end": 12597,
+      "reference_start": 13349,
+      "reference_end": 13357,
+      "function": "secretOwnerKey",
+      "action": "retain verified behavior/dependency at original callsite",
+      "tests": [
+        "test_reconciliation_integrity.cjs",
+        "test_tracking_source_integrity.cjs",
+        "test_panel_tracking.cjs"
+      ],
+      "before": "",
+      "after": "function secretOwnerKey(whose, mine = false, userName = null) {\n    const owner = partyText(whose, 60);\n    return mine || !owner || /^(user|you|me|player|\\{\\{user\\}\\})$/i.test(owner) || (userName && relSameWords(owner, userName))\n        ? 'user' : lockKey(owner);\n}\nfunction secretRecordKey(text, whose, mine = false, userName = null) {\n    return `${lockKey(text)} :: owner ${secretOwnerKey(whose, mine, userName)}`;\n}\n"
+    },
+    {
+      "id": "backend-208",
+      "file": "dist/backend.js",
+      "start": 12604,
+      "end": 12606,
+      "reference_start": 13364,
+      "reference_end": 13364,
+      "function": "secretNormalize",
+      "action": "retain verified behavior/dependency at original callsite",
+      "tests": [
+        "test_reconciliation_integrity.cjs",
+        "test_tracking_source_integrity.cjs",
+        "test_panel_tracking.cjs"
+      ],
+      "before": "        const key = lockKey(text);\n        if (!key || out.some(x => x.key === key)) continue;\n",
+      "after": ""
+    },
+    {
+      "id": "backend-209",
+      "file": "dist/backend.js",
+      "start": 12607,
+      "end": 12607,
+      "reference_start": 13365,
+      "reference_end": 13367,
+      "function": "secretNormalize",
+      "action": "retain verified behavior/dependency at original callsite",
+      "tests": [
+        "test_reconciliation_integrity.cjs",
+        "test_tracking_source_integrity.cjs",
+        "test_panel_tracking.cjs"
+      ],
+      "before": "",
+      "after": "        const key = secretRecordKey(text, whose, false, userName);\n        if (out.some(x => x.key === key)) continue;\n"
+    },
+    {
+      "id": "backend-210",
+      "file": "dist/backend.js",
+      "start": 12622,
+      "end": 12623,
+      "reference_start": 13382,
+      "reference_end": 13393,
+      "function": "secretRead",
+      "action": "retain verified behavior/dependency at original callsite",
+      "tests": [
+        "test_reconciliation_integrity.cjs",
+        "test_tracking_source_integrity.cjs",
+        "test_panel_tracking.cjs"
+      ],
+      "before": "    const ensure = (text, whose, mine, from) => { const k = lockKey(text); let it = list.find(x => same(x.key, k)); if (!it) { it = { key: k, text, whose, mine, knownBy: new Map(), from, changedIn: null }; list.push(it); } return it; };\n",
+      "after": "    const ensure = (text, whose, mine, from) => {\n        const descriptionKey = lockKey(text), ownerKey = secretOwnerKey(whose, mine, userName);\n        let it = list.find(x => x.ownerKey === ownerKey && same(x.descriptionKey, descriptionKey));\n        if (!it) {\n            const collision = list.find(x => x.descriptionKey === descriptionKey);\n            if (collision) collision.key = secretRecordKey(collision.text, collision.whose, collision.mine, userName);\n            it = { key: collision ? secretRecordKey(text, whose, mine, userName) : descriptionKey, descriptionKey, ownerKey, text, whose, mine, knownBy: new Map(), from, changedIn: null };\n            list.push(it);\n        }\n        return it;\n    };\n"
+    },
+    {
+      "id": "backend-211",
+      "file": "dist/backend.js",
+      "start": 12629,
+      "end": 12630,
+      "reference_start": 13399,
+      "reference_end": 13400,
+      "function": "secretRead",
+      "action": "retain verified behavior/dependency at original callsite",
+      "tests": [
+        "test_reconciliation_integrity.cjs",
+        "test_tracking_source_integrity.cjs",
+        "test_panel_tracking.cjs"
+      ],
+      "before": "            for (const n of r.knownBy) if (!isUser(n) && !it.knownBy.has(lockKey(n))) it.knownBy.set(lockKey(n), { name: n, how: r.how, at: e ? e.clock : null, msgId: m.id });\n",
+      "after": "            for (const n of Array.isArray(r.knownBy) && r.how ? r.knownBy : []) if (!isUser(n) && !it.knownBy.has(lockKey(n))) it.knownBy.set(lockKey(n), { name: n, how: r.how, at: e ? e.clock : null, msgId: m.id });\n"
+    },
+    {
+      "id": "backend-212",
+      "file": "dist/backend.js",
+      "start": 12636,
+      "end": 12637,
+      "reference_start": 13406,
+      "reference_end": 13409,
+      "function": "secretRead",
+      "action": "retain verified behavior/dependency at original callsite",
+      "tests": [
+        "test_reconciliation_integrity.cjs",
+        "test_tracking_source_integrity.cjs",
+        "test_panel_tracking.cjs"
+      ],
+      "before": "        const it = list.find(x => x.key === k || same(x.key, k));\n",
+      "after": "        const exact = list.find(x => x.key === k);\n        const legacy = exact || k.includes(' :: owner ') ? [] : list.filter(x => same(x.descriptionKey, k));\n        const it = exact || (legacy.length === 1 ? legacy[0] : null);\n"
+    },
+    {
+      "id": "backend-213",
+      "file": "dist/backend.js",
+      "start": 12676,
+      "end": 12677,
+      "reference_start": 13448,
+      "reference_end": 13451,
+      "function": "hmsSecretsEdit",
+      "action": "retain verified behavior/dependency at original callsite",
+      "tests": [
+        "test_reconciliation_integrity.cjs",
+        "test_tracking_source_integrity.cjs",
+        "test_panel_tracking.cjs"
+      ],
+      "before": "        if (!g.added.some(a => lockKey(a.text) === key)) g.added.push({ text, whose: partyText(p.whose, 60), knownBy: names(p.knownBy) });\n",
+      "after": "        const whose = partyText(p.whose, 60);\n        const recordKey = secretRecordKey(text, whose);\n        if (!g.added.some(a => secretRecordKey(a.text, a.whose) === recordKey)) g.added.push({ text, whose, knownBy: names(p.knownBy) });\n"
+    },
+    {
+      "id": "backend-214",
+      "file": "dist/backend.js",
+      "start": 12687,
+      "end": 12688,
+      "reference_start": 13461,
+      "reference_end": 13464,
+      "function": "hmsSecretsEdit",
+      "action": "retain verified behavior/dependency at original callsite",
+      "tests": [
+        "test_reconciliation_integrity.cjs",
+        "test_tracking_source_integrity.cjs",
+        "test_panel_tracking.cjs"
+      ],
+      "before": "        g.added = g.added.filter(a => lockKey(a.text) !== key);\n",
+      "after": "        const exact = g.added.some(a => secretRecordKey(a.text, a.whose) === key);\n        const legacyCount = exact ? 0 : g.added.filter(a => lockKey(a.text) === key).length;\n        g.added = g.added.filter(a => exact ? secretRecordKey(a.text, a.whose) !== key : legacyCount !== 1 || lockKey(a.text) !== key);\n"
+    },
+    {
+      "id": "backend-215",
+      "file": "dist/backend.js",
+      "start": 12939,
+      "end": 12940,
+      "reference_start": 13715,
+      "reference_end": 13716,
+      "function": "simTowardNormalize",
+      "action": "retain verified behavior/dependency at original callsite",
+      "tests": [
+        "test_reconciliation_integrity.cjs",
+        "test_tracking_source_integrity.cjs",
+        "test_panel_tracking.cjs"
+      ],
+      "before": "    if (!isPlainObject(t)) return null;\n",
+      "after": "    if (!isPlainObject(t) || reportSpeculative(t)) return null;\n"
+    },
+    {
+      "id": "backend-216",
+      "file": "dist/backend.js",
+      "start": 12979,
+      "end": 12979,
+      "reference_start": 13755,
+      "reference_end": 13756,
+      "function": "simMindsNormalize",
+      "action": "retain verified behavior/dependency at original callsite",
+      "tests": [
+        "test_reconciliation_integrity.cjs",
+        "test_tracking_source_integrity.cjs",
+        "test_panel_tracking.cjs"
+      ],
+      "before": "",
+      "after": "        if (reportSpeculative(e)) continue;\n"
+    },
+    {
+      "id": "backend-217",
+      "file": "dist/backend.js",
+      "start": 13014,
+      "end": 13014,
+      "reference_start": 13791,
+      "reference_end": 13792,
+      "function": "simAgendasNormalize",
+      "action": "retain verified behavior/dependency at original callsite",
+      "tests": [
+        "test_reconciliation_integrity.cjs",
+        "test_tracking_source_integrity.cjs",
+        "test_panel_tracking.cjs"
+      ],
+      "before": "",
+      "after": "        if (reportSpeculative(a)) continue;\n"
+    },
+    {
+      "id": "backend-218",
+      "file": "dist/backend.js",
+      "start": 13042,
+      "end": 13042,
+      "reference_start": 13820,
+      "reference_end": 13823,
+      "function": "reportSpeculative",
+      "action": "retain verified behavior/dependency at original callsite",
+      "tests": [
+        "test_reconciliation_integrity.cjs",
+        "test_tracking_source_integrity.cjs",
+        "test_panel_tracking.cjs"
+      ],
+      "before": "",
+      "after": "function reportSpeculative(row) {\n    return row?.speculative === true || row?.confirmed === false || /^(?:guess(?:ed)?|speculat(?:ion|ive)|hypothetical|unsupported|unconfirmed|unsure|uncertain)$/i.test(String(row?.certainty ?? row?.status ?? '').trim());\n}\n"
+    },
+    {
+      "id": "backend-219",
+      "file": "dist/backend.js",
+      "start": 13049,
+      "end": 13050,
+      "reference_start": 13830,
+      "reference_end": 13831,
+      "function": "simLearnedNormalize",
+      "action": "retain verified behavior/dependency at original callsite",
+      "tests": [
+        "test_reconciliation_integrity.cjs",
+        "test_tracking_source_integrity.cjs",
+        "test_panel_tracking.cjs"
+      ],
+      "before": "        let how = simHowOf(f.how ?? f.vector);\n",
+      "after": "        const how = simHowOf(f.how ?? f.vector);\n"
+    },
+    {
+      "id": "backend-220",
+      "file": "dist/backend.js",
+      "start": 13053,
+      "end": 13055,
+      "reference_start": 13834,
+      "reference_end": 13839,
+      "function": "simLearnedNormalize",
+      "action": "retain verified behavior/dependency at original callsite",
+      "tests": [
+        "test_reconciliation_integrity.cjs",
+        "test_tracking_source_integrity.cjs",
+        "test_panel_tracking.cjs"
+      ],
+      "before": "        if (!how && from) how = 'told';\n        out.push({ who, fact, how: how || null, from: from && !/^(null|none)$/i.test(from) ? from : null, sure: simSureOf(f.sure ?? f.confidence) || 'certain' });\n",
+      "after": "        if (from && /^(null|none)$/i.test(from)) from = null;\n        let sure = simSureOf(f.sure ?? f.confidence) || (how && !['guessed', 'gossip'].includes(how) ? 'certain' : 'unsure');\n        if (sure !== 'wrong' && (!how || how === 'guessed' || reportSpeculative(f))) sure = 'unsure';\n        else if (sure === 'certain' && how === 'gossip') sure = 'partly';\n        out.push({ who, fact, how, from, sure });\n"
+    },
+    {
+      "id": "backend-221",
+      "file": "dist/backend.js",
+      "start": 13082,
+      "end": 13092,
+      "reference_start": 13866,
+      "reference_end": 13868,
+      "function": "simHudOf",
+      "action": "retain verified behavior/dependency at original callsite",
+      "tests": [
+        "test_reconciliation_integrity.cjs",
+        "test_tracking_source_integrity.cjs",
+        "test_panel_tracking.cjs"
+      ],
+      "before": "function simHudOf(m) {\n    const text = textOf(m.content);\n    const ck = `${m.id}:${m.swipe_id ?? 0}`;\n    const hit = hmsParseCache.get(ck);\n    if (hit && hit.text === text) return hit.hud;\n    const hud = parseHud(text) || null;\n    hmsParseCache.set(ck, { text, hud });\n    if (hmsParseCache.size > 3000) hmsParseCache.delete(hmsParseCache.keys().next().value);\n    return hud;\n}\n",
+      "after": "function simHudOf(m) { return messageHud(m); }\n\n"
+    },
+    {
+      "id": "backend-222",
+      "file": "dist/backend.js",
+      "start": 13104,
+      "end": 13105,
+      "reference_start": 13880,
+      "reference_end": 13881,
+      "function": "simReplies",
+      "action": "retain verified behavior/dependency at original callsite",
+      "tests": [
+        "test_reconciliation_integrity.cjs",
+        "test_tracking_source_integrity.cjs",
+        "test_panel_tracking.cjs"
+      ],
+      "before": "        if (m.hidden === true || m.is_hidden === true || (m.metadata && m.metadata.hidden === true)) continue;\n",
+      "after": "        if (!trackingMessageVisible(m)) continue;\n"
+    },
+    {
+      "id": "backend-223",
+      "file": "dist/backend.js",
+      "start": 13133,
+      "end": 13134,
+      "reference_start": 13909,
+      "reference_end": 13910,
+      "function": "simYouKeys",
+      "action": "retain verified behavior/dependency at original callsite",
+      "tests": [
+        "test_reconciliation_integrity.cjs",
+        "test_tracking_source_integrity.cjs",
+        "test_panel_tracking.cjs"
+      ],
+      "before": "    if (userName) { const u = lockKey(userName); if (u) { s.add(u); const first = u.split(/\\s+/)[0]; if (first.length >= 3) s.add(first); } }\n",
+      "after": "    if (userName) { const u = lockKey(userName); if (u) { s.add(u); } }\n"
+    },
+    {
+      "id": "backend-224",
+      "file": "dist/backend.js",
+      "start": 13140,
+      "end": 13141,
+      "reference_start": 13916,
+      "reference_end": 13917,
+      "function": "simKeyer",
+      "action": "retain verified behavior/dependency at original callsite",
+      "tests": [
+        "test_reconciliation_integrity.cjs",
+        "test_tracking_source_integrity.cjs",
+        "test_panel_tracking.cjs"
+      ],
+      "before": "        let k = lockKey(String(name ?? '').replace(/\\s+/g, ' ')).replace(/^(the|a|an)\\s+/, '');\n",
+      "after": "        let k = lockKey(String(name ?? '').replace(/\\s+/g, ' '));\n"
+    },
+    {
+      "id": "backend-225",
+      "file": "dist/backend.js",
+      "start": 13142,
+      "end": 13158,
+      "reference_start": 13918,
+      "reference_end": 13922,
+      "function": "simKeyer",
+      "action": "retain verified behavior/dependency at original callsite",
+      "tests": [
+        "test_reconciliation_integrity.cjs",
+        "test_tracking_source_integrity.cjs",
+        "test_panel_tracking.cjs"
+      ],
+      "before": "        if (you.has(k)) return SIM_YOU;\n        const m = roster && roster.length ? partyMatch(roster, name) : null;\n        if (m) k = m.key;\n        else if (!known.has(k)) {\n            let hit = null;\n            for (const kk of known.keys()) if (kk.startsWith(k + ' ') || k.startsWith(kk + ' ')) { hit = kk; break; }\n            if (!hit) {\n                // \"Kushida\" is \"Kikyō Kushida\" when only one known name holds every word of it\n                const words = (x) => x.split(/\\s+/).filter(w => w.length >= 3);\n                const mine = words(k);\n                const cands = mine.length ? [...known.keys()].filter(kk => kk !== SIM_YOU && (mine.every(w => words(kk).includes(w)) || (words(kk).length && words(kk).every(w => mine.includes(w))))) : [];\n                if (cands.length === 1) hit = cands[0];\n            }\n            if (hit) k = hit;\n        }\n        if (!known.has(k)) known.set(k, String(name).replace(/\\s+/g, ' ').trim());\n",
+      "after": "        const member = partyMatch(roster, name);\n        if (member) k = lockKey(member.key || member.name);\n        else if (you.has(k)) return SIM_YOU;\n        if (!known.has(k)) known.set(k, String(member?.name || name).replace(/\\s+/g, ' ').trim());\n"
+    },
+    {
+      "id": "backend-226",
+      "file": "dist/backend.js",
+      "start": 13333,
+      "end": 13333,
+      "reference_start": 14097,
+      "reference_end": 14099,
+      "function": "simLearn",
+      "action": "retain verified behavior/dependency at original callsite",
+      "tests": [
+        "test_reconciliation_integrity.cjs",
+        "test_tracking_source_integrity.cjs",
+        "test_panel_tracking.cjs"
+      ],
+      "before": "",
+      "after": "    f = simLearnedNormalize([f])?.[0];\n    if (!f) return;\n"
+    },
+    {
+      "id": "backend-227",
+      "file": "dist/backend.js",
+      "start": 13415,
+      "end": 13416,
+      "reference_start": 14181,
+      "reference_end": 14182,
+      "function": "simFold",
+      "action": "retain verified behavior/dependency at original callsite",
+      "tests": [
+        "test_reconciliation_integrity.cjs",
+        "test_tracking_source_integrity.cjs",
+        "test_panel_tracking.cjs"
+      ],
+      "before": "        if (Array.isArray(d.minds)) for (const r of d.minds) simApplyMind(minds, pairs, r, i, e, o);\n",
+      "after": "        if (Array.isArray(d.minds)) for (const r of d.minds) if (isPlainObject(r) && !reportSpeculative(r)) simApplyMind(minds, pairs, r, i, e, o);\n"
+    },
+    {
+      "id": "backend-228",
+      "file": "dist/backend.js",
+      "start": 13417,
+      "end": 13417,
+      "reference_start": 14183,
+      "reference_end": 14184,
+      "function": "simFold",
+      "action": "retain verified behavior/dependency at original callsite",
+      "tests": [
+        "test_reconciliation_integrity.cjs",
+        "test_tracking_source_integrity.cjs",
+        "test_panel_tracking.cjs"
+      ],
+      "before": "",
+      "after": "            if (!isPlainObject(a) || reportSpeculative(a)) continue;\n"
+    },
+    {
+      "id": "backend-229",
+      "file": "dist/backend.js",
+      "start": 13641,
+      "end": 13642,
+      "reference_start": 14408,
+      "reference_end": 14409,
+      "function": "simStateText",
+      "action": "retain verified behavior/dependency at original callsite",
+      "tests": [
+        "test_reconciliation_integrity.cjs",
+        "test_tracking_source_integrity.cjs",
+        "test_panel_tracking.cjs"
+      ],
+      "before": "        if (kn.length) lines.push(`They know: ${kn.join('. ')}.`);\n",
+      "after": "        if (kn.length) lines.push(`Knowledge and beliefs (certainty is per entry; do not share between characters): ${kn.join('. ')}.`);\n"
+    },
+    {
+      "id": "backend-230",
+      "file": "dist/backend.js",
+      "start": 13676,
+      "end": 13677,
+      "reference_start": 14443,
+      "reference_end": 14444,
+      "function": "simRequest",
+      "action": "retain verified behavior/dependency at original callsite",
+      "tests": [
+        "test_reconciliation_integrity.cjs",
+        "test_tracking_source_integrity.cjs",
+        "test_panel_tracking.cjs"
+      ],
+      "before": "        let r = `\"minds\" (FrankenSIM's Aether): one entry per named character present, never ${u}, for what goes on inside them by the end of this reply. Report what the story shows; it never decides what they do. \"feel\" is their emotion named by where it leads, as a Parrott path (love|joy|surprise|anger|sadness|fear > secondary > tertiary); \"at\" is who it is aimed at. \"tfdy\": only what this reply changed in their ambient feeling, T tenderness, F fury, D dread, Y yearning, each by 1 at most, and only for something that happened. \"iw\": how warm they show themselves (0 frostbound, 1 cool, 2 temperate, 3 warm, 4 fervent); 2 unless there is a reason. \"facet\": the side of them that leads right now; \"mask\": whether the face they wear holds.`;\n",
+      "after": "        let r = `\"minds\" (FrankenSIM's Aether): one entry per named character present, never ${u}, for what goes on inside them by the end of this reply. Use established traits, observable behavior, dialogue and explicit private information; mark uncertainty by omitting unsupported changes. Teasing, disagreement or competition alone proves no envy, hostility or loss of trust. Never invent motives or an imagined off-screen event. \"feel\" is their emotion named by where it leads, as a Parrott path (love|joy|surprise|anger|sadness|fear > secondary > tertiary); \"at\" is who it is aimed at. \"tfdy\": only what this reply changed in their ambient feeling, T tenderness, F fury, D dread, Y yearning, each by 1 at most, and only for something that happened. \"iw\": how warm they show themselves (0 frostbound, 1 cool, 2 temperate, 3 warm, 4 fervent); 2 unless there is a reason. \"facet\": the side of them that leads right now; \"mask\": whether the face they wear holds.`;\n"
+    },
+    {
+      "id": "backend-231",
+      "file": "dist/backend.js",
+      "start": 13683,
+      "end": 13684,
+      "reference_start": 14450,
+      "reference_end": 14451,
+      "function": "simRequest",
+      "action": "retain verified behavior/dependency at original callsite",
+      "tests": [
+        "test_reconciliation_integrity.cjs",
+        "test_tracking_source_integrity.cjs",
+        "test_panel_tracking.cjs"
+      ],
+      "before": "        rules.push(`\"agendas\": what named characters who matter now are doing, here or elsewhere: the people present say what they were doing before this scene and whether they still mean to go back to it; the absent go on with their own lives. Nobody jumps between places: to get somewhere they travel, and the HUD clock has to allow it. Only who changed or is new, up to 8; [] when nothing changed.`);\n",
+      "after": "        rules.push(`\"agendas\": what named characters who matter now are doing, here or elsewhere: the people present say what they were doing before this scene and whether they still mean to go back to it; report absent characters only when their activity is established by narration or a received report, never by imagining what they must be doing. Nobody jumps between places: to get somewhere they travel, and the HUD clock has to allow it. Only who changed or is new, up to 8; [] when nothing changed.`);\n"
+    },
+    {
+      "id": "backend-232",
+      "file": "dist/backend.js",
+      "start": 13687,
+      "end": 13688,
+      "reference_start": 14454,
+      "reference_end": 14455,
+      "function": "simRequest",
+      "action": "retain verified behavior/dependency at original callsite",
+      "tests": [
+        "test_reconciliation_integrity.cjs",
+        "test_tracking_source_integrity.cjs",
+        "test_panel_tracking.cjs"
+      ],
+      "before": "        rules.push(`\"learned\": what a named character newly found out in this reply that matters (about ${u}, a secret, an event) and how it reached them. Nobody knows what never reached them: no sight, word, evidence or message, no knowledge. \"wrong\" is a false belief they now hold. [] when nobody learned anything new.`);\n",
+      "after": "        rules.push(`\"learned\": what a named character newly found out in this reply that matters (about ${u}, a secret, an event) and how it reached them. Nobody knows what never reached them: no sight, word, evidence or message, no knowledge. Private thoughts, narrator knowledge, another mind entry and a shared location are not information transfer. A guess remains unsure and gossip remains unverified; never upgrade them to certain. \"wrong\" is a false belief they now hold. [] when nobody learned anything new.`);\n"
+    },
+    {
+      "id": "backend-233",
+      "file": "dist/backend.js",
+      "start": 14072,
+      "end": 14073,
+      "reference_start": 14839,
+      "reference_end": 14852,
+      "function": "pocketAcquisitionPending",
+      "action": "retain verified behavior/dependency at original callsite",
+      "tests": [
+        "test_reconciliation_integrity.cjs",
+        "test_tracking_source_integrity.cjs",
+        "test_panel_tracking.cjs"
+      ],
+      "before": "function pocketList(v) {\n",
+      "after": "function pocketAcquisitionPending(value) {\n    if (isPlainObject(value)) {\n        if (value.accepted === false || reportSpeculative(value)) return true;\n        value = value.name || value.item || '';\n    }\n    const text = String(value || '');\n    if (/\\b(?:not (?:yet )?(?:taken|accepted|received|acquired)|unaccepted|awaiting (?:acceptance|collection))\\b/i.test(text)) return true;\n    if (/\\b(?:accepted|received|acquired|picked up|took|taken|borrowed|carrying|in (?:your|my) hands?)\\b/i.test(text)) return false;\n    return /\\b(?:offered|presented|held out|proposed)\\b/i.test(text) ||\n        (/\\b(?:unopened|wrapped)\\b/i.test(text) && /\\b(?:gift|present|parcel|bundle)\\b/i.test(text));\n}\n\nfunction pocketList(v, acquisition = false) {\n"
+    },
+    {
+      "id": "backend-234",
+      "file": "dist/backend.js",
+      "start": 14074,
+      "end": 14075,
+      "reference_start": 14853,
+      "reference_end": 14854,
+      "function": "pocketList",
+      "action": "retain verified behavior/dependency at original callsite",
+      "tests": [
+        "test_reconciliation_integrity.cjs",
+        "test_tracking_source_integrity.cjs",
+        "test_panel_tracking.cjs"
+      ],
+      "before": "    return v.map(x => (typeof x === 'string' ? x : isPlainObject(x) ? x.name || x.item : '')).filter(x => typeof x === 'string' && x.trim())\n",
+      "after": "    return v.filter(x => !acquisition || !pocketAcquisitionPending(x)).map(x => (typeof x === 'string' ? x : isPlainObject(x) ? x.name || x.item : '')).filter(x => typeof x === 'string' && x.trim())\n"
+    },
+    {
+      "id": "backend-235",
+      "file": "dist/backend.js",
+      "start": 14093,
+      "end": 14094,
+      "reference_start": 14872,
+      "reference_end": 14873,
+      "function": "pocketsNow",
+      "action": "retain verified behavior/dependency at original callsite",
+      "tests": [
+        "test_reconciliation_integrity.cjs",
+        "test_tracking_source_integrity.cjs",
+        "test_panel_tracking.cjs"
+      ],
+      "before": "        for (const n of r.got || []) { if (pocketIsMessage(n)) continue; const k = lockKey(n); if (![...items.keys()].some(key => same(key, k))) items.set(k, { name: n, from: 'story', msgId: r.msgId }); }\n",
+      "after": "        for (const n of r.got || []) { if (pocketIsMessage(n) || pocketAcquisitionPending(n)) continue; const k = lockKey(n); if (![...items.keys()].some(key => same(key, k))) items.set(k, { name: n, from: 'story', msgId: r.msgId }); }\n"
+    },
+    {
+      "id": "backend-272",
+      "file": "dist/backend.js",
+      "start": 14495,
+      "end": 14496,
+      "reference_start": 15434,
+      "reference_end": 15436,
+      "function": "questNormalize",
+      "action": "retain verified behavior/dependency at original callsite",
+      "tests": [
+        "test_reconciliation_integrity.cjs",
+        "test_tracking_source_integrity.cjs",
+        "test_panel_tracking.cjs"
+      ],
+      "before": "        if (!isPlainObject(q) || typeof q.name !== 'string' || !q.name.trim()) continue;\n",
+      "after": "        if (!isPlainObject(q) || typeof q.name !== 'string' || !q.name.trim() || q.accepted === false || reportSpeculative(q)) continue;\n        if (/^(?:suggested|proposed|offered|unaccepted|intended)$/.test(String(q.state || '').toLowerCase())) continue;\n"
+    },
+    {
+      "id": "backend-273",
+      "file": "dist/backend.js",
+      "start": 14497,
+      "end": 14498,
+      "reference_start": 15437,
+      "reference_end": 15439,
+      "function": "questNormalize",
+      "action": "retain verified behavior/dependency at original callsite",
+      "tests": [
+        "test_reconciliation_integrity.cjs",
+        "test_tracking_source_integrity.cjs",
+        "test_panel_tracking.cjs"
+      ],
+      "before": "        const pr = Number(q.progress);\n",
+      "after": "        const raw = q.progress;\n        const pr = typeof raw === 'number' || (typeof raw === 'string' && raw.trim()) ? Number(raw) : NaN;\n"
+    }
+  ]
+}

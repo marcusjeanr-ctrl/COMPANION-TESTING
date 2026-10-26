@@ -1,0 +1,14 @@
+FAIL equivalent permission objectives match across names and missing giver fields: Expected values to be strictly equal:
+
+false !== true
+
+FAIL equivalent ordinary goals work across unrelated cards and context granularity: Fix the north bridge
+PASS shared storyline, prefixes, prerequisite and destination do not merge distinct goals
+PASS actors, directions, negation, quantities and extra steps stay distinct
+PASS conflicting owners/locations and generic unanchored goals never merge
+PASS ambiguous partial aliases never pick one of two established quests
+FAIL current HUD aliases deduplicate after objective attachment; distinct HUD objectives remain: Expected values to be strictly equal:
+
+2 !== 1
+
+Quest identity: 4/7 groups passed.

@@ -1,0 +1,651 @@
+{
+  "reference_commit": "f2e3840a346df977455b9aa0677c0262af155578",
+  "changes": [
+    {
+      "id": "backend-001",
+      "file": "dist/backend.js",
+      "start": 1033,
+      "end": 1033,
+      "reference_start": 1034,
+      "reference_end": 1035,
+      "function": "loreNormEntry",
+      "action": "retain verified behavior/dependency at original callsite",
+      "tests": [
+        "test_atlas_references.cjs",
+        "test_six_sided_compat.cjs",
+        "test_updated_six_sided.cjs"
+      ],
+      "before": "",
+      "after": "        category: String(e.extensions?.category || e.category || '').trim(),\n"
+    },
+    {
+      "id": "backend-002",
+      "file": "dist/backend.js",
+      "start": 1034,
+      "end": 1035,
+      "reference_start": 1036,
+      "reference_end": 1037,
+      "function": "loreNormEntry",
+      "action": "retain verified behavior/dependency at original callsite",
+      "tests": [
+        "test_atlas_references.cjs",
+        "test_six_sided_compat.cjs",
+        "test_updated_six_sided.cjs"
+      ],
+      "before": "        key: Array.isArray(e.key) ? e.key.map(String).filter(Boolean) : [],\n",
+      "after": "        key: Array.isArray(e.key || e.keys) ? (e.key || e.keys).map(String).filter(Boolean) : [],\n"
+    },
+    {
+      "id": "backend-003",
+      "file": "dist/backend.js",
+      "start": 1154,
+      "end": 1154,
+      "reference_start": 1156,
+      "reference_end": 1221,
+      "function": "loreReadBookEntries",
+      "action": "retain verified behavior/dependency at original callsite",
+      "tests": [
+        "test_atlas_references.cjs",
+        "test_six_sided_compat.cjs",
+        "test_updated_six_sided.cjs"
+      ],
+      "before": "",
+      "after": "async function loreReadBookEntries(bookId) {\n    const all = [], seen = new Set();\n    let offset = 0;\n    for (let page = 0; page < 200; page++) {\n        const result = await spindle.world_books.entries.list(bookId, { limit: 200, offset, ...userOpt() });\n        const entries = Array.isArray(result?.data) ? result.data : [];\n        if (!entries.length) break;\n        let added = 0;\n        for (const entry of entries) {\n            const key = String(entry.id || entry.uid || JSON.stringify([entry.key, entry.content]));\n            if (seen.has(key)) continue;\n            seen.add(key); all.push(entry); added++;\n        }\n        offset += entries.length;\n        const total = result?.total === null || result?.total === undefined ? NaN : Number(result.total);\n        if (!added || Number.isFinite(total) && total >= 0 && offset >= total || !Number.isFinite(total) && entries.length < 200) break;\n    }\n    return all;\n}\n\nconst loreCatalogReferences = new Map();\nconst loreCatalogPending = new Map();\nconst loreCatalogAttempts = new Map();\nfunction loreCatalogBooks(chatId) {\n    const pool = lorePool.get(chatId);\n    const pooled = (pool?.entries || []).map(e => e.book).filter(Boolean);\n    return [...new Set(pooled.length ? pooled : loreActivatedBooks(chatId))].sort().slice(0, 12);\n}\nfunction loreCatalogPool(chatId) {\n    const full = loreCatalogReferences.get(chatId);\n    return full && full.key === loreCatalogBooks(chatId).join('|') ? full : lorePool.get(chatId);\n}\nasync function loreHydrateCatalog(chatId) {\n    if (!chatId || chatId === SANDBOX_ID || loreBooksDenied || typeof spindle.world_books?.entries?.list !== 'function') return null;\n    if (loreCatalogPending.has(chatId)) return loreCatalogPending.get(chatId);\n    const task = (async () => {\n        if (!loreCatalogBooks(chatId).length) await loreActivatedIds(chatId);\n        const books = loreCatalogBooks(chatId), key = books.join('|');\n        const current = loreCatalogReferences.get(chatId);\n        if (current && current.key === key && Date.now() - current.at < 60000) return current;\n        const attempt = loreCatalogAttempts.get(chatId);\n        if (attempt && attempt.key === key && Date.now() - attempt.at < 15000) return current?.key === key ? current : null;\n        loreCatalogAttempts.set(chatId, { key, at: Date.now() });\n        if (!books.length) return null;\n        const entries = [];\n        for (const book of books) for (const entry of await loreReadBookEntries(book)) {\n            const normalized = loreNormEntry({ ...entry, world_book_id: book });\n            if (normalized) entries.push(normalized);\n        }\n        if (loreCatalogBooks(chatId).join('|') !== key || !entries.length) return null;\n        const full = { key, at: Date.now(), entries };\n        loreCatalogReferences.set(chatId, full);\n        for (const cache of [loreCatalogReferences, loreCatalogAttempts]) while (cache.size > LORE_POOL_MAX_CHATS) cache.delete(cache.keys().next().value);\n        return full;\n    })();\n    loreCatalogPending.set(chatId, task);\n    try { return await task; }\n    catch (error) { logW(`[RPG Companion HMS] Spell references could not load: ${error?.message || error}`); return null; }\n    finally { if (loreCatalogPending.get(chatId) === task) loreCatalogPending.delete(chatId); }\n}\nfunction loreQueueCatalog(chatId) {\n    const previous = loreCatalogReferences.get(chatId);\n    loreHydrateCatalog(chatId).then(full => { if (full && full !== previous) return pushState(chatId); }).catch(() => {});\n}\n\n"
+    },
+    {
+      "id": "backend-004",
+      "file": "dist/backend.js",
+      "start": 1164,
+      "end": 1166,
+      "reference_start": 1231,
+      "reference_end": 1233,
+      "function": "loreBuildPoolFromApi",
+      "action": "retain verified behavior/dependency at original callsite",
+      "tests": [
+        "test_atlas_references.cjs",
+        "test_six_sided_compat.cjs",
+        "test_updated_six_sided.cjs"
+      ],
+      "before": "            const { data: entries } = await spindle.world_books.entries.list(id, { limit: 200, ...userOpt() });\n            for (const e of (Array.isArray(entries) ? entries : [])) {\n",
+      "after": "            const entries = await loreReadBookEntries(id);\n            for (const e of entries) {\n"
+    },
+    {
+      "id": "backend-005",
+      "file": "dist/backend.js",
+      "start": 1169,
+      "end": 1170,
+      "reference_start": 1236,
+      "reference_end": 1236,
+      "function": "loreBuildPoolFromApi",
+      "action": "retain verified behavior/dependency at original callsite",
+      "tests": [
+        "test_atlas_references.cjs",
+        "test_six_sided_compat.cjs",
+        "test_updated_six_sided.cjs"
+      ],
+      "before": "            if (out.length > 800) break;\n",
+      "after": ""
+    },
+    {
+      "id": "backend-039",
+      "file": "dist/backend.js",
+      "start": 3790,
+      "end": 3793,
+      "reference_start": 3988,
+      "reference_end": 4132,
+      "function": "atlasAddMushokuPath",
+      "action": "retain verified behavior/dependency at original callsite",
+      "tests": [
+        "test_atlas_references.cjs",
+        "test_six_sided_compat.cjs",
+        "test_updated_six_sided.cjs"
+      ],
+      "before": "function atlasFor(chatId) {\n    const p = lorePool.get(chatId);\n    if (!p || !Array.isArray(p.entries) || !p.entries.length) return null;\n",
+      "after": "function atlasAddMushokuPath(atlas, segments, worldId = 'mushoku') {\n    if (worldId !== 'mushoku' || !atlas || !Array.isArray(segments) || !segments.length ||\n        !segments.some(x => /^(?:Six-Faced World|Six-Sided World|Central Continent|Demon Continent|Milis Continent|Millis Continent|Begaritt Continent|Heavenly Continent)$/i.test(String(x).trim()))) return false;\n    let parent = null, changed = false;\n    for (const raw of mushokuLocationSegments(segments).slice(0, 12)) {\n        const seg = atlasSeg(raw);\n        if (!seg.name || /^\\[.*\\]$/.test(raw) || /^\\(.*\\)$/.test(raw)) continue;\n        const candidates = parent === null ? [...atlas.nodes.values()] :\n            (atlas.nodes.get(parent)?.children || []).map(id => atlas.nodes.get(id)).filter(Boolean);\n        let node = candidates.find(n => (n.alts || [n.name]).some(a => atlasNorm(a) === atlasNorm(seg.name)));\n        if (!node) {\n            const id = lockKey(`${parent || ''} > ${atlasNorm(seg.name)}`);\n            node = atlas.nodes.get(id);\n            if (!node) {\n                node = { id, name: seg.name, alts: seg.alts, keys: [], parent, children: [], tier: parent ? (atlas.nodes.get(parent)?.tier || 0) + 1 : 0,\n                    kind: 'Observed location', flags: [], level: null, stub: true, summary: '', meta: {}, extra: {}, nav: [], anchors: [], linked: [], walls: '', surv: null, generic: false };\n                atlas.nodes.set(id, node);\n                if (parent === null) atlas.roots.push(id); else atlas.nodes.get(parent).children.push(id);\n                changed = true;\n            }\n        }\n        parent = node.id;\n    }\n    if (changed) {\n        atlas.version = `${atlas.baseVersion}-${atlas.nodes.size}`;\n        atlas.ix = new Map([...atlas.nodes.keys()].map((id, i) => [id, i]));\n    }\n    return changed;\n}\n\nconst ATLAS_CALAMITY_RUINS = /^(?:Roa Ruins|Buena Village Ruins|Fittoa Crater)$/i;\nconst ATLAS_CALAMITY_INTACT = /^(?:Roa|City of Roa|Buena Village|Buena Village Layout)$/i;\nfunction atlasCalamityState(hud, chat) {\n    const events = Array.isArray(chat) ? mtEventLedger(chat).filter(e => /mana calamity|teleportation incident|fittoa (?:calamity|disaster)/i.test(e.name)) : [];\n    const last = events[events.length - 1];\n    if (last?.state === 'prevented') return 'prevented';\n    if (last?.state === 'changed') return 'unknown';\n    if (last?.state === 'occurred') return 'after';\n    const lines = worldLines(hud);\n    const event = lines.filter(line => /mana calamity|teleportation incident/i.test(line)).join('\\n');\n    if (/\\b(?:in\\s+\\d+\\s+(?:months?|days?|years?)|not yet|has not|upcoming|countdown|eve of)\\b/i.test(event)) return 'before';\n    if (/\\b(?:has occurred|has happened|has struck|occurred|already happened|completed)\\b/i.test(event)) return 'after';\n    const date = mtCalendar(lines.join('\\n'));\n    return date && (date.year < 417 || date.year === 417 && date.month && date.month < 5) ? 'before' : 'unknown';\n}\nfunction atlasMushokuTemporalEntries(entries, phase) {\n    return (entries || []).flatMap(entry => {\n        const match = String(entry.content || '').match(/^\\s*([^:\\n\\[\\]]{2,80}):\\s*/);\n        if (!match) return [entry];\n        const name = match[1].replace(/^the\\s+/i, '').trim();\n        if (ATLAS_CALAMITY_RUINS.test(name) && phase !== 'after') return [];\n        if (ATLAS_CALAMITY_INTACT.test(name) && phase === 'after') return [];\n        if (phase === 'after' || !/^(?:Fittoa Region|Roa|City of Roa|Buena Village|Buena Village Layout)$/i.test(name)) return [entry];\n        const body = String(entry.content).slice(match[0].length).split(/(?<=[.!?])\\s+/).filter(sentence => !/\\b(?:calamity|K\\.?417|wiped|erased|annihilated|atomized)\\b/i.test(sentence)).join(' ')\n            .replace(/\\bIt was the breadbasket\\b/, 'It is the breadbasket');\n        return [{ ...entry, content: `${match[1]}: ${body}` }];\n    });\n}\n\nfunction atlasMushokuPlaceEntries(entries) {\n    return (entries || []).flatMap(entry => {\n        const text = String(entry.content || '');\n        if (/^East Port and West Port:/i.test(text)) {\n            return ['East Port', 'West Port'].map(name => ({ ...entry, key: [name], keys: [name],\n                content: `${name}: A harbor city on the Millis Continent. ${name === 'East Port' ? 'Connects to the Demon Continent (Zant Port).' : 'Facilitates trade with the Central Continent.'}` }));\n        }\n        if (!/^Continental Ports:/i.test(text)) return [entry];\n        const first = String(entry.content).split(/\\.\\s+/)[0];\n        const ports = new Map();\n        for (const match of first.matchAll(/([\\p{L}'’-]+(?:\\s+[\\p{L}'’-]+){0,2}\\s+Port)\\s*\\(([^)]+Continent)\\)/gu)) {\n            const name = match[1].replace(/^Continental Ports:\\s*/i, '').replace(/^connects to\\s+/i, '').trim();\n            ports.set(name, `A port on the ${match[2]}. ${name} is named in the lorebook's continental port connection.`);\n        }\n        for (const name of entry.key || entry.keys || []) if (/^[\\p{L}'’-]+\\s+Port$/u.test(name) && !ports.has(name)) {\n            ports.set(name, 'A port listed in the lorebook keywords. Its continent and detailed location are not stated in this entry.');\n        }\n        return [...ports].map(([name, description]) => ({ ...entry, key: [name], keys: [name], content: `${name}: ${description}` }));\n    });\n}\n\nfunction atlasMushokuReferences(entries) {\n    const places = new Map();\n    const title = value => String(value).replace(/^the\\s+|^city of\\s+/i, '').replace(/\\s+city$/i, '').trim();\n    const placeType = /\\b(?:access point|skyport|continent|kingdom|nation|province|region|territory|territories|city|town|village|settlement|capital|port|forest|mountain|range|valley|desert|glacier|summit|crater|road|highway|labyrinth|dungeon|oasis|palace|castle|fortress|estate|campus|university|academy|cathedral|district|suburbs|structure|dock|sanctuary|wasteland)\\b/i;\n    for (const entry of atlasMushokuPlaceEntries(entries)) {\n        if (entry.disabled === true || entry.enabled === false || !/Geography|Locations|Landmarks|Nations/i.test(entry.category || entry.extensions?.category || '')) continue;\n        const match = String(entry.content || '').match(/^\\s*([^:\\n\\[\\]]{2,80}):\\s*([^\\n]+)/);\n        if (!match) continue;\n        const first = match[2].split(/\\.\\s+/)[0];\n        if (!placeType.test(first) || /\\b(?:guild|ring|servants|cult|sandstorms|currency|gangs)\\b/i.test(match[1]) || /\\b(?:organization|criminal network|familiars|weather anomalies)\\b/i.test(first)) continue;\n        const name = title(match[1]), key = atlasNorm(name);\n        const row = { name, key, entries: [entry], first, parent: null };\n        const old = places.get(key);\n        if (old) old.entries.push(entry);\n        else places.set(key, row);\n    }\n    for (const row of [...places.values()]) for (const entry of row.entries) {\n        const first = String(entry.content).split(':').slice(1).join(':').split(/\\.\\s+|\\n/)[0];\n        for (const match of first.matchAll(/\\b(?:in|on|within|of)\\s+(?:the\\s+)?((?:Central|Demon|Millis|Milis|Begaritt|Heavenly|Heaven) Continent)\\b/gi)) {\n            const name = match[1], key = atlasNorm(name);\n            if (!places.has(key)) places.set(key, { name, key, first: '', parent: null,\n                entries: [{ id: entry.id, key: [name], content: `${name}: Referenced as a parent location in the lorebook.` }] });\n        }\n    }\n    const aliases = new Map();\n    for (const row of places.values()) for (const name of [row.name, ...row.entries.flatMap(e => e.key || e.keys || [])]) {\n        const key = atlasNorm(title(name));\n        if (!aliases.has(key)) aliases.set(key, row);\n        else if (aliases.get(key) !== row) aliases.set(key, null);\n    }\n    for (const row of places.values()) {\n        const candidates = [];\n        for (const entry of row.entries) {\n            const first = String(entry.content).split(':').slice(1).join(':').split(/\\.\\s+|\\n/)[0];\n            const normalized = atlasNorm(first);\n            for (const [alias, parent] of aliases) {\n                if (!parent || parent === row) continue;\n                const at = normalized.indexOf(alias);\n                if (at < 0 || /[\\p{L}\\p{N}]/u.test(normalized[at - 1] || '') || /[\\p{L}\\p{N}]/u.test(normalized[at + alias.length] || '')) continue;\n                const before = normalized.slice(0, at);\n                if (!/\\b(?:in|on|within|inside|at the edge of|capital of|capital city of)\\s+(?:the\\s+)?(?:[\\p{L}-]+\\s+){0,4}$/u.test(before)) continue;\n                candidates.push({ parent, length: alias.length });\n            }\n        }\n        candidates.sort((a, b) => b.length - a.length);\n        if (candidates.length) row.parent = candidates[0].parent;\n    }\n    const out = [];\n    for (const row of places.values()) {\n        const path = [], seen = new Set();\n        let current = row;\n        while (current && !seen.has(current.key)) { seen.add(current.key); path.unshift(current.name); current = current.parent; }\n        if (current) { path.splice(0, path.length, row.name); }\n        const entry = row.entries[0];\n        const description = String(entry.content).slice(String(entry.content).indexOf(':') + 1).trim();\n        out.push({ ...entry, content: `◆ TIER ${path.length - 1} — Lorebook reference\\n◈ PATH: ${path.join(' → ')}\\n\\n## ${row.name}\\n${description}` });\n    }\n    return out;\n}\n\nfunction atlasFor(chatId, segments = null, worldId = 'mushoku', context = null) {\n    if (worldId === 'mushoku') loreQueueCatalog(chatId);\n    const p = worldId === 'mushoku' ? loreCatalogPool(chatId) : lorePool.get(chatId);\n    const entries = p && Array.isArray(p.entries) ? p.entries : [];\n"
+    },
+    {
+      "id": "backend-040",
+      "file": "dist/backend.js",
+      "start": 3794,
+      "end": 3795,
+      "reference_start": 4133,
+      "reference_end": 4139,
+      "function": "atlasFor",
+      "action": "retain verified behavior/dependency at original callsite",
+      "tests": [
+        "test_atlas_references.cjs",
+        "test_six_sided_compat.cjs",
+        "test_updated_six_sided.cjs"
+      ],
+      "before": "    if (c && c.at === p.at && c.n === p.entries.length) return c.atlas;\n",
+      "after": "    const temporal = worldId === 'mushoku' ? (context ? atlasCalamityState(context.hud, context.chat) : c?.temporal || 'unknown') : null;\n    if (c && c.pool === p && c.worldId === worldId && c.temporal === temporal && (c.atlas || !segments)) {\n        if (segments) atlasAddMushokuPath(c.atlas, segments, worldId);\n        return c.atlas;\n    }\n    const currentEntries = worldId === 'mushoku' ? atlasMushokuTemporalEntries(entries, temporal) : entries;\n"
+    },
+    {
+      "id": "backend-041",
+      "file": "dist/backend.js",
+      "start": 3796,
+      "end": 3797,
+      "reference_start": 4140,
+      "reference_end": 4142,
+      "function": "atlasFor",
+      "action": "retain verified behavior/dependency at original callsite",
+      "tests": [
+        "test_atlas_references.cjs",
+        "test_six_sided_compat.cjs",
+        "test_updated_six_sided.cjs"
+      ],
+      "before": "    try { atlas = atlasBuild(p.entries); } catch (e) { logW(`[RPG Companion HMS] Could not read the location book: ${e?.message || e}`); }\n",
+      "after": "    try { if (entries.length) atlas = atlasBuild(worldId === 'mushoku' ? currentEntries.concat(atlasMushokuReferences(currentEntries)) : entries); } catch (e) { logW(`[RPG Companion HMS] Could not read the location book: ${e?.message || e}`); }\n    if (!atlas && segments) atlas = { nodes: new Map(), roots: [] };\n"
+    },
+    {
+      "id": "backend-042",
+      "file": "dist/backend.js",
+      "start": 3798,
+      "end": 3799,
+      "reference_start": 4143,
+      "reference_end": 4146,
+      "function": "atlasFor",
+      "action": "retain verified behavior/dependency at original callsite",
+      "tests": [
+        "test_atlas_references.cjs",
+        "test_six_sided_compat.cjs",
+        "test_updated_six_sided.cjs"
+      ],
+      "before": "        atlas.version = `${p.at}-${atlas.nodes.size}`;\n",
+      "after": "        atlas.temporal = temporal;\n        atlas.baseVersion = `${p?.at ?? 'hud'}-${temporal || 'reference'}-${atlas.nodes.size}`;\n        atlas.version = atlas.baseVersion;\n"
+    },
+    {
+      "id": "backend-043",
+      "file": "dist/backend.js",
+      "start": 3800,
+      "end": 3800,
+      "reference_start": 4147,
+      "reference_end": 4149,
+      "function": "atlasFor",
+      "action": "retain verified behavior/dependency at original callsite",
+      "tests": [
+        "test_atlas_references.cjs",
+        "test_six_sided_compat.cjs",
+        "test_updated_six_sided.cjs"
+      ],
+      "before": "",
+      "after": "        if (segments) atlasAddMushokuPath(atlas, segments, worldId);\n        if (!atlas.nodes.size) atlas = null;\n"
+    },
+    {
+      "id": "backend-044",
+      "file": "dist/backend.js",
+      "start": 3801,
+      "end": 3802,
+      "reference_start": 4150,
+      "reference_end": 4151,
+      "function": "atlasFor",
+      "action": "retain verified behavior/dependency at original callsite",
+      "tests": [
+        "test_atlas_references.cjs",
+        "test_six_sided_compat.cjs",
+        "test_updated_six_sided.cjs"
+      ],
+      "before": "    atlasCache.set(chatId, { at: p.at, n: p.entries.length, atlas });\n",
+      "after": "    atlasCache.set(chatId, { pool: p, worldId, temporal, atlas });\n"
+    },
+    {
+      "id": "backend-045",
+      "file": "dist/backend.js",
+      "start": 3838,
+      "end": 3840,
+      "reference_start": 4187,
+      "reference_end": 4206,
+      "function": "atlasLocate",
+      "action": "retain verified behavior/dependency at original callsite",
+      "tests": [
+        "test_atlas_references.cjs",
+        "test_six_sided_compat.cjs",
+        "test_updated_six_sided.cjs"
+      ],
+      "before": "function atlasHereInfo(chatId, hud) {\n    const atlas = atlasFor(chatId);\n",
+      "after": "const atlasObservedPaths = new WeakMap();\nfunction atlasObserveHistory(atlas, chat) {\n    if (!atlas || !Array.isArray(chat)) return;\n    let seen = atlasObservedPaths.get(atlas);\n    if (!seen) { seen = new Set(); atlasObservedPaths.set(atlas, seen); }\n    for (const m of relReadings(chat).slice(-100)) {\n        const hud = messageHud(m);\n        if (!hud || !hud.location || worldOf(worldLines(hud)) !== 'mushoku') continue;\n        const affected = mushokuLocationSegments(hud.location);\n        if (atlas.temporal !== 'after' && affected.some(name => ATLAS_CALAMITY_RUINS.test(name))) continue;\n        if (atlas.temporal === 'after' && affected.some(name => ATLAS_CALAMITY_INTACT.test(name))) continue;\n        const key = JSON.stringify(hud.location);\n        if (seen.has(key)) continue;\n        atlasAddMushokuPath(atlas, hud.location, worldOf(worldLines(hud)));\n        seen.add(key);\n    }\n}\nfunction atlasHereInfo(chatId, hud, chat = null) {\n    const atlas = atlasFor(chatId, hud && hud.location, worldOf(worldLines(hud)), { hud, chat });\n"
+    },
+    {
+      "id": "backend-046",
+      "file": "dist/backend.js",
+      "start": 3841,
+      "end": 3841,
+      "reference_start": 4207,
+      "reference_end": 4208,
+      "function": "atlasHereInfo",
+      "action": "retain verified behavior/dependency at original callsite",
+      "tests": [
+        "test_atlas_references.cjs",
+        "test_six_sided_compat.cjs",
+        "test_updated_six_sided.cjs"
+      ],
+      "before": "",
+      "after": "    atlasObserveHistory(atlas, chat);\n"
+    },
+    {
+      "id": "backend-047",
+      "file": "dist/backend.js",
+      "start": 4048,
+      "end": 4049,
+      "reference_start": 4415,
+      "reference_end": 4416,
+      "function": "posRequest",
+      "action": "retain verified behavior/dependency at original callsite",
+      "tests": [
+        "test_atlas_references.cjs",
+        "test_six_sided_compat.cjs",
+        "test_updated_six_sided.cjs"
+      ],
+      "before": "    if (!room && hud && hud.location && chatIdOf(chat)) { try { const at = atlasFor(chatIdOf(chat)); brief = at ? atlasRoomBrief(at, atlasLocate(at, hud.location)) : null; } catch { brief = null; } }\n",
+      "after": "    if (!room && hud && hud.location && chatIdOf(chat)) { try { const at = atlasFor(chatIdOf(chat), null, worldOf(worldLines(hud))); brief = at ? atlasRoomBrief(at, atlasLocate(at, hud.location)) : null; } catch { brief = null; } }\n"
+    },
+    {
+      "id": "backend-048",
+      "file": "dist/backend.js",
+      "start": 4403,
+      "end": 4404,
+      "reference_start": 4770,
+      "reference_end": 4771,
+      "function": "hmsBuildingsPanel",
+      "action": "retain verified behavior/dependency at original callsite",
+      "tests": [
+        "test_atlas_references.cjs",
+        "test_six_sided_compat.cjs",
+        "test_updated_six_sided.cjs"
+      ],
+      "before": "    try { atlas = atlasFor(chatId); } catch { atlas = null; }\n",
+      "after": "    try { atlas = atlasFor(chatId, null, worldOf(worldLines(hud))); } catch { atlas = null; }\n"
+    },
+    {
+      "id": "backend-049",
+      "file": "dist/backend.js",
+      "start": 4446,
+      "end": 4447,
+      "reference_start": 4813,
+      "reference_end": 4814,
+      "function": "bldKnownNames",
+      "action": "retain verified behavior/dependency at original callsite",
+      "tests": [
+        "test_atlas_references.cjs",
+        "test_six_sided_compat.cjs",
+        "test_updated_six_sided.cjs"
+      ],
+      "before": "    try { atlas = chatId ? atlasFor(chatId) : null; } catch { atlas = null; }\n",
+      "after": "    try { atlas = chatId ? atlasFor(chatId, null, worldOf(worldLines(hud))) : null; } catch { atlas = null; }\n"
+    },
+    {
+      "id": "backend-050",
+      "file": "dist/backend.js",
+      "start": 4472,
+      "end": 4473,
+      "reference_start": 4839,
+      "reference_end": 4840,
+      "function": "bldKnownNames",
+      "action": "retain verified behavior/dependency at original callsite",
+      "tests": [
+        "test_atlas_references.cjs",
+        "test_six_sided_compat.cjs",
+        "test_updated_six_sided.cjs"
+      ],
+      "before": "                let atlas = null; try { atlas = atlasFor(ctx.chatId); } catch { atlas = null; }\n",
+      "after": "                let atlas = null; try { atlas = atlasFor(ctx.chatId, null, worldOf(worldLines(hud))); } catch { atlas = null; }\n"
+    },
+    {
+      "id": "backend-111",
+      "file": "dist/backend.js",
+      "start": 8467,
+      "end": 8468,
+      "reference_start": 8997,
+      "reference_end": 8998,
+      "function": "worldOf",
+      "action": "retain verified behavior/dependency at original callsite",
+      "tests": [
+        "test_atlas_references.cjs",
+        "test_six_sided_compat.cjs",
+        "test_updated_six_sided.cjs"
+      ],
+      "before": "        mushoku: 2 * /^Year: K\\./m.test(t) + /^Mana Capacity:/m.test(t) + 2 * /Six-Faced World/i.test(t) + /\\[HITOGAMI:|^Martial Style:|^Magic School:|^Touki:/m.test(t),\n",
+      "after": "        mushoku: 2 * /^(?:Year:\\s*K\\.|Armored Dragon Calendar:\\s*K)/m.test(t) + /^Mana Capacity:/m.test(t) + 2 * /Six-Faced World|Central Continent\\s*→\\s*Asura Kingdom/i.test(t) + /\\[HITOGAMI:|^(?:Martial Style|Sword Style|Magic School|Magic Tiers|Touki(?: \\(Battle Aura\\)?):)/m.test(t),\n"
+    },
+    {
+      "id": "backend-112",
+      "file": "dist/backend.js",
+      "start": 8607,
+      "end": 8607,
+      "reference_start": 9137,
+      "reference_end": 9149,
+      "function": "worldLore",
+      "action": "retain verified behavior/dependency at original callsite",
+      "tests": [
+        "test_atlas_references.cjs",
+        "test_six_sided_compat.cjs",
+        "test_updated_six_sided.cjs"
+      ],
+      "before": "",
+      "after": "}\n\n/** A mana tier's own description, not another lore entry that happens to contain \"Mana Capacity\". */\nfunction mtManaTierLore(chatId, tier) {\n    const pool = lorePool.get(chatId);\n    if (!pool || !tier) return null;\n    const name = String(tier).trim();\n    if (!/^[\\p{L}\\s-]{2,35}$/u.test(name)) return null;\n    const book = pool.entries.find(e => (e.key || []).some(k => /^mana capacity$/i.test(k.trim())) && /\\bTHE TIERS\\b/i.test(e.content || ''));\n    if (!book) return null;\n    const line = String(book.content).split('\\n').find(s => new RegExp(`^\\\\s*[-•]\\\\s*${name.replace(/[.*+?^${}()|[\\]\\\\]/g, '\\\\$&')}\\\\s*(?:\\\\(|:|[—–-])`, 'i').test(s));\n    return line ? line.replace(/^\\s*[-•]\\s*/, '').replace(/\\*\\*/g, '').trim().slice(0, 280) : null;\n"
+    },
+    {
+      "id": "backend-113",
+      "file": "dist/backend.js",
+      "start": 8820,
+      "end": 8821,
+      "reference_start": 9362,
+      "reference_end": 9363,
+      "function": "worldSpellIndex",
+      "action": "retain verified behavior/dependency at original callsite",
+      "tests": [
+        "test_atlas_references.cjs",
+        "test_six_sided_compat.cjs",
+        "test_updated_six_sided.cjs"
+      ],
+      "before": "    const pool = lorePool.get(chatId);\n",
+      "after": "    const pool = loreCatalogPool(chatId);\n"
+    },
+    {
+      "id": "backend-114",
+      "file": "dist/backend.js",
+      "start": 8865,
+      "end": 8866,
+      "reference_start": 9407,
+      "reference_end": 9428,
+      "function": "mtArcTitle",
+      "action": "retain verified behavior/dependency at original callsite",
+      "tests": [
+        "test_atlas_references.cjs",
+        "test_six_sided_compat.cjs",
+        "test_updated_six_sided.cjs"
+      ],
+      "before": "/** The arcs with their start years: the lorebook's own World State entries, else the built-in canon list. */\n",
+      "after": "const mtScheduleCache = new WeakMap();\nfunction mtReferenceEntries(chatId) {\n    return loreCatalogPool(chatId)?.entries || getLorePool(chatId);\n}\nfunction mtCanonSchedule(chatId) {\n    const entries = mtReferenceEntries(chatId);\n    if (mtScheduleCache.has(entries)) return mtScheduleCache.get(entries);\n    const rows = [];\n    for (const entry of entries) {\n        if (!/^\\s*\\[CANON CLOCK\\b/i.test(entry.content || '')) continue;\n        for (const line of String(entry.content).split('\\n')) {\n            const m = line.match(/^\\s*-\\s*K(\\d{3,4})\\s*[·|—–-]\\s*Month\\s*(\\d{1,2})\\s*[—–-]\\s*Arc\\s+(\\d{1,2})(?:\\.(\\d+))?\\s*[—–-]\\s*(.+)$/i);\n            if (!m || Number(m[2]) < 1 || Number(m[2]) > 12) continue;\n            rows.push({ year: Number(m[1]), month: Number(m[2]), no: Number(m[3]), part: m[4] || null, title: m[5].trim() });\n        }\n    }\n    rows.sort((x, y) => x.year - y.year || x.month - y.month);\n    mtScheduleCache.set(entries, rows);\n    return rows;\n}\n/** Lorebook descriptions and dated starts augment a complete built-in arc index. */\n"
+    },
+    {
+      "id": "backend-115",
+      "file": "dist/backend.js",
+      "start": 8868,
+      "end": 8869,
+      "reference_start": 9430,
+      "reference_end": 9432,
+      "function": "mtArcList",
+      "action": "retain verified behavior/dependency at original callsite",
+      "tests": [
+        "test_atlas_references.cjs",
+        "test_six_sided_compat.cjs",
+        "test_updated_six_sided.cjs"
+      ],
+      "before": "    for (const e of getLorePool(chatId)) {\n",
+      "after": "    for (const [no, year, title] of MT_ARCS) out.set(no, { no, year, title });\n    for (const e of mtReferenceEntries(chatId)) {\n"
+    },
+    {
+      "id": "backend-116",
+      "file": "dist/backend.js",
+      "start": 8871,
+      "end": 8872,
+      "reference_start": 9434,
+      "reference_end": 9435,
+      "function": "mtArcList",
+      "action": "retain verified behavior/dependency at original callsite",
+      "tests": [
+        "test_atlas_references.cjs",
+        "test_six_sided_compat.cjs",
+        "test_updated_six_sided.cjs"
+      ],
+      "before": "        const y = String(e.content).slice(0, 2000).match(/\\bK\\.?\\s?(\\d{3})\\b/);\n",
+      "after": "        const y = String(e.content).slice(0, 2000).match(/\\bK\\.?\\s?(\\d{3,4})\\b/);\n"
+    },
+    {
+      "id": "backend-117",
+      "file": "dist/backend.js",
+      "start": 8873,
+      "end": 8874,
+      "reference_start": 9436,
+      "reference_end": 9437,
+      "function": "mtArcList",
+      "action": "retain verified behavior/dependency at original callsite",
+      "tests": [
+        "test_atlas_references.cjs",
+        "test_six_sided_compat.cjs",
+        "test_updated_six_sided.cjs"
+      ],
+      "before": "        if (y && !out.has(no)) out.set(no, { no, year: Number(y[1]), title: mtArcTitle(m[2]) });\n",
+      "after": "        if (y) out.set(no, { no, year: Number(y[1]), title: mtArcTitle(m[2]) });\n"
+    },
+    {
+      "id": "backend-118",
+      "file": "dist/backend.js",
+      "start": 8875,
+      "end": 8877,
+      "reference_start": 9438,
+      "reference_end": 9445,
+      "function": "mtArcList",
+      "action": "retain verified behavior/dependency at original callsite",
+      "tests": [
+        "test_atlas_references.cjs",
+        "test_six_sided_compat.cjs",
+        "test_updated_six_sided.cjs"
+      ],
+      "before": "    if (out.size < 3) for (const [no, year, title] of MT_ARCS) if (!out.has(no)) out.set(no, { no, year, title });\n    return [...out.values()].sort((a, b) => a.no - b.no);\n",
+      "after": "    const dated = new Set();\n    for (const event of mtCanonSchedule(chatId)) if (!dated.has(event.no)) {\n        dated.add(event.no);\n        const row = out.get(event.no);\n        out.set(event.no, { no: event.no, title: row?.title || event.title, year: event.year, month: event.month });\n    }\n    return [...out.values()].sort((x, y) => x.no - y.no);\n"
+    },
+    {
+      "id": "backend-119",
+      "file": "dist/backend.js",
+      "start": 8878,
+      "end": 8881,
+      "reference_start": 9446,
+      "reference_end": 9449,
+      "function": "mtArcList",
+      "action": "retain verified behavior/dependency at original callsite",
+      "tests": [
+        "test_atlas_references.cjs",
+        "test_six_sided_compat.cjs",
+        "test_updated_six_sided.cjs"
+      ],
+      "before": "/** Where the story stands on the saga's timeline: the year, the arc, and how far the next one is. */\nfunction mtSaga(chatId, year, arcLine) {\n    if (year === null || year === undefined || !Number.isFinite(year)) return null;\n",
+      "after": "/** Canon references stay distinct from an explicit personal arc or Sandbox frame. */\nfunction mtSaga(chatId, year, arcLine, date = null) {\n    if (!Number.isFinite(year)) return null;\n"
+    },
+    {
+      "id": "backend-120",
+      "file": "dist/backend.js",
+      "start": 8883,
+      "end": 8890,
+      "reference_start": 9451,
+      "reference_end": 9473,
+      "function": "mtSaga",
+      "action": "retain verified behavior/dependency at original callsite",
+      "tests": [
+        "test_atlas_references.cjs",
+        "test_six_sided_compat.cjs",
+        "test_updated_six_sided.cjs"
+      ],
+      "before": "    const am = String(arcLine || '').match(/\\bArc\\s+(\\d{1,2})(?:\\s*-\\s*([A-Z]))?\\s*(?::\\s*(.+))?$/i);\n    let cur = am ? arcs.find(a => a.no === Number(am[1])) || null : null;\n    if (!cur) cur = arcs.filter(a => a.year <= year).slice(-1)[0] || null;\n    const next = cur ? arcs.find(a => a.no > cur.no && a.year >= year) || null : arcs.find(a => a.year >= year) || null;\n    const from = Math.min(arcs[0].year, year), to = Math.max(arcs[arcs.length - 1].year, year);\n    return { year, from, to, arcs, current: cur ? cur.no : null, part: am && am[2] ? am[2].toUpperCase() : null, partName: am && am[3] ? am[3].trim() : null,\n        next: next ? { no: next.no, title: next.title, year: next.year, inYears: next.year - year } : null };\n",
+      "after": "    const text = String(arcLine || '').trim();\n    const sandbox = /^Sandbox:/i.test(text);\n    const am = text.match(/\\bArc\\s+(\\d{1,2})(?:(?:\\.(\\d+))|(?:\\s*-\\s*([A-Z])))?(?:\\s*:\\s*(.+?))?(?:\\)|$)/i);\n    const explicit = !!am && !sandbox;\n    const participation = explicit ? 'explicit' : text ? 'personal' : 'unknown';\n    const schedule = mtCanonSchedule(chatId);\n    const month = date?.month || null;\n    const mark = year * 12 + (month || 1) - 1;\n    const available = month ? schedule.filter(e => e.year * 12 + e.month - 1 <= mark) : [];\n    const latestMark = available.length ? available[available.length - 1].year * 12 + available[available.length - 1].month - 1 : null;\n    const reference = latestMark === null ? null : available.find(e => e.year * 12 + e.month - 1 === latestMark);\n    let cur = am ? arcs.find(e => e.no === Number(am[1])) || null : reference ? arcs.find(e => e.no === reference.no) || null : null;\n    if (!cur && (!month || !schedule.length)) cur = arcs.filter(e => e.year <= year).slice(-1)[0] || null;\n    const next = cur ? arcs.find(e => e.no > cur.no && (e.year > year || e.year === year && (!month || (e.month || 1) > month))) || null\n        : arcs.find(e => e.year > year || e.year === year && (!month || (e.month || 1) >= month)) || null;\n    const part = am ? am[2] || am[3] || null : reference?.part || null;\n    return { year, month, day: date?.day || null, monthName: date?.monthName || null,\n        personalArc: participation === 'personal' ? text : null, participation, canonMode: null,\n        from: Math.min(arcs[0].year, year), to: Math.max(arcs[arcs.length - 1].year, year), arcs, current: cur?.no || null,\n        part, partName: am?.[4]?.trim() || null,\n        next: next ? { no: next.no, title: next.title, year: next.year, inYears: next.year - year,\n            ...(month && next.month ? { inMonths: next.year * 12 + next.month - 1 - mark } : {}) } : null };\n"
+    },
+    {
+      "id": "backend-121",
+      "file": "dist/backend.js",
+      "start": 8892,
+      "end": 8893,
+      "reference_start": 9475,
+      "reference_end": 9476,
+      "function": "worldMushoku",
+      "action": "retain verified behavior/dependency at original callsite",
+      "tests": [
+        "test_atlas_references.cjs",
+        "test_six_sided_compat.cjs",
+        "test_updated_six_sided.cjs"
+      ],
+      "before": "function worldMushoku(chatId, lines, st) {\n",
+      "after": "function worldMushoku(chatId, lines, st, chat = null) {\n"
+    },
+    {
+      "id": "backend-122",
+      "file": "dist/backend.js",
+      "start": 8894,
+      "end": 8894,
+      "reference_start": 9477,
+      "reference_end": 9478,
+      "function": "worldMushoku",
+      "action": "retain verified behavior/dependency at original callsite",
+      "tests": [
+        "test_atlas_references.cjs",
+        "test_six_sided_compat.cjs",
+        "test_updated_six_sided.cjs"
+      ],
+      "before": "",
+      "after": "    const date = mtCalendar(lines.join('\\n'));\n"
+    },
+    {
+      "id": "backend-123",
+      "file": "dist/backend.js",
+      "start": 8895,
+      "end": 8895,
+      "reference_start": 9479,
+      "reference_end": 9484,
+      "function": "worldMushoku",
+      "action": "retain verified behavior/dependency at original callsite",
+      "tests": [
+        "test_atlas_references.cjs",
+        "test_six_sided_compat.cjs",
+        "test_updated_six_sided.cjs"
+      ],
+      "before": "",
+      "after": "    const born = worldFind(lines, /\\bAge:\\s*(\\d+)\\s*(?:🎂\\s*)?\\(born\\s*K\\.?\\s*(\\d+)(?:\\s*,\\s*Month\\s*(\\d{1,2}))?\\)/i);\n    const bornField = worldFind(lines, /(?:^|\\|)\\s*(?:Birth|Born):\\s*K\\.?\\s*(\\d{3,4})(?:\\s*,\\s*Month\\s*(\\d{1,2}))?/i);\n    const ageField = worldFind(lines, /\\bAge:\\s*(\\d{1,3})\\b/i);\n    const race = worldFind(lines, /\\bRace:\\s*([^|]+?)(?:\\s*\\||$)/i);\n    const origin = worldFind(lines, /\\bOrigin:\\s*([^|]+?)(?:\\s*\\||$)/i);\n"
+    },
+    {
+      "id": "backend-124",
+      "file": "dist/backend.js",
+      "start": 8897,
+      "end": 8903,
+      "reference_start": 9486,
+      "reference_end": 9486,
+      "function": "worldMushoku",
+      "action": "retain verified behavior/dependency at original callsite",
+      "tests": [
+        "test_atlas_references.cjs",
+        "test_six_sided_compat.cjs",
+        "test_updated_six_sided.cjs"
+      ],
+      "before": "    const ladder = (s, ranks) => String(s || '').split(/\\s*,\\s*/).map(x => {\n        const m = x.match(/^(.+?):\\s*(.+)$/);\n        if (!m) return null;\n        const r = ranks.find(k => new RegExp(`\\\\b${k}\\\\b`, 'i').test(m[2])) || (/beginner/i.test(m[2]) ? ranks[0] : null);\n        return { name: m[1].trim(), rank: m[2].trim(), step: r ? ranks.indexOf(r) : null };\n    }).filter(Boolean);\n",
+      "after": ""
+    },
+    {
+      "id": "backend-125",
+      "file": "dist/backend.js",
+      "start": 8907,
+      "end": 8909,
+      "reference_start": 9490,
+      "reference_end": 9492,
+      "function": "worldMushoku",
+      "action": "retain verified behavior/dependency at original callsite",
+      "tests": [
+        "test_atlas_references.cjs",
+        "test_six_sided_compat.cjs",
+        "test_updated_six_sided.cjs"
+      ],
+      "before": "        year: yr ? Number(yr[1]) : null, day: yr ? Number(yr[2]) : null, period: yr && yr[4] ? yr[4] : null,\n        birth: birth ? Number(birth[1]) : null, race: birth ? birth[2].trim() : null, age: birth ? Number(birth[3]) : null, origin: birth ? birth[4].trim() : null,\n",
+      "after": "        year: date ? date.year : null, month: date ? date.month : null, monthName: date ? date.monthName : null, day: date ? date.day : null, period: yr && yr[4] ? yr[4] : null,\n        birth: birth ? Number(birth[1]) : born ? Number(born[2]) : bornField ? Number(bornField[1]) : null, birthMonth: born && born[3] ? Number(born[3]) : bornField && bornField[2] ? Number(bornField[2]) : null, race: birth ? birth[2].trim() : race ? race[1].trim() : null, age: birth ? Number(birth[3]) : born ? Number(born[1]) : ageField ? Number(ageField[1]) : null, origin: birth ? birth[4].trim() : origin ? origin[1].trim() : null,\n"
+    },
+    {
+      "id": "backend-126",
+      "file": "dist/backend.js",
+      "start": 8910,
+      "end": 8912,
+      "reference_start": 9493,
+      "reference_end": 9495,
+      "function": "worldMushoku",
+      "action": "retain verified behavior/dependency at original callsite",
+      "tests": [
+        "test_atlas_references.cjs",
+        "test_six_sided_compat.cjs",
+        "test_updated_six_sided.cjs"
+      ],
+      "before": "        mana: one(/^Mana Capacity:\\s*(.+)$/i), casting: one(/^Casting Method:\\s*(.+)$/i), touki: one(/^Touki:\\s*(.+)$/i),\n        manaLore: worldLore(chatId, 'mana capacity'), toukiLore: /^none/i.test(one(/^Touki:\\s*(.+)$/i) || 'none') ? null : worldLore(chatId, 'touki'),\n",
+      "after": "        mana: mtPowerViews(one(/^Mana Capacity:\\s*(.+)$/i)).actual || null, reserve: one(/\\bReserve:\\s*([^|]+)/i), casting: one(/^Casting Method:\\s*(.+)$/i) || (one(/^Voiceless Casting:\\s*(.+)$/i) ? `Voiceless (${one(/^Voiceless Casting:\\s*(.+)$/i)})` : null), touki: mtPowerViews(one(/^Touki(?: \\(Battle Aura\\))?:\\s*(.+)$/i)).actual || null, canon: one(/^(?:-\\s*)?Canon:\\s*([^|]+)/i), agency: one(/^Narrative Mode:\\s*([^|]+)/i),\n        manaLore: mtManaTierLore(chatId, mtPowerViews(one(/^Mana Capacity:\\s*(.+)$/i)).actual), toukiLore: /^none/i.test(mtPowerViews(one(/^Touki(?: \\(Battle Aura\\))?:\\s*(.+)$/i)).actual || 'none') ? null : worldLore(chatId, 'touki'),\n"
+    },
+    {
+      "id": "backend-127",
+      "file": "dist/backend.js",
+      "start": 8913,
+      "end": 8914,
+      "reference_start": 9496,
+      "reference_end": 9498,
+      "function": "worldMushoku",
+      "action": "retain verified behavior/dependency at original callsite",
+      "tests": [
+        "test_atlas_references.cjs",
+        "test_six_sided_compat.cjs",
+        "test_updated_six_sided.cjs"
+      ],
+      "before": "            const list = ladder(one(/^Martial Style:\\s*(.+)$/i), MT_MARTIAL);\n",
+      "after": "            const sword = one(/^Sword Style:\\s*(.+)$/i);\n            const list = mtRankRows(sword || one(/^Martial Style:\\s*(.+)$/i), MT_MARTIAL);\n"
+    },
+    {
+      "id": "backend-128",
+      "file": "dist/backend.js",
+      "start": 8924,
+      "end": 8925,
+      "reference_start": 9508,
+      "reference_end": 9510,
+      "function": "worldMushoku",
+      "action": "retain verified behavior/dependency at original callsite",
+      "tests": [
+        "test_atlas_references.cjs",
+        "test_six_sided_compat.cjs",
+        "test_updated_six_sided.cjs"
+      ],
+      "before": "            const list = ladder(one(/^Magic School:\\s*(.+)$/i), MT_MAGIC);\n",
+      "after": "            const tiers = one(/^Magic Tiers:\\s*(.+)$/i);\n            const list = mtRankRows(tiers || one(/^Magic School:\\s*(.+)$/i), MT_MAGIC);\n"
+    },
+    {
+      "id": "backend-129",
+      "file": "dist/backend.js",
+      "start": 8940,
+      "end": 8941,
+      "reference_start": 9525,
+      "reference_end": 9526,
+      "function": "worldMushoku",
+      "action": "retain verified behavior/dependency at original callsite",
+      "tests": [
+        "test_atlas_references.cjs",
+        "test_six_sided_compat.cjs",
+        "test_updated_six_sided.cjs"
+      ],
+      "before": "        saga: (() => { try { return mtSaga(chatId, yr ? Number(yr[1]) : null, one(/^(?:Current )?Arc:\\s*(.+)$/i)); } catch { return null; } })(),\n",
+      "after": "        saga: (() => { try { const saga = mtSaga(chatId, date ? date.year : null, (one(/^(?:Current )?Arc:\\s*(.+)$/i) || lines.find(line => /^(?:Arc\\s+\\d|Era\\s+\\d|Sandbox:)/i.test(line)) || null), date); if (saga) { saga.canonMode = one(/^Canon:\\s*([^|]+)/i); saga.events = chat ? mtEventLedger(chat) : []; } return saga; } catch { return null; } })(),\n"
+    },
+    {
+      "id": "backend-130",
+      "file": "dist/backend.js",
+      "start": 8951,
+      "end": 8952,
+      "reference_start": 9536,
+      "reference_end": 9537,
+      "function": "worldPanel",
+      "action": "retain verified behavior/dependency at original callsite",
+      "tests": [
+        "test_atlas_references.cjs",
+        "test_six_sided_compat.cjs",
+        "test_updated_six_sided.cjs"
+      ],
+      "before": "        if (m.role !== 'assistant') continue;\n",
+      "after": "        if (m.role !== 'assistant' || !trackingMessageVisible(m)) continue;\n"
+    },
+    {
+      "id": "backend-131",
+      "file": "dist/backend.js",
+      "start": 8971,
+      "end": 8972,
+      "reference_start": 9556,
+      "reference_end": 9557,
+      "function": "worldPanel",
+      "action": "retain verified behavior/dependency at original callsite",
+      "tests": [
+        "test_atlas_references.cjs",
+        "test_six_sided_compat.cjs",
+        "test_updated_six_sided.cjs"
+      ],
+      "before": "    else if (id === 'mushoku') Object.assign(out, worldMushoku(chatId, lines, st));\n",
+      "after": "    else if (id === 'mushoku') Object.assign(out, worldMushoku(chatId, lines, st, chat));\n"
+    }
+  ]
+}

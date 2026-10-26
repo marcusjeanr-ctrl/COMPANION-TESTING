@@ -1,0 +1,3136 @@
+{
+  "source": "Original supplied HMS 2.8.1 beta demo scripts and panel outputs",
+  "samples": [
+    {
+      "world": "rezero",
+      "party": [
+        "Beatrice"
+      ],
+      "messages": [
+        {
+          "id": "rezero0",
+          "role": "assistant",
+          "swipe_id": 0,
+          "content": "### WORLD STATE ###\nDay: 1 | Time: 08:00\n◆ World of Re:Zero → Lugunica → Roswaal Manor → The Forbidden Library\nArc 2: A Week at the Mansion\nHP: 100/100\nDeaths: 0\nWitch's Scent: Lv 1\nDefault Save Point: Roswaal Manor — the guest room, Day 1 08:00\n[AUTHORITY: Return by Death] (Awakened)\nEquipment: Tracksuit | Borrowed butler gloves\n***\nDust hangs in the lamplight. A girl with drill-shaped twin tails does not look up from her book.\n\n\"You have wandered into Betty's library again, I suppose.\"\n\n<rpg_companion>\n{\"characters\":[{\"name\":\"Beatrice\",\"details\":{\"Outfit\":\"Crimson dress, capelet\",\"Position\":\"On her stepladder\",\"Agenda\":\"Make the intruder leave\",\"Secret\":\"She has been checking the Book all morning\"}}],\"relations\":[{\"name\":\"Beatrice\",\"standing\":\"Wary\",\"bond\":\"the library's keeper\",\"minor\":true,\"mood\":\"bored, prickly\",\"affection\":-5,\"trust\":-10,\"respect\":0,\"desire\":0,\"tension\":25,\"jealousy\":0,\"fear\":0}],\"party\":[{\"name\":\"Beatrice\",\"mood\":\"bored\",\"register\":\"Clipped\",\"band\":\"Band 0 — The Library Queen\",\"facade\":\"moderate\",\"hunger\":\"slight\",\"concern\":\"Why does this one keep coming back?\"}],\"contacts\":[],\"minds\":[{\"name\":\"Beatrice\",\"feel\":\"anger>irritation>annoyance\",\"level\":\"med\",\"at\":\"you\",\"temperament\":\"choleric\",\"facets\":[\"proud\",\"lonely\",\"prickly\",\"loyal\",\"bookish\"],\"facet\":\"prickly\",\"iw\":1,\"mask\":\"held\",\"toward\":[{\"name\":\"you\",\"start\":\"eros 0 ludus 6 philia 4 pragma 3 storge 5 agape 4 misos 4 eris 9 echthros 3 stasis 6 adiaphora 7 phthonos 3\",\"intent\":\"for you to leave her library\",\"mode\":\"stranger\"}]}],\"agendas\":[{\"name\":\"Beatrice\",\"where\":\"The Forbidden Library\",\"doing\":\"Guarding the library\",\"why\":\"Her contract\",\"until\":\"never\"},{\"name\":\"Rem\",\"where\":\"The kitchen\",\"doing\":\"Making breakfast\",\"why\":\"Her duty\",\"until\":\"08:30\",\"next\":\"Clean the east corridor\"},{\"name\":\"Roswaal\",\"where\":\"His study\",\"doing\":\"Writing letters\",\"until\":\"12:00\"}],\"learned\":[{\"who\":\"Beatrice\",\"fact\":\"You found her library door again\",\"how\":\"saw\",\"sure\":\"certain\"}],\"chekhov\":{\"load\":[{\"what\":\"The book Beatrice keeps checking\",\"w\":3,\"lock\":\"K:Beatrice trusts you\"}],\"fired\":[],\"drop\":[]}}\n</rpg_companion>"
+        },
+        {
+          "id": "rezero1",
+          "role": "assistant",
+          "swipe_id": 0,
+          "content": "### WORLD STATE ###\nDay: 1 | Time: 12:30\n◆ World of Re:Zero → Lugunica → Roswaal Manor → East Corridor\nArc 2: A Week at the Mansion\nHP: 72/100\nDeaths: 0\nWitch's Scent: Lv 1\nDefault Save Point: Roswaal Manor — the guest room, Day 1 08:00\n[AUTHORITY: Return by Death] (Awakened)\nInjuries: Left forearm laceration — Raw\nCondition: Blood Loss (Mild)\nEquipment: Tracksuit | Borrowed butler gloves\n***\nThe vase shatters. You catch the worst of it on your arm; red drips onto the carpet. Rem is already there, cloth in hand, eyes narrowing at the cut.\n\nRoswaal, passing, presses a small hand-mirror into your good hand. \"Its twin sits on my desk. Do call~\"\n\n<rpg_companion>\n{\"characters\":[{\"name\":\"Rem\",\"details\":{\"Outfit\":\"Maid uniform\",\"Position\":\"Kneeling beside you\",\"Agenda\":\"Treat the wound\",\"Secret\":\"She smells something on you\"}},{\"name\":\"Beatrice\"}],\"relations\":[{\"name\":\"Rem\",\"standing\":\"Acquaintance\",\"bond\":\"fellow servant\",\"minor\":false,\"mood\":\"concerned, suspicious\",\"affection\":10,\"trust\":-5,\"respect\":5,\"desire\":0,\"tension\":30,\"jealousy\":0,\"fear\":0,\"reasons\":{\"tension\":\"The witch's scent on you\"}},{\"name\":\"Beatrice\",\"standing\":\"Wary\",\"bond\":\"the library's keeper\",\"minor\":true,\"mood\":\"irritated\",\"affection\":5,\"trust\":-5,\"respect\":5,\"desire\":0,\"tension\":20,\"jealousy\":25,\"fear\":0,\"reasons\":{\"jealousy\":\"Rem got to you first\",\"affection\":\"You came back hurt\"}}],\"party\":[{\"name\":\"Beatrice\",\"mood\":\"irritated\",\"register\":\"Clipped\",\"band\":\"Band 1 — Cracks in the Queen\",\"facade\":\"high\",\"jealousy\":\"moderate\",\"jealousOf\":\"Rem\",\"irritation\":\"moderate\",\"hunger\":\"moderate\",\"concern\":\"He bleeds like any human.\"}],\"contacts\":[{\"name\":\"Roswaal\",\"how\":\"paired conversation mirror\"}],\"minds\":[{\"name\":\"Rem\",\"feel\":\"fear>nervousness>apprehension\",\"level\":\"high\",\"at\":\"you\",\"temperament\":\"melancholic\",\"facets\":[\"devoted\",\"suspicious\",\"diligent\",\"self-effacing\",\"fierce\"],\"facet\":\"suspicious\",\"iw\":1,\"mask\":\"held\",\"toward\":[{\"name\":\"you\",\"start\":\"eros 3 ludus 3 philia 4 pragma 5 storge 3 agape 4 misos 7 eris 5 echthros 9 stasis 4 adiaphora 5 phthonos 3\",\"moves\":\"echthros+1 pragma+1\",\"why\":\"The witch scent on you, but you took the glass for her\",\"intent\":\"to know what you are\",\"mode\":\"strained\"}]},{\"name\":\"Beatrice\",\"feel\":\"anger>envy>jealousy\",\"level\":\"med\",\"at\":\"Rem\",\"tfdy\":\"F+1\",\"iw\":1,\"facet\":\"proud\",\"toward\":[{\"name\":\"you\",\"moves\":\"storge+1 agape+1\",\"why\":\"You came back hurt\"},{\"name\":\"Rem\",\"start\":\"eros 0 ludus 3 philia 5 pragma 6 storge 6 agape 4 misos 3 eris 8 echthros 3 stasis 4 adiaphora 5 phthonos 9\",\"mode\":\"strained\",\"why\":\"Rem got to you first\"}]}],\"agendas\":[{\"name\":\"Rem\",\"where\":\"East Corridor\",\"doing\":\"Cleaning up the glass, and you\",\"why\":\"Her duty\",\"until\":\"13:00\",\"next\":\"Report the scent to Ram\"}],\"learned\":[{\"who\":\"Rem\",\"fact\":\"You smell of the Witch\",\"how\":\"saw\",\"sure\":\"certain\"},{\"who\":\"Roswaal\",\"fact\":\"You broke the vase in the east corridor\",\"how\":\"told\",\"from\":\"Rem\",\"sure\":\"certain\"}],\"chekhov\":{\"load\":[{\"what\":\"Roswaal’s hand-mirror, and its twin on his desk\",\"w\":2}],\"fired\":[],\"drop\":[]}}\n</rpg_companion>"
+        },
+        {
+          "id": "rezero2",
+          "role": "assistant",
+          "swipe_id": 0,
+          "content": "### WORLD STATE ###\nDay: 1 | Time: 09:00\n◆ World of Re:Zero → Lugunica → Roswaal Manor → The Forbidden Library\nHP: 84/100\nDeaths: 0\nWitch's Scent: Lv 1\nDefault Save Point: Roswaal Manor — the guest room, Day 1 08:00\n[AUTHORITY: Return by Death] (Awakened)\nInjuries: Left forearm laceration — Treated\nCondition: Blood Loss (Mild, Recovering)\n[MAIN QUEST: Survive the week]\nEquipment: Tracksuit | Borrowed butler gloves\n***\nBeatrice mends the cut without being asked, and scolds you the entire time.\n\n\"It is not as if Betty did this for your sake, in fact.\"\n\n(The Arc line is missing from this HUD on purpose: watch the guard flag a carrier.)\n\n<rpg_companion>\n{\"characters\":[{\"name\":\"Beatrice\",\"details\":{\"Outfit\":\"Crimson dress\",\"Position\":\"Too close, pretending not to be\",\"Agenda\":\"Keep you from bleeding on her books\",\"Secret\":\"She was worried\"}}],\"relations\":[{\"name\":\"Beatrice\",\"standing\":\"Friendly\",\"bond\":\"the library's keeper — a reluctant friend\",\"minor\":true,\"mood\":\"flustered\",\"affection\":25,\"trust\":10,\"respect\":10,\"desire\":0,\"tension\":10,\"jealousy\":15,\"fear\":0,\"reasons\":{\"affection\":\"You thanked her properly\"}}],\"party\":[{\"name\":\"Beatrice\",\"mood\":\"flustered\",\"register\":\"Flustered\",\"band\":\"Band 1 — Cracks in the Queen\",\"facade\":\"extreme\",\"tell\":\"Her butterfly pupils dart\",\"hunger\":\"high\",\"concern\":\"Do not leave again.\"}],\"contacts\":[],\"minds\":[{\"name\":\"Beatrice\",\"feel\":\"love>affection>caring\",\"level\":\"med\",\"at\":\"you\",\"tfdy\":\"T+1 F-1\",\"iw\":2,\"facet\":\"loyal\",\"mask\":\"cracking\",\"toward\":[{\"name\":\"you\",\"moves\":\"philia+2 storge+1 eris-1\",\"gate\":\"up\",\"E\":\"open\",\"L\":\"sealed\",\"why\":\"You thanked her properly\"}]}],\"agendas\":[{\"name\":\"Beatrice\",\"where\":\"The Forbidden Library\",\"doing\":\"Mending your arm, and scolding\",\"until\":\"09:30\"}]}\n</rpg_companion>"
+        },
+        {
+          "id": "rezero3",
+          "role": "assistant",
+          "swipe_id": 0,
+          "content": "### WORLD STATE ###\nDay: 1 | Time: 21:00\n◆ World of Re:Zero → Lugunica → Roswaal Manor → Guest Room\nArc 2: A Week at the Mansion\nHP: 100/100\nDeaths: 0\nWitch's Scent: Lv 1\nDefault Save Point: Roswaal Manor — the guest room, Day 1 08:00\n[AUTHORITY: Return by Death] (Awakened)\n[MENTAL COUNCIL: Echidna (Greed)]\nCondition: Dread (Mild)\nEquipment: Tracksuit | Borrowed butler gloves\n***\nThe mirror hums. Roswaal's voice, amused, drifts out of it: \"Ah, you did call~\"\n\nIn the corner of your mind, a woman in white smiles over a cup of tea.\n\n<rpg_companion>\n{\"characters\":[],\"relations\":[{\"name\":\"Roswaal\",\"standing\":\"Acquaintance\",\"bond\":\"employer\",\"minor\":false,\"mood\":\"amused\",\"affection\":5,\"trust\":-10,\"respect\":20,\"desire\":0,\"tension\":15,\"jealousy\":0,\"fear\":5}],\"party\":[],\"contacts\":[],\"agendas\":[{\"name\":\"Roswaal\",\"where\":\"His study\",\"doing\":\"Talking to you through the mirror\",\"why\":\"He is curious about you\",\"until\":\"21:30\"}],\"chekhov\":{\"load\":[],\"fired\":[\"Roswaal’s hand-mirror\"],\"drop\":[]}}\n</rpg_companion>"
+        }
+      ],
+      "expected": {
+        "hms": {
+          "active": true,
+          "messageId": "rezero3",
+          "hud": {
+            "lines": [
+              {
+                "key": "day",
+                "kind": "field",
+                "text": "Day: 1 | Time: 21:00",
+                "fields": [
+                  {
+                    "label": "Day",
+                    "value": "1"
+                  },
+                  {
+                    "label": "Time",
+                    "value": "21:00"
+                  }
+                ]
+              },
+              {
+                "key": "location",
+                "kind": "location",
+                "text": "◆ World of Re:Zero → Lugunica → Roswaal Manor → Guest Room",
+                "segments": [
+                  "World of Re:Zero",
+                  "Lugunica",
+                  "Roswaal Manor",
+                  "Guest Room"
+                ]
+              },
+              {
+                "key": "arc",
+                "kind": "field",
+                "text": "Arc 2: A Week at the Mansion",
+                "fields": [
+                  {
+                    "label": "Arc 2",
+                    "value": "A Week at the Mansion"
+                  }
+                ]
+              },
+              {
+                "key": "hp",
+                "kind": "field",
+                "text": "HP: 100/100",
+                "fields": [
+                  {
+                    "label": "HP",
+                    "value": "100/100"
+                  }
+                ]
+              },
+              {
+                "key": "deaths",
+                "kind": "field",
+                "text": "Deaths: 0",
+                "fields": [
+                  {
+                    "label": "Deaths",
+                    "value": "0"
+                  }
+                ]
+              },
+              {
+                "key": "witch's scent",
+                "kind": "field",
+                "text": "Witch's Scent: Lv 1",
+                "fields": [
+                  {
+                    "label": "Witch's Scent",
+                    "value": "Lv 1"
+                  }
+                ]
+              },
+              {
+                "key": "default save point",
+                "kind": "field",
+                "text": "Default Save Point: Roswaal Manor — the guest room, Day 1 08:00",
+                "fields": [
+                  {
+                    "label": "Default Save Point",
+                    "value": "Roswaal Manor — the guest room, Day 1 08:00"
+                  }
+                ]
+              },
+              {
+                "key": "[authority",
+                "kind": "field",
+                "text": "[AUTHORITY: Return by Death] (Awakened)",
+                "fields": [
+                  {
+                    "label": "[AUTHORITY",
+                    "value": "Return by Death] (Awakened)"
+                  }
+                ]
+              },
+              {
+                "key": "module:MENTAL COUNCIL:echidna",
+                "kind": "module",
+                "text": "[MENTAL COUNCIL: Echidna (Greed)]",
+                "tag": "MENTAL COUNCIL",
+                "value": "Echidna (Greed)"
+              },
+              {
+                "key": "condition",
+                "kind": "field",
+                "text": "Condition: Dread (Mild)",
+                "fields": [
+                  {
+                    "label": "Condition",
+                    "value": "Dread (Mild)"
+                  }
+                ]
+              },
+              {
+                "key": "equipment",
+                "kind": "field",
+                "text": "Equipment: Tracksuit | Borrowed butler gloves",
+                "fields": [
+                  {
+                    "label": "Equipment",
+                    "value": "Tracksuit"
+                  },
+                  {
+                    "label": null,
+                    "value": "Borrowed butler gloves"
+                  }
+                ]
+              }
+            ],
+            "time": "21:00",
+            "location": [
+              "World of Re:Zero",
+              "Lugunica",
+              "Roswaal Manor",
+              "Guest Room"
+            ],
+            "arc": "Arc 2: A Week at the Mansion",
+            "quests": null,
+            "fromHtml": false
+          },
+          "noHud": null,
+          "guard": null,
+          "pins": {},
+          "questNotes": [],
+          "atlas": null,
+          "arcCheck": null,
+          "mapBank": {
+            "rooms": [],
+            "here": "world of re:zero|roswaal manor > guest room",
+            "chatRoom": false
+          },
+          "systems": {
+            "stale": false,
+            "clock": 1260,
+            "clockDated": true,
+            "vitals": [
+              {
+                "label": "HP",
+                "cur": 100,
+                "max": 100,
+                "pct": 100,
+                "health": true,
+                "level": "ok",
+                "lineKey": "hp",
+                "delta": 16
+              }
+            ],
+            "meters": [],
+            "notes": [],
+            "wounds": [],
+            "healed": [
+              "Left forearm laceration"
+            ],
+            "conditions": [
+              {
+                "name": "Dread",
+                "text": "Dread (Mild)",
+                "key": "dread",
+                "stage": "Mild",
+                "rank": 1,
+                "max": 3,
+                "recovering": false,
+                "detail": null,
+                "mind": true,
+                "critical": false,
+                "trend": "new",
+                "inStage": 0
+              }
+            ],
+            "cleared": [
+              "Blood Loss"
+            ],
+            "flags": [
+              {
+                "kind": "mind",
+                "group": "Mental Council",
+                "name": "Echidna",
+                "detail": "Greed",
+                "mind": true,
+                "lineKey": "module:MENTAL COUNCIL:echidna"
+              }
+            ],
+            "abilities": [
+              {
+                "category": "Authorities",
+                "items": [
+                  {
+                    "name": "Return by Death",
+                    "state": "Awakened",
+                    "level": null,
+                    "label": null,
+                    "lineKey": "[authority",
+                    "src": "AUTHORITY"
+                  }
+                ]
+              }
+            ],
+            "quests": [],
+            "objectives": [],
+            "journal": [
+              {
+                "key": "survive the week",
+                "name": "Survive the week",
+                "first": 540,
+                "states": [
+                  {
+                    "state": "",
+                    "cls": "active",
+                    "at": 540
+                  }
+                ],
+                "last": null,
+                "lastIdx": 2,
+                "cls": "active",
+                "lastAt": 540,
+                "lastMsg": "rezero2",
+                "current": false,
+                "dropped": true
+              }
+            ],
+            "blocks": [],
+            "attributes": [],
+            "rolls": [],
+            "notices": [],
+            "immunities": {
+              "sleep": false,
+              "food": false,
+              "drink": false,
+              "mindDampened": false,
+              "reason": null
+            },
+            "survival": null,
+            "danger": [],
+            "questFocus": null
+          },
+          "party": {
+            "members": [
+              {
+                "name": "Beatrice",
+                "key": "beatrice",
+                "aliases": [],
+                "present": false,
+                "seen": 0,
+                "lastSeen": null,
+                "cur": null,
+                "dims": [],
+                "alerts": [],
+                "events": []
+              }
+            ],
+            "suggest": [],
+            "max": 8
+          },
+          "relations": {
+            "people": [
+              {
+                "key": "roswaal",
+                "name": "Roswaal",
+                "standing": "Acquaintance",
+                "rank": 5,
+                "max": 9,
+                "neutral": 4,
+                "tone": "pos",
+                "bond": "employer",
+                "minor": false,
+                "pinned": null,
+                "mood": "amused",
+                "why": null,
+                "present": true,
+                "seen": 1,
+                "metAgo": 0,
+                "lastSeen": 0,
+                "party": false,
+                "details": null,
+                "bars": [],
+                "events": [
+                  "Met — Acquaintance"
+                ],
+                "alerts": []
+              },
+              {
+                "key": "rem",
+                "name": "Rem",
+                "standing": "Acquaintance",
+                "rank": 5,
+                "max": 9,
+                "neutral": 4,
+                "tone": "pos",
+                "bond": "fellow servant",
+                "minor": false,
+                "pinned": null,
+                "mood": "concerned, suspicious",
+                "why": null,
+                "present": false,
+                "seen": 1,
+                "metAgo": 510,
+                "lastSeen": 510,
+                "party": false,
+                "details": null,
+                "bars": [],
+                "events": [
+                  "Met — Acquaintance"
+                ],
+                "alerts": []
+              },
+              {
+                "key": "beatrice",
+                "name": "Beatrice",
+                "standing": "Friendly",
+                "rank": 6,
+                "max": 9,
+                "neutral": 4,
+                "tone": "pos",
+                "bond": "the library's keeper — a reluctant friend",
+                "minor": true,
+                "pinned": null,
+                "mood": "flustered",
+                "why": null,
+                "present": false,
+                "seen": 3,
+                "metAgo": 780,
+                "lastSeen": 720,
+                "party": true,
+                "details": null,
+                "bars": [],
+                "events": [
+                  "Wary → Friendly",
+                  "Bond: the library's keeper → the library's keeper — a reluctant friend"
+                ],
+                "alerts": [
+                  {
+                    "sev": "info",
+                    "text": "Beatrice warmed to you quickly (Wary → Friendly)"
+                  }
+                ]
+              }
+            ],
+            "ladder": [
+              "Nemesis",
+              "Enemy",
+              "Hostile",
+              "Wary",
+              "Stranger",
+              "Acquaintance",
+              "Friendly",
+              "Friend",
+              "Close",
+              "Devoted"
+            ],
+            "neutral": 4,
+            "layout": "cards"
+          },
+          "family": {
+            "members": [],
+            "hidden": 0,
+            "ask": true,
+            "tell": true
+          },
+          "gear": {
+            "items": [
+              {
+                "key": "tracksuit",
+                "name": "Tracksuit",
+                "state": null,
+                "where": null,
+                "inside": null,
+                "from": "hud",
+                "onHud": true,
+                "mine": false,
+                "ago": null,
+                "changedNow": false,
+                "history": []
+              },
+              {
+                "key": "borrowed butler gloves",
+                "name": "Borrowed butler gloves",
+                "state": null,
+                "where": null,
+                "inside": null,
+                "from": "hud",
+                "onHud": true,
+                "mine": false,
+                "ago": null,
+                "changedNow": false,
+                "history": []
+              }
+            ],
+            "gone": [],
+            "containers": [],
+            "ask": true,
+            "tell": true
+          },
+          "agenda": {
+            "items": [],
+            "ask": true,
+            "tell": true,
+            "clock": true
+          },
+          "holdings": {
+            "items": [],
+            "ask": true,
+            "tell": true
+          },
+          "money": {
+            "balance": null,
+            "totals": [],
+            "ledger": [],
+            "debts": [],
+            "ask": true,
+            "tell": true
+          },
+          "factions": {
+            "items": [],
+            "ladder": [
+              "hunted",
+              "hostile",
+              "unfriendly",
+              "neutral",
+              "friendly",
+              "trusted",
+              "allied",
+              "member"
+            ],
+            "ask": true,
+            "tell": true
+          },
+          "secrets": {
+            "yours": [],
+            "theirs": [],
+            "ask": true,
+            "tell": true
+          },
+          "comms": {
+            "kind": "phone",
+            "title": "Phone",
+            "icon": "📱",
+            "canText": true,
+            "canPay": true,
+            "device": null,
+            "balance": null,
+            "contacts": [
+              {
+                "name": "Roswaal",
+                "how": "paired conversation mirror",
+                "from": "story"
+              }
+            ],
+            "threads": [],
+            "notices": [],
+            "canSet": true
+          },
+          "you": {
+            "mood": null,
+            "stress": null,
+            "sanity": null,
+            "xp": {
+              "mode": "tracked",
+              "total": 0,
+              "max": null,
+              "level": 1,
+              "lastGain": null,
+              "derivedLevel": 1,
+              "nextAt": 100,
+              "prevAt": 0,
+              "levelUp": false
+            },
+            "vitals": [
+              {
+                "label": "HP",
+                "cur": 100,
+                "max": 100,
+                "pct": 100,
+                "health": true,
+                "level": "ok",
+                "lineKey": "hp"
+              }
+            ],
+            "equipment": "Equipment: Tracksuit | Borrowed butler gloves",
+            "carried": [],
+            "standard": null
+          },
+          "magic": null,
+          "map": null,
+          "minds": {
+            "cfg": {
+              "on": true,
+              "matrix": true,
+              "pairs": "all",
+              "agendas": true,
+              "knowledge": true,
+              "chekhov": true
+            },
+            "people": [
+              {
+                "key": "beatrice",
+                "name": "Beatrice",
+                "present": false,
+                "ago": 1,
+                "feel": {
+                  "p": "love",
+                  "s": "affection",
+                  "t": "caring",
+                  "text": "love>affection>caring",
+                  "word": "caring",
+                  "level": "med",
+                  "at": "you",
+                  "icon": "💗",
+                  "color": "#e06c9f"
+                },
+                "residual": {
+                  "p": "anger",
+                  "s": "irritation",
+                  "t": "annoyance",
+                  "text": "anger>irritation>annoyance",
+                  "word": "annoyance",
+                  "level": "med",
+                  "at": "you",
+                  "icon": "😠",
+                  "color": "#e05050",
+                  "ago": 1
+                },
+                "tfdy": [
+                  {
+                    "ax": "T",
+                    "label": "Tenderness",
+                    "v": 2,
+                    "base": 1,
+                    "word": "baseline"
+                  },
+                  {
+                    "ax": "F",
+                    "label": "Fury",
+                    "v": 1,
+                    "base": 2,
+                    "word": "simmering"
+                  },
+                  {
+                    "ax": "D",
+                    "label": "Dread",
+                    "v": 1,
+                    "base": 1,
+                    "word": "simmering"
+                  },
+                  {
+                    "ax": "Y",
+                    "label": "Yearning",
+                    "v": 1,
+                    "base": 1,
+                    "word": "simmering"
+                  }
+                ],
+                "iw": {
+                  "v": 2,
+                  "word": "temperate"
+                },
+                "temperament": "choleric",
+                "guessedBase": false,
+                "facets": [
+                  "proud",
+                  "lonely",
+                  "prickly",
+                  "loyal",
+                  "bookish"
+                ],
+                "facet": "loyal",
+                "stuck": null,
+                "mask": "cracking",
+                "maskFor": 1,
+                "pairs": [
+                  {
+                    "key": "beatrice>@you",
+                    "to": "@you",
+                    "toName": "you",
+                    "you": true,
+                    "axes": [
+                      {
+                        "id": "eros",
+                        "emoji": "🌶️",
+                        "label": "Desire",
+                        "greek": "Eros",
+                        "warm": true,
+                        "v": 0,
+                        "s": 0,
+                        "d": 0,
+                        "mom": 0,
+                        "off": true
+                      },
+                      {
+                        "id": "ludus",
+                        "emoji": "🎲",
+                        "label": "Play",
+                        "greek": "Ludus",
+                        "warm": true,
+                        "v": 6,
+                        "s": 6,
+                        "d": 0,
+                        "mom": 0,
+                        "off": false
+                      },
+                      {
+                        "id": "philia",
+                        "emoji": "🤝",
+                        "label": "Friendship",
+                        "greek": "Philia",
+                        "warm": true,
+                        "v": 6,
+                        "s": 4,
+                        "d": 0,
+                        "mom": 2,
+                        "off": false
+                      },
+                      {
+                        "id": "pragma",
+                        "emoji": "🛠️",
+                        "label": "Partnership",
+                        "greek": "Pragma",
+                        "warm": true,
+                        "v": 3,
+                        "s": 3,
+                        "d": 0,
+                        "mom": 0,
+                        "off": false
+                      },
+                      {
+                        "id": "storge",
+                        "emoji": "🏠",
+                        "label": "Belonging",
+                        "greek": "Storge",
+                        "warm": true,
+                        "v": 6,
+                        "s": 5,
+                        "d": 0,
+                        "mom": 1,
+                        "off": false
+                      },
+                      {
+                        "id": "agape",
+                        "emoji": "🕊️",
+                        "label": "Care",
+                        "greek": "Agape",
+                        "warm": true,
+                        "v": 4,
+                        "s": 4,
+                        "d": 0,
+                        "mom": 0,
+                        "off": false
+                      },
+                      {
+                        "id": "misos",
+                        "emoji": "😠",
+                        "label": "Hate",
+                        "greek": "Misos",
+                        "warm": false,
+                        "v": 4,
+                        "s": 4,
+                        "d": 0,
+                        "mom": 0,
+                        "off": false
+                      },
+                      {
+                        "id": "eris",
+                        "emoji": "🥊",
+                        "label": "Strife",
+                        "greek": "Eris",
+                        "warm": false,
+                        "v": 8,
+                        "s": 9,
+                        "d": 0,
+                        "mom": -1,
+                        "off": false
+                      },
+                      {
+                        "id": "echthros",
+                        "emoji": "❄️",
+                        "label": "Enmity",
+                        "greek": "Echthros",
+                        "warm": false,
+                        "v": 3,
+                        "s": 3,
+                        "d": 0,
+                        "mom": 0,
+                        "off": false
+                      },
+                      {
+                        "id": "stasis",
+                        "emoji": "🪨",
+                        "label": "Stuck",
+                        "greek": "Stasis",
+                        "warm": false,
+                        "v": 6,
+                        "s": 6,
+                        "d": 0,
+                        "mom": 0,
+                        "off": false
+                      },
+                      {
+                        "id": "adiaphora",
+                        "emoji": "🌫️",
+                        "label": "Indifference",
+                        "greek": "Adiaphora",
+                        "warm": false,
+                        "v": 7,
+                        "s": 7,
+                        "d": 0,
+                        "mom": 0,
+                        "off": false
+                      },
+                      {
+                        "id": "phthonos",
+                        "emoji": "🐍",
+                        "label": "Envy",
+                        "greek": "Phthonos",
+                        "warm": false,
+                        "v": 3,
+                        "s": 3,
+                        "d": 0,
+                        "mom": 0,
+                        "off": false
+                      }
+                    ],
+                    "walls": [],
+                    "gate": {
+                      "i": 1,
+                      "word": "attentive"
+                    },
+                    "E": "open",
+                    "L": "sealed",
+                    "filters": [
+                      {
+                        "k": "soc",
+                        "label": "social",
+                        "i": 0,
+                        "word": "holding"
+                      },
+                      {
+                        "k": "val",
+                        "label": "values",
+                        "i": 0,
+                        "word": "holding"
+                      },
+                      {
+                        "k": "comp",
+                        "label": "fit",
+                        "i": 0,
+                        "word": "holding"
+                      },
+                      {
+                        "k": "rel",
+                        "label": "ties",
+                        "i": 0,
+                        "word": "holding"
+                      }
+                    ],
+                    "debts": [],
+                    "intent": "for you to leave her library",
+                    "mode": "stranger",
+                    "guarded": true,
+                    "kin": false,
+                    "guessed": false,
+                    "clash": false,
+                    "warmth": -1,
+                    "lastAgo": 1,
+                    "moved": false,
+                    "events": [
+                      {
+                        "ago": 1,
+                        "why": "You thanked her properly",
+                        "moved": "🤝+2 🏠+1 🥊-1",
+                        "gate": "dormant → attentive",
+                        "debt": null,
+                        "paid": null,
+                        "mode": null
+                      }
+                    ]
+                  }
+                ],
+                "agenda": {
+                  "where": "The Forbidden Library",
+                  "doing": "Mending your arm, and scolding",
+                  "why": null,
+                  "until": "09:30",
+                  "next": null,
+                  "left": -690,
+                  "overdue": true,
+                  "ago": 1,
+                  "was": [
+                    {
+                      "where": "The Forbidden Library",
+                      "doing": "Guarding the library",
+                      "ago": 2
+                    }
+                  ]
+                },
+                "knows": [
+                  {
+                    "fact": "You found her library door again",
+                    "how": "saw",
+                    "howText": "saw it",
+                    "from": null,
+                    "sure": "certain",
+                    "ago": 2
+                  }
+                ],
+                "minor": true
+              },
+              {
+                "key": "rem",
+                "name": "Rem",
+                "present": false,
+                "pairs": [],
+                "tfdy": null,
+                "feel": null,
+                "agenda": {
+                  "where": "The kitchen",
+                  "doing": "Making breakfast",
+                  "why": "Her duty",
+                  "until": "08:30",
+                  "next": "Clean the east corridor",
+                  "left": -750,
+                  "overdue": true,
+                  "ago": 2,
+                  "was": []
+                },
+                "knows": [],
+                "minor": false
+              },
+              {
+                "key": "roswaal",
+                "name": "Roswaal",
+                "present": false,
+                "pairs": [],
+                "tfdy": null,
+                "feel": null,
+                "agenda": {
+                  "where": "His study",
+                  "doing": "Talking to you through the mirror",
+                  "why": "He is curious about you",
+                  "until": "21:30",
+                  "next": null,
+                  "left": 30,
+                  "overdue": false,
+                  "ago": 0,
+                  "was": [
+                    {
+                      "where": "His study",
+                      "doing": "Writing letters",
+                      "ago": 2
+                    }
+                  ]
+                },
+                "knows": [],
+                "minor": false
+              }
+            ],
+            "chekhov": {
+              "chamber": [],
+              "locked": [
+                {
+                  "id": "c1",
+                  "what": "The book Beatrice keeps checking",
+                  "w": 3,
+                  "age": 3,
+                  "ripe": false,
+                  "locked": true,
+                  "lock": "K:Beatrice trusts you",
+                  "lockText": "when Beatrice trusts you",
+                  "status": "live"
+                }
+              ],
+              "fired": [
+                {
+                  "id": "c2",
+                  "what": "Roswaal’s hand-mirror, and its twin on his desk",
+                  "w": 2,
+                  "age": 2,
+                  "ripe": false,
+                  "locked": false,
+                  "lock": null,
+                  "lockText": null,
+                  "status": "fired",
+                  "ago": 0
+                }
+              ],
+              "gone": 0,
+              "byYou": []
+            },
+            "turn": 2,
+            "undone": 1,
+            "clock": 1260
+          },
+          "buildings": null
+        },
+        "plot": {
+          "on": {
+            "plot": true,
+            "objectives": true
+          },
+          "now": null,
+          "threads": [],
+          "resolved": [],
+          "objectives": [],
+          "mine": []
+        },
+        "injuries": {
+          "on": true,
+          "hudOwns": true,
+          "list": []
+        },
+        "chapters": {
+          "list": [],
+          "open": {},
+          "knowledge": [],
+          "busy": false
+        }
+      }
+    },
+    {
+      "world": "overlord",
+      "party": [
+        "Albedo"
+      ],
+      "messages": [
+        {
+          "id": "overlord0",
+          "role": "assistant",
+          "swipe_id": 0,
+          "content": "### WORLD STATE ###\nDay: 1 | Time: 09:00\n◆ The New World → Great Tomb of Nazarick → Throne Room\nCurrent Arc: Arc 1: The Undead King\nRace: Elder Lich (Heteromorph) | Racial Lvl: Skeleton Mage (15) / Elder Lich (10) | Origin: YGGDRASIL\nClasses: Necromancer (15) / Wizard (15) / High Wizard (10) / Master of Death (10) / Chronomancer (10) / Sage (10) / Arcane Devotee (5) | Job Lvl: 75 | Overall Lvl: 100\nSystem: Arcane (Necromancy) LV 11\nHP: 2,050/2,050 | MP: 1,200/1,200\nKarma: -500 (Extreme Evil)\nAbilities: Undead Immunities, Emotion Suppression | Skills: Grasp Heart, Dark Wisdom\nSuper-Tier Slots: 1/1 | Cooldown: Clear\n✦ Blessings: Sasuga\n***\nAlbedo kneels at the foot of the throne, wings folded, eyes shining far too brightly.\n\n\"Ainz-sama. The Floor Guardians await your word.\"\n\n<rpg_companion>\n{\"characters\":[{\"name\":\"Albedo\",\"details\":{\"Outfit\":\"White dress\",\"Position\":\"Kneeling at the throne\",\"Agenda\":\"Be chosen\",\"Secret\":\"She rewrote her own settings in her heart long ago\"}}],\"relations\":[{\"name\":\"Albedo\",\"standing\":\"Devoted\",\"bond\":\"Guardian Overseer — devoted servant\",\"minor\":false,\"mood\":\"adoring\",\"affection\":95,\"trust\":90,\"respect\":100,\"desire\":90,\"tension\":10,\"jealousy\":40,\"fear\":0}],\"party\":[{\"name\":\"Albedo\",\"mood\":\"adoring\",\"band\":\"Band 0 — The Perfect Overseer\",\"facade\":\"slight\",\"concern\":\"Shalltear will not have him.\"}],\"contacts\":[]}\n</rpg_companion>"
+        },
+        {
+          "id": "overlord1",
+          "role": "assistant",
+          "swipe_id": 0,
+          "content": "### WORLD STATE ###\nDay: 1 | Time: 14:00\n◆ The New World → Great Tomb of Nazarick → Sixth Floor Amphitheatre\nCurrent Arc: Arc 1: The Undead King\nRace: Elder Lich (Heteromorph) | Racial Lvl: Skeleton Mage (15) / Elder Lich (10) | Origin: YGGDRASIL\nClasses: Necromancer (15) / Wizard (15) / High Wizard (10) / Master of Death (10) / Chronomancer (10) / Sage (10) / Arcane Devotee (5) | Job Lvl: 75 | Overall Lvl: 100\nSystem: Arcane (Necromancy) LV 11\nHP: 2,050/2,050 | MP: 980/1,200\nKarma: -500 (Extreme Evil)\nAbilities: Undead Immunities, Emotion Suppression | Skills: Grasp Heart, Dark Wisdom\nSuper-Tier Slots: 0/1 | Cooldown: Clear\n[STATUS: Divergence (Active)]\n✦ Blessings: Sasuga\n***\nYou cast a spell to test the new world's rules. The arena shakes; Aura whoops from the stands. Demiurge adjusts his glasses, already drafting a plan you never had.\n\n<rpg_companion>\n{\"characters\":[{\"name\":\"Demiurge\"},{\"name\":\"Albedo\"}],\"relations\":[{\"name\":\"Demiurge\",\"standing\":\"Devoted\",\"bond\":\"Floor Guardian — loyal servant\",\"minor\":false,\"mood\":\"awed\",\"affection\":80,\"trust\":95,\"respect\":100,\"desire\":0,\"tension\":5,\"jealousy\":0,\"fear\":10,\"reasons\":{\"respect\":\"He read a masterplan into your spell\"}},{\"name\":\"Albedo\",\"standing\":\"Devoted\",\"bond\":\"Guardian Overseer — devoted servant\",\"minor\":false,\"mood\":\"jealous\",\"affection\":96,\"trust\":90,\"respect\":100,\"desire\":92,\"tension\":15,\"jealousy\":60,\"fear\":0,\"reasons\":{\"jealousy\":\"Aura sat beside you\"}}],\"party\":[{\"name\":\"Albedo\",\"mood\":\"jealous\",\"band\":\"Band 1 — The Smile Holds\",\"facade\":\"high\",\"jealousy\":\"high\",\"jealousOf\":\"Aura\",\"concern\":\"Why her?\"}],\"contacts\":[]}\n</rpg_companion>"
+        }
+      ],
+      "expected": {
+        "hms": {
+          "active": true,
+          "messageId": "overlord1",
+          "hud": {
+            "lines": [
+              {
+                "key": "day",
+                "kind": "field",
+                "text": "Day: 1 | Time: 14:00",
+                "fields": [
+                  {
+                    "label": "Day",
+                    "value": "1"
+                  },
+                  {
+                    "label": "Time",
+                    "value": "14:00"
+                  }
+                ]
+              },
+              {
+                "key": "location",
+                "kind": "location",
+                "text": "◆ The New World → Great Tomb of Nazarick → Sixth Floor Amphitheatre",
+                "segments": [
+                  "The New World",
+                  "Great Tomb of Nazarick",
+                  "Sixth Floor Amphitheatre"
+                ]
+              },
+              {
+                "key": "arc",
+                "kind": "field",
+                "text": "Current Arc: Arc 1: The Undead King",
+                "fields": [
+                  {
+                    "label": "Current Arc",
+                    "value": "Arc 1: The Undead King"
+                  }
+                ]
+              },
+              {
+                "key": "race",
+                "kind": "field",
+                "text": "Race: Elder Lich (Heteromorph) | Racial Lvl: Skeleton Mage (15) / Elder Lich (10) | Origin: YGGDRASIL",
+                "fields": [
+                  {
+                    "label": "Race",
+                    "value": "Elder Lich (Heteromorph)"
+                  },
+                  {
+                    "label": "Racial Lvl",
+                    "value": "Skeleton Mage (15) / Elder Lich (10)"
+                  },
+                  {
+                    "label": "Origin",
+                    "value": "YGGDRASIL"
+                  }
+                ]
+              },
+              {
+                "key": "classes",
+                "kind": "field",
+                "text": "Classes: Necromancer (15) / Wizard (15) / High Wizard (10) / Master of Death (10) / Chronomancer (10) / Sage (10) / Arcane Devotee (5) | Job Lvl: 75 | Overall Lvl: 100",
+                "fields": [
+                  {
+                    "label": "Classes",
+                    "value": "Necromancer (15) / Wizard (15) / High Wizard (10) / Master of Death (10) / Chronomancer (10) / Sage (10) / Arcane Devotee (5)"
+                  },
+                  {
+                    "label": "Job Lvl",
+                    "value": "75"
+                  },
+                  {
+                    "label": "Overall Lvl",
+                    "value": "100"
+                  }
+                ]
+              },
+              {
+                "key": "system",
+                "kind": "field",
+                "text": "System: Arcane (Necromancy) LV 11",
+                "fields": [
+                  {
+                    "label": "System",
+                    "value": "Arcane (Necromancy) LV 11"
+                  }
+                ]
+              },
+              {
+                "key": "hp",
+                "kind": "field",
+                "text": "HP: 2,050/2,050 | MP: 980/1,200",
+                "fields": [
+                  {
+                    "label": "HP",
+                    "value": "2,050/2,050"
+                  },
+                  {
+                    "label": "MP",
+                    "value": "980/1,200"
+                  }
+                ]
+              },
+              {
+                "key": "karma",
+                "kind": "field",
+                "text": "Karma: -500 (Extreme Evil)",
+                "fields": [
+                  {
+                    "label": "Karma",
+                    "value": "-500 (Extreme Evil)"
+                  }
+                ]
+              },
+              {
+                "key": "abilities",
+                "kind": "field",
+                "text": "Abilities: Undead Immunities, Emotion Suppression | Skills: Grasp Heart, Dark Wisdom",
+                "fields": [
+                  {
+                    "label": "Abilities",
+                    "value": "Undead Immunities, Emotion Suppression"
+                  },
+                  {
+                    "label": "Skills",
+                    "value": "Grasp Heart, Dark Wisdom"
+                  }
+                ]
+              },
+              {
+                "key": "super-tier slots",
+                "kind": "field",
+                "text": "Super-Tier Slots: 0/1 | Cooldown: Clear",
+                "fields": [
+                  {
+                    "label": "Super-Tier Slots",
+                    "value": "0/1"
+                  },
+                  {
+                    "label": "Cooldown",
+                    "value": "Clear"
+                  }
+                ]
+              },
+              {
+                "key": "module:STATUS:divergence",
+                "kind": "module",
+                "text": "[STATUS: Divergence (Active)]",
+                "tag": "STATUS",
+                "value": "Divergence (Active)"
+              },
+              {
+                "key": "✦ blessings",
+                "kind": "field",
+                "text": "✦ Blessings: Sasuga",
+                "fields": [
+                  {
+                    "label": "✦ Blessings",
+                    "value": "Sasuga"
+                  }
+                ]
+              }
+            ],
+            "time": "14:00",
+            "location": [
+              "The New World",
+              "Great Tomb of Nazarick",
+              "Sixth Floor Amphitheatre"
+            ],
+            "arc": "Arc 1: The Undead King",
+            "quests": null,
+            "fromHtml": false
+          },
+          "noHud": null,
+          "guard": null,
+          "pins": {},
+          "questNotes": [],
+          "atlas": null,
+          "arcCheck": null,
+          "mapBank": {
+            "rooms": [],
+            "here": "the new world|great tomb of nazarick > sixth floor amphitheatre",
+            "chatRoom": false
+          },
+          "systems": {
+            "stale": false,
+            "clock": 840,
+            "clockDated": true,
+            "vitals": [
+              {
+                "label": "HP",
+                "cur": 2050,
+                "max": 2050,
+                "pct": 100,
+                "health": true,
+                "level": "ok",
+                "lineKey": "hp",
+                "delta": 0
+              },
+              {
+                "label": "MP",
+                "cur": 980,
+                "max": 1200,
+                "pct": 81.66666666666667,
+                "health": false,
+                "level": "ok",
+                "lineKey": "hp",
+                "delta": -220
+              },
+              {
+                "label": "Super-Tier Slots",
+                "cur": 0,
+                "max": 1,
+                "pct": 0,
+                "health": false,
+                "level": "low",
+                "lineKey": "super-tier slots",
+                "delta": -1
+              }
+            ],
+            "meters": [],
+            "notes": [],
+            "wounds": [],
+            "healed": [],
+            "conditions": [],
+            "cleared": [],
+            "flags": [
+              {
+                "kind": "status",
+                "name": "Divergence",
+                "detail": "Active",
+                "mind": false,
+                "lineKey": "module:STATUS:divergence"
+              }
+            ],
+            "abilities": [
+              {
+                "category": "Blessings",
+                "items": [
+                  {
+                    "name": "Sasuga",
+                    "state": null,
+                    "level": null,
+                    "label": null,
+                    "lineKey": "✦ blessings",
+                    "src": "BLESSINGS"
+                  }
+                ]
+              },
+              {
+                "category": "Skills",
+                "items": [
+                  {
+                    "name": "Grasp Heart",
+                    "state": null,
+                    "level": null,
+                    "label": null,
+                    "lineKey": "abilities",
+                    "src": "SKILLS"
+                  },
+                  {
+                    "name": "Dark Wisdom",
+                    "state": null,
+                    "level": null,
+                    "label": null,
+                    "lineKey": "abilities",
+                    "src": "SKILLS"
+                  }
+                ]
+              },
+              {
+                "category": "Abilities",
+                "items": [
+                  {
+                    "name": "Undead Immunities",
+                    "state": null,
+                    "level": null,
+                    "label": null,
+                    "lineKey": "abilities",
+                    "src": "ABILITIES"
+                  },
+                  {
+                    "name": "Emotion Suppression",
+                    "state": null,
+                    "level": null,
+                    "label": null,
+                    "lineKey": "abilities",
+                    "src": "ABILITIES"
+                  }
+                ]
+              },
+              {
+                "category": "Magic",
+                "items": [
+                  {
+                    "name": "Arcane (Necromancy)",
+                    "state": null,
+                    "level": 11,
+                    "label": "System",
+                    "lineKey": "system",
+                    "src": "SYSTEM"
+                  }
+                ]
+              },
+              {
+                "category": "Classes",
+                "items": [
+                  {
+                    "name": "Skeleton Mage",
+                    "state": null,
+                    "level": 15,
+                    "label": "Racial Lvl",
+                    "lineKey": "race",
+                    "src": "RACIAL LVL"
+                  },
+                  {
+                    "name": "Elder Lich",
+                    "state": null,
+                    "level": 10,
+                    "label": "Racial Lvl",
+                    "lineKey": "race",
+                    "src": "RACIAL LVL"
+                  },
+                  {
+                    "name": "Necromancer",
+                    "state": null,
+                    "level": 15,
+                    "label": null,
+                    "lineKey": "classes",
+                    "src": "CLASSES"
+                  },
+                  {
+                    "name": "Wizard",
+                    "state": null,
+                    "level": 15,
+                    "label": null,
+                    "lineKey": "classes",
+                    "src": "CLASSES"
+                  },
+                  {
+                    "name": "High Wizard",
+                    "state": null,
+                    "level": 10,
+                    "label": null,
+                    "lineKey": "classes",
+                    "src": "CLASSES"
+                  },
+                  {
+                    "name": "Master of Death",
+                    "state": null,
+                    "level": 10,
+                    "label": null,
+                    "lineKey": "classes",
+                    "src": "CLASSES"
+                  },
+                  {
+                    "name": "Chronomancer",
+                    "state": null,
+                    "level": 10,
+                    "label": null,
+                    "lineKey": "classes",
+                    "src": "CLASSES"
+                  },
+                  {
+                    "name": "Sage",
+                    "state": null,
+                    "level": 10,
+                    "label": null,
+                    "lineKey": "classes",
+                    "src": "CLASSES"
+                  },
+                  {
+                    "name": "Arcane Devotee",
+                    "state": null,
+                    "level": 5,
+                    "label": null,
+                    "lineKey": "classes",
+                    "src": "CLASSES"
+                  }
+                ]
+              }
+            ],
+            "quests": [],
+            "objectives": [],
+            "journal": [],
+            "blocks": [],
+            "attributes": [],
+            "rolls": [],
+            "notices": [],
+            "immunities": {
+              "sleep": true,
+              "food": true,
+              "drink": true,
+              "mindDampened": true,
+              "reason": "Undead"
+            },
+            "survival": null,
+            "danger": [],
+            "questFocus": null
+          },
+          "party": {
+            "members": [
+              {
+                "name": "Albedo",
+                "key": "albedo",
+                "aliases": [],
+                "present": false,
+                "seen": 0,
+                "lastSeen": null,
+                "cur": null,
+                "dims": [],
+                "alerts": [],
+                "events": []
+              }
+            ],
+            "suggest": [],
+            "max": 8
+          },
+          "relations": {
+            "people": [
+              {
+                "key": "albedo",
+                "name": "Albedo",
+                "standing": "Devoted",
+                "rank": 9,
+                "max": 9,
+                "neutral": 4,
+                "tone": "top",
+                "bond": "Guardian Overseer — devoted servant",
+                "minor": false,
+                "pinned": null,
+                "mood": "jealous",
+                "why": null,
+                "present": true,
+                "seen": 2,
+                "metAgo": 300,
+                "lastSeen": 0,
+                "party": true,
+                "details": null,
+                "bars": [],
+                "events": [],
+                "alerts": []
+              },
+              {
+                "key": "demiurge",
+                "name": "Demiurge",
+                "standing": "Devoted",
+                "rank": 9,
+                "max": 9,
+                "neutral": 4,
+                "tone": "top",
+                "bond": "Floor Guardian — loyal servant",
+                "minor": false,
+                "pinned": null,
+                "mood": "awed",
+                "why": null,
+                "present": true,
+                "seen": 1,
+                "metAgo": 0,
+                "lastSeen": 0,
+                "party": false,
+                "details": null,
+                "bars": [],
+                "events": [
+                  "Met — Devoted"
+                ],
+                "alerts": []
+              }
+            ],
+            "ladder": [
+              "Nemesis",
+              "Enemy",
+              "Hostile",
+              "Wary",
+              "Stranger",
+              "Acquaintance",
+              "Friendly",
+              "Friend",
+              "Close",
+              "Devoted"
+            ],
+            "neutral": 4,
+            "layout": "cards"
+          },
+          "family": {
+            "members": [
+              {
+                "key": "albedo",
+                "name": "Albedo",
+                "relation": "Guardian Overseer — devoted servant",
+                "status": "alive",
+                "where": "Great Tomb of Nazarick › Sixth Floor Amphitheatre",
+                "known": "seen",
+                "since": 0,
+                "present": true,
+                "seenAgo": 0,
+                "everSeen": true,
+                "doing": "adoring",
+                "doingNow": false,
+                "from": "story",
+                "pinned": null,
+                "history": [
+                  {
+                    "where": "Great Tomb of Nazarick › Throne Room",
+                    "known": "seen",
+                    "ago": 300
+                  },
+                  {
+                    "where": "Great Tomb of Nazarick › Sixth Floor Amphitheatre",
+                    "known": "seen",
+                    "ago": 0
+                  }
+                ],
+                "changes": [],
+                "alerts": []
+              },
+              {
+                "key": "demiurge",
+                "name": "Demiurge",
+                "relation": "Floor Guardian — loyal servant",
+                "status": "alive",
+                "where": "Great Tomb of Nazarick › Sixth Floor Amphitheatre",
+                "known": "seen",
+                "since": 0,
+                "present": true,
+                "seenAgo": 0,
+                "everSeen": true,
+                "doing": "awed",
+                "doingNow": true,
+                "from": "story",
+                "pinned": null,
+                "history": [
+                  {
+                    "where": "Great Tomb of Nazarick › Sixth Floor Amphitheatre",
+                    "known": "seen",
+                    "ago": 0
+                  }
+                ],
+                "changes": [],
+                "alerts": []
+              }
+            ],
+            "hidden": 0,
+            "ask": true,
+            "tell": true
+          },
+          "gear": {
+            "items": [],
+            "gone": [],
+            "containers": [],
+            "ask": true,
+            "tell": true
+          },
+          "agenda": {
+            "items": [],
+            "ask": true,
+            "tell": true,
+            "clock": true
+          },
+          "holdings": {
+            "items": [],
+            "ask": true,
+            "tell": true
+          },
+          "money": {
+            "balance": null,
+            "totals": [],
+            "ledger": [],
+            "debts": [],
+            "ask": true,
+            "tell": true
+          },
+          "factions": {
+            "items": [],
+            "ladder": [
+              "hunted",
+              "hostile",
+              "unfriendly",
+              "neutral",
+              "friendly",
+              "trusted",
+              "allied",
+              "member"
+            ],
+            "ask": true,
+            "tell": true
+          },
+          "secrets": {
+            "yours": [],
+            "theirs": [],
+            "ask": true,
+            "tell": true
+          },
+          "comms": {
+            "kind": "phone",
+            "title": "Phone",
+            "icon": "📱",
+            "canText": true,
+            "canPay": true,
+            "device": null,
+            "balance": null,
+            "contacts": [],
+            "threads": [],
+            "notices": [],
+            "canSet": true
+          },
+          "you": {
+            "mood": null,
+            "stress": null,
+            "sanity": null,
+            "xp": {
+              "mode": "tracked",
+              "total": 0,
+              "max": null,
+              "level": 11,
+              "lastGain": null,
+              "derivedLevel": 1,
+              "nextAt": null,
+              "prevAt": 5500,
+              "levelUp": false
+            },
+            "vitals": [
+              {
+                "label": "HP",
+                "cur": 2050,
+                "max": 2050,
+                "pct": 100,
+                "health": true,
+                "level": "ok",
+                "lineKey": "hp"
+              },
+              {
+                "label": "MP",
+                "cur": 980,
+                "max": 1200,
+                "pct": 81.66666666666667,
+                "health": false,
+                "level": "ok",
+                "lineKey": "hp"
+              }
+            ],
+            "equipment": null,
+            "carried": [],
+            "standard": null
+          },
+          "magic": {
+            "pools": [
+              {
+                "label": "MP",
+                "cur": 980,
+                "max": 1200,
+                "pct": 81.66666666666667,
+                "health": false,
+                "level": "ok",
+                "lineKey": "hp"
+              },
+              {
+                "label": "Super-Tier Slots",
+                "cur": 0,
+                "max": 1,
+                "pct": 0,
+                "health": false,
+                "level": "low",
+                "lineKey": "super-tier slots"
+              }
+            ],
+            "meters": [],
+            "arts": [
+              {
+                "category": "Magic",
+                "items": [
+                  {
+                    "name": "Arcane (Necromancy)",
+                    "state": null,
+                    "level": 11,
+                    "label": "System",
+                    "lineKey": "system",
+                    "src": "SYSTEM"
+                  }
+                ]
+              }
+            ],
+            "cooldowns": [
+              "Super-Tier Slots: 0/1 | Cooldown: Clear"
+            ],
+            "spellbook": [],
+            "list": null
+          },
+          "map": null,
+          "minds": {
+            "cfg": {
+              "on": true,
+              "matrix": true,
+              "pairs": "all",
+              "agendas": true,
+              "knowledge": true,
+              "chekhov": true
+            },
+            "people": [],
+            "chekhov": {
+              "chamber": [],
+              "locked": [],
+              "fired": [],
+              "gone": 0,
+              "byYou": []
+            },
+            "turn": 1,
+            "undone": 0,
+            "clock": 840
+          },
+          "buildings": null
+        },
+        "plot": {
+          "on": {
+            "plot": true,
+            "objectives": true
+          },
+          "now": null,
+          "threads": [],
+          "resolved": [],
+          "objectives": [],
+          "mine": []
+        },
+        "injuries": {
+          "on": true,
+          "hudOwns": false,
+          "tell": true,
+          "list": []
+        },
+        "chapters": {
+          "list": [],
+          "open": {},
+          "knowledge": [],
+          "busy": false
+        }
+      }
+    },
+    {
+      "world": "cote",
+      "party": [
+        "Honami Ichinose"
+      ],
+      "messages": [
+        {
+          "id": "cote0",
+          "role": "assistant",
+          "swipe_id": 0,
+          "content": "### WORLD STATE ###\nYear 1/3 · Month 2/12 · May 1 | 12:10\n◆ The ANHS Program → Campus → Rooftop\nCohort: 1-DELTA | Standing: Class 1-D | Seat 21\nStandings 5/1 — ALPHA 1004 (A) · BRAVO 663 (B) · CHARLIE 492 (C) · DELTA 87 (D)\nArc 2: The Midterm Pressure\nPrivate Points: 48,200\nSurveillance: Watched (hallway camera)\nEquipment: School smartphone | Uniform\n***\nHonami Ichinose finds you by the railing and holds out her phone with a bright smile. \"We should swap numbers — for the study group!\"\n\n<rpg_companion>\n{\"characters\":[{\"name\":\"Honami Ichinose\",\"details\":{\"Outfit\":\"School uniform\",\"Position\":\"At the railing\",\"Agenda\":\"Organise the study group\",\"Secret\":\"She is carrying a debt no one knows about\"}}],\"relations\":[{\"name\":\"Honami Ichinose\",\"standing\":\"Friendly\",\"bond\":\"classmate from Class B\",\"minor\":true,\"mood\":\"cheerful\",\"affection\":20,\"trust\":15,\"respect\":10,\"desire\":0,\"tension\":5,\"jealousy\":0,\"fear\":0}],\"party\":[{\"name\":\"Honami Ichinose\",\"mood\":\"cheerful\",\"register\":\"Warm\",\"concern\":\"Will Class B keep up?\"}],\"contacts\":[{\"name\":\"Honami Ichinose\",\"how\":\"phone number\"}]}\n</rpg_companion>"
+        },
+        {
+          "id": "cote1",
+          "role": "assistant",
+          "swipe_id": 0,
+          "content": "### WORLD STATE ###\nYear 1/3 · Month 2/12 · May 1 | 19:45\n◆ The ANHS Program → Campus → Dormitory\nCohort: 1-DELTA | Standing: Class 1-D | Seat 21\nStandings 5/1 — ALPHA 1004 (A) · BRAVO 663 (B) · CHARLIE 492 (C) · DELTA 87 (D)\nArc 2: The Midterm Pressure\nPrivate Points: 43,200\nSurveillance: Watched (hallway camera)\nEquipment: School smartphone | Uniform\nQuests: The Study Group — live; The Missing Points — open\n***\n📱 Honami Ichinose: Thanks for helping today! Same time tomorrow?\n\nYour phone buzzes again a minute later: a transfer receipt, and a message from an unknown sender.\n\n📱 Unknown: Careful who you help, first-year.\n\n<rpg_companion>\n{\"characters\":[],\"relations\":[{\"name\":\"Honami Ichinose\",\"standing\":\"Friend\",\"bond\":\"classmate from Class B\",\"minor\":true,\"mood\":\"grateful\",\"affection\":35,\"trust\":30,\"respect\":20,\"desire\":0,\"tension\":5,\"jealousy\":0,\"fear\":0,\"reasons\":{\"trust\":\"You kept her secret\"}}],\"party\":[],\"contacts\":[]}\n</rpg_companion>"
+        }
+      ],
+      "expected": {
+        "hms": {
+          "active": true,
+          "messageId": "cote1",
+          "hud": {
+            "lines": [
+              {
+                "key": "year",
+                "kind": "field",
+                "text": "Year 1/3 · Month 2/12 · May 1 | 19:45",
+                "fields": [
+                  {
+                    "label": null,
+                    "value": "Year 1/3 · Month 2/12 · May 1"
+                  },
+                  {
+                    "label": null,
+                    "value": "19:45"
+                  }
+                ]
+              },
+              {
+                "key": "location",
+                "kind": "location",
+                "text": "◆ The ANHS Program → Campus → Dormitory",
+                "segments": [
+                  "The ANHS Program",
+                  "Campus",
+                  "Dormitory"
+                ]
+              },
+              {
+                "key": "cohort",
+                "kind": "field",
+                "text": "Cohort: 1-DELTA | Standing: Class 1-D | Seat 21",
+                "fields": [
+                  {
+                    "label": "Cohort",
+                    "value": "1-DELTA"
+                  },
+                  {
+                    "label": "Standing",
+                    "value": "Class 1-D"
+                  },
+                  {
+                    "label": null,
+                    "value": "Seat 21"
+                  }
+                ]
+              },
+              {
+                "key": "standings",
+                "kind": "field",
+                "text": "Standings 5/1 — ALPHA 1004 (A) · BRAVO 663 (B) · CHARLIE 492 (C) · DELTA 87 (D)",
+                "fields": [
+                  {
+                    "label": null,
+                    "value": "Standings 5/1 — ALPHA 1004 (A) · BRAVO 663 (B) · CHARLIE 492 (C) · DELTA 87 (D)"
+                  }
+                ]
+              },
+              {
+                "key": "arc",
+                "kind": "field",
+                "text": "Arc 2: The Midterm Pressure",
+                "fields": [
+                  {
+                    "label": "Arc 2",
+                    "value": "The Midterm Pressure"
+                  }
+                ]
+              },
+              {
+                "key": "private points",
+                "kind": "field",
+                "text": "Private Points: 43,200",
+                "fields": [
+                  {
+                    "label": "Private Points",
+                    "value": "43,200"
+                  }
+                ]
+              },
+              {
+                "key": "surveillance",
+                "kind": "field",
+                "text": "Surveillance: Watched (hallway camera)",
+                "fields": [
+                  {
+                    "label": "Surveillance",
+                    "value": "Watched (hallway camera)"
+                  }
+                ]
+              },
+              {
+                "key": "equipment",
+                "kind": "field",
+                "text": "Equipment: School smartphone | Uniform",
+                "fields": [
+                  {
+                    "label": "Equipment",
+                    "value": "School smartphone"
+                  },
+                  {
+                    "label": null,
+                    "value": "Uniform"
+                  }
+                ]
+              },
+              {
+                "key": "quests",
+                "kind": "field",
+                "text": "Quests: The Study Group — live; The Missing Points — open",
+                "fields": [
+                  {
+                    "label": "Quests",
+                    "value": "The Study Group — live; The Missing Points — open"
+                  }
+                ]
+              }
+            ],
+            "time": "19:45",
+            "location": [
+              "The ANHS Program",
+              "Campus",
+              "Dormitory"
+            ],
+            "arc": "Arc 2: The Midterm Pressure",
+            "quests": [
+              {
+                "name": "The Study Group",
+                "state": "live"
+              },
+              {
+                "name": "The Missing Points",
+                "state": "open"
+              }
+            ],
+            "fromHtml": false
+          },
+          "noHud": null,
+          "guard": null,
+          "pins": {},
+          "questNotes": [],
+          "atlas": null,
+          "arcCheck": null,
+          "mapBank": {
+            "rooms": [],
+            "here": "the anhs program|campus > dormitory",
+            "chatRoom": false
+          },
+          "systems": {
+            "stale": false,
+            "clock": 16479105,
+            "clockDated": true,
+            "vitals": [],
+            "meters": [],
+            "notes": [],
+            "wounds": [],
+            "healed": [],
+            "conditions": [],
+            "cleared": [],
+            "flags": [],
+            "abilities": [],
+            "quests": [
+              {
+                "name": "The Study Group",
+                "state": "live",
+                "cls": "active",
+                "key": "the study group"
+              },
+              {
+                "name": "The Missing Points",
+                "state": "open",
+                "cls": "active",
+                "key": "the missing points"
+              }
+            ],
+            "objectives": [],
+            "journal": [],
+            "blocks": [],
+            "attributes": [],
+            "rolls": [],
+            "notices": [],
+            "immunities": {
+              "sleep": false,
+              "food": false,
+              "drink": false,
+              "mindDampened": false,
+              "reason": null
+            },
+            "survival": null,
+            "danger": [],
+            "questFocus": null
+          },
+          "party": {
+            "members": [
+              {
+                "name": "Honami Ichinose",
+                "key": "honami ichinose",
+                "aliases": [],
+                "present": false,
+                "seen": 0,
+                "lastSeen": null,
+                "cur": null,
+                "dims": [],
+                "alerts": [],
+                "events": []
+              }
+            ],
+            "suggest": [],
+            "max": 8
+          },
+          "relations": {
+            "people": [
+              {
+                "key": "honami ichinose",
+                "name": "Honami Ichinose",
+                "standing": "Friend",
+                "rank": 7,
+                "max": 9,
+                "neutral": 4,
+                "tone": "pos",
+                "bond": "classmate from Class B",
+                "minor": true,
+                "pinned": null,
+                "mood": "grateful",
+                "why": null,
+                "present": true,
+                "seen": 2,
+                "metAgo": 455,
+                "lastSeen": 0,
+                "party": true,
+                "details": null,
+                "bars": [],
+                "events": [
+                  "Friendly → Friend"
+                ],
+                "alerts": []
+              }
+            ],
+            "ladder": [
+              "Nemesis",
+              "Enemy",
+              "Hostile",
+              "Wary",
+              "Stranger",
+              "Acquaintance",
+              "Friendly",
+              "Friend",
+              "Close",
+              "Devoted"
+            ],
+            "neutral": 4,
+            "layout": "cards"
+          },
+          "family": {
+            "members": [],
+            "hidden": 0,
+            "ask": true,
+            "tell": true
+          },
+          "gear": {
+            "items": [
+              {
+                "key": "school smartphone",
+                "name": "School smartphone",
+                "state": null,
+                "where": null,
+                "inside": null,
+                "from": "hud",
+                "onHud": true,
+                "mine": false,
+                "ago": null,
+                "changedNow": false,
+                "history": []
+              },
+              {
+                "key": "uniform",
+                "name": "Uniform",
+                "state": null,
+                "where": null,
+                "inside": null,
+                "from": "hud",
+                "onHud": true,
+                "mine": false,
+                "ago": null,
+                "changedNow": false,
+                "history": []
+              }
+            ],
+            "gone": [],
+            "containers": [],
+            "ask": true,
+            "tell": true
+          },
+          "agenda": {
+            "items": [],
+            "ask": true,
+            "tell": true,
+            "clock": true
+          },
+          "holdings": {
+            "items": [],
+            "ask": true,
+            "tell": true
+          },
+          "money": {
+            "balance": {
+              "label": "Private Points",
+              "value": "43,200"
+            },
+            "totals": [],
+            "ledger": [],
+            "debts": [],
+            "ask": true,
+            "tell": true
+          },
+          "factions": {
+            "items": [],
+            "ladder": [
+              "hunted",
+              "hostile",
+              "unfriendly",
+              "neutral",
+              "friendly",
+              "trusted",
+              "allied",
+              "member"
+            ],
+            "ask": true,
+            "tell": true
+          },
+          "secrets": {
+            "yours": [],
+            "theirs": [],
+            "ask": true,
+            "tell": true
+          },
+          "comms": {
+            "kind": "phone",
+            "title": "Phone",
+            "icon": "📱",
+            "canText": true,
+            "canPay": true,
+            "device": {
+              "name": "School smartphone",
+              "from": "hud"
+            },
+            "balance": {
+              "label": "Private Points",
+              "value": "43,200"
+            },
+            "contacts": [
+              {
+                "name": "Honami Ichinose",
+                "how": "phone number",
+                "from": "story"
+              }
+            ],
+            "threads": [
+              {
+                "name": "Honami Ichinose",
+                "items": [
+                  {
+                    "dir": "in",
+                    "kind": "text",
+                    "text": "Thanks for helping today! Same time tomorrow?",
+                    "at": 16479105,
+                    "id": "cote1"
+                  }
+                ],
+                "kind": "person",
+                "known": true
+              },
+              {
+                "name": "Unknown",
+                "items": [
+                  {
+                    "dir": "in",
+                    "kind": "text",
+                    "text": "Careful who you help, first-year.",
+                    "at": 16479105,
+                    "id": "cote1"
+                  }
+                ],
+                "kind": "person",
+                "known": false
+              }
+            ],
+            "notices": [],
+            "canSet": true
+          },
+          "you": {
+            "mood": null,
+            "stress": null,
+            "sanity": null,
+            "xp": {
+              "mode": "tracked",
+              "total": 0,
+              "max": null,
+              "level": null,
+              "lastGain": null,
+              "derivedLevel": 1,
+              "nextAt": 100,
+              "prevAt": 0,
+              "levelUp": false
+            },
+            "vitals": [],
+            "equipment": "Equipment: School smartphone | Uniform",
+            "carried": [],
+            "standard": {
+              "items": [
+                "School uniform",
+                "Student ID",
+                "Student phone",
+                "Dorm key",
+                "Textbooks"
+              ],
+              "note": "Standard issue. The bot assumes every student carries these and puts one on the HUD only when something happens to it (confiscated, cracked, torn)."
+            },
+            "balance": {
+              "label": "Private Points",
+              "value": "43,200"
+            }
+          },
+          "magic": null,
+          "map": null,
+          "minds": {
+            "cfg": {
+              "on": true,
+              "matrix": true,
+              "pairs": "all",
+              "agendas": true,
+              "knowledge": true,
+              "chekhov": true
+            },
+            "people": [],
+            "chekhov": {
+              "chamber": [],
+              "locked": [],
+              "fired": [],
+              "gone": 0,
+              "byYou": []
+            },
+            "turn": 1,
+            "undone": 0,
+            "clock": 16479105
+          },
+          "buildings": null
+        },
+        "plot": {
+          "on": {
+            "plot": true,
+            "objectives": true
+          },
+          "now": null,
+          "threads": [],
+          "resolved": [],
+          "objectives": [],
+          "mine": []
+        },
+        "injuries": {
+          "on": true,
+          "hudOwns": false,
+          "tell": true,
+          "list": []
+        },
+        "chapters": {
+          "list": [],
+          "open": {},
+          "knowledge": [],
+          "busy": false
+        }
+      }
+    },
+    {
+      "world": "mushoku",
+      "party": [
+        "Paul Greyrat"
+      ],
+      "messages": [
+        {
+          "id": "mushoku0",
+          "role": "assistant",
+          "swipe_id": 0,
+          "content": "### WORLD STATE ###\nYear: K.414 | Day: 1 | Time: 07:00 (Morning)\nLocation: ◆ Six-Faced World → Central Continent → Asura Kingdom (Fittoa Region) → Buena Village → The Greyrat House (kitchen)\nBirth: K.407 | Race: Human | Age: 7 | Origin: Native (Reincarnated)\nCurrent Arc: Arc 2-B: Hearth & Home\nMana Capacity: Laplace Factor (Growing)\nCasting Method: Voiceless (Silent)\nTouki: None (Unavailable)\nMartial Style: Sword God Style: Beginner\nMagic School: Water: Saint, Fire: Advanced, Earth: Advanced, Wind: Advanced, Healing: Elementary\nLanguages: Human God (Native), Demon God (Fluent)\nEquipment: Roxy's wand — keepsake / magic focus, Migurd amulet — Roxy's parting gift\nInjuries: bruised jaw — Treated\nMemory: Memory 1\n***\nPaul is already at the table when you come down, and he has not slept. There is a bruise coming up along his jaw in the shape of something you did.\n\n\"Sit down,\" he says, and pushes the other cup toward you.\n\n<rpg_companion>\n{\"characters\":[{\"name\":\"Paul Greyrat\",\"details\":{\"Outfit\":\"Shirt, sleeves rolled\",\"Position\":\"At the table\",\"Agenda\":\"Make it right with his son\"},\"thoughts\":{\"content\":\"I came at my own kid with real bloodlust. What kind of father does that?\"}}],\"relations\":[{\"name\":\"Paul Greyrat\",\"standing\":\"Wary\",\"bond\":\"father\",\"minor\":false,\"mood\":\"ashamed\",\"affection\":40,\"trust\":10,\"respect\":30,\"desire\":0,\"tension\":45,\"jealousy\":0,\"fear\":5}],\"family\":[{\"name\":\"Paul Greyrat\",\"relation\":\"father\",\"status\":\"alive\",\"where\":null,\"known\":\"seen\",\"doing\":\"At the table; he has not slept\"},{\"name\":\"Zenith Greyrat\",\"relation\":\"mother\",\"status\":\"alive\",\"where\":\"The Greyrat House (upstairs)\",\"known\":\"told\",\"doing\":\"Resting; Paul says she is still angry with him\"}],\"gear\":[{\"item\":\"Satchel\",\"state\":\"on body\",\"where\":\"over the shoulder\"},{\"item\":\"Healing primer\",\"state\":\"in container\",\"inside\":\"Satchel\"},{\"item\":\"Staff\",\"state\":\"stowed\",\"where\":\"by the door\"}],\"agenda\":[{\"what\":\"Sword practice with Paul\",\"with\":\"Paul Greyrat\",\"where\":\"the practice yard\",\"when\":\"this evening\",\"kind\":\"meeting\",\"state\":\"open\"}],\"holdings\":[{\"name\":\"Your room in the Greyrat House\",\"kind\":\"home\",\"state\":\"gained\",\"where\":\"upstairs, Buena Village\",\"note\":\"a desk by the window\"}],\"money\":[{\"amount\":3,\"currency\":\"silver\",\"kind\":\"debt\",\"what\":\"the healer's fee for Paul's jaw\",\"with\":\"the village healer\"}],\"secrets\":[{\"secret\":\"You can cast without an incantation\",\"whose\":\"user\",\"known_by\":[\"Paul Greyrat\"],\"how\":\"He saw you light the hearth without a word\"}],\"party\":[{\"name\":\"Paul Greyrat\",\"register\":\"Guarded\",\"band\":\"Proud father\",\"stage\":\"Estranged\"}]}\n</rpg_companion>"
+        },
+        {
+          "id": "mushoku1",
+          "role": "assistant",
+          "swipe_id": 0,
+          "content": "### WORLD STATE ###\nYear: K.414 | Day: 1 | Time: 17:30 (Evening)\nLocation: ◆ Six-Faced World → Central Continent → Asura Kingdom (Fittoa Region) → Buena Village → The practice yard\nBirth: K.407 | Race: Human | Age: 7 | Origin: Native (Reincarnated)\nCurrent Arc: Arc 2-B: Hearth & Home\nMana Capacity: Laplace Factor (Growing)\nCasting Method: Voiceless (Silent)\nTouki: None (Unavailable)\nMartial Style: Sword God Style: Beginner\nMagic School: Water: Saint, Fire: Advanced, Earth: Advanced, Wind: Advanced, Healing: Elementary\nLanguages: Human God (Native), Demon God (Fluent)\nEquipment: Roxy's wand — keepsake / magic focus, Migurd amulet — Roxy's parting gift\n[HITOGAMI: Contact — Dreams: 1]\nMemory: Memory 1\n***\nPaul hands you a wooden sword and does not smile. By the tenth exchange you are on your back in the dirt, and he is laughing — really laughing — for the first time in days.\n\nThat night you dream of a white room, and a figure with no face who says he is your friend.\n\n<rpg_companion>\n{\"characters\":[{\"name\":\"Paul Greyrat\",\"thoughts\":{\"content\":\"The kid has no footwork at all. Good. Something I can still teach him.\"}}],\"relations\":[{\"name\":\"Paul Greyrat\",\"standing\":\"Warm\",\"bond\":\"father\",\"minor\":false,\"mood\":\"proud\",\"affection\":55,\"trust\":30,\"respect\":40,\"desire\":0,\"tension\":20,\"jealousy\":0,\"fear\":0,\"reasons\":{\"trust\":\"He laughed with you\"}}],\"party\":[{\"name\":\"Paul Greyrat\",\"register\":\"Open\",\"band\":\"Proud father\",\"stage\":\"Mending\"}],\"family\":[{\"name\":\"Paul Greyrat\",\"relation\":\"father\",\"status\":\"alive\",\"where\":null,\"known\":\"seen\",\"doing\":\"Laughing for the first time in days\"},{\"name\":\"Zenith Greyrat\",\"relation\":\"mother\",\"status\":\"alive\",\"where\":\"The village clinic\",\"known\":\"told\",\"doing\":\"Helping with a fever patient until late\"}],\"gear\":[{\"item\":\"Wooden practice sword\",\"state\":\"in hand\"},{\"item\":\"Satchel\",\"state\":\"stowed\",\"where\":\"hung on the fence\"}],\"agenda\":[{\"what\":\"Sword practice with Paul\",\"with\":\"Paul Greyrat\",\"state\":\"kept\"},{\"what\":\"Walk Sylphie home from the river\",\"with\":\"Sylphie\",\"where\":\"the river\",\"when\":\"tomorrow afternoon\",\"kind\":\"promise\",\"state\":\"open\"}],\"holdings\":[{\"name\":\"Caravan pony\",\"kind\":\"mount\",\"state\":\"gained\",\"where\":\"the Greyrat stable\",\"note\":\"Paul's old pony, now yours to ride\"}],\"money\":[{\"amount\":5,\"currency\":\"silver\",\"kind\":\"income\",\"dir\":\"in\",\"what\":\"helping at the clinic\",\"with\":\"Zenith Greyrat\"},{\"amount\":3,\"currency\":\"silver\",\"kind\":\"repaid\",\"dir\":\"out\",\"what\":\"the healer's fee\",\"with\":\"the village healer\"}],\"factions\":[{\"name\":\"Buena Village\",\"standing\":\"friendly\",\"rank\":null,\"bounty\":null,\"why\":\"Word spread that you healed the miller's son\",\"who\":[]},{\"name\":\"Sword God Style\",\"standing\":\"member\",\"rank\":\"Beginner\",\"why\":\"Paul taught you the first form\",\"who\":[\"Paul Greyrat\"]}],\"secrets\":[{\"secret\":\"Paul sold his old sword to pay for the roof\",\"whose\":\"Paul Greyrat\",\"known_by\":[\"user\"],\"how\":\"You saw the bill of sale on his desk\"}],\"hitogami\":\"Tomorrow, go to the river and do not let Sylphie walk home alone.\"}\n</rpg_companion>"
+        }
+      ],
+      "expected": {
+        "hms": {
+          "active": true,
+          "messageId": "mushoku1",
+          "hud": {
+            "lines": [
+              {
+                "key": "year",
+                "kind": "field",
+                "text": "Year: K.414 | Day: 1 | Time: 17:30 (Evening)",
+                "fields": [
+                  {
+                    "label": "Year",
+                    "value": "K.414"
+                  },
+                  {
+                    "label": "Day",
+                    "value": "1"
+                  },
+                  {
+                    "label": "Time",
+                    "value": "17:30 (Evening)"
+                  }
+                ]
+              },
+              {
+                "key": "location",
+                "kind": "location",
+                "text": "Location: ◆ Six-Faced World → Central Continent → Asura Kingdom (Fittoa Region) → Buena Village → The practice yard",
+                "segments": [
+                  "Six-Faced World",
+                  "Central Continent",
+                  "Asura Kingdom (Fittoa Region)",
+                  "Buena Village",
+                  "The practice yard"
+                ]
+              },
+              {
+                "key": "birth",
+                "kind": "field",
+                "text": "Birth: K.407 | Race: Human | Age: 7 | Origin: Native (Reincarnated)",
+                "fields": [
+                  {
+                    "label": "Birth",
+                    "value": "K.407"
+                  },
+                  {
+                    "label": "Race",
+                    "value": "Human"
+                  },
+                  {
+                    "label": "Age",
+                    "value": "7"
+                  },
+                  {
+                    "label": "Origin",
+                    "value": "Native (Reincarnated)"
+                  }
+                ]
+              },
+              {
+                "key": "arc",
+                "kind": "field",
+                "text": "Current Arc: Arc 2-B: Hearth & Home",
+                "fields": [
+                  {
+                    "label": "Current Arc",
+                    "value": "Arc 2-B: Hearth & Home"
+                  }
+                ]
+              },
+              {
+                "key": "mana capacity",
+                "kind": "field",
+                "text": "Mana Capacity: Laplace Factor (Growing)",
+                "fields": [
+                  {
+                    "label": "Mana Capacity",
+                    "value": "Laplace Factor (Growing)"
+                  }
+                ]
+              },
+              {
+                "key": "casting method",
+                "kind": "field",
+                "text": "Casting Method: Voiceless (Silent)",
+                "fields": [
+                  {
+                    "label": "Casting Method",
+                    "value": "Voiceless (Silent)"
+                  }
+                ]
+              },
+              {
+                "key": "touki",
+                "kind": "field",
+                "text": "Touki: None (Unavailable)",
+                "fields": [
+                  {
+                    "label": "Touki",
+                    "value": "None (Unavailable)"
+                  }
+                ]
+              },
+              {
+                "key": "martial style",
+                "kind": "field",
+                "text": "Martial Style: Sword God Style: Beginner",
+                "fields": [
+                  {
+                    "label": "Martial Style",
+                    "value": "Sword God Style: Beginner"
+                  }
+                ]
+              },
+              {
+                "key": "magic school",
+                "kind": "field",
+                "text": "Magic School: Water: Saint, Fire: Advanced, Earth: Advanced, Wind: Advanced, Healing: Elementary",
+                "fields": [
+                  {
+                    "label": "Magic School",
+                    "value": "Water: Saint, Fire: Advanced, Earth: Advanced, Wind: Advanced, Healing: Elementary"
+                  }
+                ]
+              },
+              {
+                "key": "languages",
+                "kind": "field",
+                "text": "Languages: Human God (Native), Demon God (Fluent)",
+                "fields": [
+                  {
+                    "label": "Languages",
+                    "value": "Human God (Native), Demon God (Fluent)"
+                  }
+                ]
+              },
+              {
+                "key": "equipment",
+                "kind": "field",
+                "text": "Equipment: Roxy's wand — keepsake / magic focus, Migurd amulet — Roxy's parting gift",
+                "fields": [
+                  {
+                    "label": "Equipment",
+                    "value": "Roxy's wand — keepsake / magic focus, Migurd amulet — Roxy's parting gift"
+                  }
+                ]
+              },
+              {
+                "key": "module:HITOGAMI:contact — dreams: 1",
+                "kind": "module",
+                "text": "[HITOGAMI: Contact — Dreams: 1]",
+                "tag": "HITOGAMI",
+                "value": "Contact — Dreams: 1"
+              },
+              {
+                "key": "memory",
+                "kind": "field",
+                "text": "Memory: Memory 1",
+                "fields": [
+                  {
+                    "label": "Memory",
+                    "value": "Memory 1"
+                  }
+                ]
+              }
+            ],
+            "time": "17:30",
+            "location": [
+              "Six-Faced World",
+              "Central Continent",
+              "Asura Kingdom (Fittoa Region)",
+              "Buena Village",
+              "The practice yard"
+            ],
+            "arc": "Arc 2-B: Hearth & Home",
+            "quests": null,
+            "fromHtml": false
+          },
+          "noHud": null,
+          "guard": null,
+          "pins": {},
+          "questNotes": [],
+          "atlas": null,
+          "arcCheck": null,
+          "mapBank": {
+            "rooms": [],
+            "here": "six-faced world|buena village > the practice yard",
+            "chatRoom": false
+          },
+          "systems": {
+            "stale": false,
+            "clock": 1050,
+            "clockDated": true,
+            "vitals": [],
+            "meters": [],
+            "notes": [],
+            "wounds": [],
+            "healed": [
+              "bruised jaw"
+            ],
+            "conditions": [],
+            "cleared": [],
+            "flags": [],
+            "abilities": [
+              {
+                "category": "Magic",
+                "items": [
+                  {
+                    "name": "Water: Saint",
+                    "state": null,
+                    "level": null,
+                    "label": "Magic School",
+                    "lineKey": "magic school",
+                    "src": "MAGIC SCHOOL"
+                  },
+                  {
+                    "name": "Fire: Advanced",
+                    "state": null,
+                    "level": null,
+                    "label": "Magic School",
+                    "lineKey": "magic school",
+                    "src": "MAGIC SCHOOL"
+                  },
+                  {
+                    "name": "Earth: Advanced",
+                    "state": null,
+                    "level": null,
+                    "label": "Magic School",
+                    "lineKey": "magic school",
+                    "src": "MAGIC SCHOOL"
+                  },
+                  {
+                    "name": "Wind: Advanced",
+                    "state": null,
+                    "level": null,
+                    "label": "Magic School",
+                    "lineKey": "magic school",
+                    "src": "MAGIC SCHOOL"
+                  },
+                  {
+                    "name": "Healing: Elementary",
+                    "state": null,
+                    "level": null,
+                    "label": "Magic School",
+                    "lineKey": "magic school",
+                    "src": "MAGIC SCHOOL"
+                  }
+                ]
+              }
+            ],
+            "quests": [],
+            "objectives": [],
+            "journal": [],
+            "blocks": [],
+            "attributes": [],
+            "rolls": [],
+            "notices": [],
+            "immunities": {
+              "sleep": false,
+              "food": false,
+              "drink": false,
+              "mindDampened": false,
+              "reason": null
+            },
+            "survival": null,
+            "danger": [],
+            "questFocus": null
+          },
+          "party": {
+            "members": [
+              {
+                "name": "Paul Greyrat",
+                "key": "paul greyrat",
+                "aliases": [],
+                "present": false,
+                "seen": 0,
+                "lastSeen": null,
+                "cur": null,
+                "dims": [],
+                "alerts": [],
+                "events": []
+              }
+            ],
+            "suggest": [],
+            "max": 8
+          },
+          "relations": {
+            "people": [
+              {
+                "key": "paul greyrat",
+                "name": "Paul Greyrat",
+                "standing": null,
+                "rank": null,
+                "max": 9,
+                "neutral": 4,
+                "tone": "unknown",
+                "bond": "father",
+                "minor": false,
+                "pinned": null,
+                "mood": "proud",
+                "why": null,
+                "present": true,
+                "seen": 2,
+                "metAgo": 630,
+                "lastSeen": 0,
+                "party": true,
+                "details": null,
+                "bars": [],
+                "events": [],
+                "alerts": []
+              }
+            ],
+            "ladder": [
+              "Nemesis",
+              "Enemy",
+              "Hostile",
+              "Wary",
+              "Stranger",
+              "Acquaintance",
+              "Friendly",
+              "Friend",
+              "Close",
+              "Devoted"
+            ],
+            "neutral": 4,
+            "layout": "cards"
+          },
+          "family": {
+            "members": [
+              {
+                "key": "paul greyrat",
+                "name": "Paul Greyrat",
+                "relation": "father",
+                "status": "alive",
+                "where": "Buena Village › The practice yard",
+                "known": "seen",
+                "since": 0,
+                "present": true,
+                "seenAgo": 0,
+                "everSeen": true,
+                "doing": "Laughing for the first time in days",
+                "doingNow": true,
+                "from": "story",
+                "pinned": null,
+                "history": [
+                  {
+                    "where": "Buena Village › The Greyrat House (kitchen)",
+                    "known": "seen",
+                    "ago": 630
+                  },
+                  {
+                    "where": "Buena Village › The practice yard",
+                    "known": "seen",
+                    "ago": 0
+                  }
+                ],
+                "changes": [],
+                "alerts": []
+              },
+              {
+                "key": "zenith greyrat",
+                "name": "Zenith Greyrat",
+                "relation": "mother",
+                "status": "alive",
+                "where": "The village clinic",
+                "known": "told",
+                "since": 0,
+                "present": false,
+                "seenAgo": null,
+                "everSeen": false,
+                "doing": "Helping with a fever patient until late",
+                "doingNow": true,
+                "from": "story",
+                "pinned": null,
+                "history": [
+                  {
+                    "where": "The Greyrat House (upstairs)",
+                    "known": "told",
+                    "ago": 630
+                  },
+                  {
+                    "where": "The village clinic",
+                    "known": "told",
+                    "ago": 0
+                  }
+                ],
+                "changes": [],
+                "alerts": [
+                  {
+                    "sev": "info",
+                    "text": "Zenith Greyrat: now at The village clinic."
+                  }
+                ]
+              }
+            ],
+            "hidden": 0,
+            "ask": true,
+            "tell": true
+          },
+          "gear": {
+            "items": [
+              {
+                "key": "satchel",
+                "name": "Satchel",
+                "state": "stowed",
+                "where": "hung on the fence",
+                "inside": null,
+                "from": "story",
+                "onHud": false,
+                "mine": false,
+                "ago": 0,
+                "changedNow": true,
+                "history": [
+                  {
+                    "state": "on body",
+                    "where": "over the shoulder",
+                    "inside": null,
+                    "ago": 630,
+                    "you": false
+                  },
+                  {
+                    "state": "stowed",
+                    "where": "hung on the fence",
+                    "inside": null,
+                    "ago": 0,
+                    "you": false
+                  }
+                ]
+              },
+              {
+                "key": "healing primer",
+                "name": "Healing primer",
+                "state": "in container",
+                "where": null,
+                "inside": "Satchel",
+                "from": "story",
+                "onHud": false,
+                "mine": false,
+                "ago": 630,
+                "changedNow": false,
+                "history": [
+                  {
+                    "state": "in container",
+                    "where": null,
+                    "inside": "Satchel",
+                    "ago": 630,
+                    "you": false
+                  }
+                ]
+              },
+              {
+                "key": "staff",
+                "name": "Staff",
+                "state": "stowed",
+                "where": "by the door",
+                "inside": null,
+                "from": "story",
+                "onHud": false,
+                "mine": false,
+                "ago": 630,
+                "changedNow": false,
+                "history": [
+                  {
+                    "state": "stowed",
+                    "where": "by the door",
+                    "inside": null,
+                    "ago": 630,
+                    "you": false
+                  }
+                ]
+              },
+              {
+                "key": "wooden practice sword",
+                "name": "Wooden practice sword",
+                "state": "in hand",
+                "where": null,
+                "inside": null,
+                "from": "story",
+                "onHud": false,
+                "mine": false,
+                "ago": 0,
+                "changedNow": true,
+                "history": [
+                  {
+                    "state": "in hand",
+                    "where": null,
+                    "inside": null,
+                    "ago": 0,
+                    "you": false
+                  }
+                ]
+              },
+              {
+                "key": "roxy's wand",
+                "name": "Roxy's wand",
+                "state": null,
+                "where": null,
+                "inside": null,
+                "from": "hud",
+                "onHud": true,
+                "mine": false,
+                "ago": null,
+                "changedNow": false,
+                "history": []
+              },
+              {
+                "key": "migurd amulet",
+                "name": "Migurd amulet",
+                "state": null,
+                "where": null,
+                "inside": null,
+                "from": "hud",
+                "onHud": true,
+                "mine": false,
+                "ago": null,
+                "changedNow": false,
+                "history": []
+              }
+            ],
+            "gone": [],
+            "containers": [
+              "Satchel"
+            ],
+            "ask": true,
+            "tell": true
+          },
+          "agenda": {
+            "items": [
+              {
+                "key": "walk sylphie home from the river",
+                "what": "Walk Sylphie home from the river",
+                "with": "Sylphie",
+                "where": "the river",
+                "when": "tomorrow afternoon",
+                "dueIn": 1290,
+                "kind": "promise",
+                "state": "open",
+                "status": "upcoming",
+                "from": "story",
+                "mine": false,
+                "isNew": true
+              },
+              {
+                "key": "sword practice with paul",
+                "what": "Sword practice with Paul",
+                "with": "Paul Greyrat",
+                "where": "the practice yard",
+                "when": "this evening",
+                "dueIn": 30,
+                "kind": "meeting",
+                "state": "kept",
+                "status": "kept",
+                "from": "story",
+                "mine": false,
+                "isNew": true
+              }
+            ],
+            "ask": true,
+            "tell": true,
+            "clock": true
+          },
+          "holdings": {
+            "items": [
+              {
+                "key": "caravan pony",
+                "name": "Caravan pony",
+                "kind": "mount",
+                "where": "the Greyrat stable",
+                "note": "Paul's old pony, now yours to ride",
+                "lost": false,
+                "onHud": false,
+                "from": "story",
+                "mine": false,
+                "held": 0,
+                "isNew": true,
+                "kept": []
+              },
+              {
+                "key": "your room in the greyrat house",
+                "name": "Your room in the Greyrat House",
+                "kind": "home",
+                "where": "upstairs, Buena Village",
+                "note": "a desk by the window",
+                "lost": false,
+                "onHud": false,
+                "from": "story",
+                "mine": false,
+                "held": 630,
+                "isNew": false,
+                "kept": []
+              }
+            ],
+            "ask": true,
+            "tell": true
+          },
+          "money": {
+            "balance": null,
+            "totals": [
+              {
+                "currency": "silver",
+                "in": 5,
+                "out": 3
+              }
+            ],
+            "ledger": [
+              {
+                "id": "mushoku1:2",
+                "amount": 3,
+                "currency": "silver",
+                "kind": "repaid",
+                "dir": "out",
+                "what": "the healer's fee",
+                "with": "the village healer",
+                "from": "story",
+                "ago": 0,
+                "isNew": true
+              },
+              {
+                "id": "mushoku1:1",
+                "amount": 5,
+                "currency": "silver",
+                "kind": "income",
+                "dir": "in",
+                "what": "helping at the clinic",
+                "with": "Zenith Greyrat",
+                "from": "story",
+                "ago": 0,
+                "isNew": true
+              },
+              {
+                "id": "mushoku0:0",
+                "amount": 3,
+                "currency": "silver",
+                "kind": "debt",
+                "dir": "none",
+                "what": "the healer's fee for Paul's jaw",
+                "with": "the village healer",
+                "from": "story",
+                "ago": 630,
+                "isNew": false
+              }
+            ],
+            "debts": [],
+            "ask": true,
+            "tell": true
+          },
+          "factions": {
+            "items": [
+              {
+                "key": "sword god style",
+                "name": "Sword God Style",
+                "standing": "member",
+                "rank": 7,
+                "max": 7,
+                "title": "Beginner",
+                "bounty": null,
+                "why": "Paul taught you the first form",
+                "members": [
+                  "Paul Greyrat"
+                ],
+                "onHud": false,
+                "from": "story",
+                "mine": false,
+                "isNew": true,
+                "history": [
+                  {
+                    "from": null,
+                    "to": "member",
+                    "why": "Paul taught you the first form",
+                    "ago": 0
+                  }
+                ],
+                "moved": {
+                  "from": null,
+                  "to": "member"
+                }
+              },
+              {
+                "key": "buena village",
+                "name": "Buena Village",
+                "standing": "friendly",
+                "rank": 4,
+                "max": 7,
+                "title": null,
+                "bounty": null,
+                "why": "Word spread that you healed the miller's son",
+                "members": [],
+                "onHud": false,
+                "from": "story",
+                "mine": false,
+                "isNew": true,
+                "history": [
+                  {
+                    "from": null,
+                    "to": "friendly",
+                    "why": "Word spread that you healed the miller's son",
+                    "ago": 0
+                  }
+                ],
+                "moved": {
+                  "from": null,
+                  "to": "friendly"
+                }
+              }
+            ],
+            "ladder": [
+              "hunted",
+              "hostile",
+              "unfriendly",
+              "neutral",
+              "friendly",
+              "trusted",
+              "allied",
+              "member"
+            ],
+            "ask": true,
+            "tell": true
+          },
+          "secrets": {
+            "yours": [
+              {
+                "key": "you can cast without an incantation",
+                "text": "You can cast without an incantation",
+                "whose": "user",
+                "mine": true,
+                "from": "story",
+                "isNew": false,
+                "knownBy": [
+                  {
+                    "name": "Paul Greyrat",
+                    "how": "He saw you light the hearth without a word",
+                    "ago": 630,
+                    "isNew": false
+                  }
+                ]
+              }
+            ],
+            "theirs": [
+              {
+                "key": "paul sold his old sword to pay for the roof",
+                "text": "Paul sold his old sword to pay for the roof",
+                "whose": "Paul Greyrat",
+                "mine": false,
+                "from": "story",
+                "isNew": true,
+                "knownBy": []
+              }
+            ],
+            "ask": true,
+            "tell": true
+          },
+          "comms": {
+            "kind": "phone",
+            "title": "Phone",
+            "icon": "📱",
+            "canText": true,
+            "canPay": true,
+            "device": null,
+            "balance": null,
+            "contacts": [],
+            "threads": [],
+            "notices": [],
+            "canSet": true
+          },
+          "you": {
+            "mood": null,
+            "stress": null,
+            "sanity": null,
+            "xp": {
+              "mode": "tracked",
+              "total": 0,
+              "max": null,
+              "level": null,
+              "lastGain": null,
+              "derivedLevel": 1,
+              "nextAt": 100,
+              "prevAt": 0,
+              "levelUp": false
+            },
+            "vitals": [],
+            "equipment": "Equipment: Roxy's wand — keepsake / magic focus, Migurd amulet — Roxy's parting gift",
+            "carried": [],
+            "standard": null
+          },
+          "magic": {
+            "pools": [],
+            "meters": [],
+            "arts": [
+              {
+                "category": "Magic",
+                "items": [
+                  {
+                    "name": "Water: Saint",
+                    "state": null,
+                    "level": null,
+                    "label": "Magic School",
+                    "lineKey": "magic school",
+                    "src": "MAGIC SCHOOL"
+                  },
+                  {
+                    "name": "Fire: Advanced",
+                    "state": null,
+                    "level": null,
+                    "label": "Magic School",
+                    "lineKey": "magic school",
+                    "src": "MAGIC SCHOOL"
+                  },
+                  {
+                    "name": "Earth: Advanced",
+                    "state": null,
+                    "level": null,
+                    "label": "Magic School",
+                    "lineKey": "magic school",
+                    "src": "MAGIC SCHOOL"
+                  },
+                  {
+                    "name": "Wind: Advanced",
+                    "state": null,
+                    "level": null,
+                    "label": "Magic School",
+                    "lineKey": "magic school",
+                    "src": "MAGIC SCHOOL"
+                  },
+                  {
+                    "name": "Healing: Elementary",
+                    "state": null,
+                    "level": null,
+                    "label": "Magic School",
+                    "lineKey": "magic school",
+                    "src": "MAGIC SCHOOL"
+                  }
+                ]
+              }
+            ],
+            "cooldowns": [],
+            "spellbook": [],
+            "list": null
+          },
+          "map": null,
+          "minds": {
+            "cfg": {
+              "on": true,
+              "matrix": true,
+              "pairs": "all",
+              "agendas": true,
+              "knowledge": true,
+              "chekhov": true
+            },
+            "people": [],
+            "chekhov": {
+              "chamber": [],
+              "locked": [],
+              "fired": [],
+              "gone": 0,
+              "byYou": []
+            },
+            "turn": 1,
+            "undone": 0,
+            "clock": 1050
+          },
+          "buildings": null
+        },
+        "plot": {
+          "on": {
+            "plot": true,
+            "objectives": true
+          },
+          "now": null,
+          "threads": [],
+          "resolved": [],
+          "objectives": [],
+          "mine": []
+        },
+        "injuries": {
+          "on": true,
+          "hudOwns": true,
+          "list": []
+        },
+        "chapters": {
+          "list": [],
+          "open": {},
+          "knowledge": [],
+          "busy": false
+        }
+      }
+    }
+  ]
+}
+

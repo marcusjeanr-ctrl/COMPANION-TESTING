@@ -1,0 +1,18 @@
+{
+  "pt": {
+    "spell: Rank unknown": "Rank desconhecido",
+    "{0} rank unknown": "{0} sem rank definido"
+  },
+  "es": {
+    "spell: Rank unknown": "Rango desconocido",
+    "{0} rank unknown": "{0} sin rango definido"
+  },
+  "ru": {
+    "spell: Rank unknown": "Ранг неизвестен",
+    "{0} rank unknown": "ранг неизвестен: {0}"
+  },
+  "tr": {
+    "spell: Rank unknown": "Rütbe bilinmiyor",
+    "{0} rank unknown": "{0} rütbesi bilinmiyor"
+  }
+}

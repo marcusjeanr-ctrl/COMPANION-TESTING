@@ -1,0 +1,34 @@
+FAIL stored study notes, item labels and agenda titles retain confirmed-length text: Expected values to be strictly equal:
++ actual - expected
+
++ 'Held a steady sphere above the palm without incantation; the instructor praised '
+- 'Held a steady sphere above the palm without incantation; the instructor praised its stability and explained the next exercise.'
+
+FAIL bounded over-limit text ends visibly, not as a silently chopped word: The expression evaluated to a falsy value:
+
+  assert(note.endsWith('…'))
+
+FAIL permission is not a carried object; physical permits and actual borrowed books survive: Expected values to be strictly deep-equal:
++ actual - expected
+
+  [
++   'Permission to borrow books from the collection',
++   'Approval to enter the archive',
+    'Permission slip',
+    'Written travel permit',
+    'Borrowed Fire primer'
+  ]
+
+FAIL a future scheduled event stays open while the current scene is only preparing for it: Expected values to be strictly equal:
++ actual - expected
+
++ 'in_progress'
+- 'open'
+
+FAIL casting-method annotations share one known identity, including legacy readings: The expression evaluated to a falsy value:
+
+  assert(c.spellKnown(chat, st, null, 'spells').has('water ball'))
+
+PASS real variants remain separate; exact catalog names beat annotation stripping
+PASS new spell study and manual completed-study history retain their existing behavior
+2.9.3 tracking: 2/7 groups passed.

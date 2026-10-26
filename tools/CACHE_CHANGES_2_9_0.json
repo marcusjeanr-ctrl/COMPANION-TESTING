@@ -1,0 +1,38 @@
+[
+  {
+    "before": "    const textKey = hud.lines.map(l => l.text).join('\\n');\n    const hit = hmsSysCache.get(hud) || hmsSysTextCache.get(textKey);\n    if (hit && hit.ver === hmsCfgVer) return hit.sys;",
+    "after": "    const identity = hmsSysCache.get(hud);\n    if (identity && identity.ver === hmsCfgVer) return identity.sys;\n    const textKey = hud.lines.map(l => l.text).join('\\n');\n    const hit = hmsSysTextCache.get(textKey);\n    if (hit && hit.ver === hmsCfgVer) {\n        hmsSysCache.set(hud, hit);\n        return hit.sys;\n    }"
+  },
+  {
+    "before": "function hmsNorm(s) {\n    return String(s || '').replace(/^[^\\p{L}\\p{N}[]+/u, '').replace(/[:\\s]+$/, '').trim().toLowerCase();\n}",
+    "after": "function hmsNorm(s) {\n    const text = String(s || '');\n    const cache = activeReadPass ? memoRead(activeReadPass.chat, 'normalizedLabels', () => new Map()) : null;\n    if (cache && cache.has(text)) return cache.get(text);\n    const result = text.replace(/^[^\\p{L}\\p{N}[]+/u, '').replace(/[:\\s]+$/, '').trim().toLowerCase();\n    if (cache && cache.size < 512) cache.set(text, result);\n    return result;\n}"
+  },
+  {
+    "before": "function hmsClock(hud) {",
+    "after": "function hmsClock(hud) {\n    if (!activeReadPass || !hud) return hmsClockUncached(hud);\n    const clocks = memoRead(activeReadPass.chat, 'hudClocks', () => new WeakMap());\n    if (!clocks.has(hud)) clocks.set(hud, hmsClockUncached(hud));\n    return clocks.get(hud);\n}\nfunction hmsClockUncached(hud) {"
+  },
+  {
+    "before": "function hmsReadQuests(hud, cfg) {",
+    "after": "function hmsReadQuests(hud, cfg) {\n    if (!activeReadPass || !hud) return hmsReadQuestsUncached(hud, cfg);\n    const cache = memoRead(activeReadPass.chat, 'questReads', () => new WeakMap());\n    const hit = cache.get(hud);\n    if (hit && hit.cfg === cfg) return hit.data;\n    const data = hmsReadQuestsUncached(hud, cfg);\n    cache.set(hud, { cfg, data });\n    return data;\n}\nfunction hmsReadQuestsUncached(hud, cfg) {"
+  },
+  {
+    "before": "    const hud = parseHud(text) || null;\n    hmsParseCache.set(key, { text, hud });",
+    "after": "    const shared = activeReadPass ? memoRead(activeReadPass.chat, 'hudText', () => new Map()) : null;\n    let hud;\n    if (shared && shared.has(text)) hud = shared.get(text);\n    else {\n        hud = parseHud(text) || null;\n        if (shared && shared.size < 600) shared.set(text, hud);\n    }\n    hmsParseCache.set(key, { text, hud });"
+  },
+  {
+    "before": "        if (!k) return null;\n        const member = partyMatch(roster, name);",
+    "after": "        if (!k) return null;\n        if (known.has(k)) return k;\n        const member = partyMatch(roster, name);"
+  },
+  {
+    "before": "function worldOf(lines) {\n    const t = lines.join('\\n');",
+    "after": "function worldOf(lines) {\n    const t = lines.join('\\n');\n    const cache = activeReadPass ? memoRead(activeReadPass.chat, 'worldIdentity', () => new Map()) : null;\n    if (cache && cache.has(t)) return cache.get(t);"
+  },
+  {
+    "before": "    return best;\n}\n\nfunction worldFind(lines, re)",
+    "after": "    if (cache && cache.size < 600) cache.set(t, best);\n    return best;\n}\n\nfunction worldFind(lines, re)"
+  },
+  {
+    "before": "while (spellEstablishedCache.size > 600)",
+    "after": "while (spellEstablishedCache.size > 3000)"
+  }
+]

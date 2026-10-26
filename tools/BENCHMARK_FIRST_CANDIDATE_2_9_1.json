@@ -1,0 +1,372 @@
+{
+  "policy": {
+    "baseline": "supplied 2.9.0 archive, b1855cd4f1bd5345f7b0505194939d0253fbcfb632cb87a4ef98706653a3099a",
+    "runs": 5,
+    "messages": [
+      600,
+      2000
+    ],
+    "acceptance": "Each median timing must not increase by more than max(5% baseline, 1ms).",
+    "metrics": [
+      "cold panel read",
+      "warm panel read",
+      "report normalization",
+      "response processing",
+      "prompt construction"
+    ],
+    "budget": "No additional model calls, refresh triggers or full-chat verification passes; compare static and populated prompt character counts separately from tokens."
+  },
+  "raw": [
+    {
+      "file": "/workspace/scratch/9e47792efe19/incoming-290/rpg_companion_hms/dist/backend.js",
+      "messages": 600,
+      "coldMs": 185.22,
+      "medianMs": 52.24,
+      "warnings": 0,
+      "run": 0,
+      "kind": "panel"
+    },
+    {
+      "file": "/workspace/scratch/9e47792efe19/Companion-2.9.0/dist/backend.js",
+      "messages": 600,
+      "coldMs": 165.05,
+      "medianMs": 55.74,
+      "warnings": 0,
+      "run": 0,
+      "kind": "panel"
+    },
+    {
+      "file": "/workspace/scratch/9e47792efe19/incoming-290/rpg_companion_hms/dist/backend.js",
+      "messages": 2000,
+      "coldMs": 396.14,
+      "medianMs": 89.75,
+      "warnings": 0,
+      "run": 0,
+      "kind": "panel"
+    },
+    {
+      "file": "/workspace/scratch/9e47792efe19/Companion-2.9.0/dist/backend.js",
+      "messages": 2000,
+      "coldMs": 372.58,
+      "medianMs": 100.61,
+      "warnings": 0,
+      "run": 0,
+      "kind": "panel"
+    },
+    {
+      "file": "/workspace/scratch/9e47792efe19/incoming-290/rpg_companion_hms/dist/backend.js",
+      "parseReportMedianMs": 0.4298,
+      "processResponseMedianMs": 0.5857,
+      "promptConstructMedianMs": 0.3076,
+      "promptCharacters": 15633,
+      "populatedPromptCharacters": 19329,
+      "warnings": 0,
+      "run": 0,
+      "kind": "pipeline"
+    },
+    {
+      "file": "/workspace/scratch/9e47792efe19/Companion-2.9.0/dist/backend.js",
+      "parseReportMedianMs": 0.4188,
+      "processResponseMedianMs": 0.558,
+      "promptConstructMedianMs": 0.28,
+      "promptCharacters": 15397,
+      "populatedPromptCharacters": 19093,
+      "warnings": 0,
+      "run": 0,
+      "kind": "pipeline"
+    },
+    {
+      "file": "/workspace/scratch/9e47792efe19/Companion-2.9.0/dist/backend.js",
+      "messages": 600,
+      "coldMs": 189.57,
+      "medianMs": 59.1,
+      "warnings": 0,
+      "run": 1,
+      "kind": "panel"
+    },
+    {
+      "file": "/workspace/scratch/9e47792efe19/incoming-290/rpg_companion_hms/dist/backend.js",
+      "messages": 600,
+      "coldMs": 159.74,
+      "medianMs": 53,
+      "warnings": 0,
+      "run": 1,
+      "kind": "panel"
+    },
+    {
+      "file": "/workspace/scratch/9e47792efe19/Companion-2.9.0/dist/backend.js",
+      "messages": 2000,
+      "coldMs": 404.85,
+      "medianMs": 94.63,
+      "warnings": 0,
+      "run": 1,
+      "kind": "panel"
+    },
+    {
+      "file": "/workspace/scratch/9e47792efe19/incoming-290/rpg_companion_hms/dist/backend.js",
+      "messages": 2000,
+      "coldMs": 368.74,
+      "medianMs": 89.52,
+      "warnings": 0,
+      "run": 1,
+      "kind": "panel"
+    },
+    {
+      "file": "/workspace/scratch/9e47792efe19/Companion-2.9.0/dist/backend.js",
+      "parseReportMedianMs": 0.3958,
+      "processResponseMedianMs": 0.5355,
+      "promptConstructMedianMs": 0.2664,
+      "promptCharacters": 15397,
+      "populatedPromptCharacters": 19093,
+      "warnings": 0,
+      "run": 1,
+      "kind": "pipeline"
+    },
+    {
+      "file": "/workspace/scratch/9e47792efe19/incoming-290/rpg_companion_hms/dist/backend.js",
+      "parseReportMedianMs": 0.3826,
+      "processResponseMedianMs": 0.5249,
+      "promptConstructMedianMs": 0.2639,
+      "promptCharacters": 15633,
+      "populatedPromptCharacters": 19329,
+      "warnings": 0,
+      "run": 1,
+      "kind": "pipeline"
+    },
+    {
+      "file": "/workspace/scratch/9e47792efe19/incoming-290/rpg_companion_hms/dist/backend.js",
+      "messages": 600,
+      "coldMs": 170.41,
+      "medianMs": 53.07,
+      "warnings": 0,
+      "run": 2,
+      "kind": "panel"
+    },
+    {
+      "file": "/workspace/scratch/9e47792efe19/Companion-2.9.0/dist/backend.js",
+      "messages": 600,
+      "coldMs": 167.93,
+      "medianMs": 57.71,
+      "warnings": 0,
+      "run": 2,
+      "kind": "panel"
+    },
+    {
+      "file": "/workspace/scratch/9e47792efe19/incoming-290/rpg_companion_hms/dist/backend.js",
+      "messages": 2000,
+      "coldMs": 389.52,
+      "medianMs": 93.54,
+      "warnings": 0,
+      "run": 2,
+      "kind": "panel"
+    },
+    {
+      "file": "/workspace/scratch/9e47792efe19/Companion-2.9.0/dist/backend.js",
+      "messages": 2000,
+      "coldMs": 422.24,
+      "medianMs": 102.64,
+      "warnings": 0,
+      "run": 2,
+      "kind": "panel"
+    },
+    {
+      "file": "/workspace/scratch/9e47792efe19/incoming-290/rpg_companion_hms/dist/backend.js",
+      "parseReportMedianMs": 0.3978,
+      "processResponseMedianMs": 0.5313,
+      "promptConstructMedianMs": 0.2795,
+      "promptCharacters": 15633,
+      "populatedPromptCharacters": 19329,
+      "warnings": 0,
+      "run": 2,
+      "kind": "pipeline"
+    },
+    {
+      "file": "/workspace/scratch/9e47792efe19/Companion-2.9.0/dist/backend.js",
+      "parseReportMedianMs": 0.3887,
+      "processResponseMedianMs": 0.5261,
+      "promptConstructMedianMs": 0.2681,
+      "promptCharacters": 15397,
+      "populatedPromptCharacters": 19093,
+      "warnings": 0,
+      "run": 2,
+      "kind": "pipeline"
+    },
+    {
+      "file": "/workspace/scratch/9e47792efe19/Companion-2.9.0/dist/backend.js",
+      "messages": 600,
+      "coldMs": 181.74,
+      "medianMs": 58.87,
+      "warnings": 0,
+      "run": 3,
+      "kind": "panel"
+    },
+    {
+      "file": "/workspace/scratch/9e47792efe19/incoming-290/rpg_companion_hms/dist/backend.js",
+      "messages": 600,
+      "coldMs": 157.62,
+      "medianMs": 51.84,
+      "warnings": 0,
+      "run": 3,
+      "kind": "panel"
+    },
+    {
+      "file": "/workspace/scratch/9e47792efe19/Companion-2.9.0/dist/backend.js",
+      "messages": 2000,
+      "coldMs": 401.58,
+      "medianMs": 100.95,
+      "warnings": 0,
+      "run": 3,
+      "kind": "panel"
+    },
+    {
+      "file": "/workspace/scratch/9e47792efe19/incoming-290/rpg_companion_hms/dist/backend.js",
+      "messages": 2000,
+      "coldMs": 362.74,
+      "medianMs": 87,
+      "warnings": 0,
+      "run": 3,
+      "kind": "panel"
+    },
+    {
+      "file": "/workspace/scratch/9e47792efe19/Companion-2.9.0/dist/backend.js",
+      "parseReportMedianMs": 0.3926,
+      "processResponseMedianMs": 0.5463,
+      "promptConstructMedianMs": 0.2791,
+      "promptCharacters": 15397,
+      "populatedPromptCharacters": 19093,
+      "warnings": 0,
+      "run": 3,
+      "kind": "pipeline"
+    },
+    {
+      "file": "/workspace/scratch/9e47792efe19/incoming-290/rpg_companion_hms/dist/backend.js",
+      "parseReportMedianMs": 0.385,
+      "processResponseMedianMs": 0.5281,
+      "promptConstructMedianMs": 0.2616,
+      "promptCharacters": 15633,
+      "populatedPromptCharacters": 19329,
+      "warnings": 0,
+      "run": 3,
+      "kind": "pipeline"
+    },
+    {
+      "file": "/workspace/scratch/9e47792efe19/incoming-290/rpg_companion_hms/dist/backend.js",
+      "messages": 600,
+      "coldMs": 174.06,
+      "medianMs": 54.7,
+      "warnings": 0,
+      "run": 4,
+      "kind": "panel"
+    },
+    {
+      "file": "/workspace/scratch/9e47792efe19/Companion-2.9.0/dist/backend.js",
+      "messages": 600,
+      "coldMs": 179.49,
+      "medianMs": 62.46,
+      "warnings": 0,
+      "run": 4,
+      "kind": "panel"
+    },
+    {
+      "file": "/workspace/scratch/9e47792efe19/incoming-290/rpg_companion_hms/dist/backend.js",
+      "messages": 2000,
+      "coldMs": 384.16,
+      "medianMs": 90.7,
+      "warnings": 0,
+      "run": 4,
+      "kind": "panel"
+    },
+    {
+      "file": "/workspace/scratch/9e47792efe19/Companion-2.9.0/dist/backend.js",
+      "messages": 2000,
+      "coldMs": 390.95,
+      "medianMs": 98.54,
+      "warnings": 0,
+      "run": 4,
+      "kind": "panel"
+    },
+    {
+      "file": "/workspace/scratch/9e47792efe19/incoming-290/rpg_companion_hms/dist/backend.js",
+      "parseReportMedianMs": 0.3898,
+      "processResponseMedianMs": 0.5381,
+      "promptConstructMedianMs": 0.2639,
+      "promptCharacters": 15633,
+      "populatedPromptCharacters": 19329,
+      "warnings": 0,
+      "run": 4,
+      "kind": "pipeline"
+    },
+    {
+      "file": "/workspace/scratch/9e47792efe19/Companion-2.9.0/dist/backend.js",
+      "parseReportMedianMs": 0.3884,
+      "processResponseMedianMs": 0.5295,
+      "promptConstructMedianMs": 0.2663,
+      "promptCharacters": 15397,
+      "populatedPromptCharacters": 19093,
+      "warnings": 0,
+      "run": 4,
+      "kind": "pipeline"
+    }
+  ],
+  "summary": [
+    {
+      "metric": "coldMs",
+      "messages": 600,
+      "baseline": 170.41,
+      "patched": 179.49,
+      "passed": false
+    },
+    {
+      "metric": "medianMs",
+      "messages": 600,
+      "baseline": 53,
+      "patched": 58.87,
+      "passed": false
+    },
+    {
+      "metric": "coldMs",
+      "messages": 2000,
+      "baseline": 384.16,
+      "patched": 401.58,
+      "passed": true
+    },
+    {
+      "metric": "medianMs",
+      "messages": 2000,
+      "baseline": 89.75,
+      "patched": 100.61,
+      "passed": false
+    },
+    {
+      "metric": "parseReportMedianMs",
+      "baseline": 0.3898,
+      "patched": 0.3926,
+      "passed": true
+    },
+    {
+      "metric": "processResponseMedianMs",
+      "baseline": 0.5313,
+      "patched": 0.5355,
+      "passed": true
+    },
+    {
+      "metric": "promptConstructMedianMs",
+      "baseline": 0.2639,
+      "patched": 0.2681,
+      "passed": true
+    },
+    {
+      "metric": "promptCharacters",
+      "baseline": 15633,
+      "patched": 15397,
+      "passed": true
+    },
+    {
+      "metric": "populatedPromptCharacters",
+      "baseline": 19329,
+      "patched": 19093,
+      "passed": true
+    }
+  ],
+  "passed": false
+}

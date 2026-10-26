@@ -1,0 +1,53 @@
+{
+  "v": 2,
+  "seed": null,
+  "locks": {},
+  "checkpoint": null,
+  "encounter": null,
+  "encounterLogs": [],
+  "song": null,
+  "pins": {},
+  "questNotes": [],
+  "survival": {
+    "log": []
+  },
+  "party": {
+    "members": []
+  },
+  "comms": {
+    "contacts": []
+  },
+  "relPins": {
+    "rin": {
+      "bond": "mother"
+    }
+  },
+  "spellbook": [
+    {
+      "name": "Spark",
+      "manual": true
+    }
+  ],
+  "questFocus": null,
+  "xpAdjust": 0,
+  "immersive": null,
+  "pockets": {
+    "added": [
+      "Keepsake"
+    ]
+  },
+  "rooms": {
+    "hall": {
+      "name": "Hall"
+    }
+  },
+  "extensionFutureField": {
+    "source": "2.8.1",
+    "values": [
+      0,
+      false,
+      null,
+      "retained"
+    ]
+  }
+}

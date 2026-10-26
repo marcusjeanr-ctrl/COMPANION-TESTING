@@ -1,0 +1,93 @@
+--- 2.9.1/dist/backend.js
++++ 2.9.2/dist/backend.js
+@@ -2340,7 +2340,7 @@
+ // Demo mode plays scripted turns (no tokens); Live mode asks the model, with a small
+ // world narrator standing in for a bot card.
+ 
+-const RPGC_VERSION = '2.9.1';
++const RPGC_VERSION = '2.9.2';
+ const diagLog = [];
+ function diagPush(kind, m) { diagLog.push({ at: new Date().toISOString(), kind, text: String(m).slice(0, 400) }); if (diagLog.length > 60) diagLog.shift(); }
+ function logW(m) { diagPush('warn', m); return spindle.log.warn(m); }
+@@ -10497,7 +10497,7 @@
+                     // a bare time ("08:40") is read from the clock of the reply that gave it, so a passed deadline shows overdue
+                     const whenOf = (d) => hmsParseWhen(d.deadline, d.readAt !== null && d.readAt !== undefined ? d.readAt : now);
+                     const attach = (q) => { const d = find(q); if (!d) return q; const when = whenOf(d); return { ...q, ...d, name: q.name, dueIn: when !== null && now !== null ? when - now : null }; };
+-                    systems.quests = systems.quests.map(attach);
++                    systems.quests = questUnique(systems.quests.map(attach));
+                     for (const d of det) if (!systems.quests.some(q => questMatch(q, d))) { const when = whenOf(d); systems.quests.push({ ...d, state: null, cls: 'active', fromStory: true, dueIn: when !== null && now !== null ? when - now : null }); }
+                     systems.questFocus = st.questFocus || null;
+                 }
+@@ -15570,14 +15570,55 @@
+         w.length > 5 ? w.replace(/ments?$/, '').replace(/ing$/, '').replace(/e$/, '') : w));
+ }
+ 
++function questObjectiveKey(value) {
++    const text = String(value || '');
++    const cache = activeReadPass ? memoRead(activeReadPass.chat, 'questObjectiveKeys', () => new Map()) : null;
++    if (cache?.has(text)) return cache.get(text);
++    let t = text.normalize('NFKC').toLowerCase().replace(/[’‘]/g, "'").replace(/\b(?:lord|lady|sir)\s+/g, '');
++    if (/\b(?:permission|approval|consent)\b/.test(t)) {
++        t = t.replace(/^(?:get|gain|secure|earn|win|receive|obtain)\b/, 'obtain')
++            .replace(/^obtain\s+(.+?)'s\s+(?:permission|approval|consent)\b/, 'obtain permission from $1')
++            .replace(/\b(?:approval|consent)\b/g, 'permission')
++            .replace(/\bfor (?:a |the )?(?:trip|journey|visit) to\b|\bto make (?:a |the )?(?:trip|journey) to\b/g, 'to travel to');
++    }
++    t = t.replace(/^(?:fix|mend)\b/, 'repair').replace(/^locate\b/, 'find')
++        .replace(/\b(?:a|an|the)\b/g, '').replace(/[^\p{L}\p{N}']+/gu, ' ').replace(/\s+/g, ' ').trim();
++    if (cache && cache.size < 512) cache.set(text, t);
++    return t;
++}
++
++function questPlaceCompatible(a, b) {
++    if (!a || !b || relSameWords(a, b)) return true;
++    const norm = text => lockKey(text).replace(/[›→>,/]+/g, ' ').replace(/\s+/g, ' ').trim();
++    const A = norm(a), B = norm(b), short = A.length < B.length ? A : B, long = A.length < B.length ? B : A;
++    return short.split(' ').length >= 2 && long.startsWith(short + ' ');
++}
++
++function questUnique(list) {
++    const out = [];
++    for (const q of list) {
++        const matches = out.filter(x => questMatch(x, q) && (!x.cls || !q.cls || x.cls === q.cls));
++        if (matches.length !== 1) { out.push({ ...q }); continue; }
++        const row = matches[0];
++        for (const [key, value] of Object.entries(q)) {
++            if (key === 'where' && row.where && value && row.where.length > value.length) continue;
++            if (value !== null && value !== undefined && value !== '') row[key] = value;
++        }
++    }
++    return out;
++}
++
+ function questMatch(a, b) {
+     if (!a || !b) return false;
+-    for (const field of ['giver', 'where']) if (a[field] && b[field] && !relSameWords(a[field], b[field])) return false;
++    if (a.giver && b.giver && !relSameWords(a.giver, b.giver)) return false;
++    if (!questPlaceCompatible(a.where, b.where)) return false;
+     const ak = questKey(a.name || a.key), bk = questKey(b.name || b.key);
+     if (ak && ak === bk) return true;
+-    // Renaming needs the same explicit objective and at least one established contextual anchor.
+-    const objective = questKey(a.objective);
+-    return !!objective && objective === questKey(b.objective) && ['giver', 'where'].every(f => a[f] && b[f] && relSameWords(a[f], b[f]));
++    if ((Array.isArray(a.questAliases) ? a.questAliases : []).some(n => questKey(n) === bk) || (Array.isArray(b.questAliases) ? b.questAliases : []).some(n => questKey(n) === ak)) return true;
++    const objective = questObjectiveKey(a.objective);
++    if (!objective || objective !== questObjectiveKey(b.objective)) return false;
++    // A changed title needs independent context; a generic unanchored instruction is insufficient.
++    return !!((a.giver && b.giver) || (a.where && b.where));
+ }
+ 
+ function agendaClockPart(text) {
+@@ -15681,7 +15722,11 @@
+                 let row = candidates.length === 1 ? candidates[0] : null;
+                 const deadlineChanged = !row || (q.deadline && q.deadline !== row.deadline);
+                 if (!row) { row = { ...q }; rows.push(row); }
+-                for (const [key, value] of Object.entries(q)) if (value !== null && value !== undefined && value !== '') row[key] = value;
++                if (row.name !== q.name) row.questAliases = [...new Set([...(row.questAliases || []), row.name, q.name])].slice(-40);
++                for (const [key, value] of Object.entries(q)) {
++                    if (key === 'where' && row.where && value && row.where.length > value.length) continue;
++                    if (value !== null && value !== undefined && value !== '') row[key] = value;
++                }
+                 // A deadline is anchored to the reply that actually supplied it, not a later partial report.
+                 if (deadlineChanged || row.readAt === undefined) { const at = chapterMark(m).minutes; row.readAt = Number.isFinite(at) ? at : null; }
+             }

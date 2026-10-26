@@ -1,0 +1,25 @@
+// Optional private-export replay. The export is supplied locally and never bundled.
+const fs = require('node:fs');
+const assert = require('node:assert/strict');
+const { runtime } = require('./test_panel_tracking.cjs');
+assert(process.argv[2], 'Pass the supplied 15-message reference export path');
+const data = JSON.parse(fs.readFileSync(process.argv[2], 'utf8'));
+const r = runtime(), c = r.ctx;
+const chat = data.messages.map(m => ({ ...m, role: m.is_user ? 'user' : 'assistant', metadata: m.extra?.spindle_metadata || {} }));
+const early = c.agendaRead(chat.slice(0, 10), {}).items;
+assert.equal(early.length, 2);
+assert(early.every(x => x.dueAt === null), 'A precise deadline was accepted before the narrative established it');
+const items = c.agendaRead(chat, {}).items;
+assert.equal(items.length, 2, 'Meal/bell wording duplicated an existing event');
+assert.equal(items.filter(x => x.dueAt !== null).length, 1);
+assert.equal(items.find(x => x.dueAt !== null).dueAt % 1440, 510, 'Confirmed half-past-eight appointment lost');
+assert.equal(items.find(x => /bell/i.test(x.when)).dueAt, null);
+assert.equal(c.hmsAgendaPanel(chat, {}).items.find(x => /bell/i.test(x.when)).dueIn, null);
+const relations = c.hmsRelationsPanel(chat, {}).people;
+assert(relations.some(x => /father/i.test(x.bond)));
+assert(relations.some(x => /mother/i.test(x.bond)));
+assert(relations.some(x => /sister/i.test(x.bond)));
+assert(relations.some(x => /brother/i.test(x.bond)));
+assert(chat.every(m => !c.getSwipeData(m)?.quests?.length), 'Reference export changed: re-audit its quest evidence');
+console.log('Private export replay passed: 15 messages; two distinct agenda events; early invented time rejected; later confirmed 08:30 retained; bell stays approximate; established family bonds survive.');
+console.log('This export contains no quest-detail rows, so quest-name/progress fixes use synthetic reproductions.');

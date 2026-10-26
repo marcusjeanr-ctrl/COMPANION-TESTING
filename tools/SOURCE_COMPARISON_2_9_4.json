@@ -1,0 +1,66 @@
+[
+  {
+    "version": "Perch 2.0",
+    "source_directory": "perch_2_0_root",
+    "files": 9,
+    "named_functions": 682,
+    "named_functions_absent_from_candidate": [
+      "catalogCompose",
+      "commsInbox"
+    ],
+    "paths_absent_from_candidate": []
+  },
+  {
+    "version": "Perch 2.1",
+    "source_directory": "perch_2_1_root",
+    "files": 9,
+    "named_functions": 773,
+    "named_functions_absent_from_candidate": [
+      "catalogCompose",
+      "commsInbox"
+    ],
+    "paths_absent_from_candidate": []
+  },
+  {
+    "version": "Mazaki 2.8.1",
+    "source_directory": "mazaki_2_8_1_root",
+    "files": 19,
+    "named_functions": 894,
+    "named_functions_absent_from_candidate": [],
+    "paths_absent_from_candidate": []
+  },
+  {
+    "version": "Mazaki 2.9.0",
+    "source_directory": "mazaki_2_9_0_root",
+    "files": 19,
+    "named_functions": 952,
+    "named_functions_absent_from_candidate": [],
+    "paths_absent_from_candidate": []
+  },
+  {
+    "version": "Mine 2.8.2",
+    "source_directory": "mine_2_8_2_root",
+    "files": 69,
+    "named_functions": 956,
+    "named_functions_absent_from_candidate": [
+      "auxiliaryRequest",
+      "cardRequestPurpose",
+      "cardTurnPurpose",
+      "hudVisualLine",
+      "normalizeHudLine",
+      "protocolMessages",
+      "resumeHudText"
+    ],
+    "paths_absent_from_candidate": [
+      "tools/rebuild/rebuild-2.8.2.bundle"
+    ]
+  },
+  {
+    "version": "Mine 2.9.3",
+    "source_directory": "mine_2_9_3_root",
+    "files": 124,
+    "named_functions": 973,
+    "named_functions_absent_from_candidate": [],
+    "paths_absent_from_candidate": []
+  }
+]

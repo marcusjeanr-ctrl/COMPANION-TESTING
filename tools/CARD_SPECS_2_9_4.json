@@ -1,0 +1,50 @@
+[
+  {
+    "name": "Mushoku Tensei RPG - Six-Sided World",
+    "file": "Mushoku Tensei RPG - Six-Sided World (2) (2)(1).json",
+    "sha256": "df2fd8b90c1f8ee1bac2a054dd7acb60d165555022a7e8c59e34d149d84a69d7",
+    "distinct_card": "Mushoku Tensei RPG - Six-Sided World",
+    "has_classic_world_state": true,
+    "has_visual_world_state": true
+  },
+  {
+    "name": "Classroom of the Elite RPG - The Living World version 1.1 Crossover",
+    "file": "Classroom of the Elite RPG - The Living World version 1.1 Crossover(1).json",
+    "sha256": "c42710d06b15e7a209eed8b171e8c9cad9b1c03ea896082a132ae35d4ee4f073",
+    "distinct_card": "Classroom of the Elite RPG - The Living World version 1.1 Crossover",
+    "has_classic_world_state": true,
+    "has_visual_world_state": false
+  },
+  {
+    "name": "Re:Zero RPG - The Living World version: 1.7.5+ the Scholar update",
+    "file": "Re_Zero RPG - The Living World version_ 1.7.5_ the Scholar update(4).json",
+    "sha256": "4dbd78de36673b2bc8d199e0efa0995a8b77d0403ddd907e51e2cc30fd931dd2",
+    "distinct_card": "Re:Zero RPG - The Living World version: 1.7.5+ the Scholar update",
+    "has_classic_world_state": true,
+    "has_visual_world_state": false
+  },
+  {
+    "name": "Re:Zero RPG - The Living World version: 1.7.5+ the Scholar update",
+    "file": "Re_Zero RPG - The Living World version_ 1.7.5_ the Scholar update(3).json",
+    "sha256": "4dbd78de36673b2bc8d199e0efa0995a8b77d0403ddd907e51e2cc30fd931dd2",
+    "distinct_card": "Re:Zero RPG - The Living World version: 1.7.5+ the Scholar update",
+    "has_classic_world_state": true,
+    "has_visual_world_state": false
+  },
+  {
+    "name": "Mushoku Tensei RPG - The Living World version 1.0+ A new beginning",
+    "file": "Mushoku Tensei RPG - The Living World version 1.0_ A new beginning (4)(1).json",
+    "sha256": "21918f9b3f02ec9edbb4cc44565256078863d3b93eb7ab0fe5cbb708c4d33e1f",
+    "distinct_card": "Mushoku Tensei RPG - The Living World version 1.0+ A new beginning",
+    "has_classic_world_state": true,
+    "has_visual_world_state": false
+  },
+  {
+    "name": "Overlord RPG - The Living World v1.2 The Nexus update",
+    "file": "Overlord RPG - The Living World v1.2 The Nexus update(1).json",
+    "sha256": "dbe9ced90618f2ba6268dd1983943fc1d20f0c8f05a3d3dc392afdd332c42189",
+    "distinct_card": "Overlord RPG - The Living World v1.2 The Nexus update",
+    "has_classic_world_state": true,
+    "has_visual_world_state": false
+  }
+]

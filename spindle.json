@@ -1,0 +1,21 @@
+{
+  "version": "2.9.4",
+  "name": "RPG Companion HMS Edition 2.9.4 — Universal Consolidation Candidate",
+  "identifier": "rpg_companion_hms",
+  "author": "TenderTriper (Perch) — HMS Edition. Based on RPG Companion by Marinara. Minds, agendas, who knows what, Chekhov’s gun and building maps from FrankenSIM by Wireless (Ryah); TFDY by Pyropia.",
+  "github": "https://github.com/marcusjeanr-ctrl/COMPANION-TESTING",
+  "homepage": "https://github.com/marcusjeanr-ctrl/COMPANION-TESTING",
+  "description": "The side panel for the HMS Living World bots (Re:Zero, Mushoku Tensei, Classroom of the Elite, Overlord), and for Undertale, Dark Souls and Skyrim bots. It reads the bot's WORLD STATE HUD instead of competing with it and shows it as cards: you, the people around you, quests, the phone, the map and the atlas, fights, the Chronicle and more. Minds (from FrankenSIM): how each person feels inside and toward you and each other, what they are doing, what they know, and the details the story planted; the extension keeps the numbers. It builds a new game from the bot's own catalog, answers OOC questions with the bot's guide, and draws emoji and dialogue colours. Made to work with the HMS Reporter beta preset. The guide is in the panel (Guide) and in GUIDE.md.",
+  "permissions": [
+    "interceptor",
+    "generation",
+    "chat_mutation",
+    "image_gen",
+    "world_books",
+    "memories"
+  ],
+  "entry_backend": "dist/backend.js",
+  "entry_frontend": "dist/frontend.js",
+  "minimum_lumiverse_version": "1.2.0",
+  "interceptorTimeoutMs": 20000
+}

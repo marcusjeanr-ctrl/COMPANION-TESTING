@@ -1,0 +1,365 @@
+{
+  "policy": {
+    "baseline": "2.9.2 commit 83c1a16e8ff5329ef06b0f1f68e2dcc5e39e3d08",
+    "runs": 5,
+    "messages": [
+      600,
+      2000
+    ],
+    "acceptance": "Each median timing must not increase by more than max(5% baseline, 1ms).",
+    "budget": "No additional model calls, refreshes, output budgets or full-chat scans. Existing tracker instructions unchanged. Longer retained labels may occupy more context only where already included."
+  },
+  "raw": [
+    {
+      "file": "/workspace/scratch/9e47792efe19/Companion-2.9.2/dist/backend.js",
+      "messages": 600,
+      "coldMs": 173.81,
+      "medianMs": 39.33,
+      "warnings": 0,
+      "run": 0,
+      "kind": "panel"
+    },
+    {
+      "file": "/workspace/scratch/9e47792efe19/Companion-2.9.3/dist/backend.js",
+      "messages": 600,
+      "coldMs": 134.85,
+      "medianMs": 39.54,
+      "warnings": 0,
+      "run": 0,
+      "kind": "panel"
+    },
+    {
+      "file": "/workspace/scratch/9e47792efe19/Companion-2.9.2/dist/backend.js",
+      "messages": 2000,
+      "coldMs": 336.41,
+      "medianMs": 66.49,
+      "warnings": 0,
+      "run": 0,
+      "kind": "panel"
+    },
+    {
+      "file": "/workspace/scratch/9e47792efe19/Companion-2.9.3/dist/backend.js",
+      "messages": 2000,
+      "coldMs": 323.23,
+      "medianMs": 84.11,
+      "warnings": 0,
+      "run": 0,
+      "kind": "panel"
+    },
+    {
+      "file": "/workspace/scratch/9e47792efe19/Companion-2.9.2/dist/backend.js",
+      "parseReportMedianMs": 0.4712,
+      "processResponseMedianMs": 0.586,
+      "promptConstructMedianMs": 0.2815,
+      "promptCharacters": 14832,
+      "populatedPromptCharacters": 18528,
+      "warnings": 0,
+      "run": 0,
+      "kind": "pipeline"
+    },
+    {
+      "file": "/workspace/scratch/9e47792efe19/Companion-2.9.3/dist/backend.js",
+      "parseReportMedianMs": 0.3838,
+      "processResponseMedianMs": 0.5423,
+      "promptConstructMedianMs": 0.2821,
+      "promptCharacters": 14832,
+      "populatedPromptCharacters": 18528,
+      "warnings": 0,
+      "run": 0,
+      "kind": "pipeline"
+    },
+    {
+      "file": "/workspace/scratch/9e47792efe19/Companion-2.9.3/dist/backend.js",
+      "messages": 600,
+      "coldMs": 160.15,
+      "medianMs": 40.09,
+      "warnings": 0,
+      "run": 1,
+      "kind": "panel"
+    },
+    {
+      "file": "/workspace/scratch/9e47792efe19/Companion-2.9.2/dist/backend.js",
+      "messages": 600,
+      "coldMs": 150.18,
+      "medianMs": 40.62,
+      "warnings": 0,
+      "run": 1,
+      "kind": "panel"
+    },
+    {
+      "file": "/workspace/scratch/9e47792efe19/Companion-2.9.3/dist/backend.js",
+      "messages": 2000,
+      "coldMs": 354.64,
+      "medianMs": 65.86,
+      "warnings": 0,
+      "run": 1,
+      "kind": "panel"
+    },
+    {
+      "file": "/workspace/scratch/9e47792efe19/Companion-2.9.2/dist/backend.js",
+      "messages": 2000,
+      "coldMs": 319.06,
+      "medianMs": 63.46,
+      "warnings": 0,
+      "run": 1,
+      "kind": "panel"
+    },
+    {
+      "file": "/workspace/scratch/9e47792efe19/Companion-2.9.3/dist/backend.js",
+      "parseReportMedianMs": 0.3836,
+      "processResponseMedianMs": 0.544,
+      "promptConstructMedianMs": 0.2572,
+      "promptCharacters": 14832,
+      "populatedPromptCharacters": 18528,
+      "warnings": 0,
+      "run": 1,
+      "kind": "pipeline"
+    },
+    {
+      "file": "/workspace/scratch/9e47792efe19/Companion-2.9.2/dist/backend.js",
+      "parseReportMedianMs": 0.3902,
+      "processResponseMedianMs": 0.5276,
+      "promptConstructMedianMs": 0.2746,
+      "promptCharacters": 14832,
+      "populatedPromptCharacters": 18528,
+      "warnings": 0,
+      "run": 1,
+      "kind": "pipeline"
+    },
+    {
+      "file": "/workspace/scratch/9e47792efe19/Companion-2.9.2/dist/backend.js",
+      "messages": 600,
+      "coldMs": 167.26,
+      "medianMs": 45.02,
+      "warnings": 0,
+      "run": 2,
+      "kind": "panel"
+    },
+    {
+      "file": "/workspace/scratch/9e47792efe19/Companion-2.9.3/dist/backend.js",
+      "messages": 600,
+      "coldMs": 134.7,
+      "medianMs": 42.58,
+      "warnings": 0,
+      "run": 2,
+      "kind": "panel"
+    },
+    {
+      "file": "/workspace/scratch/9e47792efe19/Companion-2.9.2/dist/backend.js",
+      "messages": 2000,
+      "coldMs": 339.53,
+      "medianMs": 64.48,
+      "warnings": 0,
+      "run": 2,
+      "kind": "panel"
+    },
+    {
+      "file": "/workspace/scratch/9e47792efe19/Companion-2.9.3/dist/backend.js",
+      "messages": 2000,
+      "coldMs": 323.09,
+      "medianMs": 62.01,
+      "warnings": 0,
+      "run": 2,
+      "kind": "panel"
+    },
+    {
+      "file": "/workspace/scratch/9e47792efe19/Companion-2.9.2/dist/backend.js",
+      "parseReportMedianMs": 0.3965,
+      "processResponseMedianMs": 0.5234,
+      "promptConstructMedianMs": 0.2603,
+      "promptCharacters": 14832,
+      "populatedPromptCharacters": 18528,
+      "warnings": 0,
+      "run": 2,
+      "kind": "pipeline"
+    },
+    {
+      "file": "/workspace/scratch/9e47792efe19/Companion-2.9.3/dist/backend.js",
+      "parseReportMedianMs": 0.4249,
+      "processResponseMedianMs": 0.5433,
+      "promptConstructMedianMs": 0.2937,
+      "promptCharacters": 14832,
+      "populatedPromptCharacters": 18528,
+      "warnings": 0,
+      "run": 2,
+      "kind": "pipeline"
+    },
+    {
+      "file": "/workspace/scratch/9e47792efe19/Companion-2.9.3/dist/backend.js",
+      "messages": 600,
+      "coldMs": 160.63,
+      "medianMs": 43.63,
+      "warnings": 0,
+      "run": 3,
+      "kind": "panel"
+    },
+    {
+      "file": "/workspace/scratch/9e47792efe19/Companion-2.9.2/dist/backend.js",
+      "messages": 600,
+      "coldMs": 137.94,
+      "medianMs": 39.94,
+      "warnings": 0,
+      "run": 3,
+      "kind": "panel"
+    },
+    {
+      "file": "/workspace/scratch/9e47792efe19/Companion-2.9.3/dist/backend.js",
+      "messages": 2000,
+      "coldMs": 349.44,
+      "medianMs": 68.88,
+      "warnings": 0,
+      "run": 3,
+      "kind": "panel"
+    },
+    {
+      "file": "/workspace/scratch/9e47792efe19/Companion-2.9.2/dist/backend.js",
+      "messages": 2000,
+      "coldMs": 310.78,
+      "medianMs": 65.41,
+      "warnings": 0,
+      "run": 3,
+      "kind": "panel"
+    },
+    {
+      "file": "/workspace/scratch/9e47792efe19/Companion-2.9.3/dist/backend.js",
+      "parseReportMedianMs": 0.3971,
+      "processResponseMedianMs": 0.5331,
+      "promptConstructMedianMs": 0.2834,
+      "promptCharacters": 14832,
+      "populatedPromptCharacters": 18528,
+      "warnings": 0,
+      "run": 3,
+      "kind": "pipeline"
+    },
+    {
+      "file": "/workspace/scratch/9e47792efe19/Companion-2.9.2/dist/backend.js",
+      "parseReportMedianMs": 0.4119,
+      "processResponseMedianMs": 0.5504,
+      "promptConstructMedianMs": 0.279,
+      "promptCharacters": 14832,
+      "populatedPromptCharacters": 18528,
+      "warnings": 0,
+      "run": 3,
+      "kind": "pipeline"
+    },
+    {
+      "file": "/workspace/scratch/9e47792efe19/Companion-2.9.2/dist/backend.js",
+      "messages": 600,
+      "coldMs": 158.75,
+      "medianMs": 40.7,
+      "warnings": 0,
+      "run": 4,
+      "kind": "panel"
+    },
+    {
+      "file": "/workspace/scratch/9e47792efe19/Companion-2.9.3/dist/backend.js",
+      "messages": 600,
+      "coldMs": 149.97,
+      "medianMs": 39.76,
+      "warnings": 0,
+      "run": 4,
+      "kind": "panel"
+    },
+    {
+      "file": "/workspace/scratch/9e47792efe19/Companion-2.9.2/dist/backend.js",
+      "messages": 2000,
+      "coldMs": 349.13,
+      "medianMs": 69.6,
+      "warnings": 0,
+      "run": 4,
+      "kind": "panel"
+    },
+    {
+      "file": "/workspace/scratch/9e47792efe19/Companion-2.9.3/dist/backend.js",
+      "messages": 2000,
+      "coldMs": 375.11,
+      "medianMs": 77.7,
+      "warnings": 0,
+      "run": 4,
+      "kind": "panel"
+    },
+    {
+      "file": "/workspace/scratch/9e47792efe19/Companion-2.9.2/dist/backend.js",
+      "parseReportMedianMs": 0.4031,
+      "processResponseMedianMs": 0.575,
+      "promptConstructMedianMs": 0.2783,
+      "promptCharacters": 14832,
+      "populatedPromptCharacters": 18528,
+      "warnings": 0,
+      "run": 4,
+      "kind": "pipeline"
+    },
+    {
+      "file": "/workspace/scratch/9e47792efe19/Companion-2.9.3/dist/backend.js",
+      "parseReportMedianMs": 0.3917,
+      "processResponseMedianMs": 0.5388,
+      "promptConstructMedianMs": 0.2678,
+      "promptCharacters": 14832,
+      "populatedPromptCharacters": 18528,
+      "warnings": 0,
+      "run": 4,
+      "kind": "pipeline"
+    }
+  ],
+  "summary": [
+    {
+      "metric": "coldMs",
+      "messages": 600,
+      "baseline": 158.75,
+      "patched": 149.97,
+      "passed": true
+    },
+    {
+      "metric": "medianMs",
+      "messages": 600,
+      "baseline": 40.62,
+      "patched": 40.09,
+      "passed": true
+    },
+    {
+      "metric": "coldMs",
+      "messages": 2000,
+      "baseline": 336.41,
+      "patched": 349.44,
+      "passed": true
+    },
+    {
+      "metric": "medianMs",
+      "messages": 2000,
+      "baseline": 65.41,
+      "patched": 68.88,
+      "passed": false
+    },
+    {
+      "metric": "parseReportMedianMs",
+      "baseline": 0.4031,
+      "patched": 0.3917,
+      "passed": true
+    },
+    {
+      "metric": "processResponseMedianMs",
+      "baseline": 0.5504,
+      "patched": 0.5423,
+      "passed": true
+    },
+    {
+      "metric": "promptConstructMedianMs",
+      "baseline": 0.2783,
+      "patched": 0.2821,
+      "passed": true
+    },
+    {
+      "metric": "promptCharacters",
+      "baseline": 14832,
+      "patched": 14832,
+      "passed": true
+    },
+    {
+      "metric": "populatedPromptCharacters",
+      "baseline": 18528,
+      "patched": 18528,
+      "passed": true
+    }
+  ],
+  "passed": false
+}

@@ -1,0 +1,61 @@
+2.8.1 panel parity passed: all four original demo worlds preserved except the explicit Mushoku calendar, observed-Atlas and omitted-standing corrections.
+Atlas reference tests passed: 64 mapped nodes, full-book pagination, explicit parents, descriptions, no organization/weather nodes, temporal filtering, prevented/changed outcomes, swipes, cache reuse and world isolation.
+General tracking passed: 20 established spells, player ownership, catalog/quote/negation exclusions, aliases, Forget/relearn, edits/swipes, explicit activity lifecycle, no clock-only start and active Agenda rendering.
+Panel integration passed: both HUDs, all data panels, separate room/position persistence, local-first updates, cache edits/swipes, and stale-response protection.
+Reading and Magic regressions passed: one original tracker call, no quote gate/correction, local rereads, 1,432-entry pagination, complete spell schools, cache reuse and world isolation.
+Clean rebuild passed: exact archive, reproducible bundles, 2.8.2 identity, shared guards, qualified location splits, no duplicate named functions, and nondestructive old/new save round-trips.
+PASS appointments: same report retains different participants, places and schedules
+PASS relationships: mood-only reports preserve standing, bond, minor and numerical readings
+PASS numbers: unknown stays null, real zero and finite numeric strings survive
+PASS secrets: owners isolate fuzzy descriptions, identical descriptions and manual edits
+Reconciliation integrity: 4/4 groups passed.
+Compatibility assertions passed: both HUDs, 30-day calendar, Atlas, automatic spell study and learning, family, saga ledger, objectives, gear, and 22 lorebook arcs.
+Audit repairs passed: two calendars, month/year rollovers, deadlines, birthdays, hidden ranks, multiple styles, five continents, complete Saga/sub-arcs, and swipe/forget/relearn/mastery/manual spell lifecycles.
+Spell aliases passed: canonical names, no duplicate Other rows, study/progress/mastery, forget/relearn/swipes, manual controls, ambiguous keywords and catalog isolation.
+Startup/render regression passed: backend boot, frontend setup, both populated Mushoku HUDs, all 22 Saga arcs, incomplete payload recovery and cleanup.
+PASS equipment: explicit offers and unaccepted actions never become held or worn
+PASS inventory: unopened nearby gifts are pending, accepted wrapped gifts and temporary possessions survive
+PASS quests: unknown percentages stay unknown; explicit progress survives; rejected tasks are omitted
+PASS appointments: requests do not become promises; confirmed events retain lifecycle and context
+PASS relationships: explicit speculation is withheld without deleting established bonds or useful interpretations
+PASS sources: explicit draft/planning prefixes cannot override the final HUD or pollute tracking transport
+PASS HUD safety: repeated headers, quoted examples, tagged reasoning and ordinary prose remain safe
+PASS prompt policy: measured quest progress, explicit promises and accepted acquisitions without added prompt length
+Tracking source integrity: 8/8 groups passed.
+PASS identity: distinct full names and ambiguous aliases stay separate
+PASS knowledge: missing vectors, guesses and gossip never become certain
+PASS minds: explicit speculation is omitted, established readings remain
+PASS objectives: suggestions, intentions and abandonment are not silently active
+PASS Agenda: appointments with different participants remain distinct
+PASS privacy: Secrets cannot grant a recipient knowledge without a discovery vector
+PASS source binding: equal-length edits invalidate all modules together
+PASS persistence: caches only advance after metadata writes succeed
+PASS classic refresh: slow output cannot attach to a changed or deleted reply
+PASS regeneration: all generated module context uses only the prior branch
+PASS prompt handshake: Reporter/Minds slots and repeated interception are deduplicated
+PASS save/load: concurrent loads share state and writes commit immutable snapshots in order
+PASS save/load: damaged roots recover; legacy migration and manual data survive
+PASS write failure: recovery survives and the next save is not blocked
+PASS performance: one model call, local rereads, bounded memoization and no added report fields
+PASS injuries: changing or deleting a branch restores the active body, manual wounds survive
+PASS chapter memory: edited/swiped source summaries and derived discoveries are withheld
+PASS chapter generation: a source change during the model call rejects the old summary
+PASS hidden replies: HUD time, inventory and knowledge are excluded consistently
+PASS prompt slots: quoted history markers cannot suppress the real tracker request
+PASS performance: report provenance is hashed once per unchanged message object
+PASS malformed reports: mixed invalid rows cannot crash module normalizers
+PASS HUD validation: missing data stays absent and same-length edits refresh the clock
+Universal integrity: 23/23 groups passed.
+PASS actual Visual template and Classic state agree without altering prose or raw style
+PASS Visual pins preserve icons, dividers, header and narration
+PASS numbered calendar, birthday, rollover and future countdown stay distinct from outcomes
+PASS curse and tether variants retain literal modifiers and deduplicate equivalent effects
+PASS full updated book extracts spells, qualified chants, arcs, mana and reference-only places
+PASS HUD examples in quotes and code are not current state; Continue selects the first current HUD
+PASS Save preserves gameplay state and makes no tracker, metadata or event writes
+PASS Continue is a HUD restoration baseline, preserves manual data, and does not replay saved deltas
+PASS updated attached book paginates completely, caches and isolates other books
+PASS actual transport receives purpose scope and keeps schema last; story/help/save scopes deduplicate
+Updated Six-Sided: 10/10 groups passed.
+Visual rank integrity passed: exact reported HUD, three magic schools, sword aliases/separators, Shown/True, unknown ranks, one Touki, 111 catalog entries, eligibility without grants, study/known/mastery/forget/relearn/swipe rollback.
+All 15 regression suites and both bundle syntax checks passed.

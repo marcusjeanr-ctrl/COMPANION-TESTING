@@ -1,0 +1,8 @@
+{
+  "baseline": "supplied 2.9.0 archive, b1855cd4f1bd5345f7b0505194939d0253fbcfb632cb87a4ef98706653a3099a",
+  "runs": 5,
+  "messages": [600, 2000],
+  "acceptance": "Each median timing must not increase by more than max(5% baseline, 1ms).",
+  "metrics": ["cold panel read", "warm panel read", "report normalization", "response processing", "prompt construction"],
+  "budget": "No additional model calls, refresh triggers or full-chat verification passes; compare static and populated prompt character counts separately from tokens."
+}

@@ -1,0 +1,82 @@
+[
+  {
+    "suite": "test_six_sided_compat.cjs",
+    "version": "supplied_2.9.0",
+    "exit_code": 1,
+    "failing_groups": []
+  },
+  {
+    "suite": "test_six_sided_compat.cjs",
+    "version": "patched_2.9.1",
+    "exit_code": 1,
+    "failing_groups": []
+  },
+  {
+    "suite": "test_tracking_source_integrity.cjs",
+    "version": "supplied_2.9.0",
+    "exit_code": 1,
+    "failing_groups": [
+      "FAIL equipment: explicit offers and unaccepted actions never become held or worn: Expected values to be strictly equal:",
+      "FAIL inventory: unopened nearby gifts are pending, accepted wrapped gifts and temporary possessions survive: Expected values to be strictly deep-equal:",
+      "FAIL quests: unknown percentages stay unknown; explicit progress survives; rejected tasks are omitted: Expected values to be strictly equal:",
+      "FAIL appointments: requests do not become promises; confirmed events retain lifecycle and context: Expected values to be strictly equal:",
+      "FAIL relationships: explicit speculation is withheld without deleting established bonds or useful interpretations: Expected values to be strictly equal:",
+      "FAIL sources: explicit draft/planning prefixes cannot override the final HUD or pollute tracking transport: Expected values to be strictly equal:",
+      "FAIL HUD safety: repeated headers, quoted examples, tagged reasoning and ordinary prose remain safe: Expected values to be strictly equal:",
+      "FAIL prompt policy: measured quest progress, explicit promises and accepted acquisitions without added prompt length: The expression evaluated to a falsy value:"
+    ]
+  },
+  {
+    "suite": "test_tracking_source_integrity.cjs",
+    "version": "patched_2.9.1",
+    "exit_code": 1,
+    "failing_groups": [
+      "FAIL sources: explicit draft/planning prefixes cannot override the final HUD or pollute tracking transport: Expected values to be strictly equal:",
+      "FAIL HUD safety: repeated headers, quoted examples, tagged reasoning and ordinary prose remain safe: Expected values to be strictly equal:"
+    ]
+  },
+  {
+    "suite": "test_updated_six_sided.cjs",
+    "version": "supplied_2.9.0",
+    "exit_code": 1,
+    "failing_groups": [
+      "FAIL actual Visual template and Classic state agree without altering prose or raw style",
+      "FAIL Visual pins preserve icons, dividers, header and narration",
+      "FAIL numbered calendar, birthday, rollover and future countdown stay distinct from outcomes: TypeError: Cannot read properties of null (reading 'lines')",
+      "FAIL curse and tether variants retain literal modifiers and deduplicate equivalent effects: TypeError: Cannot read properties of undefined (reading 'items')",
+      "FAIL full updated book extracts spells, qualified chants, arcs, mana and reference-only places",
+      "FAIL HUD examples in quotes and code are not current state; Continue selects the first current HUD",
+      "FAIL Save preserves gameplay state and makes no tracker, metadata or event writes",
+      "FAIL Continue is a HUD restoration baseline, preserves manual data, and does not replay saved deltas",
+      "FAIL actual transport receives purpose scope and keeps schema last; story/help/save scopes deduplicate"
+    ]
+  },
+  {
+    "suite": "test_updated_six_sided.cjs",
+    "version": "patched_2.9.1",
+    "exit_code": 1,
+    "failing_groups": [
+      "FAIL actual Visual template and Classic state agree without altering prose or raw style",
+      "FAIL Visual pins preserve icons, dividers, header and narration",
+      "FAIL numbered calendar, birthday, rollover and future countdown stay distinct from outcomes: TypeError: Cannot read properties of null (reading 'lines')",
+      "FAIL curse and tether variants retain literal modifiers and deduplicate equivalent effects: TypeError: Cannot read properties of undefined (reading 'items')",
+      "FAIL full updated book extracts spells, qualified chants, arcs, mana and reference-only places",
+      "FAIL HUD examples in quotes and code are not current state; Continue selects the first current HUD",
+      "FAIL Save preserves gameplay state and makes no tracker, metadata or event writes",
+      "FAIL Continue is a HUD restoration baseline, preserves manual data, and does not replay saved deltas",
+      "FAIL actual transport receives purpose scope and keeps schema last; story/help/save scopes deduplicate"
+    ]
+  },
+  {
+    "suite": "test_visual_rank_integrity.cjs",
+    "version": "supplied_2.9.0",
+    "exit_code": 1,
+    "failing_groups": []
+  },
+  {
+    "suite": "test_visual_rank_integrity.cjs",
+    "version": "patched_2.9.1",
+    "exit_code": 1,
+    "failing_groups": []
+  }
+]

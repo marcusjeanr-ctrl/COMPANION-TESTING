@@ -1,0 +1,11 @@
+{
+  "runs": 5,
+  "relative_slowdown_limit": 0.05,
+  "absolute_slowdown_limit_ms": 1,
+  "rule": "Reject a median slowdown larger than max(5% of the comparator median, 1 ms). Evaluate each comparator and workload independently.",
+  "comparators": ["supplied 2.8.1", "pinned 2.8.21"],
+  "panel_histories": [600, 2000],
+  "operations": ["cold panel", "warm panel", "report normalization", "response processing", "prompt construction"],
+  "counts": ["model calls", "chat API reads", "metadata writes", "storage reads", "storage writes", "history element reads", "selected traversal calls"],
+  "budget": "No added model calls or mandatory fields compared with 2.8.21. Static and populated prompt character counts must not exceed either comparator in the tested profiles. Provider token usage requires the actual provider tokenizer and is not inferred from characters."
+}

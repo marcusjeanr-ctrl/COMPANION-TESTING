@@ -1,0 +1,10 @@
+{
+  "baseline": "2.9.2 commit 83c1a16e8ff5329ef06b0f1f68e2dcc5e39e3d08",
+  "runs": 5,
+  "messages": [
+    600,
+    2000
+  ],
+  "acceptance": "Each median timing must not increase by more than max(5% baseline, 1ms).",
+  "budget": "No additional model calls, refreshes, output budgets or full-chat scans. Existing tracker instructions unchanged. Longer retained labels may occupy more context only where already included."
+}

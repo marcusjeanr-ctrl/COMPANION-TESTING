@@ -1,0 +1,50 @@
+{
+  "baseline_archive_sha256": "ba61d8f188871d0bd5bda67760fbdf028d3750c88f3193b48a5318934a023a38",
+  "reference_commit": "f2e3840a346df977455b9aa0677c0262af155578",
+  "version": "2.8.2",
+  "branch": "rebuild/2.8.2-clean-compatibility",
+  "files": {
+    "dist/backend.js": {
+      "2.8.1": {
+        "bytes": 1053554,
+        "sha256": "26cca24aafdb0f0763acd393bdba071985225cc88a524ee9fb55f1176f44874a"
+      },
+      "2.8.21": {
+        "bytes": 1124426,
+        "sha256": "22d7b0e73ebc00465ab1d2c2137a6bcb55db94952f581e9f946ea01631822fdd"
+      },
+      "2.8.2": {
+        "bytes": 1122569,
+        "sha256": "03b083d8e5e5902c6be4d9d8fefb55a38235f9cafcce61832044ccccf43c5cca"
+      }
+    },
+    "dist/frontend.js": {
+      "2.8.1": {
+        "bytes": 1405584,
+        "sha256": "46c6ee1c978d0e83e41f92fa181f425c9b008bccd5542d2c7306eb5de62497f3"
+      },
+      "2.8.21": {
+        "bytes": 1408700,
+        "sha256": "156a882745b0c1e4b02849ee2433b6b84f79d818b8141f32b4531015531d7d70"
+      },
+      "2.8.2": {
+        "bytes": 1408701,
+        "sha256": "77345c70546faa125d2ea2adecd20e823d1ad3d87e8bcf11d4ae06808c6da1ef"
+      }
+    },
+    "preset/HMS_Reporter_beta.json": {
+      "2.8.1": {
+        "bytes": 39590,
+        "sha256": "f2ea113b3137cd254d3addff69ee75694bb09b11588e65ef12fa7f6c5a9eb9d9"
+      },
+      "2.8.21": {
+        "bytes": 39590,
+        "sha256": "f2ea113b3137cd254d3addff69ee75694bb09b11588e65ef12fa7f6c5a9eb9d9"
+      },
+      "2.8.2": {
+        "bytes": 39590,
+        "sha256": "f2ea113b3137cd254d3addff69ee75694bb09b11588e65ef12fa7f6c5a9eb9d9"
+      }
+    }
+  }
+}

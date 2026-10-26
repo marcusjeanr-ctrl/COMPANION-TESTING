@@ -1,0 +1,47 @@
+[
+  {
+    "id": "backend-016",
+    "function": "pushState",
+    "reason": "Keep baseline documentation/diagnostic/comment bytes, or supply independently versioned branding/translations instead."
+  },
+  {
+    "id": "backend-137",
+    "function": "stripCompanion",
+    "reason": "Keep baseline documentation/diagnostic/comment bytes, or supply independently versioned branding/translations instead."
+  },
+  {
+    "id": "backend-176",
+    "function": "partyRoster",
+    "reason": "Keep baseline documentation/diagnostic/comment bytes, or supply independently versioned branding/translations instead."
+  },
+  {
+    "id": "backend-276",
+    "function": "hmsDiagnostics",
+    "reason": "Keep baseline documentation/diagnostic/comment bytes, or supply independently versioned branding/translations instead."
+  },
+  {
+    "id": "backend-294",
+    "function": "replyKey",
+    "reason": "Keep baseline documentation/diagnostic/comment bytes, or supply independently versioned branding/translations instead."
+  },
+  {
+    "id": "frontend-002",
+    "function": "module",
+    "reason": "Keep baseline documentation/diagnostic/comment bytes, or supply independently versioned branding/translations instead."
+  },
+  {
+    "id": "frontend-003",
+    "function": "guideBlocks",
+    "reason": "Keep baseline documentation/diagnostic/comment bytes, or supply independently versioned branding/translations instead."
+  },
+  {
+    "id": "frontend-036",
+    "function": "applyPanelMode",
+    "reason": "Keep baseline documentation/diagnostic/comment bytes, or supply independently versioned branding/translations instead."
+  },
+  {
+    "id": "frontend-037",
+    "function": "renderHmsSettings",
+    "reason": "Keep baseline documentation/diagnostic/comment bytes, or supply independently versioned branding/translations instead."
+  }
+]

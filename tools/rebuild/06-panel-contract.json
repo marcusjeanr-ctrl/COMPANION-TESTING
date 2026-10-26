@@ -1,0 +1,583 @@
+{
+  "reference_commit": "f2e3840a346df977455b9aa0677c0262af155578",
+  "changes": [
+    {
+      "id": "frontend-000",
+      "file": "dist/frontend.js",
+      "start": 234,
+      "end": 234,
+      "reference_start": 234,
+      "reference_end": 235,
+      "function": "module",
+      "action": "retain verified behavior/dependency at original callsite",
+      "tests": [
+        "test_startup_and_render.cjs",
+        "test_2_8_1_panel_parity.cjs",
+        "test_general_tracking.cjs"
+      ],
+      "before": "",
+      "after": ".rpgc-spell-row.unranked { border-left-color: rgba(190,190,190,.45); }\n"
+    },
+    {
+      "id": "frontend-001",
+      "file": "dist/frontend.js",
+      "start": 566,
+      "end": 566,
+      "reference_start": 567,
+      "reference_end": 568,
+      "function": "module",
+      "action": "retain verified behavior/dependency at original callsite",
+      "tests": [
+        "test_startup_and_render.cjs",
+        "test_2_8_1_panel_parity.cjs",
+        "test_general_tracking.cjs"
+      ],
+      "before": "",
+      "after": ".rpgc-agenda-item.in_progress { border-left-color: #5fae6e; }\n"
+    },
+    {
+      "id": "frontend-004",
+      "file": "dist/frontend.js",
+      "start": 1206,
+      "end": 1206,
+      "reference_start": 1208,
+      "reference_end": 1217,
+      "function": "saveSettings",
+      "action": "retain verified behavior/dependency at original callsite",
+      "tests": [
+        "test_startup_and_render.cjs",
+        "test_2_8_1_panel_parity.cjs",
+        "test_general_tracking.cjs"
+      ],
+      "before": "",
+      "after": "        if (msg.type === 'tracker_status') {\n            if (msg.chatId !== state.chatId) return;\n            const wasBusy = state.busy;\n            state.busy = !!msg.busy;\n            if (state.busy && !wasBusy) state.busySince = Date.now();\n            state.status = msg.status || null;\n            render();\n            return;\n        }\n"
+    },
+    {
+      "id": "frontend-005",
+      "file": "dist/frontend.js",
+      "start": 3922,
+      "end": 3922,
+      "reference_start": 3933,
+      "reference_end": 3934,
+      "function": "agendaDue",
+      "action": "retain verified behavior/dependency at original callsite",
+      "tests": [
+        "test_startup_and_render.cjs",
+        "test_2_8_1_panel_parity.cjs",
+        "test_general_tracking.cjs"
+      ],
+      "before": "",
+      "after": "        if (x.state === 'in_progress') return T('In progress');\n"
+    },
+    {
+      "id": "frontend-006",
+      "file": "dist/frontend.js",
+      "start": 3936,
+      "end": 3937,
+      "reference_start": 3948,
+      "reference_end": 3949,
+      "function": "agendaRow",
+      "action": "retain verified behavior/dependency at original callsite",
+      "tests": [
+        "test_startup_and_render.cjs",
+        "test_2_8_1_panel_parity.cjs",
+        "test_general_tracking.cjs"
+      ],
+      "before": "            x.state === 'open' ? h('span', { class: 'acts' }, act('kept', '✓', 'It happened'), act('missed', '✗', 'Its time passed without it'), act('cancelled', '⊘', 'Called off')) : act('removed', '✕', 'Remove from the list'));\n",
+      "after": "            (x.state === 'open' || x.state === 'in_progress') ? h('span', { class: 'acts' }, act('kept', '✓', 'It happened'), act('missed', '✗', 'Its time passed without it'), act('cancelled', '⊘', 'Called off')) : act('removed', '✕', 'Remove from the list'));\n"
+    },
+    {
+      "id": "frontend-007",
+      "file": "dist/frontend.js",
+      "start": 3943,
+      "end": 3944,
+      "reference_start": 3955,
+      "reference_end": 3956,
+      "function": "renderAgenda",
+      "action": "retain verified behavior/dependency at original callsite",
+      "tests": [
+        "test_startup_and_render.cjs",
+        "test_2_8_1_panel_parity.cjs",
+        "test_general_tracking.cjs"
+      ],
+      "before": "        const groups = [['overdue', '⚠️ Late'], ['soon', '⏰ Soon (next 3 hours)'], ['upcoming', '📅 Coming up'], ['unset', '❔ No set time']];\n",
+      "after": "        const groups = [['in_progress', '▶ In progress'], ['overdue', '⚠️ Late'], ['soon', '⏰ Soon (next 3 hours)'], ['upcoming', '📅 Coming up'], ['unset', '❔ No set time']];\n"
+    },
+    {
+      "id": "frontend-008",
+      "file": "dist/frontend.js",
+      "start": 3948,
+      "end": 3949,
+      "reference_start": 3960,
+      "reference_end": 3961,
+      "function": "renderAgenda",
+      "action": "retain verified behavior/dependency at original callsite",
+      "tests": [
+        "test_startup_and_render.cjs",
+        "test_2_8_1_panel_parity.cjs",
+        "test_general_tracking.cjs"
+      ],
+      "before": "        const done = a.items.filter(x => x.state !== 'open');\n",
+      "after": "        const done = a.items.filter(x => x.state !== 'open' && x.state !== 'in_progress');\n"
+    },
+    {
+      "id": "frontend-009",
+      "file": "dist/frontend.js",
+      "start": 3965,
+      "end": 3965,
+      "reference_start": 3977,
+      "reference_end": 3978,
+      "function": "renderAgenda",
+      "action": "retain verified behavior/dependency at original callsite",
+      "tests": [
+        "test_startup_and_render.cjs",
+        "test_2_8_1_panel_parity.cjs",
+        "test_general_tracking.cjs"
+      ],
+      "before": "",
+      "after": "        const active = a.items.filter(x => x.status === 'in_progress').length;\n"
+    },
+    {
+      "id": "frontend-010",
+      "file": "dist/frontend.js",
+      "start": 3966,
+      "end": 3967,
+      "reference_start": 3979,
+      "reference_end": 3981,
+      "function": "renderAgenda",
+      "action": "retain verified behavior/dependency at original callsite",
+      "tests": [
+        "test_startup_and_render.cjs",
+        "test_2_8_1_panel_parity.cjs",
+        "test_general_tracking.cjs"
+      ],
+      "before": "        const sec = section('agenda', 'Agenda', state.open, late ? `${late} late` : soon ? `${soon} soon` : a.items.filter(x => x.state === 'open').length ? String(a.items.filter(x => x.state === 'open').length) : null, ...out);\n",
+      "after": "        const summary = [active ? `${active} in progress` : null, late ? `${late} late` : null, soon ? `${soon} soon` : null].filter(Boolean).join(' · ');\n        const sec = section('agenda', 'Agenda', state.open, summary || (a.items.filter(x => x.state === 'open').length ? String(a.items.filter(x => x.state === 'open').length) : null), ...out);\n"
+    },
+    {
+      "id": "frontend-011",
+      "file": "dist/frontend.js",
+      "start": 4798,
+      "end": 4799,
+      "reference_start": 4812,
+      "reference_end": 4813,
+      "function": "renderPlotObjectives",
+      "action": "retain verified behavior/dependency at original callsite",
+      "tests": [
+        "test_startup_and_render.cjs",
+        "test_2_8_1_panel_parity.cjs",
+        "test_general_tracking.cjs"
+      ],
+      "before": "            const ICON = { active: '\\u25B8', done: '\\u2713', failed: '\\u2717' };\n",
+      "after": "            const ICON = { active: '\\u25B8', done: '\\u2713', failed: '\\u2717', abandoned: '\\u2298' };\n"
+    },
+    {
+      "id": "frontend-012",
+      "file": "dist/frontend.js",
+      "start": 4803,
+      "end": 4805,
+      "reference_start": 4817,
+      "reference_end": 4819,
+      "function": "renderPlotObjectives",
+      "action": "retain verified behavior/dependency at original callsite",
+      "tests": [
+        "test_startup_and_render.cjs",
+        "test_2_8_1_panel_parity.cjs",
+        "test_general_tracking.cjs"
+      ],
+      "before": "                pv.objectives.length ? h('ul', { class: 'rpgc-checklist' }, pv.objectives.map(o => h('li', { class: o.state === 'done' ? 'met' : o.state === 'active' ? 'active' : 'failed' },\n                    h('span', { 'aria-hidden': 'true' }, ICON[o.state] || '\\u25B8'), ` ${o.text}`, o.quest ? h('span', { class: 'rpgc-chip' }, o.quest) : null))) : null,\n",
+      "after": "                pv.objectives.length ? h('ul', { class: 'rpgc-checklist' }, pv.objectives.map(o => h('li', { class: o.state === 'done' ? 'met' : o.state === 'active' ? 'active' : o.state === 'failed' ? 'failed' : '' },\n                    h('span', { 'aria-hidden': 'true' }, ICON[o.state] || '\\u25B8'), ` ${o.text}`, o.state === 'abandoned' ? h('span', { class: 'rpgc-chip' }, 'Abandoned') : null, o.quest ? h('span', { class: 'rpgc-chip' }, o.quest) : null))) : null,\n"
+    },
+    {
+      "id": "frontend-013",
+      "file": "dist/frontend.js",
+      "start": 4842,
+      "end": 4843,
+      "reference_start": 4856,
+      "reference_end": 4857,
+      "function": "renderPlotObjectives",
+      "action": "retain verified behavior/dependency at original callsite",
+      "tests": [
+        "test_startup_and_render.cjs",
+        "test_2_8_1_panel_parity.cjs",
+        "test_general_tracking.cjs"
+      ],
+      "before": "        list.some(m => m.spells && m.spells.length) ? h('p', { class: 'rpgc-note' }, `Open one to see the ${noun} you have, from your own index.`) : null);\n",
+      "after": "        list.some(m => m.spells && m.spells.length) ? h('p', { class: 'rpgc-note' }, `These ${noun} appear in the lorebook at your rank. Check the spell list for what you actually know.`) : null);\n"
+    },
+    {
+      "id": "frontend-014",
+      "file": "dist/frontend.js",
+      "start": 4983,
+      "end": 4984,
+      "reference_start": 4997,
+      "reference_end": 4998,
+      "function": "renderWorldCard",
+      "action": "retain verified behavior/dependency at original callsite",
+      "tests": [
+        "test_startup_and_render.cjs",
+        "test_2_8_1_panel_parity.cjs",
+        "test_general_tracking.cjs"
+      ],
+      "before": "                h('div', { class: 'rpgc-wstat' }, h('b', null, `K. ${w.year}`), h('span', null, w.day ? `day ${w.day}${w.period ? ' \\u00B7 ' + w.period : ''}` : 'year')),\n",
+      "after": "                h('div', { class: 'rpgc-wstat' }, h('b', null, `K. ${w.year}`), h('span', null, w.day ? `${w.monthName ? w.monthName + ' · ' : ''}day ${w.day}${w.period ? ' \\u00B7 ' + w.period : ''}` : 'year')),\n"
+    },
+    {
+      "id": "frontend-015",
+      "file": "dist/frontend.js",
+      "start": 4987,
+      "end": 4988,
+      "reference_start": 5001,
+      "reference_end": 5002,
+      "function": "renderWorldCard",
+      "action": "retain verified behavior/dependency at original callsite",
+      "tests": [
+        "test_startup_and_render.cjs",
+        "test_2_8_1_panel_parity.cjs",
+        "test_general_tracking.cjs"
+      ],
+      "before": "            if (w.race) out.push(wRow('Born', `K. ${w.birth} \\u00B7 ${w.race}`, w.origin ? h('span', { class: 'rpgc-chip' + (/outworlder/i.test(w.origin) ? ' hot' : '') }, w.origin) : null));\n",
+      "after": "            if (w.birth !== null || w.race) out.push(wRow(w.birth !== null ? 'Born' : 'Race', [w.birth !== null ? `K. ${w.birth}` : null, w.race].filter(Boolean).join(' \\u00B7 '), w.origin ? h('span', { class: 'rpgc-chip' + (/outworlder/i.test(w.origin) ? ' hot' : '') }, w.origin) : null));\n"
+    },
+    {
+      "id": "frontend-016",
+      "file": "dist/frontend.js",
+      "start": 4989,
+      "end": 4989,
+      "reference_start": 5003,
+      "reference_end": 5004,
+      "function": "renderWorldCard",
+      "action": "retain verified behavior/dependency at original callsite",
+      "tests": [
+        "test_startup_and_render.cjs",
+        "test_2_8_1_panel_parity.cjs",
+        "test_general_tracking.cjs"
+      ],
+      "before": "",
+      "after": "            if (w.reserve) out.push(wRow('Mana reserve', w.reserve));\n"
+    },
+    {
+      "id": "frontend-017",
+      "file": "dist/frontend.js",
+      "start": 5436,
+      "end": 5437,
+      "reference_start": 5451,
+      "reference_end": 5452,
+      "function": "renderChapter",
+      "action": "retain verified behavior/dependency at original callsite",
+      "tests": [
+        "test_startup_and_render.cjs",
+        "test_2_8_1_panel_parity.cjs",
+        "test_general_tracking.cjs"
+      ],
+      "before": "                    !c.summarized ? h('span', { class: 'rpgc-chip' }, 'not summarised') : c.inPrompt ? null : h('span', { class: 'rpgc-chip' }, 'left out')),\n",
+      "after": "                    c.stale ? h('span', { class: 'rpgc-chip' }, 'source changed — excluded from prompt') : !c.summarized ? h('span', { class: 'rpgc-chip' }, 'not summarised') : c.inPrompt ? null : h('span', { class: 'rpgc-chip' }, 'left out')),\n"
+    },
+    {
+      "id": "frontend-018",
+      "file": "dist/frontend.js",
+      "start": 6015,
+      "end": 6015,
+      "reference_start": 6030,
+      "reference_end": 6033,
+      "function": "renderMtSaga",
+      "action": "retain verified behavior/dependency at original callsite",
+      "tests": [
+        "test_startup_and_render.cjs",
+        "test_2_8_1_panel_parity.cjs",
+        "test_general_tracking.cjs"
+      ],
+      "before": "",
+      "after": "        if (!S || !Array.isArray(S.arcs)) {\n            return h('p', { class: 'rpgc-note' }, 'Saga data is incomplete. Read again to reload it.');\n        }\n"
+    },
+    {
+      "id": "frontend-019",
+      "file": "dist/frontend.js",
+      "start": 6022,
+      "end": 6023,
+      "reference_start": 6040,
+      "reference_end": 6041,
+      "function": "renderMtSaga",
+      "action": "retain verified behavior/dependency at original callsite",
+      "tests": [
+        "test_startup_and_render.cjs",
+        "test_2_8_1_panel_parity.cjs",
+        "test_general_tracking.cjs"
+      ],
+      "before": "        const head = cur ? TT('Arc {0}', cur.no) + (S.part ? '-' + S.part : '') + ': ' + (S.partName || cur.title) : TT('Year K.{0}', S.year);\n",
+      "after": "        const head = S.personalArc ? S.personalArc : cur && S.participation === 'explicit' ? TT('Arc {0}', cur.no) + (S.part ? (/^\\d+$/.test(S.part) ? '.' : '-') + S.part : '') + ': ' + (S.partName || cur.title) : TT('Year K.{0}', S.year);\n"
+    },
+    {
+      "id": "frontend-020",
+      "file": "dist/frontend.js",
+      "start": 6029,
+      "end": 6029,
+      "reference_start": 6047,
+      "reference_end": 6048,
+      "function": "renderMtSaga",
+      "action": "retain verified behavior/dependency at original callsite",
+      "tests": [
+        "test_startup_and_render.cjs",
+        "test_2_8_1_panel_parity.cjs",
+        "test_general_tracking.cjs"
+      ],
+      "before": "",
+      "after": "            S.participation !== 'explicit' ? h('p', { class: 'rpgc-note' }, `Canon reference${S.canonMode ? ` (${S.canonMode})` : ''}: ${cur ? `Arc ${cur.no}${S.part ? (/^\\d+$/.test(S.part) ? '.' : '-') + S.part : ''} — ${cur.title}` : 'no matching arc'}. Your personal story is tracked separately.`) : null,\n"
+    },
+    {
+      "id": "frontend-021",
+      "file": "dist/frontend.js",
+      "start": 6030,
+      "end": 6031,
+      "reference_start": 6049,
+      "reference_end": 6054,
+      "function": "renderMtSaga",
+      "action": "retain verified behavior/dependency at original callsite",
+      "tests": [
+        "test_startup_and_render.cjs",
+        "test_2_8_1_panel_parity.cjs",
+        "test_general_tracking.cjs"
+      ],
+      "before": "            h('ul', { class: 'rpgc-wlist' }, near.map(row)), all);\n",
+      "after": "            h('ul', { class: 'rpgc-wlist' }, near.map(row)),\n            S.events && S.events.length ? h('div', { class: 'rpgc-set' }, h('h4', null, 'Established canon outcomes'),\n                h('ul', { class: 'rpgc-wlist' }, S.events.slice(-12).map(e => h('li', null,\n                    h('b', null, e.name), ` — ${e.state}${e.arc ? ` (Arc ${e.arc})` : ''}: ${e.detail}`)))) : null,\n            all);\n"
+    },
+    {
+      "id": "frontend-022",
+      "file": "dist/frontend.js",
+      "start": 6034,
+      "end": 6035,
+      "reference_start": 6057,
+      "reference_end": 6058,
+      "function": "renderMtSaga",
+      "action": "retain verified behavior/dependency at original callsite",
+      "tests": [
+        "test_startup_and_render.cjs",
+        "test_2_8_1_panel_parity.cjs",
+        "test_general_tracking.cjs"
+      ],
+      "before": "    const SPELL_STATUS = { known: 'Known', study: 'Studying', reach: 'Within reach', open: 'In the lorebook', next: 'Next rank', locked: 'Locked', special: 'Special' };\n",
+      "after": "    const SPELL_STATUS = { mastered: 'Mastered', known: 'Known', study: 'Studying', reach: 'Within reach', unranked: 'Rank unknown', open: 'In the lorebook', next: 'Next rank', locked: 'Locked', special: 'Special' };\n"
+    },
+    {
+      "id": "frontend-023",
+      "file": "dist/frontend.js",
+      "start": 6036,
+      "end": 6036,
+      "reference_start": 6059,
+      "reference_end": 6060,
+      "function": "renderSpellList",
+      "action": "retain verified behavior/dependency at original callsite",
+      "tests": [
+        "test_startup_and_render.cjs",
+        "test_2_8_1_panel_parity.cjs",
+        "test_general_tracking.cjs"
+      ],
+      "before": "",
+      "after": "        const rankLabel = (v) => state.world?.id === 'mushoku' ? String(v ?? '').replace(/\\bElementary\\b/gi, 'Beginner') : String(v ?? '');\n"
+    },
+    {
+      "id": "frontend-024",
+      "file": "dist/frontend.js",
+      "start": 6038,
+      "end": 6039,
+      "reference_start": 6062,
+      "reference_end": 6063,
+      "function": "renderSpellList",
+      "action": "retain verified behavior/dependency at original callsite",
+      "tests": [
+        "test_startup_and_render.cjs",
+        "test_2_8_1_panel_parity.cjs",
+        "test_general_tracking.cjs"
+      ],
+      "before": "        const shown = (sp) => filter === 'all' || !['locked', 'special'].includes(sp.status);\n",
+      "after": "        const shown = (sp) => filter === 'all' || !['locked', 'special', 'unranked'].includes(sp.status);\n"
+    },
+    {
+      "id": "frontend-025",
+      "file": "dist/frontend.js",
+      "start": 6042,
+      "end": 6042,
+      "reference_start": 6066,
+      "reference_end": 6067,
+      "function": "renderSpellList",
+      "action": "retain verified behavior/dependency at original callsite",
+      "tests": [
+        "test_startup_and_render.cjs",
+        "test_2_8_1_panel_parity.cjs",
+        "test_general_tracking.cjs"
+      ],
+      "before": "",
+      "after": "        if (L.eligibilityNote) out.push(h('p', {class:'rpgc-note'}, L.eligibilityNote));\n"
+    },
+    {
+      "id": "frontend-026",
+      "file": "dist/frontend.js",
+      "start": 6043,
+      "end": 6044,
+      "reference_start": 6068,
+      "reference_end": 6069,
+      "function": "renderSpellList",
+      "action": "retain verified behavior/dependency at original callsite",
+      "tests": [
+        "test_startup_and_render.cjs",
+        "test_2_8_1_panel_parity.cjs",
+        "test_general_tracking.cjs"
+      ],
+      "before": "        for (const sc of L.mine || []) tags.push(h('span', { class: 'rpgc-chip abil' }, raw(sc.name), sc.rank ? h('span', { class: 'lv' }, raw(' \\u00B7 ' + sc.rank)) : null));\n",
+      "after": "        for (const sc of L.mine || []) tags.push(h('span', { class: 'rpgc-chip abil' }, raw(sc.name), sc.rank ? h('span', { class: 'lv' }, raw(' \\u00B7 ' + rankLabel(sc.rank))) : null));\n"
+    },
+    {
+      "id": "frontend-027",
+      "file": "dist/frontend.js",
+      "start": 6047,
+      "end": 6048,
+      "reference_start": 6072,
+      "reference_end": 6073,
+      "function": "renderSpellList",
+      "action": "retain verified behavior/dependency at original callsite",
+      "tests": [
+        "test_startup_and_render.cjs",
+        "test_2_8_1_panel_parity.cjs",
+        "test_general_tracking.cjs"
+      ],
+      "before": "        for (const n of L.news || []) out.push(h('p', { class: 'rpgc-spell-news' }, '\\u2B06 ', raw(`${n.school}: ${n.from || '?'} \\u2192 ${n.to || '?'}`),\n",
+      "after": "        for (const n of L.news || []) out.push(h('p', { class: 'rpgc-spell-news' }, '\\u2B06 ', raw(`${n.school}: ${rankLabel(n.from || '?')} \\u2192 ${rankLabel(n.to || '?')}`),\n"
+    },
+    {
+      "id": "frontend-028",
+      "file": "dist/frontend.js",
+      "start": 6051,
+      "end": 6052,
+      "reference_start": 6076,
+      "reference_end": 6077,
+      "function": "renderSpellList",
+      "action": "retain verified behavior/dependency at original callsite",
+      "tests": [
+        "test_startup_and_render.cjs",
+        "test_2_8_1_panel_parity.cjs",
+        "test_general_tracking.cjs"
+      ],
+      "before": "                h('div', { class: 'head' }, h('b', null, raw(sp.name)), sp.school || sp.rank ? h('span', { class: 'rpgc-note' }, raw(' ' + [sp.school, sp.rank].filter(Boolean).join(' \\u00B7 '))) : null,\n",
+      "after": "                h('div', { class: 'head' }, h('b', null, raw(sp.name)), sp.school || sp.rank ? h('span', { class: 'rpgc-note' }, raw(' ' + [sp.school, rankLabel(sp.rank)].filter(Boolean).join(' \\u00B7 '))) : null,\n"
+    },
+    {
+      "id": "frontend-029",
+      "file": "dist/frontend.js",
+      "start": 6058,
+      "end": 6059,
+      "reference_start": 6083,
+      "reference_end": 6084,
+      "function": "renderSpellList",
+      "action": "retain verified behavior/dependency at original callsite",
+      "tests": [
+        "test_startup_and_render.cjs",
+        "test_2_8_1_panel_parity.cjs",
+        "test_general_tracking.cjs"
+      ],
+      "before": "                !sp.done && sp.why ? h('p', { class: 'rpgc-note' }, sp.why) : null))));\n",
+      "after": "                !sp.done && sp.why ? h('p', { class: 'rpgc-note' }, rankLabel(sp.why)) : null))));\n"
+    },
+    {
+      "id": "frontend-030",
+      "file": "dist/frontend.js",
+      "start": 6070,
+      "end": 6071,
+      "reference_start": 6095,
+      "reference_end": 6096,
+      "function": "renderSpellList",
+      "action": "retain verified behavior/dependency at original callsite",
+      "tests": [
+        "test_startup_and_render.cjs",
+        "test_2_8_1_panel_parity.cjs",
+        "test_general_tracking.cjs"
+      ],
+      "before": "            const counts = [g.known ? TT('{0} known', g.known) : null, g.study ? TT('{0} studying', g.study) : null, g.reach ? TT('{0} within reach', g.reach) : null, g.next ? TT('{0} next', g.next) : null].filter(Boolean).join(' \\u00B7 ');\n",
+      "after": "            const counts = [g.known ? TT('{0} known', g.known) : null, g.study ? TT('{0} studying', g.study) : null, g.reach ? TT('{0} within reach', g.reach) : null, g.next ? TT('{0} next', g.next) : null, filter === 'all' && g.unranked ? TT('{0} rank unknown', g.unranked) : null].filter(Boolean).join(' \\u00B7 ');\n"
+    },
+    {
+      "id": "frontend-031",
+      "file": "dist/frontend.js",
+      "start": 6072,
+      "end": 6073,
+      "reference_start": 6097,
+      "reference_end": 6098,
+      "function": "renderSpellList",
+      "action": "retain verified behavior/dependency at original callsite",
+      "tests": [
+        "test_startup_and_render.cjs",
+        "test_2_8_1_panel_parity.cjs",
+        "test_general_tracking.cjs"
+      ],
+      "before": "                h('summary', null, h('b', null, raw(g.name)), g.rank ? h('span', { class: 'rpgc-note' }, raw(' \\u2014 ' + g.rank)) : null, counts ? h('span', { class: 'rpgc-note' }, ' \\u00B7 ' + counts) : null),\n",
+      "after": "                h('summary', null, h('b', null, raw(g.name)), g.rank ? h('span', { class: 'rpgc-note' }, raw(' \\u2014 ' + rankLabel(g.rank))) : null, counts ? h('span', { class: 'rpgc-note' }, ' \\u00B7 ' + counts) : null),\n"
+    },
+    {
+      "id": "frontend-032",
+      "file": "dist/frontend.js",
+      "start": 6077,
+      "end": 6079,
+      "reference_start": 6102,
+      "reference_end": 6104,
+      "function": "renderSpellList",
+      "action": "retain verified behavior/dependency at original callsite",
+      "tests": [
+        "test_startup_and_render.cjs",
+        "test_2_8_1_panel_parity.cjs",
+        "test_general_tracking.cjs"
+      ],
+      "before": "                            sp.rank ? h('span', { class: 'rpgc-chip abil' }, raw(sp.rank)) : null,\n                            h('span', { class: 'rpgc-chip rpgc-spell-st ' + sp.status, title: sp.why || null }, SW('spell', SPELL_STATUS[sp.status] || sp.status)),\n",
+      "after": "                            sp.rank ? h('span', { class: 'rpgc-chip abil' }, raw(rankLabel(sp.rank))) : null,\n                            h('span', { class: 'rpgc-chip rpgc-spell-st ' + sp.status, title: sp.why ? rankLabel(sp.why) : null }, SW('spell', SPELL_STATUS[sp.status] || sp.status)),\n"
+    },
+    {
+      "id": "frontend-033",
+      "file": "dist/frontend.js",
+      "start": 6080,
+      "end": 6081,
+      "reference_start": 6105,
+      "reference_end": 6106,
+      "function": "renderSpellList",
+      "action": "retain verified behavior/dependency at original callsite",
+      "tests": [
+        "test_startup_and_render.cjs",
+        "test_2_8_1_panel_parity.cjs",
+        "test_general_tracking.cjs"
+      ],
+      "before": "                                sp.status === 'known' ? h('button', { class: 'rpgc-mini', title: 'Not learned after all: take it off', onclick: () => known(sp, false) }, '\\u2715')\n",
+      "after": "                                sp.status === 'known' || sp.status === 'mastered' ? h('button', { class: 'rpgc-mini', title: 'Not learned after all: take it off', onclick: () => known(sp, false) }, '\\u2715')\n"
+    },
+    {
+      "id": "frontend-034",
+      "file": "dist/frontend.js",
+      "start": 6084,
+      "end": 6086,
+      "reference_start": 6109,
+      "reference_end": 6111,
+      "function": "renderSpellList",
+      "action": "retain verified behavior/dependency at original callsite",
+      "tests": [
+        "test_startup_and_render.cjs",
+        "test_2_8_1_panel_parity.cjs",
+        "test_general_tracking.cjs"
+      ],
+      "before": "                        sp.why && sp.status !== 'known' ? h('p', { class: 'rpgc-note why' }, sp.why) : null,\n                        sp.fan && sp.status !== 'known' ? h('p', { class: 'rpgc-note why' }, 'Not canon: very rare') : null,\n",
+      "after": "                        sp.why && !['known', 'mastered'].includes(sp.status) ? h('p', { class: 'rpgc-note why' }, rankLabel(sp.why)) : null,\n                        sp.fan ? h('p', { class: 'rpgc-note why' }, 'Not canon: very rare') : null,\n"
+    },
+    {
+      "id": "frontend-035",
+      "file": "dist/frontend.js",
+      "start": 6088,
+      "end": 6088,
+      "reference_start": 6113,
+      "reference_end": 6114,
+      "function": "renderSpellList",
+      "action": "retain verified behavior/dependency at original callsite",
+      "tests": [
+        "test_startup_and_render.cjs",
+        "test_2_8_1_panel_parity.cjs",
+        "test_general_tracking.cjs"
+      ],
+      "before": "",
+      "after": "                        sp.chantSource ? h('p', {class:'rpgc-note'}, raw(sp.chantSource)) : null,\n"
+    }
+  ]
+}

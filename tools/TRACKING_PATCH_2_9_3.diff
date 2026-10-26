@@ -1,0 +1,210 @@
+--- 2.9.2/dist/backend.js
++++ 2.9.3/dist/backend.js
+@@ -2340,7 +2340,7 @@
+ // Demo mode plays scripted turns (no tokens); Live mode asks the model, with a small
+ // world narrator standing in for a bot card.
+ 
+-const RPGC_VERSION = '2.9.2';
++const RPGC_VERSION = '2.9.3';
+ const diagLog = [];
+ function diagPush(kind, m) { diagLog.push({ at: new Date().toISOString(), kind, text: String(m).slice(0, 400) }); if (diagLog.length > 60) diagLog.shift(); }
+ function logW(m) { diagPush('warn', m); return spindle.log.warn(m); }
+@@ -9794,7 +9794,7 @@
+             spells: Array.isArray(y.spells) ? y.spells.filter(x => typeof x === 'string' && x.trim()).map(x => x.trim().slice(0, 60)).slice(0, 8) : [],
+             learned: Array.isArray(y.learned) ? y.learned.map(x => (typeof x === 'string' ? x : isPlainObject(x) ? x.name || x.spell : '')).filter(x => typeof x === 'string' && x.trim() && !/^(none|null|n\/a)$/i.test(x.trim())).map(x => x.trim().slice(0, 60)).slice(0, 6) : [],
+             mastered: Array.isArray(y.mastered) ? y.mastered.filter(x => typeof x === 'string' && x.trim()).map(x => x.trim().slice(0, 60)).slice(0, 6) : [],
+-            study: Array.isArray(y.study) ? y.study.filter(x => isPlainObject(x) && typeof (x.spell || x.name) === 'string' && (x.spell || x.name).trim()).map(x => { const n = reportNumber(x.progress); return { spell: String(x.spell || x.name).trim().slice(0, 60), progress: Number.isFinite(n) ? Math.max(0, Math.min(100, Math.round(n))) : null, note: partyText(x.note, 80) }; }).slice(0, 8) : [],
++            study: Array.isArray(y.study) ? y.study.filter(x => isPlainObject(x) && typeof (x.spell || x.name) === 'string' && (x.spell || x.name).trim()).map(x => { const n = reportNumber(x.progress); return { spell: String(x.spell || x.name).trim().slice(0, 60), progress: Number.isFinite(n) ? Math.max(0, Math.min(100, Math.round(n))) : null, note: reportText(x.note, 500) }; }).slice(0, 8) : [],
+             got: pocketList(y.got, true), lost: pocketList(y.lost) };
+         res.found = true;
+     }
+@@ -11913,6 +11913,15 @@
+     return { json, rules };
+ }
+ 
++// Retain useful report text while keeping storage bounded and making a limit visible.
++function reportText(value, max) {
++    const text = partyText(value, max + 1);
++    if (!text || text.length <= max) return text;
++    const boundary = text.lastIndexOf(' ', max - 1);
++    const end = boundary >= max * 0.75 ? boundary : max - 1;
++    return text.slice(0, end).replace(/[\uD800-\uDBFF]$/, '').trimEnd() + '…';
++}
++
+ function reportNumber(value) {
+     if (typeof value !== 'number' && (typeof value !== 'string' || !value.trim())) return NaN;
+     const number = Number(value);
+@@ -12382,8 +12391,8 @@
+     for (const e of list) {
+         if (!isPlainObject(e) || e.accepted === false || reportSpeculative(e)) continue;
+         if (gearPendingState(e.state ?? e.status ?? e.how)) continue;
+-        const name = gearBare(partyText(e.item ?? e.name ?? e.object, 60) || '');
+-        if (!name) continue;
++        const name = gearBare(reportText(e.item ?? e.name ?? e.object, 160) || '');
++        if (!name || pocketIsAuthorization(name)) continue;
+         const key = lockKey(name);
+         if (!key || out.some(x => x.key === key)) continue;
+         const inside = partyText(e.inside ?? e.container, 50);
+@@ -12487,6 +12496,7 @@
+         for (const n of Array.isArray(y.got) ? y.got : []) { if (pocketIsMessage(n) || pocketAcquisitionPending(n)) continue; const it = ensure(n, 'story'); if (it && (!it.state || it.state === 'gone')) apply(it, 'on body', null, null, at, m.id, idx); }
+         for (const n of Array.isArray(y.lost) ? y.lost : []) { const it = find(n); if (it) apply(it, 'gone', null, null, at, m.id, idx); }
+         for (const r of Array.isArray(d.gear) ? d.gear : []) {
++            if (pocketIsAuthorization(r?.name)) continue;
+             const it = ensure(r.name, 'story');
+             if (!it) continue;
+             if (r.state === 'in container' && r.inside && !find(gearBare(r.inside)) && !/\b(pocket|bolso|bolsillo)\b/i.test(r.inside)) { const box = ensure(r.inside, 'story'); if (box && !box.state) box.state = 'on body'; }
+@@ -12656,7 +12666,7 @@
+     const out = [];
+     for (const e of list) {
+         if (!isPlainObject(e)) continue;
+-        const what = partyText(e.what ?? e.name ?? e.text, 90);
++        const what = reportText(e.what ?? e.name ?? e.text, 240);
+         if (!what) continue;
+         const key = lockKey(what);
+         if (!key) continue;
+@@ -12699,6 +12709,11 @@
+         if (/\b(?:begins?|began|started|underway|in progress|fighting|attending|practicing|practising|studying|working)\b/i.test(cue)) return 'in_progress';
+     }
+     return null;
++}
++
++function agendaReportedState(row, data, at, dueAt, previous = 'open') {
++    if (row.state !== 'in_progress' || !['meeting', 'event'].includes(row.kind) || at === null || dueAt === null || dueAt <= at || /\b(?:before|by|until)\b/i.test(row.when || '')) return row.state;
++    return agendaActivityState(row, data) === 'in_progress' ? row.state : previous;
+ }
+ 
+ function agendaRead(chat, st) {
+@@ -12737,8 +12752,9 @@
+             if (r.where) it.where = r.where;
+             if (r.when || r.due) { if (r.when) it.when = r.when; if (dueAt !== null || r.moved) it.dueAt = dueAt; if (dueAt === null && r.due) it.when = r.when || r.due; }
+             if (r.kind) it.kind = r.kind;
+-            if (r.state !== it.state) it.history.push({ from: it.state, to: r.state, at });
+-            it.state = r.state; it.idx = idx; it.changedIn = m.id;
++            const state = agendaReportedState(r, d, at, it.dueAt, it.state);
++            if (state !== it.state) it.history.push({ from: it.state, to: state, at });
++            it.state = state; it.idx = idx; it.changedIn = m.id;
+         }
+         for (const it of items) if (it.state === 'open' || it.state === 'in_progress') {
+             const state = agendaActivityState(it, d);
+@@ -14784,8 +14800,12 @@
+ }
+ 
+ /** A message that reached a phone is not a thing in your pocket ("pairing notification on phone"). */
++function pocketIsAuthorization(n) {
++    return /^(?:permission|approval|consent|authori[sz]ation|access|(?:the )?right)\s+to\b/i.test(String(n || '').trim());
++}
+ function pocketIsMessage(n) {
+-    const t = String(n || '');
++    const t = String(n || '').trim();
++    if (pocketIsAuthorization(t)) return true;
+     return /\b(notification|notice|message|texts?|e-?mail|alert|announcement|ping)\b/i.test(t) && /\b(phone|app|device|screen|school|inbox|mail|group chat)\b/i.test(t);
+ }
+ 
+@@ -14793,7 +14813,7 @@
+ function pocketList(v, acquisition = false) {
+     if (!Array.isArray(v)) return [];
+     return v.filter(x => !acquisition || !pocketAcquisitionPending(x)).map(x => (typeof x === 'string' ? x : isPlainObject(x) ? x.name || x.item : '')).filter(x => typeof x === 'string' && x.trim())
+-        .map(x => x.trim().replace(/\s+/g, ' ').slice(0, 60)).slice(0, 8);
++        .filter(x => !pocketIsMessage(x)).map(x => reportText(x, 160)).filter(Boolean).slice(0, 8);
+ }
+ 
+ /**
+@@ -15135,7 +15155,14 @@
+     }
+     return name => {
+         const key = spellKey(name), row = index.get(key);
+-        return row ? { key: row.key, name: row.name } : { key, name: String(name || '').trim() };
++        if (row) return { key: row.key, name: row.name };
++        const label = String(name || '').trim();
++        const base = label.replace(/\s*[([]\s*(?:voiceless(?: casting)?|silent(?: casting)?|unvoiced(?: casting)?|without incantation|with incantation|standard incantation|incantation casting)\s*[)\]]\s*$/i, '').trim();
++        if (base && base !== label) {
++            const baseKey = spellKey(base), target = index.get(baseKey);
++            return target ? { key: target.key, name: target.name } : { key: baseKey, name: base };
++        }
++        return { key, name: label };
+     };
+ }
+ function spellResolveState(chatId, st, fold) {
+@@ -15187,7 +15214,8 @@
+         const d = getSwipeData(m);
+         const y = d && isPlainObject(d.survival) ? d.survival : null;
+         if (!y) continue;
+-        for (const n of [...(Array.isArray(y.spells) ? y.spells : []), ...(Array.isArray(y.learned) ? y.learned : [])]) { const k = spellKey(n); if (k) learned.set(k, { name: n, msgId: m.id, at: order.get(m.id) }); }
++        for (const n of Array.isArray(y.spells) ? y.spells : []) { const k = spellKey(n); if (k) learned.set(k, { name: n, msgId: m.id, at: order.get(m.id), newlyLearned: false }); }
++        for (const n of Array.isArray(y.learned) ? y.learned : []) { const k = spellKey(n); if (k) learned.set(k, { name: n, msgId: m.id, at: order.get(m.id), newlyLearned: true }); }
+         for (const n of Array.isArray(y.mastered) ? y.mastered : []) { const k = spellKey(n); if (k) mastered.set(k, { name: n, msgId: m.id, at: order.get(m.id) }); }
+         for (const s of Array.isArray(y.study) ? y.study : []) if (s && s.spell) progress.set(spellKey(s.spell), { name: s.spell, progress: s.progress, note: s.note || null, msgId: m.id, at: order.get(m.id) });
+     }
+@@ -15199,8 +15227,8 @@
+ function spellSame(a, b) { return a === b; }
+ 
+ /** The names the player knows: the spellbook, and what the story said they learned since they last cleared it. */
+-function spellKnown(chat, st, fold, chatId = null) {
+-    const resolved = spellResolveState(chatId || chatIdOf(chat), st, fold || spellStoryFold(chat, chatId));
++function spellKnown(chat, st, fold, chatId = null, alreadyResolved = false) {
++    const resolved = alreadyResolved ? { st, fold } : spellResolveState(chatId || chatIdOf(chat), st, fold || spellStoryFold(chat, chatId));
+     const f = resolved.fold; st = resolved.st;
+     const forget = isPlainObject(st && st.spellForget) ? st.spellForget : {};
+     const allowed = (key, event) => {
+@@ -15223,15 +15251,19 @@
+ }
+ 
+ /** Manual study choices and practice the story reported, rebuilt from the active swipes. */
+-function spellStudyActive(chat, st, fold = null, chatId = null) {
++function spellStudyActive(chat, st, fold = null, chatId = null, knownMap = null) {
+     const resolved = spellResolveState(chatId || chatIdOf(chat), st, fold || spellStoryFold(chat, chatId));
+     const f = resolved.fold; st = resolved.st;
++    const saved = Array.isArray(st && st.spellStudy) ? st.spellStudy : [];
++    const known = f.progress.size || saved.some(s => s?.from === 'story') ? (knownMap || spellKnown(chat, st, f, chatId, true)) : knownMap;
+     const active = new Map();
+-    for (const s of Array.isArray(st && st.spellStudy) ? st.spellStudy : []) if (s && s.name) active.set(spellKey(s.name), s);
++    for (const s of saved) if (s && s.name && !(s.from === 'story' && known?.has(spellKey(s.name)))) active.set(spellKey(s.name), s);
+     const stopped = isPlainObject(st && st.spellStudyStopped) ? st.spellStudyStopped : {};
+     for (const [key, p] of f.progress) {
+         const after = stopped[key] && f.order.has(stopped[key]) ? f.order.get(stopped[key]) : -1;
+-        if (p.at > after && !active.has(key)) active.set(key, { name: p.name, school: null, rank: null, from: 'story' });
++        const earned = f.learned.get(key), mastered = f.mastered.get(key);
++        const completedHere = (earned?.newlyLearned && earned.at >= p.at) || (mastered && mastered.at >= p.at);
++        if (p.at > after && (!known?.has(key) || completedHere) && !active.has(key)) active.set(key, { name: p.name, school: null, rank: null, from: 'story' });
+     }
+     return [...active.values()].slice(-8);
+ }
+@@ -15252,11 +15284,11 @@
+     const stand = spellStanding(sys && sys._lines ? sys._lines : []);
+     const resolved = spellResolveState(chatId, st, spellStoryFold(chat, chatId));
+     const fold = resolved.fold; st = resolved.st;
+-    const known = spellKnown(chat, st, fold, chatId);
++    const known = spellKnown(chat, st, fold, chatId, true);
+     const knownKeys = [...known.keys()];
+     const isKnown = (k) => known.has(k) || knownKeys.some(x => spellSame(x, k));
+     const techKeys = techKeySet(chatId);
+-    const study = spellStudyActive(chat, st, fold, chatId).filter(s => !techKeys.has(spellKey(s.name)));
++    const study = spellStudyActive(chat, st, fold, chatId, known).filter(s => !techKeys.has(spellKey(s.name)));
+     const studyKeys = new Set(study.map(s => spellKey(s.name)));
+     const ladderOf = (r) => SPELL_LADDER[r.ladder] || SPELL_LADDER.mt;
+     const needs = (r) => (r.ladder === 'rz' ? `Needs ${SPELL_LADDER.rz[r.step]} tier (Gate ${['F', 'D', 'C', 'B', 'S'][r.step]} or better)` : `Needs ${ladderOf(r)[r.step]}`);
+@@ -15325,9 +15357,10 @@
+ function spellStudyReminder(chatId, chat, st, userName) {
+     const resolved = spellResolveState(chatId, st, spellStoryFold(chat, chatId));
+     const fold = resolved.fold; st = resolved.st;
+-    const study = spellStudyActive(chat, st, fold, chatId);
++    if (!fold.progress.size && !(Array.isArray(st.spellStudy) && st.spellStudy.length)) return null;
++    const known = spellKnown(chat, st, fold, chatId, true);
++    const study = spellStudyActive(chat, st, fold, chatId, known);
+     if (!study.length) return null;
+-    const known = spellKnown(chat, st, fold, chatId);
+     const kk = [...known.keys()];
+     const cat = spellCatalog(chatId);
+     const rows = [];
+@@ -15489,9 +15522,9 @@
+     const stand = techStanding(sys && sys._lines ? sys._lines : []);
+     const resolved = spellResolveState(chatId, st, spellStoryFold(chat, chatId));
+     const fold = resolved.fold; st = resolved.st;
+-    const known = spellKnown(chat, st, fold, chatId);
++    const known = spellKnown(chat, st, fold, chatId, true);
+     const catKeys = new Set(cat.map(r => r.key));
+-    const study = spellStudyActive(chat, st, fold, chatId).filter(s => catKeys.has(spellKey(s.name)));
++    const study = spellStudyActive(chat, st, fold, chatId, known).filter(s => catKeys.has(spellKey(s.name)));
+     const studyKeys = new Set(study.map(s => spellKey(s.name)));
+     const has = (name) => stand.get(techStyleKey(name)) || null;
+     const items = cat.map(r => {

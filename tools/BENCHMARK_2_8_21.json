@@ -1,0 +1,182 @@
+[
+  {
+    "file": "/tmp/companion-2.8.20-backend.js",
+    "messages": 600,
+    "coldMs": 139.8,
+    "medianMs": 53.56,
+    "warnings": 0,
+    "round": 1,
+    "benchmark": "benchmark_panel_reads.cjs"
+  },
+  {
+    "file": "Companion/dist/backend.js",
+    "messages": 600,
+    "coldMs": 111.97,
+    "medianMs": 49.8,
+    "warnings": 0,
+    "round": 1,
+    "benchmark": "benchmark_panel_reads.cjs"
+  },
+  {
+    "file": "/tmp/companion-2.8.20-backend.js",
+    "parseReportMedianMs": 0.4282,
+    "processResponseMedianMs": 0.5916,
+    "promptCharacters": 15798,
+    "warnings": 0,
+    "round": 1,
+    "benchmark": "benchmark_tracking_pipeline.cjs"
+  },
+  {
+    "file": "Companion/dist/backend.js",
+    "parseReportMedianMs": 0.4104,
+    "processResponseMedianMs": 0.5975,
+    "promptCharacters": 15528,
+    "warnings": 0,
+    "round": 1,
+    "benchmark": "benchmark_tracking_pipeline.cjs"
+  },
+  {
+    "file": "Companion/dist/backend.js",
+    "messages": 600,
+    "coldMs": 131.66,
+    "medianMs": 52.9,
+    "warnings": 0,
+    "round": 2,
+    "benchmark": "benchmark_panel_reads.cjs"
+  },
+  {
+    "file": "/tmp/companion-2.8.20-backend.js",
+    "messages": 600,
+    "coldMs": 102.75,
+    "medianMs": 51.02,
+    "warnings": 0,
+    "round": 2,
+    "benchmark": "benchmark_panel_reads.cjs"
+  },
+  {
+    "file": "Companion/dist/backend.js",
+    "parseReportMedianMs": 0.3963,
+    "processResponseMedianMs": 0.5827,
+    "promptCharacters": 15528,
+    "warnings": 0,
+    "round": 2,
+    "benchmark": "benchmark_tracking_pipeline.cjs"
+  },
+  {
+    "file": "/tmp/companion-2.8.20-backend.js",
+    "parseReportMedianMs": 0.4184,
+    "processResponseMedianMs": 0.632,
+    "promptCharacters": 15798,
+    "warnings": 0,
+    "round": 2,
+    "benchmark": "benchmark_tracking_pipeline.cjs"
+  },
+  {
+    "file": "/tmp/companion-2.8.20-backend.js",
+    "messages": 600,
+    "coldMs": 126.89,
+    "medianMs": 53.39,
+    "warnings": 0,
+    "round": 3,
+    "benchmark": "benchmark_panel_reads.cjs"
+  },
+  {
+    "file": "Companion/dist/backend.js",
+    "messages": 600,
+    "coldMs": 113.76,
+    "medianMs": 53.28,
+    "warnings": 0,
+    "round": 3,
+    "benchmark": "benchmark_panel_reads.cjs"
+  },
+  {
+    "file": "/tmp/companion-2.8.20-backend.js",
+    "parseReportMedianMs": 0.4142,
+    "processResponseMedianMs": 0.6041,
+    "promptCharacters": 15798,
+    "warnings": 0,
+    "round": 3,
+    "benchmark": "benchmark_tracking_pipeline.cjs"
+  },
+  {
+    "file": "Companion/dist/backend.js",
+    "parseReportMedianMs": 0.4021,
+    "processResponseMedianMs": 0.5885,
+    "promptCharacters": 15528,
+    "warnings": 0,
+    "round": 3,
+    "benchmark": "benchmark_tracking_pipeline.cjs"
+  },
+  {
+    "file": "Companion/dist/backend.js",
+    "messages": 600,
+    "coldMs": 128.03,
+    "medianMs": 58.15,
+    "warnings": 0,
+    "round": 4,
+    "benchmark": "benchmark_panel_reads.cjs"
+  },
+  {
+    "file": "/tmp/companion-2.8.20-backend.js",
+    "messages": 600,
+    "coldMs": 113.99,
+    "medianMs": 53.98,
+    "warnings": 0,
+    "round": 4,
+    "benchmark": "benchmark_panel_reads.cjs"
+  },
+  {
+    "file": "Companion/dist/backend.js",
+    "parseReportMedianMs": 0.3972,
+    "processResponseMedianMs": 0.5825,
+    "promptCharacters": 15528,
+    "warnings": 0,
+    "round": 4,
+    "benchmark": "benchmark_tracking_pipeline.cjs"
+  },
+  {
+    "file": "/tmp/companion-2.8.20-backend.js",
+    "parseReportMedianMs": 0.3935,
+    "processResponseMedianMs": 0.619,
+    "promptCharacters": 15798,
+    "warnings": 0,
+    "round": 4,
+    "benchmark": "benchmark_tracking_pipeline.cjs"
+  },
+  {
+    "file": "/tmp/companion-2.8.20-backend.js",
+    "messages": 600,
+    "coldMs": 140.9,
+    "medianMs": 58.9,
+    "warnings": 0,
+    "round": 5,
+    "benchmark": "benchmark_panel_reads.cjs"
+  },
+  {
+    "file": "Companion/dist/backend.js",
+    "messages": 600,
+    "coldMs": 117.15,
+    "medianMs": 55.47,
+    "warnings": 0,
+    "round": 5,
+    "benchmark": "benchmark_panel_reads.cjs"
+  },
+  {
+    "file": "/tmp/companion-2.8.20-backend.js",
+    "parseReportMedianMs": 0.435,
+    "processResponseMedianMs": 0.5927,
+    "promptCharacters": 15798,
+    "warnings": 0,
+    "round": 5,
+    "benchmark": "benchmark_tracking_pipeline.cjs"
+  },
+  {
+    "file": "Companion/dist/backend.js",
+    "parseReportMedianMs": 0.4288,
+    "processResponseMedianMs": 0.6171,
+    "promptCharacters": 15528,
+    "warnings": 0,
+    "round": 5,
+    "benchmark": "benchmark_tracking_pipeline.cjs"
+  }
+]

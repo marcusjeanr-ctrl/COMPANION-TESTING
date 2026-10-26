@@ -1,0 +1,42 @@
+FAIL quest partial updates retain other quests and established fields: Expected values to be strictly equal:
+
+1 !== 2
+
+FAIL quest renamed storyline uses objective/context, never a bare title prefix: c.questMatch is not a function
+FAIL unknown quest progress stays unknown; explicit zero and measured progress survive: Expected values to be strictly equal:
+
+0 !== null
+
+FAIL rephrased agenda titles deduplicate without collapsing distinct activities: Expected values to be strictly equal:
+
+2 !== 1
+
+FAIL vague deadlines stay textual and never inherit fabricated clock minutes: this afternoon
+
+900 !== null
+
+FAIL partial agenda update refines confirmed time, reschedules and clears obsolete precision: Expected values to be strictly equal:
++ actual - expected
+
++ 216228420
+- null
+
+FAIL explicit uncertainty never becomes an established relationship or secret: Expected values to be strictly equal:
++ actual - expected
+
++ [
++   {
++     bond: null,
++     key: 'rin',
++     minor: false,
++     mood: 'jealous',
++     name: 'Rin',
++     reasons: {},
++     standing: null,
++     trust: null,
++     why: null
++   }
++ ]
+- null
+
+2.9.0 targeted tracking: 0/7 groups passed.
