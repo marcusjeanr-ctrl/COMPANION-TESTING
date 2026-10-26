@@ -15,6 +15,7 @@
   reports beneath their replies. Preserve passive quest/family/relationship/Agenda
   facts without replaying receipts, XP, money or relative Minds deltas. Missing,
   stale, wrong-swipe and quoted historical data remain excluded.
+- Distinguish available continuation display data from transaction selection in diagnostics.
 - No new model calls, polling, history traversal or saved-data migration. Add
   export-based, synthetic and Chromium regressions; retain release-candidate status.
 

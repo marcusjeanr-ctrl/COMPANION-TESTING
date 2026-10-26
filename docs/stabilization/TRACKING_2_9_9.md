@@ -47,6 +47,8 @@ settings, permissions, identifier, UI design and stored metadata. The new privat
    generation, metadata write or additional history traversal. Quoted/fenced blocks,
    missing data and rejected stored reports are not used to bypass provenance.
 
+Diagnostics distinguish an available continuation snapshot from transaction selection and identify metadata versus current-inline display data. Unsigned snapshots have an explicit rejection reason; a displayed report no longer misleadingly reports zero selected data.
+
 No tracking record is deleted or rewritten by reconciliation. Historical objective
 stages and progress remain in source per-swipe metadata. The extension does not
 invent a new historical record, migration or model instruction to force a merge.

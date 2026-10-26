@@ -15906,11 +15906,14 @@ async function hmsDiagnostics(chatId, includeReply) {
                     if (!mine) return 'absent';
                     if (!isPlainObject(mine.swipes?.[key])) return 'missing-active-swipe';
                     const source = mine.sources?.[key];
+                    if (hudMsg._rpgcPurpose === 'continue' && !source) return 'unsigned-snapshot';
                     return source && source !== messageSource(hudMsg) ? 'source-mismatch' : 'valid';
                 };
-                const data = getSwipeData(hudMsg);
+                const saved = getSwipeData(hudMsg, true);
+                const data = saved || statesReading(hudMsg);
                 return { live: status(live), exported: status(exported), nested: status(nested),
-                    selected: !!data, minds: Array.isArray(data?.minds) ? data.minds.length : 0,
+                    selected: !!data, source: saved ? 'metadata' : data ? 'inline-current' : null,
+                    continuationSnapshot: hudMsg._rpgcPurpose === 'continue', transactionSelected: !!getSwipeData(hudMsg), minds: Array.isArray(data?.minds) ? data.minds.length : 0,
                     characters: Array.isArray(data?.characters) ? data.characters.length : 0 };
             })() },
         lastInjection: lastInjection.get(chatId) || null,

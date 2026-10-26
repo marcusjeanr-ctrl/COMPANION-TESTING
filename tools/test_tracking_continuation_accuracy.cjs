@@ -75,6 +75,10 @@ test('Source-bound continuation reports render and retain passive facts without 
     assert.equal(c.famRead(rt.messages,{}).members.length,1);
     assert.equal(c.questDetailsLatest(rt.messages).length,1);
     assert.equal(c.youReadings(rt.messages).length,0,'XP/inventory snapshot treated as a new story transaction');
+    const diagnostic=await c.hmsDiagnostics('test',false);
+    assert.equal(diagnostic.chat.trackingMetadata.selected,true,'Diagnostics hid the available continuation report');
+    assert.equal(diagnostic.chat.trackingMetadata.transactionSelected,false);
+    assert.equal(diagnostic.chat.trackingMetadata.continuationSnapshot,true);
     const expectedSource=reply.extra.spindle_metadata.rpg_companion.sources[0];
     delete reply.extra.spindle_metadata.rpg_companion.sources[0];assert.equal(c.getSwipeData(reply,true),null,'Unsigned snapshot trusted');
     reply.extra.spindle_metadata.rpg_companion.sources[0]=expectedSource;
