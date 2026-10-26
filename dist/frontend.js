@@ -1349,6 +1349,7 @@ export function setup(ctx) {
                 state.encounterActive = false;
                 state.status = null;
                 state.hms = null;
+                state.extras = null;
                 state.lore = null;
                 state.immersive = null;
                 state.immBusy = false;

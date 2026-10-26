@@ -39,6 +39,8 @@ function frontend() {
         querySelector: () => null, querySelectorAll: () => [], addEventListener() {}
     };
     let receive;
+    let activeChat = { chatId: 'test', characterId: 'character' };
+    const listeners = new Map();
     const ctx = {
         dom: { addStyle() { return () => {}; } },
         ui: {
@@ -47,8 +49,8 @@ function frontend() {
         },
         sendToBackend() {},
         onBackendMessage(handler) { receive = handler; return () => {}; },
-        getActiveChat() { return { chatId: 'test', characterId: 'character' }; },
-        events: { on() { return () => {}; } }
+        getActiveChat() { return activeChat; },
+        events: { on(event, handler) { listeners.set(event, handler); return () => listeners.delete(event); } }
     };
     const context = vm.createContext({
         console, document, window: {}, navigator: { language: 'en' }, ctx,
@@ -59,7 +61,8 @@ function frontend() {
     const source = fs.readFileSync(path.join(__dirname, '../dist/frontend.js'), 'utf8');
     vm.runInContext(source.replace('export function setup', 'function setup') + '\nconst dispose = setup(ctx);', context, { timeout: 10000 });
     const text = node => String(node.textContent || '') + (node.children || []).map(text).join(' ');
-    return { receive: message => receive(structuredClone(message)), text: () => text(root), dispose: () => vm.runInContext('dispose()', context) };
+    return { receive: message => receive(structuredClone(message)), text: () => text(root),
+        switchChat(chatId) { activeChat = {chatId, characterId: 'character'}; listeners.get('CHAT_SWITCHED')?.(); }, dispose: () => vm.runInContext('dispose()', context) };
 }
 
 async function main() {
