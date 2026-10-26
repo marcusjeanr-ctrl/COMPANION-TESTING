@@ -1,0 +1,58 @@
+name: Manually publish verified Companion RC
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: Stage verified assets, or publish after main passes CI
+        type: choice
+        options: [stage, publish]
+        default: stage
+        required: true
+      source_commit:
+        description: Exact reviewed commit with successful validation and browser CI
+        required: true
+        type: string
+      package_sha256:
+        description: SHA-256 of the already tested deterministic ZIP
+        required: true
+        type: string
+      version:
+        description: Expected RC manifest version
+        default: 2.9.11
+        required: true
+        type: string
+permissions:
+  contents: read
+concurrency:
+  group: companion-manual-release
+  cancel-in-progress: false
+jobs:
+  release:
+    if: github.repository == 'marcusjeanr-ctrl/COMPANION-TESTING'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    # Separate manual release job; validation CI stays read-only and cannot publish.
+    permissions:
+      contents: write
+      actions: read
+    env:
+      EXPECTED_COMMIT: ${{ inputs.source_commit }}
+      EXPECTED_SHA256: ${{ inputs.package_sha256 }}
+      EXPECTED_VERSION: ${{ inputs.version }}
+      RELEASE_MODE: ${{ inputs.mode }}
+      PYTHONDONTWRITEBYTECODE: '1'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.source_commit }}
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+      - name: Verify candidate, stage exact assets and optionally publish RC
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python3 tools/publish_rc.py --mode "$RELEASE_MODE" --commit "$EXPECTED_COMMIT" --sha256 "$EXPECTED_SHA256" --version "$EXPECTED_VERSION"
