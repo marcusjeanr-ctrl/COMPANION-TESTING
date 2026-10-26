@@ -1,0 +1,22 @@
+// Check release identity without executing the extension or regenerating bundles.
+const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const path = require('node:path');
+const root = path.resolve(__dirname, '..');
+const read = file => fs.readFileSync(path.join(root, file), 'utf8');
+const manifest = JSON.parse(read('spindle.json'));
+assert.equal(manifest.identifier, 'rpg_companion_hms');
+assert.equal(manifest.github, 'https://github.com/marcusjeanr-ctrl/COMPANION-TESTING');
+assert.equal(manifest.homepage, manifest.github);
+assert.equal(manifest.entry_backend, 'dist/backend.js');
+assert.equal(manifest.entry_frontend, 'dist/frontend.js');
+assert.match(manifest.version, /^\d+\.\d+\.\d+$/);
+const backend = read(manifest.entry_backend);
+const frontend = read(manifest.entry_frontend);
+assert.equal(backend.match(/const RPGC_VERSION = '([^']+)'/)?.[1], manifest.version);
+assert.equal(frontend.match(/headerTitle: 'RPG Companion HMS Edition ([^']+)'/)?.[1], manifest.version);
+assert(manifest.name.includes(manifest.version));
+assert.match(backend, /version: RPGC_VERSION/);
+assert(backend.includes('// ───────────────────────────── Startup'), 'Backend startup section missing');
+assert.match(frontend, /export function setup/);
+console.log(`Release identity, diagnostics binding and entrypoints verified: ${manifest.version} (RC status requires release review).`);

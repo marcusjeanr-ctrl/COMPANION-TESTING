@@ -1,0 +1,30 @@
+{
+  "runtime": "Node v22.22.2",
+  "date": "2026-10-26",
+  "runs": [
+    {
+      "file": "/workspace/COMPANION-TESTING/dist/backend.js",
+      "messages": 600,
+      "coldMs": 439.84,
+      "medianMs": 125.78,
+      "warnings": 0
+    },
+    {
+      "file": "/workspace/COMPANION-TESTING/dist/backend.js",
+      "messages": 2000,
+      "coldMs": 733.51,
+      "medianMs": 246.11,
+      "warnings": 0
+    },
+    {
+      "file": "/workspace/COMPANION-TESTING/dist/backend.js",
+      "parseReportMedianMs": 1.3426,
+      "processResponseMedianMs": 1.8268,
+      "promptConstructMedianMs": 0.8214,
+      "promptCharacters": 14832,
+      "populatedPromptCharacters": 18528,
+      "warnings": 0
+    }
+  ],
+  "limitations": "Single process per workload, synthetic mock host, no live provider or WebView timings."
+}

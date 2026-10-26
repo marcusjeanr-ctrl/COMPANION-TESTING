@@ -1,0 +1,717 @@
+[
+  {
+    "file": "Companion-main (1).zip",
+    "sha256": "57bd8da0fe3e4595829e249399a91593b69b212ad074daf220c534a426d163f8",
+    "builds": [
+      {
+        "manifest": "Companion-main/spindle.json",
+        "version": "2.9.3",
+        "permissions": [
+          "interceptor",
+          "generation",
+          "chat_mutation",
+          "image_gen",
+          "world_books",
+          "memories"
+        ],
+        "minimum_lumiverse_version": "1.2.0",
+        "bundles": {
+          "backend": {
+            "bytes": 1135199,
+            "sha256": "de934c4ce2c09eafd684bb4e74dda171a64ba6ccbc3f7102fec6de1543f0da0a"
+          },
+          "frontend": {
+            "bytes": 1424408,
+            "sha256": "bda10f2c2830838794f2ef6c95bf8c5950c0b0e880e49dd359f1f7ed8206d2fc"
+          }
+        },
+        "static_evidence": {
+          "hud": {
+            "function": "parseHud",
+            "line": 6684,
+            "references": 37
+          },
+          "reports": {
+            "function": "parseCompanion",
+            "line": 9767,
+            "references": 3
+          },
+          "quest_identity": {
+            "function": "questMatch",
+            "line": 15644,
+            "references": 6
+          },
+          "quest_details": {
+            "function": "questDetailsLatest",
+            "line": 15745,
+            "references": 2
+          },
+          "agenda": {
+            "function": "agendaRead",
+            "line": 12719,
+            "references": 2
+          },
+          "minds": {
+            "function": "simFold",
+            "line": 14141,
+            "references": 9
+          },
+          "internal_states": {
+            "function": "statesPanelHtml",
+            "line": 3527,
+            "references": 2
+          },
+          "relationships": null,
+          "magic": {
+            "function": "spellKnown",
+            "line": 15230,
+            "references": 7
+          },
+          "gear": {
+            "function": "gearRead",
+            "line": 12458,
+            "references": 4
+          },
+          "family": null,
+          "combat": {
+            "function": "combatRolls",
+            "line": 5692,
+            "references": 2
+          },
+          "atlas": {
+            "function": "atlasBuild",
+            "line": 3787,
+            "references": 2
+          },
+          "chronicle": {
+            "function": "chronOf",
+            "line": 7971,
+            "references": 7
+          },
+          "chapters": {
+            "function": "chaptersOf",
+            "line": 7665,
+            "references": 9
+          },
+          "persistence": {
+            "function": "setSwipeData",
+            "line": 1917,
+            "references": 7
+          },
+          "save_continue": null,
+          "reporter_slot": {
+            "function": "rpgcSlotRequest",
+            "line": 2688,
+            "references": 2
+          }
+        }
+      }
+    ]
+  },
+  {
+    "file": "RPG_Companion_HMS_2.8.2 (1).zip",
+    "sha256": "9784a0e9377d04420551c8d637154fc40a27f98cffb0f24821bf572d82f4fc6a",
+    "builds": [
+      {
+        "manifest": "rpg_companion_hms/spindle.json",
+        "version": "2.8.2",
+        "permissions": [
+          "interceptor",
+          "generation",
+          "chat_mutation",
+          "image_gen",
+          "world_books",
+          "memories"
+        ],
+        "minimum_lumiverse_version": "1.2.0",
+        "bundles": {
+          "backend": {
+            "bytes": 1122569,
+            "sha256": "03b083d8e5e5902c6be4d9d8fefb55a38235f9cafcce61832044ccccf43c5cca"
+          },
+          "frontend": {
+            "bytes": 1408701,
+            "sha256": "77345c70546faa125d2ea2adecd20e823d1ad3d87e8bcf11d4ae06808c6da1ef"
+          }
+        },
+        "static_evidence": {
+          "hud": {
+            "function": "parseHud",
+            "line": 6783,
+            "references": 23
+          },
+          "reports": {
+            "function": "parseCompanion",
+            "line": 9870,
+            "references": 3
+          },
+          "quest_identity": null,
+          "quest_details": {
+            "function": "questDetailsLatest",
+            "line": 15512,
+            "references": 2
+          },
+          "agenda": {
+            "function": "agendaRead",
+            "line": 12776,
+            "references": 2
+          },
+          "minds": {
+            "function": "simFold",
+            "line": 14202,
+            "references": 9
+          },
+          "internal_states": {
+            "function": "statesPanelHtml",
+            "line": 3595,
+            "references": 2
+          },
+          "relationships": null,
+          "magic": {
+            "function": "spellKnown",
+            "line": 15293,
+            "references": 5
+          },
+          "gear": {
+            "function": "gearRead",
+            "line": 12529,
+            "references": 4
+          },
+          "family": null,
+          "combat": {
+            "function": "combatRolls",
+            "line": 5763,
+            "references": 2
+          },
+          "atlas": {
+            "function": "atlasBuild",
+            "line": 3855,
+            "references": 2
+          },
+          "chronicle": {
+            "function": "chronOf",
+            "line": 8078,
+            "references": 7
+          },
+          "chapters": {
+            "function": "chaptersOf",
+            "line": 7772,
+            "references": 9
+          },
+          "persistence": {
+            "function": "setSwipeData",
+            "line": 1917,
+            "references": 7
+          },
+          "save_continue": null,
+          "reporter_slot": {
+            "function": "rpgcSlotRequest",
+            "line": 2754,
+            "references": 2
+          }
+        }
+      }
+    ]
+  },
+  {
+    "file": "rpg_companion_hms_2_8_1_beta (1).zip",
+    "sha256": "ba61d8f188871d0bd5bda67760fbdf028d3750c88f3193b48a5318934a023a38",
+    "builds": [
+      {
+        "manifest": "rpg_companion_hms/spindle.json",
+        "version": "2.8.1",
+        "permissions": [
+          "interceptor",
+          "generation",
+          "chat_mutation",
+          "image_gen",
+          "world_books",
+          "memories"
+        ],
+        "minimum_lumiverse_version": "1.2.0",
+        "bundles": {
+          "backend": {
+            "bytes": 1053554,
+            "sha256": "26cca24aafdb0f0763acd393bdba071985225cc88a524ee9fb55f1176f44874a"
+          },
+          "frontend": {
+            "bytes": 1405584,
+            "sha256": "46c6ee1c978d0e83e41f92fa181f425c9b008bccd5542d2c7306eb5de62497f3"
+          }
+        },
+        "static_evidence": {
+          "hud": {
+            "function": "parseHud",
+            "line": 6300,
+            "references": 39
+          },
+          "reports": {
+            "function": "parseCompanion",
+            "line": 9269,
+            "references": 3
+          },
+          "quest_identity": null,
+          "quest_details": {
+            "function": "questDetailsLatest",
+            "line": 14524,
+            "references": 2
+          },
+          "agenda": {
+            "function": "agendaRead",
+            "line": 12017,
+            "references": 2
+          },
+          "minds": {
+            "function": "simFold",
+            "line": 13406,
+            "references": 9
+          },
+          "internal_states": {
+            "function": "statesPanelHtml",
+            "line": 3397,
+            "references": 2
+          },
+          "relationships": null,
+          "magic": {
+            "function": "spellKnown",
+            "line": 14353,
+            "references": 4
+          },
+          "gear": {
+            "function": "gearRead",
+            "line": 11803,
+            "references": 4
+          },
+          "family": null,
+          "combat": {
+            "function": "combatRolls",
+            "line": 5352,
+            "references": 2
+          },
+          "atlas": {
+            "function": "atlasBuild",
+            "line": 3657,
+            "references": 2
+          },
+          "chronicle": {
+            "function": "chronOf",
+            "line": 7562,
+            "references": 7
+          },
+          "chapters": {
+            "function": "chaptersOf",
+            "line": 7278,
+            "references": 9
+          },
+          "persistence": {
+            "function": "setSwipeData",
+            "line": 1827,
+            "references": 7
+          },
+          "save_continue": null,
+          "reporter_slot": {
+            "function": "rpgcSlotRequest",
+            "line": 2564,
+            "references": 2
+          }
+        }
+      }
+    ]
+  },
+  {
+    "file": "rpg_companion_hms_2_0_beta (1).zip",
+    "sha256": "a93b7a3377dc368ccfcc33439cb4f25b975488d8d7a03cbfb80247c7dd117d14",
+    "builds": [
+      {
+        "manifest": "rpg_companion_hms/spindle.json",
+        "version": "2.0.0",
+        "permissions": [
+          "interceptor",
+          "generation",
+          "chat_mutation",
+          "image_gen",
+          "world_books",
+          "memories"
+        ],
+        "minimum_lumiverse_version": "1.2.0",
+        "bundles": {
+          "backend": {
+            "bytes": 775766,
+            "sha256": "28efdbd3f1cfe26d7422a566c1b2518b713b745e88bd1b0f083b3ec3dfdfa6f1"
+          },
+          "frontend": {
+            "bytes": 502409,
+            "sha256": "3c3a134428bc1d4ec1f892e2ccb27e35e0c1bbec0036b26dab0f5bc029015f10"
+          }
+        },
+        "static_evidence": {
+          "hud": {
+            "function": "parseHud",
+            "line": 5689,
+            "references": 38
+          },
+          "reports": {
+            "function": "parseCompanion",
+            "line": 8549,
+            "references": 3
+          },
+          "quest_identity": null,
+          "quest_details": {
+            "function": "questDetailsLatest",
+            "line": 10985,
+            "references": 2
+          },
+          "agenda": null,
+          "minds": null,
+          "internal_states": {
+            "function": "statesPanelHtml",
+            "line": 3097,
+            "references": 2
+          },
+          "relationships": null,
+          "magic": null,
+          "gear": null,
+          "family": null,
+          "combat": {
+            "function": "combatRolls",
+            "line": 4748,
+            "references": 2
+          },
+          "atlas": {
+            "function": "atlasBuild",
+            "line": 3351,
+            "references": 2
+          },
+          "chronicle": {
+            "function": "chronOf",
+            "line": 6951,
+            "references": 7
+          },
+          "chapters": {
+            "function": "chaptersOf",
+            "line": 6668,
+            "references": 9
+          },
+          "persistence": {
+            "function": "setSwipeData",
+            "line": 1616,
+            "references": 7
+          },
+          "save_continue": null,
+          "reporter_slot": {
+            "function": "rpgcSlotRequest",
+            "line": 2314,
+            "references": 2
+          }
+        }
+      }
+    ]
+  },
+  {
+    "file": "rpg_companion_hms_2_9_0_beta (1).zip",
+    "sha256": "b1855cd4f1bd5345f7b0505194939d0253fbcfb632cb87a4ef98706653a3099a",
+    "builds": [
+      {
+        "manifest": "rpg_companion_hms/spindle.json",
+        "version": "2.9.0",
+        "permissions": [
+          "interceptor",
+          "generation",
+          "chat_mutation",
+          "image_gen",
+          "world_books",
+          "memories"
+        ],
+        "minimum_lumiverse_version": "1.2.0",
+        "bundles": {
+          "backend": {
+            "bytes": 1119100,
+            "sha256": "48a206b34b6e97c703c752779e2c348cba5572f2bb7a43ce4b786a146b085dad"
+          },
+          "frontend": {
+            "bytes": 1424411,
+            "sha256": "efbf79d9635facc74eee7c4d7a4bf56b2a19bcf70892ce52852e8f6dc86d07a2"
+          }
+        },
+        "static_evidence": {
+          "hud": {
+            "function": "parseHud",
+            "line": 6684,
+            "references": 37
+          },
+          "reports": {
+            "function": "parseCompanion",
+            "line": 9764,
+            "references": 3
+          },
+          "quest_identity": null,
+          "quest_details": {
+            "function": "questDetailsLatest",
+            "line": 15475,
+            "references": 2
+          },
+          "agenda": {
+            "function": "agendaRead",
+            "line": 12596,
+            "references": 2
+          },
+          "minds": {
+            "function": "simFold",
+            "line": 13983,
+            "references": 9
+          },
+          "internal_states": {
+            "function": "statesPanelHtml",
+            "line": 3527,
+            "references": 2
+          },
+          "relationships": null,
+          "magic": {
+            "function": "spellKnown",
+            "line": 15060,
+            "references": 6
+          },
+          "gear": {
+            "function": "gearRead",
+            "line": 12361,
+            "references": 4
+          },
+          "family": null,
+          "combat": {
+            "function": "combatRolls",
+            "line": 5692,
+            "references": 2
+          },
+          "atlas": {
+            "function": "atlasBuild",
+            "line": 3787,
+            "references": 2
+          },
+          "chronicle": {
+            "function": "chronOf",
+            "line": 7971,
+            "references": 7
+          },
+          "chapters": {
+            "function": "chaptersOf",
+            "line": 7665,
+            "references": 9
+          },
+          "persistence": {
+            "function": "setSwipeData",
+            "line": 1917,
+            "references": 7
+          },
+          "save_continue": null,
+          "reporter_slot": {
+            "function": "rpgcSlotRequest",
+            "line": 2688,
+            "references": 2
+          }
+        }
+      }
+    ]
+  },
+  {
+    "file": "RPG_Companion_2_9_6_Internal_States_Diagnostics_RC.zip",
+    "sha256": "f6e03ae1e40525bfb4b34128e617a6e3675023bb4516a729bde57187e7331533",
+    "builds": [
+      {
+        "manifest": "spindle.json",
+        "version": "2.9.6",
+        "permissions": [
+          "interceptor",
+          "generation",
+          "chat_mutation",
+          "image_gen",
+          "world_books",
+          "memories"
+        ],
+        "minimum_lumiverse_version": "1.2.0",
+        "bundles": {
+          "backend": {
+            "bytes": 1139572,
+            "sha256": "67fce659e9644ab842853b051c462b83a51ab87e9f25a25c28e6f1429f012b5e"
+          },
+          "frontend": {
+            "bytes": 1424408,
+            "sha256": "08ca47c137cdc120fd84ed3010318979be13ecb291fce123836f234022e625c2"
+          }
+        },
+        "static_evidence": {
+          "hud": {
+            "function": "parseHud",
+            "line": 6736,
+            "references": 36
+          },
+          "reports": {
+            "function": "parseCompanion",
+            "line": 9819,
+            "references": 3
+          },
+          "quest_identity": {
+            "function": "questMatch",
+            "line": 15698,
+            "references": 6
+          },
+          "quest_details": {
+            "function": "questDetailsLatest",
+            "line": 15799,
+            "references": 2
+          },
+          "agenda": {
+            "function": "agendaRead",
+            "line": 12773,
+            "references": 2
+          },
+          "minds": {
+            "function": "simFold",
+            "line": 14195,
+            "references": 9
+          },
+          "internal_states": {
+            "function": "statesPanelHtml",
+            "line": 3570,
+            "references": 2
+          },
+          "relationships": null,
+          "magic": {
+            "function": "spellKnown",
+            "line": 15284,
+            "references": 7
+          },
+          "gear": {
+            "function": "gearRead",
+            "line": 12512,
+            "references": 4
+          },
+          "family": null,
+          "combat": {
+            "function": "combatRolls",
+            "line": 5735,
+            "references": 2
+          },
+          "atlas": {
+            "function": "atlasBuild",
+            "line": 3830,
+            "references": 2
+          },
+          "chronicle": {
+            "function": "chronOf",
+            "line": 8023,
+            "references": 7
+          },
+          "chapters": {
+            "function": "chaptersOf",
+            "line": 7717,
+            "references": 9
+          },
+          "persistence": {
+            "function": "setSwipeData",
+            "line": 1928,
+            "references": 7
+          },
+          "save_continue": {
+            "function": "companionMarkTurnPurposes",
+            "line": 2387,
+            "references": 3
+          },
+          "reporter_slot": {
+            "function": "rpgcSlotRequest",
+            "line": 2731,
+            "references": 2
+          }
+        }
+      }
+    ]
+  },
+  {
+    "file": "rpg_companion_hms_2_0_beta (2).zip",
+    "sha256": "a93b7a3377dc368ccfcc33439cb4f25b975488d8d7a03cbfb80247c7dd117d14",
+    "builds": [
+      {
+        "manifest": "rpg_companion_hms/spindle.json",
+        "version": "2.0.0",
+        "permissions": [
+          "interceptor",
+          "generation",
+          "chat_mutation",
+          "image_gen",
+          "world_books",
+          "memories"
+        ],
+        "minimum_lumiverse_version": "1.2.0",
+        "bundles": {
+          "backend": {
+            "bytes": 775766,
+            "sha256": "28efdbd3f1cfe26d7422a566c1b2518b713b745e88bd1b0f083b3ec3dfdfa6f1"
+          },
+          "frontend": {
+            "bytes": 502409,
+            "sha256": "3c3a134428bc1d4ec1f892e2ccb27e35e0c1bbec0036b26dab0f5bc029015f10"
+          }
+        },
+        "static_evidence": {
+          "hud": {
+            "function": "parseHud",
+            "line": 5689,
+            "references": 38
+          },
+          "reports": {
+            "function": "parseCompanion",
+            "line": 8549,
+            "references": 3
+          },
+          "quest_identity": null,
+          "quest_details": {
+            "function": "questDetailsLatest",
+            "line": 10985,
+            "references": 2
+          },
+          "agenda": null,
+          "minds": null,
+          "internal_states": {
+            "function": "statesPanelHtml",
+            "line": 3097,
+            "references": 2
+          },
+          "relationships": null,
+          "magic": null,
+          "gear": null,
+          "family": null,
+          "combat": {
+            "function": "combatRolls",
+            "line": 4748,
+            "references": 2
+          },
+          "atlas": {
+            "function": "atlasBuild",
+            "line": 3351,
+            "references": 2
+          },
+          "chronicle": {
+            "function": "chronOf",
+            "line": 6951,
+            "references": 7
+          },
+          "chapters": {
+            "function": "chaptersOf",
+            "line": 6668,
+            "references": 9
+          },
+          "persistence": {
+            "function": "setSwipeData",
+            "line": 1616,
+            "references": 7
+          },
+          "save_continue": null,
+          "reporter_slot": {
+            "function": "rpgcSlotRequest",
+            "line": 2314,
+            "references": 2
+          }
+        }
+      }
+    ]
+  }
+]
