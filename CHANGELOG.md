@@ -1,5 +1,24 @@
 # Changelog — RPG Companion HMS Edition
 
+## 2.9.9 RC — Tracking accuracy and continuation
+
+- Keep stable Agenda keys while displaying updated conditions; recognize guarded
+  em-dash condition suffixes. Explicit rescheduling can update participants, time
+  and place on one unambiguous active appointment; completed occurrences remain.
+- Preserve a quest's original key through confirmed renames, retaining focus,
+  rewards and source history. Latest progress can legitimately reset to zero.
+  Distinct Roa requirements remain separate; shared destinations do not merge them.
+- Use actual scene membership for relationship presence and family location
+  inference. Off-scene relationship reports no longer move relatives back into
+  the active room; established family records survive absence and reentry.
+- Display source-verified continuation snapshots and current inline continuation
+  reports beneath their replies. Preserve passive quest/family/relationship/Agenda
+  facts without replaying receipts, XP, money or relative Minds deltas. Missing,
+  stale, wrong-swipe and quoted historical data remain excluded.
+- Distinguish available continuation display data from transaction selection in diagnostics.
+- No new model calls, polling, history traversal or saved-data migration. Add
+  export-based, synthetic and Chromium regressions; retain release-candidate status.
+
 ## 2.9.8 RC — UI containment and chat isolation
 
 - Wrap long compound spell/technique names and study text within existing rows.

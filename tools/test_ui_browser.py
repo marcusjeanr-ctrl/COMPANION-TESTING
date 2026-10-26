@@ -137,6 +137,17 @@ class BrowserUi(unittest.TestCase):
         window.get_by_label('Where the panel lives').select_option('drawer')
         self.assertEqual(self.page.locator('#drawer > .rpgc').count(),1)
 
+    def test_continuation_states_attached_to_the_correct_reply(self):
+        self.assertIn('Internal states',FIXTURE['continuationHtml'])
+        self.page.evaluate('''(html)=>{
+            const old=document.createElement('article');old.id='previous-reply';old.textContent='Earlier reply';
+            const resumed=document.createElement('article');resumed.id='continued-ui';resumed.innerHTML=html;
+            document.body.append(old,resumed);
+        }''',FIXTURE['continuationHtml'])
+        self.assertEqual(self.page.locator('#previous-reply .rs').count(),0)
+        self.assertEqual(self.page.locator('#continued-ui .rs').count(),1)
+        self.assertEqual(self.page.locator('#continued-ui .rs input[type=radio]').count(),self.page.locator('#continued-ui .rs label').count())
+
     def test_internal_states_tabs_and_collapse(self):
         self.page.add_style_tag(content=FIXTURE['statesCss'])
         self.page.evaluate('(html)=>{let reply=document.createElement("article");reply.id="reply";reply.innerHTML=html;document.body.append(reply)}',FIXTURE['internalStates'])

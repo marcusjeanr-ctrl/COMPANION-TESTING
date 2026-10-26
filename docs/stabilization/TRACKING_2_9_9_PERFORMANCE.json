@@ -1,0 +1,418 @@
+{
+  "raw": [
+    {
+      "messages": 600,
+      "coldMs": 161.13,
+      "medianMs": 50.47,
+      "warnings": 0,
+      "kind": "baseline",
+      "run": 0,
+      "workload": "panel"
+    },
+    {
+      "messages": 600,
+      "coldMs": 145.39,
+      "medianMs": 43.27,
+      "warnings": 0,
+      "kind": "candidate",
+      "run": 0,
+      "workload": "panel"
+    },
+    {
+      "messages": 2000,
+      "coldMs": 331.29,
+      "medianMs": 67.87,
+      "warnings": 0,
+      "kind": "baseline",
+      "run": 0,
+      "workload": "panel"
+    },
+    {
+      "messages": 2000,
+      "coldMs": 317.81,
+      "medianMs": 70.24,
+      "warnings": 0,
+      "kind": "candidate",
+      "run": 0,
+      "workload": "panel"
+    },
+    {
+      "parseReportMedianMs": 0.4268,
+      "processResponseMedianMs": 0.5486,
+      "promptConstructMedianMs": 0.2734,
+      "promptCharacters": 14832,
+      "populatedPromptCharacters": 18528,
+      "warnings": 0,
+      "kind": "baseline",
+      "run": 0,
+      "workload": "pipeline"
+    },
+    {
+      "parseReportMedianMs": 0.4064,
+      "processResponseMedianMs": 0.5509,
+      "promptConstructMedianMs": 0.2624,
+      "promptCharacters": 14832,
+      "populatedPromptCharacters": 18528,
+      "warnings": 0,
+      "kind": "candidate",
+      "run": 0,
+      "workload": "pipeline"
+    },
+    {
+      "messages": 600,
+      "coldMs": 157.88,
+      "medianMs": 43.09,
+      "warnings": 0,
+      "kind": "candidate",
+      "run": 1,
+      "workload": "panel"
+    },
+    {
+      "messages": 600,
+      "coldMs": 141.16,
+      "medianMs": 42.28,
+      "warnings": 0,
+      "kind": "baseline",
+      "run": 1,
+      "workload": "panel"
+    },
+    {
+      "messages": 2000,
+      "coldMs": 326.74,
+      "medianMs": 70.06,
+      "warnings": 0,
+      "kind": "candidate",
+      "run": 1,
+      "workload": "panel"
+    },
+    {
+      "messages": 2000,
+      "coldMs": 303.31,
+      "medianMs": 68.67,
+      "warnings": 0,
+      "kind": "baseline",
+      "run": 1,
+      "workload": "panel"
+    },
+    {
+      "parseReportMedianMs": 0.4338,
+      "processResponseMedianMs": 0.5789,
+      "promptConstructMedianMs": 0.2647,
+      "promptCharacters": 14832,
+      "populatedPromptCharacters": 18528,
+      "warnings": 0,
+      "kind": "candidate",
+      "run": 1,
+      "workload": "pipeline"
+    },
+    {
+      "parseReportMedianMs": 0.4084,
+      "processResponseMedianMs": 0.5441,
+      "promptConstructMedianMs": 0.2562,
+      "promptCharacters": 14832,
+      "populatedPromptCharacters": 18528,
+      "warnings": 0,
+      "kind": "baseline",
+      "run": 1,
+      "workload": "pipeline"
+    },
+    {
+      "messages": 600,
+      "coldMs": 166.95,
+      "medianMs": 41.18,
+      "warnings": 0,
+      "kind": "baseline",
+      "run": 2,
+      "workload": "panel"
+    },
+    {
+      "messages": 600,
+      "coldMs": 138.35,
+      "medianMs": 40.92,
+      "warnings": 0,
+      "kind": "candidate",
+      "run": 2,
+      "workload": "panel"
+    },
+    {
+      "messages": 2000,
+      "coldMs": 334.49,
+      "medianMs": 70.27,
+      "warnings": 0,
+      "kind": "baseline",
+      "run": 2,
+      "workload": "panel"
+    },
+    {
+      "messages": 2000,
+      "coldMs": 309.98,
+      "medianMs": 71,
+      "warnings": 0,
+      "kind": "candidate",
+      "run": 2,
+      "workload": "panel"
+    },
+    {
+      "parseReportMedianMs": 0.4149,
+      "processResponseMedianMs": 0.5605,
+      "promptConstructMedianMs": 0.2746,
+      "promptCharacters": 14832,
+      "populatedPromptCharacters": 18528,
+      "warnings": 0,
+      "kind": "baseline",
+      "run": 2,
+      "workload": "pipeline"
+    },
+    {
+      "parseReportMedianMs": 0.4136,
+      "processResponseMedianMs": 0.5471,
+      "promptConstructMedianMs": 0.2647,
+      "promptCharacters": 14832,
+      "populatedPromptCharacters": 18528,
+      "warnings": 0,
+      "kind": "candidate",
+      "run": 2,
+      "workload": "pipeline"
+    },
+    {
+      "messages": 600,
+      "coldMs": 156.78,
+      "medianMs": 44.38,
+      "warnings": 0,
+      "kind": "candidate",
+      "run": 3,
+      "workload": "panel"
+    },
+    {
+      "messages": 600,
+      "coldMs": 139.67,
+      "medianMs": 40.8,
+      "warnings": 0,
+      "kind": "baseline",
+      "run": 3,
+      "workload": "panel"
+    },
+    {
+      "messages": 2000,
+      "coldMs": 332.97,
+      "medianMs": 70.91,
+      "warnings": 0,
+      "kind": "candidate",
+      "run": 3,
+      "workload": "panel"
+    },
+    {
+      "messages": 2000,
+      "coldMs": 298.03,
+      "medianMs": 68.97,
+      "warnings": 0,
+      "kind": "baseline",
+      "run": 3,
+      "workload": "panel"
+    },
+    {
+      "parseReportMedianMs": 0.4062,
+      "processResponseMedianMs": 0.5314,
+      "promptConstructMedianMs": 0.256,
+      "promptCharacters": 14832,
+      "populatedPromptCharacters": 18528,
+      "warnings": 0,
+      "kind": "candidate",
+      "run": 3,
+      "workload": "pipeline"
+    },
+    {
+      "parseReportMedianMs": 0.4137,
+      "processResponseMedianMs": 0.5565,
+      "promptConstructMedianMs": 0.2608,
+      "promptCharacters": 14832,
+      "populatedPromptCharacters": 18528,
+      "warnings": 0,
+      "kind": "baseline",
+      "run": 3,
+      "workload": "pipeline"
+    },
+    {
+      "messages": 600,
+      "coldMs": 154.38,
+      "medianMs": 46.79,
+      "warnings": 0,
+      "kind": "baseline",
+      "run": 4,
+      "workload": "panel"
+    },
+    {
+      "messages": 600,
+      "coldMs": 143.87,
+      "medianMs": 41.97,
+      "warnings": 0,
+      "kind": "candidate",
+      "run": 4,
+      "workload": "panel"
+    },
+    {
+      "messages": 2000,
+      "coldMs": 333.34,
+      "medianMs": 70.79,
+      "warnings": 0,
+      "kind": "baseline",
+      "run": 4,
+      "workload": "panel"
+    },
+    {
+      "messages": 2000,
+      "coldMs": 342.77,
+      "medianMs": 75.09,
+      "warnings": 0,
+      "kind": "candidate",
+      "run": 4,
+      "workload": "panel"
+    },
+    {
+      "parseReportMedianMs": 0.4464,
+      "processResponseMedianMs": 0.5692,
+      "promptConstructMedianMs": 0.273,
+      "promptCharacters": 14832,
+      "populatedPromptCharacters": 18528,
+      "warnings": 0,
+      "kind": "baseline",
+      "run": 4,
+      "workload": "pipeline"
+    },
+    {
+      "parseReportMedianMs": 0.445,
+      "processResponseMedianMs": 0.557,
+      "promptConstructMedianMs": 0.2646,
+      "promptCharacters": 14832,
+      "populatedPromptCharacters": 18528,
+      "warnings": 0,
+      "kind": "candidate",
+      "run": 4,
+      "workload": "pipeline"
+    }
+  ],
+  "summary": [
+    {
+      "metric": "coldMs",
+      "messages": 600,
+      "baseline": 154.38,
+      "candidate": 145.39,
+      "passed": true
+    },
+    {
+      "metric": "medianMs",
+      "messages": 600,
+      "baseline": 42.28,
+      "candidate": 43.09,
+      "passed": true
+    },
+    {
+      "metric": "coldMs",
+      "messages": 2000,
+      "baseline": 331.29,
+      "candidate": 326.74,
+      "passed": true
+    },
+    {
+      "metric": "medianMs",
+      "messages": 2000,
+      "baseline": 68.97,
+      "candidate": 70.91,
+      "passed": true
+    },
+    {
+      "metric": "parseReportMedianMs",
+      "baseline": 0.4149,
+      "candidate": 0.4136,
+      "passed": true
+    },
+    {
+      "metric": "processResponseMedianMs",
+      "baseline": 0.5565,
+      "candidate": 0.5509,
+      "passed": true
+    },
+    {
+      "metric": "promptConstructMedianMs",
+      "baseline": 0.273,
+      "candidate": 0.2646,
+      "passed": true
+    },
+    {
+      "metric": "promptCharacters",
+      "baseline": 14832,
+      "candidate": 14832,
+      "passed": true
+    },
+    {
+      "metric": "populatedPromptCharacters",
+      "baseline": 18528,
+      "candidate": 18528,
+      "passed": true
+    }
+  ],
+  "operations": [
+    {
+      "transport": {
+        "model": 1,
+        "getMessages": 6,
+        "metadataWrites": 1,
+        "storageReads": 2,
+        "storageWrites": 4,
+        "historyElementReads": 0,
+        "traversals": {}
+      },
+      "panel": {
+        "messages": 600,
+        "historyElementReads": 9101,
+        "traversals": {
+          "mtEventLedgerUncached": 1,
+          "atlasObserveHistory": 1,
+          "relReadingsUncached": 1,
+          "hmsTimelineUncached": 1,
+          "simReplies": 1,
+          "spellStoryFoldUncached": 1
+        }
+      },
+      "kind": "baseline"
+    },
+    {
+      "transport": {
+        "model": 1,
+        "getMessages": 6,
+        "metadataWrites": 1,
+        "storageReads": 2,
+        "storageWrites": 4,
+        "historyElementReads": 0,
+        "traversals": {}
+      },
+      "panel": {
+        "messages": 600,
+        "historyElementReads": 9101,
+        "traversals": {
+          "mtEventLedgerUncached": 1,
+          "atlasObserveHistory": 1,
+          "relReadingsUncached": 1,
+          "hmsTimelineUncached": 1,
+          "simReplies": 1,
+          "spellStoryFoldUncached": 1
+        }
+      },
+      "kind": "candidate"
+    }
+  ],
+  "passed": true,
+  "conditions": {
+    "baseline": "fbfbd86 / 2.9.8 RC",
+    "candidate": "2.9.9 RC",
+    "runtime": "Node 22.22.2",
+    "rounds": 5,
+    "order": "alternating baseline/candidate",
+    "panelReplies": [
+      300,
+      1000
+    ],
+    "policy": "candidate <= baseline + max(5%, 1ms); prompt character counts must not grow",
+    "limitations": "Synthetic local mock-host measurements, not live provider/storage/WebView latency."
+  }
+}

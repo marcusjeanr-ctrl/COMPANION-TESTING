@@ -1903,8 +1903,9 @@ function messageSource(msg) {
 function trackingMessageVisible(msg) {
     return !!msg && !['save', 'help'].includes(msg._rpgcPurpose) && msg.hidden !== true && msg.is_hidden !== true && msg.metadata?.hidden !== true && msg.extra?.hidden !== true;
 }
-function getSwipeData(msg) {
-    if (!trackingMessageVisible(msg) || msg._rpgcPurpose === 'continue') return null;
+function getSwipeData(msg, allowSnapshot = false) {
+    const continuation = msg?._rpgcPurpose === 'continue';
+    if (!trackingMessageVisible(msg) || (continuation && !allowSnapshot)) return null;
     // Lumiverse exports stored Spindle metadata under extra.spindle_metadata.
     // Prefer live API metadata, but read the exported location when it is the only source.
     const key = String(msg?.swipe_id ?? 0);
@@ -1918,7 +1919,9 @@ function getSwipeData(msg) {
         const data = mine?.swipes?.[key];
         if (!isPlainObject(data)) continue;
         const source = mine.sources?.[key];
-        if (source && source !== expected) continue;
+        // Continuation snapshots are readable only for display/idempotent facts,
+        // with provenance for this exact reply/swipe. Transaction readers stay excluded.
+        if ((continuation && !source) || (source && source !== expected)) continue;
         return data;
     }
     return null;
@@ -2351,7 +2354,7 @@ async function pushState(chatId, snapshot = null) {
 // Demo mode plays scripted turns (no tokens); Live mode asks the model, with a small
 // world narrator standing in for a bot card.
 
-const RPGC_VERSION = '2.9.8';
+const RPGC_VERSION = '2.9.9';
 const diagLog = [];
 function diagPush(kind, m) { diagLog.push({ at: new Date().toISOString(), kind, text: String(m).slice(0, 400) }); if (diagLog.length > 60) diagLog.shift(); }
 function logW(m) { diagPush('warn', m); return spindle.log.warn(m); }
@@ -3473,11 +3476,28 @@ const statesLoading = new Map();
 
 const STATES_MAP_CSS = '.rs-map{display:block;text-align:center;margin:.3em 0}.rs-legend{display:flex;flex-wrap:wrap;gap:.3em;justify-content:center}.mg-dot{display:inline-block;width:.6em;height:.6em;border-radius:50%;margin-right:.35em;vertical-align:baseline}.mg-dot.mg-you{background:#e8b030}.mg-dot.mg-ally{background:#3fae6a}.mg-dot.mg-foe{background:#e05050}.mg-dot.mg-other{background:#9a9ab0}';
 
+function statesReading(msg) {
+    const saved = getSwipeData(msg, true);
+    if (saved) return saved;
+    if (!trackingMessageVisible(msg) || msg._rpgcPurpose !== 'continue') return null;
+    const key = String(msg.swipe_id ?? 0);
+    const candidates = [msg.metadata?.[META_KEY], msg.extra?.spindle_metadata?.[META_KEY], msg.metadata?.spindle_metadata?.[META_KEY]];
+    // Never bypass a rejected stored report's source validation.
+    if (candidates.some(mine => mine?.swipes?.[key] !== undefined)) return null;
+    const text = stripThink(textOf(msg.content));
+    const block = text.match(/(?:^|\n)[ \t]*<rpg_companion>[\s\S]*?<\/rpg_companion>\s*$/i);
+    if (!block || ((text.slice(0, block.index).match(/^[ \t]*```/gm) || []).length % 2)) return null;
+    const { found, you, ...report } = parseCompanion(block[0]);
+    // Display-only, cached by statesFill: the current active reply is its source.
+    // No generation, metadata write, transaction replay or extra history traversal.
+    return found ? { ...report, survival: you } : null;
+}
+
 function statesFill(chatId, chat) {
     const order = [], data = new Map();
     for (const msg of chat) {
         if (msg.role !== 'assistant') continue;
-        const d = getSwipeData(msg);
+        const d = statesReading(msg);
         if (!d) continue;
         order.push(msg.id); data.set(msg.id, d);
     }
@@ -10365,7 +10385,16 @@ async function keepRoomReading(chatId, comp, hud) {
 
 async function hmsHandleReplyInner(chatId, chat, msg, generationType) {
     companionMarkTurnPurposes(chat);
-    if (['save', 'help', 'continue'].includes(msg._rpgcPurpose)) return null;
+    if (['save', 'help'].includes(msg._rpgcPurpose)) return null;
+    if (msg._rpgcPurpose === 'continue') {
+        // Rendering may have cached this reply while it was still streaming.
+        // Reuse the completed message, without another read or transaction extraction.
+        if (statesCache.has(chatId)) {
+            const data = statesReading(msg);
+            if (data) statesNote(chatId, msg.id, data);
+        }
+        return null;
+    }
     let content = textOf(msg.content);
     const rec = recoverFromReasoning(msg, content);
     if (rec) {
@@ -11935,13 +11964,13 @@ function relPrevious(chat, st, rc) {
     const msgs = relReadings(chat);
     const last = new Map();
     for (const m of msgs) {
-        const d = getSwipeData(m);
+        const d = getSwipeData(m, true);
         if (d && Array.isArray(d.relations)) for (const r of d.relations) if (r && r.key) last.set(r.key, relReconcile(last.get(r.key), r, rc));
     }
     const pins = relPins(st);
     if (!last.size && !Object.keys(pins).length) return [];
     const recent = chat.slice(-2).map(m => textOf(m.content)).join('\n').toLowerCase();
-    const lastMsg = msgs.length ? getSwipeData(msgs[msgs.length - 1]) : null;
+    const lastMsg = msgs.length ? getSwipeData(msgs[msgs.length - 1], true) : null;
     const justRead = new Set(lastMsg && Array.isArray(lastMsg.relations) ? lastMsg.relations.map(r => r.key) : []);
     const out = [];
     for (const r of last.values()) {
@@ -12065,10 +12094,11 @@ function hmsRelationsPanel(chat, st, cfg, classic = false) {
     const now = tl.length ? tl[tl.length - 1].clock : null;
     const msgs = relReadings(chat);
     const lastId = msgs.length ? msgs[msgs.length - 1].id : null;
-    const lastData = msgs.length ? getSwipeData(msgs[msgs.length - 1]) : null;
+    const lastData = msgs.length ? getSwipeData(msgs[msgs.length - 1], true) : null;
+    const familyPresence = new Map((Array.isArray(lastData?.family) ? lastData.family : []).filter(r => r?.name && r.known).map(r => [lockKey(r.name), r.known === 'seen']));
     const people = new Map();
     for (const m of msgs) {
-        const d = getSwipeData(m);
+        const d = getSwipeData(m, true);
         if (!d || !Array.isArray(d.relations)) continue;
         const at = clockOf.has(m.id) ? clockOf.get(m.id) : null;
         for (const r of d.relations) {
@@ -12091,7 +12121,7 @@ function hmsRelationsPanel(chat, st, cfg, classic = false) {
             key: p.key, name: p.name, standing: cur.standing, rank, max: rc.ladder.length - 1, neutral: rc.neutral,
             tone: rank === null ? 'unknown' : rank < rc.neutral ? 'neg' : rank === rc.neutral ? 'neutral' : rank === rc.ladder.length - 1 ? 'top' : 'pos',
             bond: cur.bond || null, minor: !!cur.minor, pinned: pins[p.key] || null, mood: cur.mood || null,
-            why: cur.why, present: cur.msgId === lastId, seen: rs.length,
+            why: cur.why, present: cur.msgId === lastId && (lastData?.characters?.length ? !!ch : (familyPresence.get(p.key) ?? true)), seen: rs.length,
             metAgo: p.firstAt !== null && now !== null ? Math.max(0, now - p.firstAt) : null,
             lastSeen: cur.at !== null && now !== null ? Math.max(0, now - cur.at) : null,
             party: !!partyMatch(roster, p.name),
@@ -12217,18 +12247,20 @@ function famRead(chat, st, cfg) {
         p.status = status;
     };
     for (const m of msgs) {
-        const d = getSwipeData(m) || {};
+        const d = getSwipeData(m, true) || {};
         const e = hudAt.get(m.id);
         const at = e ? e.clock : null;
         const idx = idxOf.has(m.id) ? idxOf.get(m.id) : -1;
         const segs = e && e.hud && Array.isArray(e.hud.location) ? e.hud.location.filter(s => !/^\[/.test(s)) : [];
         const here = segs.length ? segs.slice(-2).join(' › ') : null;
-        const seenNow = new Set();
+        const seenNow = new Set(), reported = new Set();
+        const appeared = Array.isArray(d.characters) && d.characters.length ? new Set(d.characters.map(x => lockKey(plainValue(x?.name) || '')).filter(Boolean)) : null;
         for (const r of Array.isArray(d.family) ? d.family : []) {
             // older readings kept before the kin check: someone whose stated relation is no family tie stays out
             if (r && r.relation && !famIsKin(r.relation) && !fam.has(lockKey(r.name || ''))) continue;
             const p = get(r.name);
             if (!p) continue;
+            reported.add(p.key);
             p.name = r.name;
             if (r.relation) p.relation = r.relation;
             setStatus(p, r.status, at, m.id, idx);
@@ -12245,6 +12277,7 @@ function famRead(chat, st, cfg) {
             const p = get(r.name);
             if (!p) continue;
             if (!p.relation) p.relation = r.bond;
+            if (appeared ? !appeared.has(p.key) : reported.has(p.key)) continue;
             if (p.status === 'missing' || p.status === 'unknown' || !p.status) setStatus(p, 'alive', at, m.id, idx);
             if (here) moveTo(p, here, 'seen', at, m.id, idx);
             p.seenIn = m.id; p.seenAt = at;
@@ -12743,7 +12776,7 @@ function agendaSame(a, b) {
     if (a === b) return true;
     // Reporters append details after an established activity. Compare the anchored
     // activity first; never equate events from mere overlapping generic words.
-    const core = value => lockKey(value || '').replace(/\s*(?:[,;]|\s+\b(?:after|before|while|including|under|provided|subject to)\b)\s+.*$/u, '').trim();
+    const core = value => lockKey(value || '').replace(/\s*(?:[,;]|\s+[—–](?=\s+(?:walk\b|keep\b|with\b|after\b|before\b|while\b|under\b|including\b|provided\b|subject to\b))|\s+\b(?:after|before|while|including|under|provided|subject to)\b)\s+.*$/u, '').trim();
     const ac = core(a), bc = core(b);
     if (ac && bc && ac === bc && trackingWords(ac).size >= 2) return true;
     const A = trackingWords(a), B = trackingWords(b);
@@ -12784,7 +12817,8 @@ function agendaRead(chat, st) {
     const lastId = msgs.length ? msgs[msgs.length - 1].id : null;
     const idxOf = new Map(chat.map((m, i) => [m.id, i]));
     const items = [];
-    const compatible = (x, row, dueAt = null) => (!row?.with || !x.with || lockKey(row.with) === lockKey(x.with)) &&
+    const compatible = (x, row, dueAt = null) => (!row?.moved || ['open', 'in_progress'].includes(x.state)) &&
+        (!row?.with || !x.with || row.moved || lockKey(row.with) === lockKey(x.with)) &&
         (!row?.where || !x.where || row.moved || lockKey(row.where) === lockKey(x.where)) &&
         (!row || agendaScheduleCompatible(x, row, dueAt));
     const find = (key, row = null, dueAt = null) => {
@@ -12793,7 +12827,7 @@ function agendaRead(chat, st) {
         return matches.length === 1 ? matches[0] : null;
     };
     for (const m of msgs) {
-        const d = getSwipeData(m) || {};
+        const d = getSwipeData(m, true) || {};
         const e = hudAt.get(m.id);
         const at = e ? e.clock : null;
         const idx = idxOf.has(m.id) ? idxOf.get(m.id) : -1;
@@ -12806,6 +12840,7 @@ function agendaRead(chat, st) {
                 if (!r.with && !r.where && !r.when && !r.due && items.some(x => agendaSame(lockKey(x.what), r.key))) continue;
                 const key = agendaItemKey(items, r);
                 it = { key, what: r.what, with: null, where: null, when: null, dueAt: null, kind: r.kind, state: 'open', madeAt: at, msgId: m.id, idx, from: 'story', changedIn: m.id, history: [] }; items.push(it); }
+            it.what = r.what; // The first key remains stable; show the latest confirmed description.
             if (scheduleDay !== null) it.scheduleDay = scheduleDay;
             if (r.with) it.with = r.with;
             if (r.where) it.where = r.where;
@@ -15693,6 +15728,7 @@ function questUnique(list) {
         if (matches.length !== 1) { out.push({ ...q }); continue; }
         const row = matches[0];
         for (const [key, value] of Object.entries(q)) {
+            if (key === 'key' && row.key) continue;
             if (key === 'where' && row.where && value && row.where.length > value.length) continue;
             if (value !== null && value !== undefined && value !== '') row[key] = value;
         }
@@ -15813,7 +15849,7 @@ function questDetailsLatest(chat) {
     return memoRead(chat, 'quest-details', () => {
         const rows = [];
         for (const m of relReadings(chat)) {
-            const data = getSwipeData(m);
+            const data = getSwipeData(m, true);
             if (!Array.isArray(data?.quests) || !data.quests.length) continue;
             for (const q of data.quests) {
                 if (!q || !q.name || reportSpeculative(q)) continue;
@@ -15821,9 +15857,10 @@ function questDetailsLatest(chat) {
                 const candidates = exact.length ? exact : rows.filter(x => questMatch(x, q));
                 let row = candidates.length === 1 ? candidates[0] : null;
                 const deadlineChanged = !row || (q.deadline && q.deadline !== row.deadline);
-                if (!row) { row = { ...q }; rows.push(row); }
+                if (!row) { row = { ...q, key: q.key || questKey(q.name) }; rows.push(row); }
                 if (row.name !== q.name) row.questAliases = [...new Set([...(row.questAliases || []), row.name, q.name])].slice(-40);
                 for (const [key, value] of Object.entries(q)) {
+                    if (key === 'key' && row.key) continue;
                     if (key === 'where' && row.where && value && row.where.length > value.length) continue;
                     if (value !== null && value !== undefined && value !== '') row[key] = value;
                 }
@@ -15878,11 +15915,14 @@ async function hmsDiagnostics(chatId, includeReply) {
                     if (!mine) return 'absent';
                     if (!isPlainObject(mine.swipes?.[key])) return 'missing-active-swipe';
                     const source = mine.sources?.[key];
+                    if (hudMsg._rpgcPurpose === 'continue' && !source) return 'unsigned-snapshot';
                     return source && source !== messageSource(hudMsg) ? 'source-mismatch' : 'valid';
                 };
-                const data = getSwipeData(hudMsg);
+                const saved = getSwipeData(hudMsg, true);
+                const data = saved || statesReading(hudMsg);
                 return { live: status(live), exported: status(exported), nested: status(nested),
-                    selected: !!data, minds: Array.isArray(data?.minds) ? data.minds.length : 0,
+                    selected: !!data, source: saved ? 'metadata' : data ? 'inline-current' : null,
+                    continuationSnapshot: hudMsg._rpgcPurpose === 'continue', transactionSelected: !!getSwipeData(hudMsg), minds: Array.isArray(data?.minds) ? data.minds.length : 0,
                     characters: Array.isArray(data?.characters) ? data.characters.length : 0 };
             })() },
         lastInjection: lastInjection.get(chatId) || null,

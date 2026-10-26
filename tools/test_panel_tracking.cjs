@@ -5,11 +5,11 @@ const vm = require('node:vm');
 
 function runtime(filename = path.join(__dirname, '../dist/backend.js')) {
     const source = fs.readFileSync(filename, 'utf8');
-    const messages = [], events = [], warnings = [], writes = [];
+    const messages = [], events = [], warnings = [], writes = [], processors = [];
     let reply = '<rpg_companion>{"characters":[]}</rpg_companion>';
     let onQuiet = null;
     const spindle = {
-        registerMacro() {}, registerInterceptor() {}, registerMessageContentProcessor() {},
+        registerMacro() {}, registerInterceptor() {}, registerMessageContentProcessor(handler, priority) { processors.push({handler, priority}); },
         on() {}, onFrontendMessage() {},
         sendToFrontend(data) { events.push(structuredClone(data)); },
         log: { info() {}, warn(m) { warnings.push(m); }, error(m) { warnings.push(m); } },
@@ -31,7 +31,7 @@ function runtime(filename = path.join(__dirname, '../dist/backend.js')) {
     const startup = source.lastIndexOf('// ───────────────────────────── Startup');
     assert(startup > 0);
     vm.runInContext(source.slice(0, startup), ctx, { filename, timeout: 10000 });
-    return { ctx, messages, events, warnings, writes,
+    return { ctx, messages, events, warnings, writes, processors,
         run: code => vm.runInContext(code, ctx),
         response(data) { reply = `<rpg_companion>${JSON.stringify(data)}</rpg_companion>`; },
         quiet(fn) { onQuiet = fn; }
