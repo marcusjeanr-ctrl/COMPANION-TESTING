@@ -2354,7 +2354,7 @@ async function pushState(chatId, snapshot = null) {
 // Demo mode plays scripted turns (no tokens); Live mode asks the model, with a small
 // world narrator standing in for a bot card.
 
-const RPGC_VERSION = '2.9.8';
+const RPGC_VERSION = '2.9.9';
 const diagLog = [];
 function diagPush(kind, m) { diagLog.push({ at: new Date().toISOString(), kind, text: String(m).slice(0, 400) }); if (diagLog.length > 60) diagLog.shift(); }
 function logW(m) { diagPush('warn', m); return spindle.log.warn(m); }
@@ -12086,6 +12086,7 @@ function hmsRelationsPanel(chat, st, cfg, classic = false) {
     const msgs = relReadings(chat);
     const lastId = msgs.length ? msgs[msgs.length - 1].id : null;
     const lastData = msgs.length ? getSwipeData(msgs[msgs.length - 1], true) : null;
+    const familyPresence = new Map((Array.isArray(lastData?.family) ? lastData.family : []).filter(r => r?.name && r.known).map(r => [lockKey(r.name), r.known === 'seen']));
     const people = new Map();
     for (const m of msgs) {
         const d = getSwipeData(m, true);
@@ -12111,7 +12112,7 @@ function hmsRelationsPanel(chat, st, cfg, classic = false) {
             key: p.key, name: p.name, standing: cur.standing, rank, max: rc.ladder.length - 1, neutral: rc.neutral,
             tone: rank === null ? 'unknown' : rank < rc.neutral ? 'neg' : rank === rc.neutral ? 'neutral' : rank === rc.ladder.length - 1 ? 'top' : 'pos',
             bond: cur.bond || null, minor: !!cur.minor, pinned: pins[p.key] || null, mood: cur.mood || null,
-            why: cur.why, present: cur.msgId === lastId && (!Array.isArray(lastData?.characters) || !!ch), seen: rs.length,
+            why: cur.why, present: cur.msgId === lastId && (lastData?.characters?.length ? !!ch : (familyPresence.get(p.key) ?? true)), seen: rs.length,
             metAgo: p.firstAt !== null && now !== null ? Math.max(0, now - p.firstAt) : null,
             lastSeen: cur.at !== null && now !== null ? Math.max(0, now - cur.at) : null,
             party: !!partyMatch(roster, p.name),
@@ -12244,7 +12245,7 @@ function famRead(chat, st, cfg) {
         const segs = e && e.hud && Array.isArray(e.hud.location) ? e.hud.location.filter(s => !/^\[/.test(s)) : [];
         const here = segs.length ? segs.slice(-2).join(' › ') : null;
         const seenNow = new Set(), reported = new Set();
-        const appeared = Array.isArray(d.characters) ? new Set(d.characters.map(x => lockKey(plainValue(x?.name) || '')).filter(Boolean)) : null;
+        const appeared = Array.isArray(d.characters) && d.characters.length ? new Set(d.characters.map(x => lockKey(plainValue(x?.name) || '')).filter(Boolean)) : null;
         for (const r of Array.isArray(d.family) ? d.family : []) {
             // older readings kept before the kin check: someone whose stated relation is no family tie stays out
             if (r && r.relation && !famIsKin(r.relation) && !fam.has(lockKey(r.name || ''))) continue;
