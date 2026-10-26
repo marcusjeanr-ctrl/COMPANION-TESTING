@@ -43,8 +43,21 @@ jobs:
           python-version: '3.12'
       - name: Install browser test tools
         run: |
-          python -m pip install playwright==1.62.0
-          python -m playwright install --with-deps chromium
+          python -m pip install --timeout 30 --retries 2 playwright==1.62.0
+          companion_browser="$(command -v google-chrome || command -v chromium || command -v chromium-browser || true)"
+          if [ -n "$companion_browser" ]; then
+            "$companion_browser" --version
+            printf 'CHROMIUM_PATH=%s\n' "$companion_browser" >> "$GITHUB_ENV"
+          else
+            python -m playwright install --with-deps chromium
+            python - <<'PYTHON'
+          import os
+          from playwright.sync_api import sync_playwright
+          with sync_playwright() as p:
+              with open(os.environ['GITHUB_ENV'], 'a') as output:
+                  output.write('CHROMIUM_PATH=' + p.chromium.executable_path + '\n')
+          PYTHON
+          fi
       - name: Exercise real browser layout with a mock host
         run: |
           python tools/test_ui_browser.py

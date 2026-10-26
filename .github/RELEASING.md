@@ -23,3 +23,7 @@ the release token. Fork or failed validation runs are rejected before packaging.
 Do not dispatch arbitrary commits or weaken hash/CI checks to force publication.
 Already published releases cannot be overwritten by this tool. No secret values
 are stored; the job token is scoped to release contents writes and Actions reads.
+
+Browser validation reuses the trusted runner image browser with pinned Playwright
+when available; otherwise it uses Playwright’s normal verified installer. All
+browser assertions still run. No TLS/checksum or test assertion is bypassed.
