@@ -10385,7 +10385,16 @@ async function keepRoomReading(chatId, comp, hud) {
 
 async function hmsHandleReplyInner(chatId, chat, msg, generationType) {
     companionMarkTurnPurposes(chat);
-    if (['save', 'help', 'continue'].includes(msg._rpgcPurpose)) return null;
+    if (['save', 'help'].includes(msg._rpgcPurpose)) return null;
+    if (msg._rpgcPurpose === 'continue') {
+        // Rendering may have cached this reply while it was still streaming.
+        // Reuse the completed message, without another read or transaction extraction.
+        if (statesCache.has(chatId)) {
+            const data = statesReading(msg);
+            if (data) statesNote(chatId, msg.id, data);
+        }
+        return null;
+    }
     let content = textOf(msg.content);
     const rec = recoverFromReasoning(msg, content);
     if (rec) {

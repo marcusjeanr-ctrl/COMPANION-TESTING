@@ -44,7 +44,9 @@ settings, permissions, identifier, UI design and stored metadata. The new privat
    skips transaction extraction, so an available inline report could remain
    invisible without metadata. The existing render-cache fill can parse a complete,
    current trailing `<rpg_companion>` block locally for display. It performs no
-   generation, metadata write or additional history traversal. Quoted/fenced blocks,
+   generation, metadata write or additional history traversal. On reply completion,
+   an already-loaded render cache is updated from the available completed message,
+   so a cache filled during streaming cannot hide the newly arrived report. Quoted/fenced blocks,
    missing data and rejected stored reports are not used to bypass provenance.
 
 Diagnostics distinguish an available continuation snapshot from transaction selection and identify metadata versus current-inline display data. Unsigned snapshots have an explicit rejection reason; a displayed report no longer misleadingly reports zero selected data.

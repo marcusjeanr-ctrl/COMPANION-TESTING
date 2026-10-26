@@ -93,9 +93,12 @@ test('New continuation report uses the existing render cache without model calls
     const getMessages=c.spindle.chat.getMessages;c.spindle.chat.getMessages=async(...args)=>{loads++;return getMessages(...args);};
     const body=hud()+'\nThe public scene continues.';
     const raw='<rpg_companion>'+JSON.stringify({characters:[{name:'Rin Vale',thoughts:{content:'PRIVATE_TEST_REFLECTION'}}],minds:[{name:'Rin Vale',feel:'pride'}]})+'</rpg_companion>';
-    const reply={id:'inline-resume',role:'assistant',swipe_id:0,content:body+'\n'+raw};
+    const reply={id:'inline-resume',role:'assistant',swipe_id:0,content:body};
     rt.messages.push({id:'restore',role:'user',content:'Mushoku_Continue_Handler\n'+hud()},reply);
     c.companionMarkTurnPurposes(rt.messages);
+    assert.equal(await c.getStatesFor('test',reply.id),null,'Pre-generation cache should contain no report');
+    reply.content=body+'\n'+raw;
+    await c.hmsHandleReplyInner('test',rt.messages,reply,'normal');
     const before=JSON.stringify(rt.messages);
     const processor=rt.processors.find(p=>p.priority===50).handler;
     const rendered=await processor({origin:'render',isUser:false,content:reply.content,chatId:'test',messageId:reply.id});
