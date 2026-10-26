@@ -14,6 +14,7 @@ from playwright.sync_api import sync_playwright
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 parser = argparse.ArgumentParser()
 parser.add_argument('--frontend', default=str(ROOT / 'dist/frontend.js'))
+parser.add_argument('--measure', help='Write local render timings instead of running assertions')
 args, remaining = parser.parse_known_args()
 SOURCE = pathlib.Path(args.frontend).read_text().replace('export function setup', 'window.setup = function')
 FIXTURE = json.loads(subprocess.check_output(['node',str(ROOT/'tools/ui_browser_fixture.cjs')],text=True))
@@ -103,6 +104,30 @@ class BrowserUi(unittest.TestCase):
         self.assertIn('Leave test zone',self.page.locator('.rpgc').inner_text())
         self.page.get_by_role('button',name='Leave test zone',exact=True).click()
 
+    def test_density_text_size_and_theme_variations(self):
+        for width, density, size, theme in [(240,'compact','large','space'),(320,'comfortable','small','host'),(768,'comfortable','normal','parchment')]:
+            with self.subTest(width=width,density=density,size=size,theme=theme):
+                payload=json.loads(json.dumps(FIXTURE['payload']))
+                payload['settings'].update(uiDensity=density,uiTextSize=size,uiTheme=theme)
+                self.page.set_viewport_size({'width':width,'height':800})
+                self.receive(payload)
+                widths=self.page.locator('.rpgc-spell-study .rpgc-spell-row').first.evaluate('(e)=>[e.scrollWidth,e.clientWidth]')
+                self.assertLessEqual(widths[0],widths[1]+1)
+                self.page.get_by_label('Where the panel lives').select_option('float')
+                self.assert_float_inside_viewport()
+                self.page.get_by_label('Where the panel lives').select_option('drawer')
+
+    def test_previous_chat_extras_cleared_immediately(self):
+        payload=json.loads(json.dumps(FIXTURE['payload']))
+        payload['extras']=payload['hms'];payload['hms']=None;payload['world']=None
+        payload['extras']['gear']['items'][0]['name']='Private previous-chat heirloom'
+        self.receive(payload)
+        self.assertIn('Private previous-chat heirloom',self.page.locator('.rpgc').inner_text())
+        self.page.evaluate("activeChat={chatId:'next-chat',characterId:'character'};hostEvents.CHAT_SWITCHED()")
+        self.assertNotIn('Private previous-chat heirloom',self.page.locator('.rpgc').inner_text())
+        self.receive(payload)
+        self.assertNotIn('Private previous-chat heirloom',self.page.locator('.rpgc').inner_text())
+
     def test_popout_and_return_to_drawer(self):
         with self.page.expect_popup() as popup:
             self.page.get_by_label('Where the panel lives').select_option('popout')
@@ -125,5 +150,22 @@ class BrowserUi(unittest.TestCase):
         summary.click()
         self.assertTrue(states.locator('details').first.evaluate('(e)=>e.open'))
 
-if __name__=='__main__':
+if __name__=='__main__' and args.measure:
+    BrowserUi.setUpClass()
+    test=BrowserUi()
+    try:
+        test.setUp()
+        times=test.page.evaluate('''(payload)=>{
+            const samples=[];
+            for(let i=0;i<25;i++){
+                const start=performance.now();receive(structuredClone(payload));
+                document.querySelector('.rpgc').getBoundingClientRect();
+                if(i>=5)samples.push(performance.now()-start);
+            }
+            return samples;
+        }''',FIXTURE['payload'])
+        pathlib.Path(args.measure).write_text(json.dumps({'frontend':args.frontend,'renderLayoutMs':times}))
+    finally:
+        test.tearDown();BrowserUi.tearDownClass()
+elif __name__=='__main__':
     unittest.main(argv=[__file__,*remaining],verbosity=2)

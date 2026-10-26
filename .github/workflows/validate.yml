@@ -23,6 +23,8 @@ jobs:
         run: node tools/check_release.cjs
       - name: Run existing regression suites
         run: node tools/run_tests.cjs
+      - name: Verify installable candidate package
+        run: python3 tools/package_rc.py "$RUNNER_TEMP/companion-rc.zip"
       - name: Verify tests did not modify tracked files
         run: git diff --exit-code
 

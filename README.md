@@ -1,4 +1,6 @@
-# RPG Companion HMS Edition 2.9.4 — Consolidation Candidate
+# RPG Companion HMS Edition 2.9.8 — Release Candidate
+
+> Stabilization status, verified fixes and live-test limitations: [Phase 2 report](docs/stabilization/REPORT.md).
 
 > Consolidation progress, source inventory and verified compatibility: [CONSOLIDATION_2_9_4.md](tools/CONSOLIDATION_2_9_4.md). Includes Visual HUD support, Save/Continue tracking isolation, and tests derived from all five supplied card specifications.
 

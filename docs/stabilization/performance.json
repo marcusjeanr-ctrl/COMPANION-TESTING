@@ -1,0 +1,249 @@
+{
+  "browser": [
+    {
+      "kind": "before",
+      "run": 0,
+      "renderLayoutMs": [
+        17.800000000046566,
+        17.599999999976717,
+        18.599999999976717,
+        17.699999999953434,
+        16.199999999953434,
+        16.099999999976717,
+        17.900000000023283,
+        16.699999999953434,
+        16.100000000093132,
+        16.29999999993015,
+        16.099999999976717,
+        17.800000000046566,
+        16.5,
+        16.400000000023283,
+        16.29999999993015,
+        21.800000000046566,
+        25.099999999976717,
+        15.800000000046566,
+        15.099999999976717,
+        14.800000000046566
+      ]
+    },
+    {
+      "kind": "after",
+      "run": 0,
+      "renderLayoutMs": [
+        18.600000000093132,
+        20.099999999976717,
+        22.300000000046566,
+        19.5,
+        16.899999999906868,
+        17.29999999993015,
+        17.800000000046566,
+        16.199999999953434,
+        16.300000000046566,
+        16.199999999953434,
+        17.099999999976717,
+        19,
+        16.800000000046566,
+        16.300000000046566,
+        16.699999999953434,
+        21.900000000023283,
+        31.199999999953434,
+        17.800000000046566,
+        16.199999999953434,
+        14.800000000046566
+      ]
+    },
+    {
+      "kind": "after",
+      "run": 1,
+      "renderLayoutMs": [
+        17,
+        16.599999999976717,
+        18.100000000093132,
+        18.199999999953434,
+        16.699999999953434,
+        16.100000000093132,
+        17.199999999953434,
+        15.699999999953434,
+        16.100000000093132,
+        16.5,
+        16,
+        17.399999999906868,
+        16.20000000006985,
+        16.099999999976717,
+        16.400000000023283,
+        21.699999999953434,
+        28.400000000023283,
+        16.900000000023283,
+        15.400000000023283,
+        14.399999999906868
+      ]
+    },
+    {
+      "kind": "before",
+      "run": 1,
+      "renderLayoutMs": [
+        19,
+        19.29999999993015,
+        21.70000000006985,
+        20.199999999953434,
+        17.900000000023283,
+        18.199999999953434,
+        23.900000000023283,
+        24,
+        23.699999999953434,
+        16.20000000006985,
+        16.099999999976717,
+        15.699999999953434,
+        16.800000000046566,
+        17.199999999953434,
+        17.400000000023283,
+        16.800000000046566,
+        18.699999999953434,
+        18.900000000023283,
+        20.599999999976717,
+        19.5
+      ]
+    },
+    {
+      "kind": "before",
+      "run": 2,
+      "renderLayoutMs": [
+        17.79999999993015,
+        18.400000000023283,
+        20.099999999976717,
+        18.70000000006985,
+        16.599999999976717,
+        15.900000000023283,
+        17.199999999953434,
+        15.899999999906868,
+        16,
+        16.199999999953434,
+        16.199999999953434,
+        17.800000000046566,
+        16.800000000046566,
+        16.199999999953434,
+        16.5,
+        32.800000000046566,
+        19,
+        16.599999999976717,
+        15.29999999993015,
+        14.600000000093132
+      ]
+    },
+    {
+      "kind": "after",
+      "run": 2,
+      "renderLayoutMs": [
+        17.800000000046566,
+        17.300000000046566,
+        18.79999999993015,
+        18.5,
+        16.599999999976717,
+        16.300000000046566,
+        21.5,
+        21.599999999976717,
+        25.400000000023283,
+        16.199999999953434,
+        15,
+        14.800000000046566,
+        15,
+        15.400000000023283,
+        16,
+        15.599999999976717,
+        16.099999999976717,
+        17.20000000006985,
+        16.29999999993015,
+        16.300000000046566
+      ]
+    }
+  ],
+  "pipeline": [
+    {
+      "kind": "before",
+      "run": 0,
+      "parseReportMedianMs": 0.4063,
+      "processResponseMedianMs": 0.5442,
+      "promptConstructMedianMs": 0.2553,
+      "promptCharacters": 14832,
+      "populatedPromptCharacters": 18528,
+      "warnings": 0
+    },
+    {
+      "kind": "after",
+      "run": 0,
+      "parseReportMedianMs": 0.4371,
+      "processResponseMedianMs": 0.5667,
+      "promptConstructMedianMs": 0.2656,
+      "promptCharacters": 14832,
+      "populatedPromptCharacters": 18528,
+      "warnings": 0
+    },
+    {
+      "kind": "after",
+      "run": 1,
+      "parseReportMedianMs": 0.4113,
+      "processResponseMedianMs": 0.5396,
+      "promptConstructMedianMs": 0.259,
+      "promptCharacters": 14832,
+      "populatedPromptCharacters": 18528,
+      "warnings": 0
+    },
+    {
+      "kind": "before",
+      "run": 1,
+      "parseReportMedianMs": 0.4069,
+      "processResponseMedianMs": 0.5417,
+      "promptConstructMedianMs": 0.2606,
+      "promptCharacters": 14832,
+      "populatedPromptCharacters": 18528,
+      "warnings": 0
+    },
+    {
+      "kind": "before",
+      "run": 2,
+      "parseReportMedianMs": 0.426,
+      "processResponseMedianMs": 0.5976,
+      "promptConstructMedianMs": 0.2756,
+      "promptCharacters": 14832,
+      "populatedPromptCharacters": 18528,
+      "warnings": 0
+    },
+    {
+      "kind": "after",
+      "run": 2,
+      "parseReportMedianMs": 0.4357,
+      "processResponseMedianMs": 0.5627,
+      "promptConstructMedianMs": 0.2615,
+      "promptCharacters": 14832,
+      "populatedPromptCharacters": 18528,
+      "warnings": 0
+    }
+  ],
+  "summary": {
+    "before": {
+      "browserRenderLayoutMedianMs": 17.199999999953434,
+      "parseReportMedianMs": 0.4069,
+      "processResponseMedianMs": 0.5442,
+      "promptConstructMedianMs": 0.2606,
+      "promptCharacters": 14832,
+      "populatedPromptCharacters": 18528
+    },
+    "after": {
+      "browserRenderLayoutMedianMs": 16.699999999953434,
+      "parseReportMedianMs": 0.4357,
+      "processResponseMedianMs": 0.5627,
+      "promptConstructMedianMs": 0.2615,
+      "promptCharacters": 14832,
+      "populatedPromptCharacters": 18528
+    }
+  },
+  "conditions": {
+    "baseline": "1372ea9 (2.9.7 RC)",
+    "candidate": "2.9.8 RC frontend fixes",
+    "runtime": "Node 22.22.2; Playwright 1.62.0; local Chromium",
+    "rounds": 3,
+    "order": "alternating before/after",
+    "browserSamplesPerProcess": 20,
+    "limitations": "Mock bridge and synthetic data; no live host, provider, storage or WebView measurement."
+  }
+}

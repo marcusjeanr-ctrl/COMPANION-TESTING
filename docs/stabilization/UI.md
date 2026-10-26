@@ -18,7 +18,7 @@ model call, tracker refresh or persistent write. Ordinary wide-screen sizes and
 user-selected modes remain. Browser resize clamping alone does not rewrite saved
 preferences. A subsequent deliberate move/resize uses the existing save path.
 
-Six Chromium tests cover full study note/name display, viewport containment,
+Eight Chromium tests cover full study note/name display, viewport containment,
 restored geometry/viewport change, popout return, labels/settings/test zone and
 Internal States tabs/collapse. For local runs install playwright==1.62.0 and its
 Chromium, or set CHROMIUM_PATH to an installed Chromium. Run with Node 22:
