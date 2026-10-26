@@ -1,5 +1,8 @@
 # Phase 1 results
 
+This records the initial delivery. For the subsequent merge review and restored
+GitHub API access, see [MERGE_REVIEW.md](MERGE_REVIEW.md) and PR #1.
+
 Prepared on branch `chore/development-baseline-audit`; initial audit commit
 `8d96d3b` was pushed successfully to COMPANION-TESTING. No gameplay version was
 published, no original Companion files were changed, and the private input is
