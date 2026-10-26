@@ -46,4 +46,6 @@ jobs:
           python -m pip install playwright==1.62.0
           python -m playwright install --with-deps chromium
       - name: Exercise real browser layout with a mock host
-        run: python tools/test_ui_browser.py
+        run: |
+          python tools/test_ui_browser.py
+          python tools/test_visibility_browser.py

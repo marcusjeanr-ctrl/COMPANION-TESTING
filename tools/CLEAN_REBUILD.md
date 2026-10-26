@@ -1,5 +1,11 @@
 # RPG Companion HMS 2.8.2 — clean compatibility rebuild
 
+**Historical tool only.** Current releases refuse in-place generation. Use
+`python3 tools/rebuild.py --output /outside/checkout/historical-2.8.2` and
+`python3 tools/rebuild.py --check --output /outside/checkout/historical-2.8.2`
+for an explicitly scoped historical reproduction. Never install that output over
+the current release as a development build.
+
 Version 2.8.2 is used as explicitly requested. The separate branch is `rebuild/2.8.2-clean-compatibility`. The rebuild was prepared and validated without changing the live repository. Publication was subsequently explicitly authorized; the runtime bundles are unchanged from the tested ZIP.
 
 ## Foundation and reproducibility

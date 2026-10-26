@@ -1909,20 +1909,16 @@ function getSwipeData(msg, allowSnapshot = false) {
     // Lumiverse exports stored Spindle metadata under extra.spindle_metadata.
     // Prefer live API metadata, but read the exported location when it is the only source.
     const key = String(msg?.swipe_id ?? 0);
-    const candidates = [
-        msg?.metadata?.[META_KEY],
-        msg?.extra?.spindle_metadata?.[META_KEY],
-        msg?.metadata?.spindle_metadata?.[META_KEY]
-    ];
-    const expected = messageSource(msg);
+    // Continuation display still requires provenance; transaction readers remain excluded above.
+    const live = msg?.metadata?.[META_KEY];
+    const data = live?.swipes?.[key], source = live?.sources?.[key];
+    // Most reads use live metadata. Avoid allocating fallback candidates on that path,
+    // and fingerprint only signed records; unsigned legacy reports stay readable.
+    if (isPlainObject(data) && (!continuation || source) && (!source || source === messageSource(msg))) return data;
+    const candidates = [msg?.extra?.spindle_metadata?.[META_KEY], msg?.metadata?.spindle_metadata?.[META_KEY]];
     for (const mine of candidates) {
-        const data = mine?.swipes?.[key];
-        if (!isPlainObject(data)) continue;
-        const source = mine.sources?.[key];
-        // Continuation snapshots are readable only for display/idempotent facts,
-        // with provenance for this exact reply/swipe. Transaction readers stay excluded.
-        if ((continuation && !source) || (source && source !== expected)) continue;
-        return data;
+        const fallback = mine?.swipes?.[key], bound = mine?.sources?.[key];
+        if (isPlainObject(fallback) && (!continuation || bound) && (!bound || bound === messageSource(msg))) return fallback;
     }
     return null;
 }
@@ -2096,6 +2092,7 @@ async function generateAvatar(chatId, name) {
 const busyChats = new Set();
 
 const healed = new Set();
+const healing = new Map();
 const generating = new Map();   // chatId → when its generation began; healing waits for it to end
 const rereading = new Set();     // chats being read again by hand: no catch-up call from that
 /** A reply of yours is being written in this chat (a mark older than three minutes is stale: a quiet call that never reported back). */
@@ -2226,11 +2223,34 @@ async function healRecent(chatId, chat) {
     const recent = chat.filter(m => m.role === 'assistant').slice(-3);
     for (const m of recent) {
         const t = textOf(m.content);
-        const k = `${chatId}:${m.id}:${t.length}`;
-        if (healed.has(k) || !/<rpg_companion>[\s\S]*?<\/rpg_companion>/i.test(t)) continue;
-        healed.add(k);
-        try { await hmsHandleReply(chatId, chat, m, 'normal'); did = true; spindle.log.info(`[RPG Companion HMS] Processed a reply that still carried its side-panel block (${m.id}).`); }
-        catch (e) { logW(`[RPG Companion HMS] Could not process a leftover side-panel block: ${e?.message || e}`); }
+        if (!/<rpg_companion>[\s\S]*?<\/rpg_companion>/i.test(t)) continue;
+        const k = JSON.stringify([chatId, m.id, m.swipe_id ?? 0, messageSource(m)]);
+        if (healed.has(k)) continue;
+        const pendingKey = JSON.stringify([chatId, m.id]);
+        // A second snapshot may describe another swipe/source of the same reply.
+        // Serialize it with the active recovery, then re-check completion.
+        while (healing.has(pendingKey)) {
+            await healing.get(pendingKey);
+            if (healed.has(k)) break;
+        }
+        if (healed.has(k)) continue;
+        const work = (async () => {
+            try {
+                const result = await hmsHandleReply(chatId, chat, m, 'normal');
+                // Utilities/continuation return null; only a committed story report is healed.
+                if (!result || !getSwipeData(m)) return false;
+                healed.add(k);
+                if (healed.size > 200) healed.delete(healed.values().next().value);
+                spindle.log.info(`[RPG Companion HMS] Processed a reply that still carried its side-panel block (${m.id}).`);
+                return true;
+            } catch (e) {
+                logW(`[RPG Companion HMS] Could not process a leftover side-panel block: ${e?.message || e}`);
+                return false;
+            }
+        })();
+        healing.set(pendingKey, work);
+        try { did = (await work) || did; }
+        finally { if (healing.get(pendingKey) === work) healing.delete(pendingKey); }
     }
     return did;
 }
@@ -2354,7 +2374,7 @@ async function pushState(chatId, snapshot = null) {
 // Demo mode plays scripted turns (no tokens); Live mode asks the model, with a small
 // world narrator standing in for a bot card.
 
-const RPGC_VERSION = '2.9.9';
+const RPGC_VERSION = '2.9.10';
 const diagLog = [];
 function diagPush(kind, m) { diagLog.push({ at: new Date().toISOString(), kind, text: String(m).slice(0, 400) }); if (diagLog.length > 60) diagLog.shift(); }
 function logW(m) { diagPush('warn', m); return spindle.log.warn(m); }
