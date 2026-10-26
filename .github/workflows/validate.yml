@@ -1,0 +1,27 @@
+name: Validate Companion candidate
+on:
+  pull_request:
+  push:
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: companion-ci-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify release identity and entrypoints
+        run: node tools/check_release.cjs
+      - name: Run existing regression suites
+        run: node tools/run_tests.cjs
+      - name: Verify tests did not modify tracked files
+        run: git diff --exit-code

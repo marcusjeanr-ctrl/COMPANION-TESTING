@@ -1,0 +1,76 @@
+[
+  {
+    "file": "Companion-main (1).zip",
+    "version": "2.9.3",
+    "checks": {
+      "hud": true,
+      "report": true,
+      "agenda": 1,
+      "exportedMetadata": false
+    }
+  },
+  {
+    "file": "RPG_Companion_HMS_2.8.2 (1).zip",
+    "version": "2.8.2",
+    "checks": {
+      "hud": true,
+      "report": true,
+      "agenda": 1,
+      "exportedMetadata": false
+    }
+  },
+  {
+    "file": "rpg_companion_hms_2_8_1_beta (1).zip",
+    "version": "2.8.1",
+    "checks": {
+      "hud": true,
+      "report": true,
+      "agenda": 1,
+      "exportedMetadata": false
+    }
+  },
+  {
+    "file": "rpg_companion_hms_2_0_beta (1).zip",
+    "version": "2.0.0",
+    "checks": {
+      "hud": true,
+      "report": true,
+      "agenda": {
+        "unsupportedOrFailed": "c.agendaNormalize is not a function"
+      },
+      "exportedMetadata": false
+    }
+  },
+  {
+    "file": "rpg_companion_hms_2_9_0_beta (1).zip",
+    "version": "2.9.0",
+    "checks": {
+      "hud": true,
+      "report": true,
+      "agenda": 1,
+      "exportedMetadata": false
+    }
+  },
+  {
+    "file": "RPG_Companion_2_9_6_Internal_States_Diagnostics_RC.zip",
+    "version": "2.9.6",
+    "checks": {
+      "hud": true,
+      "report": true,
+      "agenda": 1,
+      "exportedMetadata": true
+    }
+  },
+  {
+    "file": "rpg_companion_hms_2_0_beta (2).zip",
+    "version": "2.0.0",
+    "checks": {
+      "hud": true,
+      "report": true,
+      "agenda": {
+        "unsupportedOrFailed": "c.agendaNormalize is not a function"
+      },
+      "exportedMetadata": false
+    }
+  }
+]

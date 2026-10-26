@@ -1,0 +1,8 @@
+{
+  "commit": "ad4eb707491cdf3e37fd1c642fefdb43c4c3178f",
+  "sha256": {
+    "spindle.json": "c130de048dcfb506e535fb34b0c92b1357c19c93dbdb264bfaf2b6e4914dbb40",
+    "dist/backend.js": "4e3e93a7d049cf85e365793818eb04dbd5510815b87dad318125a1d303f36957",
+    "dist/frontend.js": "ed2c7e2b67e068f937a88e5900fb34a9bad0fdd7c7b2df40605037d4286e0721"
+  }
+}
