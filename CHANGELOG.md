@@ -1,5 +1,19 @@
 # Changelog — RPG Companion HMS Edition
 
+## 2.9.8 RC — UI containment and chat isolation
+
+- Wrap long compound spell/technique names and study text within existing rows.
+- Keep floating-panel controls inside the viewport when restoring saved desktop
+  geometry, enlarging, dragging, or resizing the window. No polling or automatic
+  save/refresh cycle is added.
+- Clear old non-HMS tracking extras immediately when switching conversations,
+  while rejecting late previous-chat state. Saved records are not rewritten.
+- Synchronize manifest, diagnostics, drawer and popout versions; preserve the
+  extension identifier, settings, permissions, prompts and storage contracts.
+- Add real Chromium tests with a mock host, chat-isolation/continuity regressions
+  and deterministic 50–2,000-message stress coverage. This is a release candidate:
+  live Lumiverse/WebView installation, update/reload and complete cards are untested.
+
 ## 2.9.3 — Stored tracking accuracy
 
 - Preserve longer study notes, agenda titles and physical-item labels with bounded limits and visible word-boundary ellipses instead of silent mid-word cuts.

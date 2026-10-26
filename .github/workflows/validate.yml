@@ -23,5 +23,27 @@ jobs:
         run: node tools/check_release.cjs
       - name: Run existing regression suites
         run: node tools/run_tests.cjs
+      - name: Verify installable candidate package
+        run: python3 tools/package_rc.py "$RUNNER_TEMP/companion-rc.zip"
       - name: Verify tests did not modify tracked files
         run: git diff --exit-code
+
+  browser:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+      - name: Install browser test tools
+        run: |
+          python -m pip install playwright==1.62.0
+          python -m playwright install --with-deps chromium
+      - name: Exercise real browser layout with a mock host
+        run: python tools/test_ui_browser.py

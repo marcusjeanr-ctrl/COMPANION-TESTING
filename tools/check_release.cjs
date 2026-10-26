@@ -16,6 +16,7 @@ const frontend = read(manifest.entry_frontend);
 assert.equal(backend.match(/const RPGC_VERSION = '([^']+)'/)?.[1], manifest.version);
 assert.equal(frontend.match(/headerTitle: 'RPG Companion HMS Edition ([^']+)'/)?.[1], manifest.version);
 assert(manifest.name.includes(manifest.version));
+assert(frontend.includes(`popWin.document.title = 'RPG Companion HMS Edition ${manifest.version} RC'`), 'Popout title version mismatch');
 assert.match(backend, /version: RPGC_VERSION/);
 assert(backend.includes('// ───────────────────────────── Startup'), 'Backend startup section missing');
 assert.match(frontend, /export function setup/);

@@ -223,7 +223,7 @@ const CSS = `
 .rpgc-spell-find { flex: 1 1 120px; min-width: 0; }
 .rpgc-spell-school { margin: 4px 0; }
 .rpgc-spell-school > summary { padding: 3px 0; }
-.rpgc-spell-row { padding: 4px 0 4px 8px; border-left: 2px solid transparent; }
+.rpgc-spell-row { padding: 4px 0 4px 8px; border-left: 2px solid transparent; overflow-wrap: anywhere; }
 .rpgc-spell-row .head { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; }
 .rpgc-spell-row .nm { font-weight: 600; }
 .rpgc-spell-row .eff, .rpgc-spell-row .chant { margin: 2px 0 0; font-size: 12px; }
@@ -664,7 +664,7 @@ button.rpgc-chip.intel:hover { border-color: var(--lumiverse-accent, #7aa2f7); }
 .rpgc-mod { display: flex; gap: 6px; align-items: center; font-size: 12px; cursor: pointer; } .rpgc-mod:not(.on) span { opacity: .55; }
 .rpgc-qcard { flex-direction: column; align-items: stretch; gap: 3px; } .rpgc-qcard .qhead { display: flex; align-items: center; gap: 6px; }
 .rpgc-qcard .obj { font-size: 12px; } .rpgc-qcard.focus { box-shadow: 0 0 0 1px #e5c55a inset; } .rpgc-mini.star { color: #e5c55a; }
-.rpgc-float { position: fixed; z-index: 9990; width: 380px; height: 70vh; min-width: 260px; min-height: 160px; display: flex; flex-direction: column; resize: both; overflow: hidden;
+.rpgc-float { position: fixed; z-index: 9990; box-sizing: border-box; width: 380px; height: 70vh; min-width: min(260px, 100vw); min-height: min(160px, 100vh); max-width: 100vw; max-height: 100vh; display: flex; flex-direction: column; resize: both; overflow: hidden;
     border: 1px solid var(--lumiverse-border, #444); border-radius: 10px; background: var(--lumiverse-bg, #15151b); box-shadow: 0 10px 40px rgba(0,0,0,.5); }
 .rpgc-float.big { width: 640px; height: 88vh; } .rpgc-float.min { height: auto !important; resize: none; } .rpgc-float.min > .rpgc { display: none; }
 .rpgc-float-bar { display: flex; align-items: center; gap: 4px; padding: 5px 8px; cursor: move; user-select: none; background: color-mix(in srgb, var(--lumiverse-text, #ddd) 8%, transparent); }
@@ -1125,7 +1125,7 @@ export function setup(ctx) {
         id: 'rpg-companion-hms',
         title: 'RPG Companion (HMS)',
         shortName: 'RPG',
-        headerTitle: 'RPG Companion HMS Edition 2.9.7',
+        headerTitle: 'RPG Companion HMS Edition 2.9.8',
         description: 'The side panel for HMS bots: the HUD as cards, people, quests, the map, fights, the Chronicle, and a guide',
         keywords: ['rpg', 'hms', 'tracker', 'hud', 'quests', 'dice', 'guide'],
         iconSvg: ICON_SVG
@@ -1349,6 +1349,7 @@ export function setup(ctx) {
                 state.encounterActive = false;
                 state.status = null;
                 state.hms = null;
+                state.extras = null;
                 state.lore = null;
                 state.immersive = null;
                 state.immBusy = false;
@@ -6228,6 +6229,14 @@ body{background:${bs ? bs.backgroundColor : '#111'};color:${bs ? bs.color : '#dd
 
     // ── the mini panel: float it, minimise it, or pop it out to a second screen ──
     let floatBox = null, popWin = null, popLookObs = null;
+    function fitFloat() {
+        if (!floatBox) return;
+        // Restored positions and viewport changes must keep the controls reachable.
+        floatBox.style.left = Math.max(0, Math.min(floatBox.offsetLeft, window.innerWidth - floatBox.offsetWidth)) + 'px';
+        floatBox.style.top = Math.max(0, Math.min(floatBox.offsetTop, window.innerHeight - floatBox.offsetHeight)) + 'px';
+    }
+    const floatResize = () => fitFloat();
+    window.addEventListener?.('resize', floatResize);
     function panelMode() { return (S() && S().uiPanelMode) || 'drawer'; }
     function setPanelMode(mode) { const s = S(); s.uiPanelMode = mode; saveSettings(false); applyPanelMode(); render(); }
     function drawerNote(text, action) {
@@ -6241,8 +6250,8 @@ body{background:${bs ? bs.backgroundColor : '#111'};color:${bs ? bs.color : '#dd
                 const f = (S() && S().uiFloat) || {};
                 floatBox = h('div', { class: 'rpgc-float', role: 'dialog', 'aria-label': 'RPG Companion' });
                 const bar = h('div', { class: 'rpgc-float-bar' }, h('span', { class: 'ttl' }, 'RPG Companion'),
-                    h('button', { class: 'rpgc-mini', 'aria-label': 'Minimise', title: 'Minimise', onclick: () => { floatBox.classList.toggle('min'); saveFloat(); } }, '\u2013'),
-                    h('button', { class: 'rpgc-mini', 'aria-label': 'Enlarge', title: 'Enlarge', onclick: () => { floatBox.classList.toggle('big'); saveFloat(); } }, '\u25A1'),
+                    h('button', { class: 'rpgc-mini', 'aria-label': 'Minimise', title: 'Minimise', onclick: () => { floatBox.classList.toggle('min'); fitFloat(); saveFloat(); } }, '\u2013'),
+                    h('button', { class: 'rpgc-mini', 'aria-label': 'Enlarge', title: 'Enlarge', onclick: () => { floatBox.classList.toggle('big'); fitFloat(); saveFloat(); } }, '\u25A1'),
                     h('button', { class: 'rpgc-mini', 'aria-label': 'Pop out to a new window', title: 'Pop out (second screen)', onclick: () => setPanelMode('popout') }, '\u2197'),
                     h('button', { class: 'rpgc-mini', 'aria-label': 'Back to the drawer', title: 'Back to the drawer', onclick: () => setPanelMode('drawer') }, '\u21E5'));
                 floatBox.appendChild(bar);
@@ -6251,17 +6260,18 @@ body{background:${bs ? bs.backgroundColor : '#111'};color:${bs ? bs.color : '#dd
                 if (f.min) floatBox.classList.add('min'); if (f.big) floatBox.classList.add('big');
                 let drag = null;
                 bar.addEventListener('pointerdown', (e) => { if (e.target.closest('button')) return; drag = { x: e.clientX - floatBox.offsetLeft, y: e.clientY - floatBox.offsetTop }; bar.setPointerCapture?.(e.pointerId); });
-                bar.addEventListener('pointermove', (e) => { if (!drag) return; floatBox.style.left = Math.max(0, e.clientX - drag.x) + 'px'; floatBox.style.top = Math.max(0, e.clientY - drag.y) + 'px'; });
+                bar.addEventListener('pointermove', (e) => { if (!drag) return; floatBox.style.left = Math.max(0, e.clientX - drag.x) + 'px'; floatBox.style.top = Math.max(0, e.clientY - drag.y) + 'px'; fitFloat(); });
                 bar.addEventListener('pointerup', () => { if (drag) { drag = null; saveFloat(); } });
                 document.body.appendChild(floatBox);
             }
             floatBox.appendChild(root);
+            fitFloat();
             drawerNote('The panel is floating. Drag it by its bar; minimise or enlarge it there.', () => setPanelMode('drawer'));
         } else if (mode === 'popout') {
             if (!popWin || popWin.closed) {
                 popWin = window.open('', 'rpgc_popout', 'width=460,height=860');
                 if (!popWin) { state.status = { kind: 'warning', text: 'The browser blocked the pop-out window. Allow pop-ups for Lumiverse and try again.' }; const s = S(); s.uiPanelMode = 'drawer'; return applyPanelMode(); }
-                popWin.document.title = 'RPG Companion HMS Edition 2.9 beta';
+                popWin.document.title = 'RPG Companion HMS Edition 2.9.8 RC';
                 syncPopoutLook(popWin);
                 try { if (!popLookObs) { popLookObs = new MutationObserver(() => syncPopoutLook(popWin)); popLookObs.observe(document.documentElement, { attributes: true }); if (document.body) popLookObs.observe(document.body, { attributes: true, attributeFilter: ['class'] }); } } catch { /* optional */ }
                 popWin.addEventListener('beforeunload', () => { popWin = null; if (panelMode() === 'popout') { const s = S(); s.uiPanelMode = 'drawer'; saveSettings(false); applyPanelMode(); render(); } });
@@ -6372,6 +6382,7 @@ body{background:${bs ? bs.backgroundColor : '#111'};color:${bs ? bs.color : '#dd
 
     return () => {
         try { if (floatBox) floatBox.remove(); if (popWin && !popWin.closed) popWin.close(); } catch { /* gone */ }
+        window.removeEventListener?.('resize', floatResize);
         clearInterval(pollTimer);
         clearTimeout(saveTimer);
         clearTimeout(settingsTimer);

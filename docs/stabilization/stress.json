@@ -1,0 +1,54 @@
+{
+  "synthetic": true,
+  "heapDeltaIsNotRetainedMemory": true,
+  "samples": [
+    {
+      "messages": 50,
+      "coldMs": 62.3,
+      "warmMs": 11.14,
+      "heapDeltaBytes": 4159176,
+      "writes": 0,
+      "calls": 0
+    },
+    {
+      "messages": 100,
+      "coldMs": 35.27,
+      "warmMs": 15.69,
+      "heapDeltaBytes": 2297488,
+      "writes": 0,
+      "calls": 0
+    },
+    {
+      "messages": 250,
+      "coldMs": 68.44,
+      "warmMs": 32.47,
+      "heapDeltaBytes": 592480,
+      "writes": 0,
+      "calls": 0
+    },
+    {
+      "messages": 500,
+      "coldMs": 121.28,
+      "warmMs": 47.47,
+      "heapDeltaBytes": 776632,
+      "writes": 0,
+      "calls": 0
+    },
+    {
+      "messages": 1000,
+      "coldMs": 199.29,
+      "warmMs": 66.31,
+      "heapDeltaBytes": 6660088,
+      "writes": 0,
+      "calls": 0
+    },
+    {
+      "messages": 2000,
+      "coldMs": 376.8,
+      "warmMs": 80.96,
+      "heapDeltaBytes": 5059104,
+      "writes": 0,
+      "calls": 0
+    }
+  ]
+}
