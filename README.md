@@ -1,6 +1,6 @@
 # RPG Companion HMS Edition 2.9.11 — Release Candidate
 
-> Agenda maintenance: [2.9.11 RC report](docs/stabilization/AGENDA_2_9_11.md).
+> Tracking maintenance: [2.9.11 RC report](docs/stabilization/AGENDA_2_9_11.md).
 > Phase 3 stabilization: [2.9.10 RC report](docs/stabilization/PHASE3_2_9_10.md).
 > Tracking/continuation fixes: [2.9.9 RC report](docs/stabilization/TRACKING_2_9_9.md).
 

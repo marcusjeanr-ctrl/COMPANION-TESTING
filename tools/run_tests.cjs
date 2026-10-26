@@ -7,7 +7,7 @@ const suites = [
     'test_panel_tracking.cjs', 'test_reading_and_magic.cjs', 'test_reconciliation_integrity.cjs',
     'test_six_sided_repairs.cjs', 'test_spell_aliases.cjs', 'test_startup_and_render.cjs',
     'test_universal_integrity.cjs', 'test_tracking_2_9_0.cjs', 'test_tracking_source_integrity.cjs', 'test_quest_identity_2_9_2.cjs', 'test_tracking_2_9_3.cjs',
-    'test_visual_rank_integrity.cjs', 'test_universal_card_matrix.cjs', 'test_save_continue_boundary.cjs', 'test_internal_states_export_2_9_5.cjs', 'test_agenda_quest_export_2_9_7.cjs', 'test_frontend_chat_isolation.cjs', 'test_stabilization_continuity.cjs', 'test_long_chat_stability.cjs', 'test_tracking_continuation_accuracy.cjs', 'test_recovery_reliability.cjs', 'test_metadata_read_cost.cjs', 'test_rebuild_safety.cjs', 'test_agenda_occurrence_2_9_11.cjs'
+    'test_visual_rank_integrity.cjs', 'test_universal_card_matrix.cjs', 'test_save_continue_boundary.cjs', 'test_internal_states_export_2_9_5.cjs', 'test_agenda_quest_export_2_9_7.cjs', 'test_frontend_chat_isolation.cjs', 'test_stabilization_continuity.cjs', 'test_long_chat_stability.cjs', 'test_tracking_continuation_accuracy.cjs', 'test_recovery_reliability.cjs', 'test_metadata_read_cost.cjs', 'test_rebuild_safety.cjs', 'test_agenda_occurrence_2_9_11.cjs', 'test_additional_tracking_2_9_11.cjs'
 ];
 function run(args) {
     const r = spawnSync(process.execPath, args, { cwd: root, stdio: 'inherit', env: { ...process.env, COMPANION_TRACKING_ONLY: '1' } });

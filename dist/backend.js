@@ -4394,7 +4394,7 @@ function posNormalize(list, room) {
         const side = POS_SIDES.includes(String(p.side || '').toLowerCase()) ? String(p.side).toLowerCase() : 'other';
         const name = p.name.replace(/\s+/g, ' ').trim().slice(0, 40);
         if (out.some(o => lockKey(o.name) === lockKey(name))) continue;
-        out.push({ name, x, y, side, note: partyText(p.note, 60) });
+        out.push({ name, x, y, side, note: reportText(p.note, 240) });
     }
     return out.length ? out.slice(0, 24) : null;
 }
@@ -12012,7 +12012,7 @@ function relRequest(chat, userName, cfg, st = null, classic = false) {
     if (rc.bars.length) rules += `Bars toward ${userName}: ${rc.bars.filter(b => b.two).map(b => b.name).join(', ') || 'none'} use -100..100 (0 neutral); ${rc.bars.filter(b => !b.two).map(b => b.name).join(', ') || 'none'} use 0..100. Event-supported movement only, at most ${rc.maxStep}/reply. Start from the character entry; neutral only if unspecified. Teasing/competition alone proves no hostility, jealousy or motive. Keep unknown bars unknown. Report, never direct narration. `;
     const prev = relPrevious(chat || [], st, rc);
     const pins = relPins(st);
-    if (prev.length) rules += `\nPrevious standing — ${prev.map(r => `${r.name}: ${[r.standing, r.bond ? `bond ${r.bond}${pins[r.key] && pins[r.key].bond ? ' (set by the player)' : ''}` : null, r.minor ? 'minor' : null, ...rc.bars.filter(b => r[b.id] !== null && r[b.id] !== undefined).map(b => `${b.id} ${r[b.id]}`)].filter(Boolean).join(', ')}`).join('. ')}.`;
+    if (prev.length) rules += `\nPrevious standing — ${prev.map(r => `${r.name}: ${[r.standing, r.bond ? `bond ${reportText(r.bond, 60)}${pins[r.key] && pins[r.key].bond ? ' (set by the player)' : ''}` : null, r.minor ? 'minor' : null, ...rc.bars.filter(b => r[b.id] !== null && r[b.id] !== undefined).map(b => `${b.id} ${r[b.id]}`)].filter(Boolean).join(', ')}`).join('. ')}.`;
     return { json, rules };
 }
 
@@ -12069,7 +12069,7 @@ function relNormalize(list, cfg, st = null, classic = false) {
         const name = e.name.replace(/\s+/g, ' ').trim().slice(0, 60);
         const key = lockKey(name);
         if (out.some(x => x.key === key)) continue;
-        const r = { key, name, standing: null, bond: partyText(e.bond, 60), minor: typeof e.minor === 'boolean' ? e.minor : null, mood: partyText(e.mood, 40), why: partyText(e.why, 140), reasons: {} };
+        const r = { key, name, standing: null, bond: reportText(e.bond, 240), minor: typeof e.minor === 'boolean' ? e.minor : null, mood: partyText(e.mood, 40), why: partyText(e.why, 140), reasons: {} };
         const i = relRank(e.standing, rc);
         if (i !== null) r.standing = rc.ladder[i];
         for (const b of rc.bars) {
@@ -13931,9 +13931,10 @@ function simLearnedNormalize(list) {
         const tb = String(f.how ?? '').match(/told[_ ]?by[:\s]+(.+)$/i);
         if (tb && !from) from = partyText(tb[1], 60);
         if (from && /^(null|none)$/i.test(from)) from = null;
-        let sure = simSureOf(f.sure ?? f.confidence) || (how && !['guessed', 'gossip'].includes(how) ? 'certain' : 'unsure');
+        // Indirect evidence/deduction alone is not a witnessed or received confirmation.
+        let sure = simSureOf(f.sure ?? f.confidence) || (how === 'evidence' ? 'partly' : how && !['guessed', 'gossip'].includes(how) ? 'certain' : 'unsure');
         if (sure !== 'wrong' && (!how || how === 'guessed' || reportSpeculative(f))) sure = 'unsure';
-        else if (sure === 'certain' && how === 'gossip') sure = 'partly';
+        else if (sure === 'certain' && ['gossip', 'evidence'].includes(how)) sure = 'partly';
         out.push({ who, fact, how, from, sure });
     }
     return out.slice(0, 12);
@@ -14616,7 +14617,8 @@ function simStatesHtml(d, colourOf, esc = escapeHtml) {
         }).join('');
     }
     const ag = Array.isArray(d.agendas) ? d.agendas : [];
-    const ln = Array.isArray(d.learned) ? d.learned : [];
+    // Apply the same certainty guard to legacy panels without shortening their stored text.
+    const ln = Array.isArray(d.learned) ? d.learned.map(f => ({ ...f, sure: simLearnedNormalize([f])?.[0]?.sure || 'unsure' })) : [];
     const sc = [];
     if (ag.length) sc.push(`<span class="rs-row"><span class="rs-k">${T('Routines')}</span></span><span class="rs-list">${ag.map(a => `<span class="rs-row"><b>${esc(a.name)}</b><span>${esc([a.where, a.doing].filter(Boolean).join(' — '))}${a.until ? ` <span class="rs-chip">⏳ ${esc(a.until)}</span>` : ''}</span></span>`).join('')}</span>`);
     if (ln.length) sc.push(`<span class="rs-row"><span class="rs-k">${T('Learned')}</span></span><span class="rs-list">${ln.map(f => `<span class="rs-row"><b>${esc(f.who)}</b><span>${esc(f.fact)} <span class="rs-chip${f.sure === 'wrong' ? ' bad' : ''}">${esc([f.how === 'told' && f.from ? TT('told by {0}', f.from) : f.how ? SW('how', SIM_HOW[f.how] || f.how) : null, f.sure ? SW('sure', f.sure) : null].filter(Boolean).join(', '))}</span></span></span>`).join('')}</span>`);
