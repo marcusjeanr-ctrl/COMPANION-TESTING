@@ -28,7 +28,7 @@ concurrency:
   cancel-in-progress: false
 jobs:
   release:
-    if: github.repository == 'marcusjeanr-ctrl/COMPANION-TESTING'
+    if: github.repository == 'marcusjeanr-ctrl/COMPANION-TESTING' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     timeout-minutes: 15
     # Separate manual release job; validation CI stays read-only and cannot publish.
@@ -44,6 +44,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - name: Preserve verification code from the trusted main workflow
+        run: cp tools/publish_rc.py "$RUNNER_TEMP/companion-publish.py"
+      - uses: actions/checkout@v4
+        with:
           ref: ${{ inputs.source_commit }}
           persist-credentials: false
       - uses: actions/setup-node@v4
@@ -55,4 +61,5 @@ jobs:
       - name: Verify candidate, stage exact assets and optionally publish RC
         env:
           GH_TOKEN: ${{ github.token }}
-        run: python3 tools/publish_rc.py --mode "$RELEASE_MODE" --commit "$EXPECTED_COMMIT" --sha256 "$EXPECTED_SHA256" --version "$EXPECTED_VERSION"
+          COMPANION_RELEASE_CHECKOUT: ${{ github.workspace }}
+        run: python3 "$RUNNER_TEMP/companion-publish.py" --mode "$RELEASE_MODE" --commit "$EXPECTED_COMMIT" --sha256 "$EXPECTED_SHA256" --version "$EXPECTED_VERSION"

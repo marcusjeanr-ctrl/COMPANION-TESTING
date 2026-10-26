@@ -9,7 +9,7 @@ import re
 import subprocess
 import tempfile
 
-ROOT = pathlib.Path(__file__).resolve().parents[1]
+ROOT = pathlib.Path(os.environ.get('COMPANION_RELEASE_CHECKOUT', pathlib.Path(__file__).resolve().parents[1])).resolve()
 REPO = 'marcusjeanr-ctrl/COMPANION-TESTING'
 
 
@@ -80,7 +80,8 @@ def release(mode, commit, expected, version):
     require(not matches or matches[0]['draft'], 'Refusing to overwrite an already published release')
     with tempfile.TemporaryDirectory(prefix='companion-release-', dir=os.environ.get('RUNNER_TEMP')) as folder:
         archive = pathlib.Path(folder) / f'RPG_Companion_HMS_{version}_RC.zip'
-        subprocess.run(['python3', str(ROOT / 'tools/package_rc.py'), str(archive)], cwd=ROOT, check=True)
+        package_env = {k: v for k, v in os.environ.items() if k not in {'GH_TOKEN', 'GITHUB_TOKEN'}}
+        subprocess.run(['python3', str(ROOT / 'tools/package_rc.py'), str(archive)], cwd=ROOT, env=package_env, check=True)
         verify_hash(archive, expected)
         report = json.loads(archive.with_suffix('.checksums.json').read_text())
         sections = re.split(r'(?m)^## ', (ROOT / 'CHANGELOG.md').read_text())

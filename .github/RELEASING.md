@@ -4,6 +4,9 @@ The validation workflow stays read-only. `publish-rc.yml` is a separate, explici
 requested manual release job, limited to COMPANION-TESTING. It uses GitHub's
 short-lived repository token rather than cloud proxy credentials. It never edits
 source, versions, presets, saved data or branches and is not triggered by pushes.
+Dispatch only from main: verification code is copied from that trusted workflow
+commit before checking out the candidate. Candidate packaging does not inherit
+the release token. Fork or failed validation runs are rejected before packaging.
 
 1. Review/test a candidate. Record the exact commit and tested ZIP SHA-256.
 2. Dispatch **stage** on a ref containing this workflow/helper, passing that exact
