@@ -1905,7 +1905,9 @@ function trackingMessageVisible(msg) {
 }
 function getSwipeData(msg) {
     if (!trackingMessageVisible(msg) || msg._rpgcPurpose === 'continue') return null;
-    const mine = msg?.metadata?.[META_KEY];
+    // Lumiverse exports stored Spindle metadata under extra.spindle_metadata.
+    // Prefer live API metadata, but read the exported location when it is the only source.
+    const mine = msg?.metadata?.[META_KEY] ?? msg?.extra?.spindle_metadata?.[META_KEY];
     const key = String(msg?.swipe_id ?? 0);
     const data = mine?.swipes?.[key];
     if (!isPlainObject(data)) return null;
@@ -1924,7 +1926,7 @@ async function setSwipeData(chatId, msg, data, extraPatch = {}) {
             throw new Error('The reply changed before its tracking data could be saved. Refresh the active reply.');
         }
         const metadata = { ...(fresh.metadata || {}) };
-        const mine = { ...(metadata[META_KEY] || {}) };
+        const mine = { ...(metadata[META_KEY] || fresh.extra?.spindle_metadata?.[META_KEY] || {}) };
         const key = String(swipe);
         mine.swipes = { ...(mine.swipes || {}), [key]: snapshot };
         mine.sources = { ...(mine.sources || {}), [key]: readingSource(patch.content ?? fresh.content) };
@@ -2340,7 +2342,7 @@ async function pushState(chatId, snapshot = null) {
 // Demo mode plays scripted turns (no tokens); Live mode asks the model, with a small
 // world narrator standing in for a bot card.
 
-const RPGC_VERSION = '2.9.3';
+const RPGC_VERSION = '2.9.5';
 const diagLog = [];
 function diagPush(kind, m) { diagLog.push({ at: new Date().toISOString(), kind, text: String(m).slice(0, 400) }); if (diagLog.length > 60) diagLog.shift(); }
 function logW(m) { diagPush('warn', m); return spindle.log.warn(m); }
