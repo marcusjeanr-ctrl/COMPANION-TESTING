@@ -1907,12 +1907,21 @@ function getSwipeData(msg) {
     if (!trackingMessageVisible(msg) || msg._rpgcPurpose === 'continue') return null;
     // Lumiverse exports stored Spindle metadata under extra.spindle_metadata.
     // Prefer live API metadata, but read the exported location when it is the only source.
-    const mine = msg?.metadata?.[META_KEY] ?? msg?.extra?.spindle_metadata?.[META_KEY];
     const key = String(msg?.swipe_id ?? 0);
-    const data = mine?.swipes?.[key];
-    if (!isPlainObject(data)) return null;
-    const source = mine.sources?.[key];
-    return source && source !== messageSource(msg) ? null : data;
+    const candidates = [
+        msg?.metadata?.[META_KEY],
+        msg?.extra?.spindle_metadata?.[META_KEY],
+        msg?.metadata?.spindle_metadata?.[META_KEY]
+    ];
+    const expected = messageSource(msg);
+    for (const mine of candidates) {
+        const data = mine?.swipes?.[key];
+        if (!isPlainObject(data)) continue;
+        const source = mine.sources?.[key];
+        if (source && source !== expected) continue;
+        return data;
+    }
+    return null;
 }
 
 const swipeWrites = new Map();
@@ -2342,7 +2351,7 @@ async function pushState(chatId, snapshot = null) {
 // Demo mode plays scripted turns (no tokens); Live mode asks the model, with a small
 // world narrator standing in for a bot card.
 
-const RPGC_VERSION = '2.9.5';
+const RPGC_VERSION = '2.9.6';
 const diagLog = [];
 function diagPush(kind, m) { diagLog.push({ at: new Date().toISOString(), kind, text: String(m).slice(0, 400) }); if (diagLog.length > 60) diagLog.shift(); }
 function logW(m) { diagPush('warn', m); return spindle.log.warn(m); }
@@ -15845,7 +15854,24 @@ async function hmsDiagnostics(chatId, includeReply) {
         extension: 'rpg_companion_hms', version: RPGC_VERSION, at: new Date().toISOString(),
         chat: { hmsDetected: hms, testZone: chatId === SANDBOX_ID, messages: chat.length, lastReplyHasHud: !!hud, hudLines: hud ? hud.lines.length : 0,
             hudKeys: hud ? hud.lines.map(l => l.key).slice(0, 40) : [], lastReplyHasRawBlock: !!(hudMsg && /<rpg_companion>/i.test(textOf(hudMsg.content))),
-            lastReplyReasoningHasHud: !!(hudMsg && hudMsg.extra && typeof hudMsg.extra.reasoning === 'string' && HUD_HEAD_RE.test(hudMsg.extra.reasoning)) },
+            lastReplyReasoningHasHud: !!(hudMsg && hudMsg.extra && typeof hudMsg.extra.reasoning === 'string' && HUD_HEAD_RE.test(hudMsg.extra.reasoning)),
+            trackingMetadata: (() => {
+                if (!hudMsg) return null;
+                const key = String(hudMsg.swipe_id ?? 0);
+                const live = hudMsg.metadata?.[META_KEY];
+                const exported = hudMsg.extra?.spindle_metadata?.[META_KEY];
+                const nested = hudMsg.metadata?.spindle_metadata?.[META_KEY];
+                const status = mine => {
+                    if (!mine) return 'absent';
+                    if (!isPlainObject(mine.swipes?.[key])) return 'missing-active-swipe';
+                    const source = mine.sources?.[key];
+                    return source && source !== messageSource(hudMsg) ? 'source-mismatch' : 'valid';
+                };
+                const data = getSwipeData(hudMsg);
+                return { live: status(live), exported: status(exported), nested: status(nested),
+                    selected: !!data, minds: Array.isArray(data?.minds) ? data.minds.length : 0,
+                    characters: Array.isArray(data?.characters) ? data.characters.length : 0 };
+            })() },
         lastInjection: lastInjection.get(chatId) || null,
         features: await (async () => {
             if (!chatId) return null;
