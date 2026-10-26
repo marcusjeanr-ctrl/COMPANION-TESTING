@@ -2374,7 +2374,7 @@ async function pushState(chatId, snapshot = null) {
 // Demo mode plays scripted turns (no tokens); Live mode asks the model, with a small
 // world narrator standing in for a bot card.
 
-const RPGC_VERSION = '2.9.10';
+const RPGC_VERSION = '2.9.11';
 const diagLog = [];
 function diagPush(kind, m) { diagLog.push({ at: new Date().toISOString(), kind, text: String(m).slice(0, 400) }); if (diagLog.length > 60) diagLog.shift(); }
 function logW(m) { diagPush('warn', m); return spindle.log.warn(m); }
@@ -4394,7 +4394,7 @@ function posNormalize(list, room) {
         const side = POS_SIDES.includes(String(p.side || '').toLowerCase()) ? String(p.side).toLowerCase() : 'other';
         const name = p.name.replace(/\s+/g, ' ').trim().slice(0, 40);
         if (out.some(o => lockKey(o.name) === lockKey(name))) continue;
-        out.push({ name, x, y, side, note: partyText(p.note, 60) });
+        out.push({ name, x, y, side, note: reportText(p.note, 240) });
     }
     return out.length ? out.slice(0, 24) : null;
 }
@@ -12012,7 +12012,7 @@ function relRequest(chat, userName, cfg, st = null, classic = false) {
     if (rc.bars.length) rules += `Bars toward ${userName}: ${rc.bars.filter(b => b.two).map(b => b.name).join(', ') || 'none'} use -100..100 (0 neutral); ${rc.bars.filter(b => !b.two).map(b => b.name).join(', ') || 'none'} use 0..100. Event-supported movement only, at most ${rc.maxStep}/reply. Start from the character entry; neutral only if unspecified. Teasing/competition alone proves no hostility, jealousy or motive. Keep unknown bars unknown. Report, never direct narration. `;
     const prev = relPrevious(chat || [], st, rc);
     const pins = relPins(st);
-    if (prev.length) rules += `\nPrevious standing — ${prev.map(r => `${r.name}: ${[r.standing, r.bond ? `bond ${r.bond}${pins[r.key] && pins[r.key].bond ? ' (set by the player)' : ''}` : null, r.minor ? 'minor' : null, ...rc.bars.filter(b => r[b.id] !== null && r[b.id] !== undefined).map(b => `${b.id} ${r[b.id]}`)].filter(Boolean).join(', ')}`).join('. ')}.`;
+    if (prev.length) rules += `\nPrevious standing — ${prev.map(r => `${r.name}: ${[r.standing, r.bond ? `bond ${reportText(r.bond, 60)}${pins[r.key] && pins[r.key].bond ? ' (set by the player)' : ''}` : null, r.minor ? 'minor' : null, ...rc.bars.filter(b => r[b.id] !== null && r[b.id] !== undefined).map(b => `${b.id} ${r[b.id]}`)].filter(Boolean).join(', ')}`).join('. ')}.`;
     return { json, rules };
 }
 
@@ -12069,7 +12069,7 @@ function relNormalize(list, cfg, st = null, classic = false) {
         const name = e.name.replace(/\s+/g, ' ').trim().slice(0, 60);
         const key = lockKey(name);
         if (out.some(x => x.key === key)) continue;
-        const r = { key, name, standing: null, bond: partyText(e.bond, 60), minor: typeof e.minor === 'boolean' ? e.minor : null, mood: partyText(e.mood, 40), why: partyText(e.why, 140), reasons: {} };
+        const r = { key, name, standing: null, bond: reportText(e.bond, 240), minor: typeof e.minor === 'boolean' ? e.minor : null, mood: partyText(e.mood, 40), why: partyText(e.why, 140), reasons: {} };
         const i = relRank(e.standing, rc);
         if (i !== null) r.standing = rc.ladder[i];
         for (const b of rc.bars) {
@@ -12824,8 +12824,23 @@ function agendaActivityState(item, data) {
 }
 
 function agendaReportedState(row, data, at, dueAt, previous = 'open') {
+    // Repeated pending reports are not evidence that the same occurrence restarted.
+    // Explicit moves and manual edits retain their existing correction paths.
+    if (!row.moved && ['open', 'in_progress'].includes(row.state) &&
+        (['kept', 'missed', 'cancelled'].includes(previous) || (previous === 'in_progress' && row.state === 'open'))) return previous;
     if (row.state !== 'in_progress' || !['meeting', 'event'].includes(row.kind) || at === null || dueAt === null || dueAt <= at || /\b(?:before|by|until)\b/i.test(row.when || '')) return row.state;
     return agendaActivityState(row, data) === 'in_progress' ? row.state : previous;
+}
+
+function agendaPlaceCompatible(a, b, refine = false) {
+    if (a === b) return true;
+    const A = lockKey(a || ''), B = lockKey(b || '');
+    if (A === B) return true;
+    if (!refine) return false;
+    // A room's threshold is a location detail, not a different room. Keep annexes,
+    // wings and other destinations distinct; only refine across reports.
+    const room = text => text.replace(/\s+(?:doorway|threshold|entrance)$/, '');
+    return room(A) === room(B);
 }
 
 function agendaRead(chat, st) {
@@ -12839,12 +12854,12 @@ function agendaRead(chat, st) {
     const items = [];
     const compatible = (x, row, dueAt = null) => (!row?.moved || ['open', 'in_progress'].includes(x.state)) &&
         (!row?.with || !x.with || row.moved || lockKey(row.with) === lockKey(x.with)) &&
-        (!row?.where || !x.where || row.moved || lockKey(row.where) === lockKey(x.where)) &&
-        (!row || agendaScheduleCompatible(x, row, dueAt));
+        (!row?.where || !x.where || row.moved || agendaPlaceCompatible(x.where, row.where, !!row.reportedIn && row.reportedIn !== x.changedIn)) &&
+        (!row || agendaScheduleCompatible(x, row, dueAt, !!row.reportedIn && row.reportedIn !== x.changedIn));
     const find = (key, row = null, dueAt = null) => {
         if (!row) { const exact = items.find(x => x.key === key); if (exact) return exact; }
         const matches = items.filter(x => (lockKey(x.what) === key || agendaSame(lockKey(x.what), key)) && compatible(x, row, dueAt));
-        return matches.length === 1 ? matches[0] : null;
+        return matches.length === 1 ? matches[0] : matches.length ? undefined : null;
     };
     for (const m of msgs) {
         const d = getSwipeData(m, true) || {};
@@ -12855,7 +12870,8 @@ function agendaRead(chat, st) {
             if (!r || typeof r.key !== 'string' || typeof r.what !== 'string') continue;
             const dueAt = r.when || r.due ? agendaWhen(r.due, r.when, at, e && e.hud, stripThink(textOf(m.content)).replace(COMPANION_RE, '')) : null;
             const scheduleDay = dueAt !== null ? Math.floor(dueAt / 1440) : agendaScheduleDay(r.due, r.when, at, e && e.hud);
-            let it = find(r.key, { ...r, scheduleDay }, dueAt);
+            let it = find(r.key, { ...r, scheduleDay, reportedIn: m.id }, dueAt);
+            if (it === undefined) continue; // An ambiguous update cannot choose or invent an occurrence.
             if (!it) {
                 if (!r.with && !r.where && !r.when && !r.due && items.some(x => agendaSame(lockKey(x.what), r.key))) continue;
                 const key = agendaItemKey(items, r);
@@ -13915,9 +13931,10 @@ function simLearnedNormalize(list) {
         const tb = String(f.how ?? '').match(/told[_ ]?by[:\s]+(.+)$/i);
         if (tb && !from) from = partyText(tb[1], 60);
         if (from && /^(null|none)$/i.test(from)) from = null;
-        let sure = simSureOf(f.sure ?? f.confidence) || (how && !['guessed', 'gossip'].includes(how) ? 'certain' : 'unsure');
+        // Indirect evidence/deduction alone is not a witnessed or received confirmation.
+        let sure = simSureOf(f.sure ?? f.confidence) || (how === 'evidence' ? 'partly' : how && !['guessed', 'gossip'].includes(how) ? 'certain' : 'unsure');
         if (sure !== 'wrong' && (!how || how === 'guessed' || reportSpeculative(f))) sure = 'unsure';
-        else if (sure === 'certain' && how === 'gossip') sure = 'partly';
+        else if (sure === 'certain' && ['gossip', 'evidence'].includes(how)) sure = 'partly';
         out.push({ who, fact, how, from, sure });
     }
     return out.slice(0, 12);
@@ -14600,7 +14617,8 @@ function simStatesHtml(d, colourOf, esc = escapeHtml) {
         }).join('');
     }
     const ag = Array.isArray(d.agendas) ? d.agendas : [];
-    const ln = Array.isArray(d.learned) ? d.learned : [];
+    // Apply the same certainty guard to legacy panels without shortening their stored text.
+    const ln = Array.isArray(d.learned) ? d.learned.map(f => ({ ...f, sure: simLearnedNormalize([f])?.[0]?.sure || 'unsure' })) : [];
     const sc = [];
     if (ag.length) sc.push(`<span class="rs-row"><span class="rs-k">${T('Routines')}</span></span><span class="rs-list">${ag.map(a => `<span class="rs-row"><b>${esc(a.name)}</b><span>${esc([a.where, a.doing].filter(Boolean).join(' — '))}${a.until ? ` <span class="rs-chip">⏳ ${esc(a.until)}</span>` : ''}</span></span>`).join('')}</span>`);
     if (ln.length) sc.push(`<span class="rs-row"><span class="rs-k">${T('Learned')}</span></span><span class="rs-list">${ln.map(f => `<span class="rs-row"><b>${esc(f.who)}</b><span>${esc(f.fact)} <span class="rs-chip${f.sure === 'wrong' ? ' bad' : ''}">${esc([f.how === 'told' && f.from ? TT('told by {0}', f.from) : f.how ? SW('how', SIM_HOW[f.how] || f.how) : null, f.sure ? SW('sure', f.sure) : null].filter(Boolean).join(', '))}</span></span></span>`).join('')}</span>`);
@@ -15790,7 +15808,22 @@ function agendaApproximate(text) {
     return /[~≈]|\b(?:about|around|approximately|roughly|sometime|few|couple)\b/i.test(String(text || ''));
 }
 
-function agendaScheduleCompatible(a, b, dueAt) {
+function agendaVaguePeriod(text) {
+    const t = String(text || '').toLowerCase().replace(/\b(?:first light|sunrise)\b/g, 'dawn');
+    if (/\b(?:before|after|by|until)\s+(?:the\s+)?(?:dawn|morning|noon|midday|afternoon|evening|sunset|night)\b/.test(t)) return null;
+    const parts = t.match(/\b(?:dawn|morning|noon|midday|afternoon|evening|sunset|sundown|tonight|night|dusk)\b/g) || [];
+    if (!parts.length) return null;
+    // Do not discard conditions or other distinguishing qualifiers just because
+    // two descriptions mention the same daypart.
+    const remainder = t.replace(/\b(?:called for|now past|this|the|today|early|late|dawn|morning|noon|midday|afternoon|evening|sunset|sundown|tonight|night|dusk)\b/g, '').replace(/[^\p{L}\p{N}]+/gu, '');
+    if (remainder) return null;
+    const period = part => part === 'dawn' ? 'morning' : part;
+    if (!parts.every(part => period(part) === period(parts[0]))) return null;
+    const phase = parts.includes('dawn') ? 'dawn' : t.match(/\b(early|late)\s+(?:this\s+)?(?:morning|afternoon|evening|night)\b/)?.[1] || null;
+    return { period: period(parts[0]), phase };
+}
+
+function agendaScheduleCompatible(a, b, dueAt, refine = false) {
     if (b.moved) return true;
     if (a.scheduleDay !== null && a.scheduleDay !== undefined && b.scheduleDay !== null && b.scheduleDay !== undefined && a.scheduleDay !== b.scheduleDay) return false;
     if (a.dueAt !== null && dueAt !== null) {
@@ -15807,6 +15840,14 @@ function agendaScheduleCompatible(a, b, dueAt) {
         .replace(/\b(?:half past|quarter past|quarter to)\s+\w+\b|\b\d{1,2}:\d{2}\s*(?:am|pm)?\b/g, '')
         .replace(/\b(?:this|the|today|by|at)\b/g, '').split(/[^\p{L}\p{N}]+/u).filter(Boolean))].join(' ');
     if (normalize(a.when) === normalize(b.when || b.due)) return true;
+    if (refine && a.scheduleDay != null && a.scheduleDay === b.scheduleDay) {
+        const A = agendaVaguePeriod(a.when), B = agendaVaguePeriod(b.when || b.due);
+        if (A && B && A.period === B.period && (!A.phase || !B.phase || A.phase === B.phase)) return true;
+        // One report may omit an appended condition. Do not equate two different
+        // conditions merely because they share the same leading time label.
+        const core = text => normalize(String(text || '').replace(/,\s*(?:after|before|once|when|if|provided)\b.*$/i, ''));
+        if (core(a.when) === normalize(b.when || b.due) || core(b.when || b.due) === normalize(a.when)) return true;
+    }
     // A later explicit clock can refine a vague time; conflicting named days/dayparts remain separate.
     const slots = text => String(text || '').match(/\b(?:tomorrow|morning|afternoon|evening|tonight|sundown|sunset|dawn)\b/gi) || [];
     const A = slots(a.when).map(x => x.toLowerCase()), B = slots(b.when).map(x => x.toLowerCase());
