@@ -2374,7 +2374,7 @@ async function pushState(chatId, snapshot = null) {
 // Demo mode plays scripted turns (no tokens); Live mode asks the model, with a small
 // world narrator standing in for a bot card.
 
-const RPGC_VERSION = '2.9.10';
+const RPGC_VERSION = '2.9.11';
 const diagLog = [];
 function diagPush(kind, m) { diagLog.push({ at: new Date().toISOString(), kind, text: String(m).slice(0, 400) }); if (diagLog.length > 60) diagLog.shift(); }
 function logW(m) { diagPush('warn', m); return spindle.log.warn(m); }
@@ -12824,8 +12824,23 @@ function agendaActivityState(item, data) {
 }
 
 function agendaReportedState(row, data, at, dueAt, previous = 'open') {
+    // Repeated pending reports are not evidence that the same occurrence restarted.
+    // Explicit moves and manual edits retain their existing correction paths.
+    if (!row.moved && ['open', 'in_progress'].includes(row.state) &&
+        (['kept', 'missed', 'cancelled'].includes(previous) || (previous === 'in_progress' && row.state === 'open'))) return previous;
     if (row.state !== 'in_progress' || !['meeting', 'event'].includes(row.kind) || at === null || dueAt === null || dueAt <= at || /\b(?:before|by|until)\b/i.test(row.when || '')) return row.state;
     return agendaActivityState(row, data) === 'in_progress' ? row.state : previous;
+}
+
+function agendaPlaceCompatible(a, b, refine = false) {
+    if (a === b) return true;
+    const A = lockKey(a || ''), B = lockKey(b || '');
+    if (A === B) return true;
+    if (!refine) return false;
+    // A room's threshold is a location detail, not a different room. Keep annexes,
+    // wings and other destinations distinct; only refine across reports.
+    const room = text => text.replace(/\s+(?:doorway|threshold|entrance)$/, '');
+    return room(A) === room(B);
 }
 
 function agendaRead(chat, st) {
@@ -12839,12 +12854,12 @@ function agendaRead(chat, st) {
     const items = [];
     const compatible = (x, row, dueAt = null) => (!row?.moved || ['open', 'in_progress'].includes(x.state)) &&
         (!row?.with || !x.with || row.moved || lockKey(row.with) === lockKey(x.with)) &&
-        (!row?.where || !x.where || row.moved || lockKey(row.where) === lockKey(x.where)) &&
-        (!row || agendaScheduleCompatible(x, row, dueAt));
+        (!row?.where || !x.where || row.moved || agendaPlaceCompatible(x.where, row.where, !!row.reportedIn && row.reportedIn !== x.changedIn)) &&
+        (!row || agendaScheduleCompatible(x, row, dueAt, !!row.reportedIn && row.reportedIn !== x.changedIn));
     const find = (key, row = null, dueAt = null) => {
         if (!row) { const exact = items.find(x => x.key === key); if (exact) return exact; }
         const matches = items.filter(x => (lockKey(x.what) === key || agendaSame(lockKey(x.what), key)) && compatible(x, row, dueAt));
-        return matches.length === 1 ? matches[0] : null;
+        return matches.length === 1 ? matches[0] : matches.length ? undefined : null;
     };
     for (const m of msgs) {
         const d = getSwipeData(m, true) || {};
@@ -12855,7 +12870,8 @@ function agendaRead(chat, st) {
             if (!r || typeof r.key !== 'string' || typeof r.what !== 'string') continue;
             const dueAt = r.when || r.due ? agendaWhen(r.due, r.when, at, e && e.hud, stripThink(textOf(m.content)).replace(COMPANION_RE, '')) : null;
             const scheduleDay = dueAt !== null ? Math.floor(dueAt / 1440) : agendaScheduleDay(r.due, r.when, at, e && e.hud);
-            let it = find(r.key, { ...r, scheduleDay }, dueAt);
+            let it = find(r.key, { ...r, scheduleDay, reportedIn: m.id }, dueAt);
+            if (it === undefined) continue; // An ambiguous update cannot choose or invent an occurrence.
             if (!it) {
                 if (!r.with && !r.where && !r.when && !r.due && items.some(x => agendaSame(lockKey(x.what), r.key))) continue;
                 const key = agendaItemKey(items, r);
@@ -15790,7 +15806,22 @@ function agendaApproximate(text) {
     return /[~≈]|\b(?:about|around|approximately|roughly|sometime|few|couple)\b/i.test(String(text || ''));
 }
 
-function agendaScheduleCompatible(a, b, dueAt) {
+function agendaVaguePeriod(text) {
+    const t = String(text || '').toLowerCase().replace(/\b(?:first light|sunrise)\b/g, 'dawn');
+    if (/\b(?:before|after|by|until)\s+(?:the\s+)?(?:dawn|morning|noon|midday|afternoon|evening|sunset|night)\b/.test(t)) return null;
+    const parts = t.match(/\b(?:dawn|morning|noon|midday|afternoon|evening|sunset|sundown|tonight|night|dusk)\b/g) || [];
+    if (!parts.length) return null;
+    // Do not discard conditions or other distinguishing qualifiers just because
+    // two descriptions mention the same daypart.
+    const remainder = t.replace(/\b(?:called for|now past|this|the|today|early|late|dawn|morning|noon|midday|afternoon|evening|sunset|sundown|tonight|night|dusk)\b/g, '').replace(/[^\p{L}\p{N}]+/gu, '');
+    if (remainder) return null;
+    const period = part => part === 'dawn' ? 'morning' : part;
+    if (!parts.every(part => period(part) === period(parts[0]))) return null;
+    const phase = parts.includes('dawn') ? 'dawn' : t.match(/\b(early|late)\s+(?:this\s+)?(?:morning|afternoon|evening|night)\b/)?.[1] || null;
+    return { period: period(parts[0]), phase };
+}
+
+function agendaScheduleCompatible(a, b, dueAt, refine = false) {
     if (b.moved) return true;
     if (a.scheduleDay !== null && a.scheduleDay !== undefined && b.scheduleDay !== null && b.scheduleDay !== undefined && a.scheduleDay !== b.scheduleDay) return false;
     if (a.dueAt !== null && dueAt !== null) {
@@ -15807,6 +15838,14 @@ function agendaScheduleCompatible(a, b, dueAt) {
         .replace(/\b(?:half past|quarter past|quarter to)\s+\w+\b|\b\d{1,2}:\d{2}\s*(?:am|pm)?\b/g, '')
         .replace(/\b(?:this|the|today|by|at)\b/g, '').split(/[^\p{L}\p{N}]+/u).filter(Boolean))].join(' ');
     if (normalize(a.when) === normalize(b.when || b.due)) return true;
+    if (refine && a.scheduleDay != null && a.scheduleDay === b.scheduleDay) {
+        const A = agendaVaguePeriod(a.when), B = agendaVaguePeriod(b.when || b.due);
+        if (A && B && A.period === B.period && (!A.phase || !B.phase || A.phase === B.phase)) return true;
+        // One report may omit an appended condition. Do not equate two different
+        // conditions merely because they share the same leading time label.
+        const core = text => normalize(String(text || '').replace(/,\s*(?:after|before|once|when|if|provided)\b.*$/i, ''));
+        if (core(a.when) === normalize(b.when || b.due) || core(b.when || b.due) === normalize(a.when)) return true;
+    }
     // A later explicit clock can refine a vague time; conflicting named days/dayparts remain separate.
     const slots = text => String(text || '').match(/\b(?:tomorrow|morning|afternoon|evening|tonight|sundown|sunset|dawn)\b/gi) || [];
     const A = slots(a.when).map(x => x.toLowerCase()), B = slots(b.when).map(x => x.toLowerCase());

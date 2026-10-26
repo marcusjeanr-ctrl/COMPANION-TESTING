@@ -1,5 +1,18 @@
 # Changelog — RPG Companion HMS Edition
 
+## 2.9.11 RC — Agenda occurrence identity and status
+
+- Reconcile same-day broad/narrow time wording and omitted appended conditions
+  across reports without splitting one appointment into duplicate cards.
+- Treat a named room's doorway/threshold as a location refinement across reports;
+  preserve different rooms, participants, dates, exact times and separately listed
+  appointments. Ambiguous updates do not select or invent an occurrence.
+- Retain terminal and in-progress statuses when a generic pending report repeats
+  the same occurrence. Explicit moves, manual corrections and later-day occurrences
+  retain their existing behavior and source history.
+- Add synthetic and private-export regressions. No prompt, polling, model/API call,
+  storage schema, UI design, preset or gameplay change outside Agenda reconciliation.
+
 ## 2.9.10 RC — Recovery and targeted performance stabilization
 
 - Retry failed leftover-report recovery; record completion after metadata commits.
