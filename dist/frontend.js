@@ -1125,7 +1125,7 @@ export function setup(ctx) {
         id: 'rpg-companion-hms',
         title: 'RPG Companion (HMS)',
         shortName: 'RPG',
-        headerTitle: 'RPG Companion HMS Edition 2.9.11',
+        headerTitle: 'RPG Companion HMS Edition 2.9.12',
         description: 'The side panel for HMS bots: the HUD as cards, people, quests, the map, fights, the Chronicle, and a guide',
         keywords: ['rpg', 'hms', 'tracker', 'hud', 'quests', 'dice', 'guide'],
         iconSvg: ICON_SVG
@@ -5044,7 +5044,7 @@ export function setup(ctx) {
             if (w.languages.length) out.push(wRow('Languages', ...w.languages.map(l => h('span', { class: 'rpgc-chip' }, l.fluency ? `${l.name} \u00B7 ${l.fluency}` : l.name))));
             if (w.contracts) out.push(wRow('Contracts', w.contracts));
             for (const e of w.eyes) out.push(h('div', { class: 'rpgc-wability' }, h('div', { class: 'rpgc-wrow' }, h('span', { class: 'rpgc-chip kind' }, 'Demon Eye'), h('b', null, e.text)), loreNote(e.lore)));
-            for (const m of w.marks) out.push(h('div', { class: 'rpgc-wability' }, h('div', { class: 'rpgc-wrow' }, h('span', { class: 'rpgc-chip kind' + (m.kind === 'CURSE' ? ' hot' : '') }, m.kind === 'CURSE' ? 'Curse' : 'Blessing'), h('b', null, m.name)), loreNote(m.lore)));
+            for (const m of w.marks) out.push(h('div', { class: 'rpgc-wability' }, h('div', { class: 'rpgc-wrow' }, h('span', { class: 'rpgc-chip kind' + (m.kind === 'CURSE' ? ' hot' : '') }, m.kind === 'CURSE' ? 'Curse' : m.kind === 'BLESSING' ? 'Blessing' : 'Curse / Blessing'), h('b', null, m.name)), loreNote(m.lore)));
             if (w.drain) out.push(h('p', { class: 'rpgc-status warning' }, `Drain Syndrome: ${w.drain.stage}${w.drain.onset ? ` \u00B7 onset ${w.drain.onset}` : ''}`));
             if (w.term) out.push(wRow('Ranoa', `${w.term.term} \u00B7 ${w.term.role}`));
             if (w.hitogami) {
@@ -6305,7 +6305,7 @@ body{background:${bs ? bs.backgroundColor : '#111'};color:${bs ? bs.color : '#dd
             if (!popWin || popWin.closed) {
                 popWin = window.open('', 'rpgc_popout', 'width=460,height=860');
                 if (!popWin) { state.status = { kind: 'warning', text: 'The browser blocked the pop-out window. Allow pop-ups for Lumiverse and try again.' }; const s = S(); s.uiPanelMode = 'drawer'; return applyPanelMode(); }
-                popWin.document.title = 'RPG Companion HMS Edition 2.9.11 RC';
+                popWin.document.title = 'RPG Companion HMS Edition 2.9.12 RC';
                 syncPopoutLook(popWin);
                 try { if (!popLookObs) { popLookObs = new MutationObserver(() => syncPopoutLook(popWin)); popLookObs.observe(document.documentElement, { attributes: true }); if (document.body) popLookObs.observe(document.body, { attributes: true, attributeFilter: ['class'] }); } } catch { /* optional */ }
                 popWin.addEventListener('beforeunload', () => { popWin = null; if (panelMode() === 'popout') { const s = S(); s.uiPanelMode = 'drawer'; saveSettings(false); applyPanelMode(); render(); } });

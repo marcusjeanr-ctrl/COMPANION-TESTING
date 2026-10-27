@@ -1,0 +1,550 @@
+{
+  "baseline": "8d54bc65cfe965291329d812b8dfcec64ed6148a",
+  "runtime": "Node 22.22.2 / Python 3.12 / local Chromium",
+  "method": "Source-bound identical fixtures, alternating immutable baseline/candidate backends. Five processes per 600/2000 workload; a further five pairs at 2000 resolve an initial 5.35% median timing concern. Three pipeline/GC process pairs. Per panel process: cold, 3 warmups, 10 samples. No concurrent benchmark during focused repeat.",
+  "review_budget": "Investigate > max(5%, 1 ms) changes; no material reproducible regression after repeated comparison. This is a local review tolerance, not a live latency SLA.",
+  "summary": {
+    "panel600": {
+      "2.9.11": {
+        "coldMs": 156.77,
+        "medianMs": 43.42,
+        "processSamples": 5
+      },
+      "candidate": {
+        "coldMs": 159.37,
+        "medianMs": 43.66,
+        "processSamples": 5
+      }
+    },
+    "panel2000": {
+      "2.9.11": {
+        "coldMs": 335.525,
+        "medianMs": 69.27,
+        "processSamples": 10
+      },
+      "candidate": {
+        "coldMs": 340.48,
+        "medianMs": 71.855,
+        "processSamples": 10
+      }
+    },
+    "pipeline": {
+      "2.9.11": {
+        "parseReportMedianMs": 0.4378,
+        "processResponseMedianMs": 0.5469,
+        "promptConstructMedianMs": 0.2606,
+        "promptCharacters": 14832,
+        "populatedPromptCharacters": 18528,
+        "warnings": 0,
+        "processSamples": 3
+      },
+      "candidate": {
+        "parseReportMedianMs": 0.4126,
+        "processResponseMedianMs": 0.5398,
+        "promptConstructMedianMs": 0.2591,
+        "promptCharacters": 14832,
+        "populatedPromptCharacters": 18528,
+        "warnings": 0,
+        "processSamples": 3
+      }
+    },
+    "memory": {
+      "2.9.11": {
+        "coldVmInitMs": 24.1986,
+        "initHeapDelta": 3163392,
+        "messages": 1000,
+        "fixturePlusInitHeapDelta": 11841816,
+        "statesFillAdditionalHeap": 164272,
+        "rssAfterFixture": 67174400,
+        "cachedReports": 1000,
+        "processSamples": 3
+      },
+      "candidate": {
+        "coldVmInitMs": 25.5189,
+        "initHeapDelta": 3167656,
+        "messages": 1000,
+        "fixturePlusInitHeapDelta": 11846400,
+        "statesFillAdditionalHeap": 164272,
+        "rssAfterFixture": 67190784,
+        "cachedReports": 1000,
+        "processSamples": 3
+      }
+    }
+  },
+  "operationCounts": {
+    "2.9.11": {
+      "file": "/workspace/six-sided-integration/baseline-backend.js",
+      "transport": {
+        "model": 1,
+        "getMessages": 6,
+        "metadataWrites": 1,
+        "storageReads": 2,
+        "storageWrites": 4,
+        "historyElementReads": 0,
+        "traversals": {}
+      },
+      "panel": {
+        "messages": 600,
+        "historyElementReads": 9101,
+        "traversals": {
+          "mtEventLedgerUncached": 1,
+          "atlasObserveHistory": 1,
+          "relReadingsUncached": 1,
+          "hmsTimelineUncached": 1,
+          "simReplies": 1,
+          "spellStoryFoldUncached": 1
+        }
+      }
+    },
+    "candidate": {
+      "file": "/workspace/six-sided-integration/candidate-backend.js",
+      "transport": {
+        "model": 1,
+        "getMessages": 6,
+        "metadataWrites": 1,
+        "storageReads": 2,
+        "storageWrites": 4,
+        "historyElementReads": 0,
+        "traversals": {}
+      },
+      "panel": {
+        "messages": 600,
+        "historyElementReads": 9101,
+        "traversals": {
+          "mtEventLedgerUncached": 1,
+          "atlasObserveHistory": 1,
+          "relReadingsUncached": 1,
+          "hmsTimelineUncached": 1,
+          "simReplies": 1,
+          "spellStoryFoldUncached": 1
+        }
+      }
+    }
+  },
+  "fullCardPanel": [
+    {
+      "file": "/workspace/six-sided-integration/baseline-backend.js",
+      "messages": 600,
+      "coldMs": 234.52,
+      "medianMs": 42.78,
+      "warnings": 0
+    },
+    {
+      "file": "/workspace/six-sided-integration/candidate-backend.js",
+      "messages": 600,
+      "coldMs": 199.47,
+      "medianMs": 42.53,
+      "warnings": 0
+    },
+    {
+      "file": "/workspace/six-sided-integration/candidate-backend.js",
+      "messages": 600,
+      "coldMs": 250.87,
+      "medianMs": 47.07,
+      "warnings": 0
+    },
+    {
+      "file": "/workspace/six-sided-integration/baseline-backend.js",
+      "messages": 600,
+      "coldMs": 198.58,
+      "medianMs": 46.26,
+      "warnings": 0
+    }
+  ],
+  "browserRender": {
+    "beforeMedianMs": 18.5,
+    "afterMedianMs": 16.899999998509884,
+    "samplesPerVersion": 20,
+    "limitations": "One process each; cloud/browser noise. No universal speedup claimed."
+  },
+  "sourceHashes": {
+    "baseline-backend.js": "9b5d058a271020a20474f3f1f8228d1d9c3281e1eb2b7a076d424bf2a636161b",
+    "candidate-backend.js": "33e61974c99f75eeca16466fcc154290d1d7d5d7dd008958d919d865c9415c18",
+    "baseline-frontend.js": "3efd0a03354dd16a24c8ff6e030e4a66b4c898b4f36af2d9e08043b2973173fc"
+  },
+  "raw": [
+    {
+      "benchmark": "panel",
+      "version": "2.9.11",
+      "round": 0,
+      "replies": 300,
+      "exit": 0,
+      "stdout": "{\"file\":\"/workspace/six-sided-integration/baseline-backend.js\",\"messages\":600,\"coldMs\":166.25,\"medianMs\":49.21,\"warnings\":0}\n",
+      "stderr": ""
+    },
+    {
+      "benchmark": "panel",
+      "version": "candidate",
+      "round": 0,
+      "replies": 300,
+      "exit": 0,
+      "stdout": "{\"file\":\"/workspace/six-sided-integration/candidate-backend.js\",\"messages\":600,\"coldMs\":157.76,\"medianMs\":43.56,\"warnings\":0}\n",
+      "stderr": ""
+    },
+    {
+      "benchmark": "panel",
+      "version": "candidate",
+      "round": 1,
+      "replies": 300,
+      "exit": 0,
+      "stdout": "{\"file\":\"/workspace/six-sided-integration/candidate-backend.js\",\"messages\":600,\"coldMs\":163.2,\"medianMs\":43.99,\"warnings\":0}\n",
+      "stderr": ""
+    },
+    {
+      "benchmark": "panel",
+      "version": "2.9.11",
+      "round": 1,
+      "replies": 300,
+      "exit": 0,
+      "stdout": "{\"file\":\"/workspace/six-sided-integration/baseline-backend.js\",\"messages\":600,\"coldMs\":155.47,\"medianMs\":43.25,\"warnings\":0}\n",
+      "stderr": ""
+    },
+    {
+      "benchmark": "panel",
+      "version": "2.9.11",
+      "round": 2,
+      "replies": 300,
+      "exit": 0,
+      "stdout": "{\"file\":\"/workspace/six-sided-integration/baseline-backend.js\",\"messages\":600,\"coldMs\":156.77,\"medianMs\":43.97,\"warnings\":0}\n",
+      "stderr": ""
+    },
+    {
+      "benchmark": "panel",
+      "version": "candidate",
+      "round": 2,
+      "replies": 300,
+      "exit": 0,
+      "stdout": "{\"file\":\"/workspace/six-sided-integration/candidate-backend.js\",\"messages\":600,\"coldMs\":166.98,\"medianMs\":42.95,\"warnings\":0}\n",
+      "stderr": ""
+    },
+    {
+      "benchmark": "panel",
+      "version": "candidate",
+      "round": 3,
+      "replies": 300,
+      "exit": 0,
+      "stdout": "{\"file\":\"/workspace/six-sided-integration/candidate-backend.js\",\"messages\":600,\"coldMs\":159.37,\"medianMs\":43.8,\"warnings\":0}\n",
+      "stderr": ""
+    },
+    {
+      "benchmark": "panel",
+      "version": "2.9.11",
+      "round": 3,
+      "replies": 300,
+      "exit": 0,
+      "stdout": "{\"file\":\"/workspace/six-sided-integration/baseline-backend.js\",\"messages\":600,\"coldMs\":167.92,\"medianMs\":42.4,\"warnings\":0}\n",
+      "stderr": ""
+    },
+    {
+      "benchmark": "panel",
+      "version": "2.9.11",
+      "round": 4,
+      "replies": 300,
+      "exit": 0,
+      "stdout": "{\"file\":\"/workspace/six-sided-integration/baseline-backend.js\",\"messages\":600,\"coldMs\":156.25,\"medianMs\":43.42,\"warnings\":0}\n",
+      "stderr": ""
+    },
+    {
+      "benchmark": "panel",
+      "version": "candidate",
+      "round": 4,
+      "replies": 300,
+      "exit": 0,
+      "stdout": "{\"file\":\"/workspace/six-sided-integration/candidate-backend.js\",\"messages\":600,\"coldMs\":158.61,\"medianMs\":43.66,\"warnings\":0}\n",
+      "stderr": ""
+    },
+    {
+      "benchmark": "panel",
+      "version": "2.9.11",
+      "round": 0,
+      "replies": 1000,
+      "exit": 0,
+      "stdout": "{\"file\":\"/workspace/six-sided-integration/baseline-backend.js\",\"messages\":2000,\"coldMs\":326.13,\"medianMs\":68.51,\"warnings\":0}\n",
+      "stderr": ""
+    },
+    {
+      "benchmark": "panel",
+      "version": "candidate",
+      "round": 0,
+      "replies": 1000,
+      "exit": 0,
+      "stdout": "{\"file\":\"/workspace/six-sided-integration/candidate-backend.js\",\"messages\":2000,\"coldMs\":335.99,\"medianMs\":69.76,\"warnings\":0}\n",
+      "stderr": ""
+    },
+    {
+      "benchmark": "panel",
+      "version": "candidate",
+      "round": 1,
+      "replies": 1000,
+      "exit": 0,
+      "stdout": "{\"file\":\"/workspace/six-sided-integration/candidate-backend.js\",\"messages\":2000,\"coldMs\":340.79,\"medianMs\":73.18,\"warnings\":0}\n",
+      "stderr": ""
+    },
+    {
+      "benchmark": "panel",
+      "version": "2.9.11",
+      "round": 1,
+      "replies": 1000,
+      "exit": 0,
+      "stdout": "{\"file\":\"/workspace/six-sided-integration/baseline-backend.js\",\"messages\":2000,\"coldMs\":333.87,\"medianMs\":69.72,\"warnings\":0}\n",
+      "stderr": ""
+    },
+    {
+      "benchmark": "panel",
+      "version": "2.9.11",
+      "round": 2,
+      "replies": 1000,
+      "exit": 0,
+      "stdout": "{\"file\":\"/workspace/six-sided-integration/baseline-backend.js\",\"messages\":2000,\"coldMs\":337.57,\"medianMs\":74.89,\"warnings\":0}\n",
+      "stderr": ""
+    },
+    {
+      "benchmark": "panel",
+      "version": "candidate",
+      "round": 2,
+      "replies": 1000,
+      "exit": 0,
+      "stdout": "{\"file\":\"/workspace/six-sided-integration/candidate-backend.js\",\"messages\":2000,\"coldMs\":336.62,\"medianMs\":73.45,\"warnings\":0}\n",
+      "stderr": ""
+    },
+    {
+      "benchmark": "panel",
+      "version": "candidate",
+      "round": 3,
+      "replies": 1000,
+      "exit": 0,
+      "stdout": "{\"file\":\"/workspace/six-sided-integration/candidate-backend.js\",\"messages\":2000,\"coldMs\":356.87,\"medianMs\":74,\"warnings\":0}\n",
+      "stderr": ""
+    },
+    {
+      "benchmark": "panel",
+      "version": "2.9.11",
+      "round": 3,
+      "replies": 1000,
+      "exit": 0,
+      "stdout": "{\"file\":\"/workspace/six-sided-integration/baseline-backend.js\",\"messages\":2000,\"coldMs\":352.82,\"medianMs\":68.44,\"warnings\":0}\n",
+      "stderr": ""
+    },
+    {
+      "benchmark": "panel",
+      "version": "2.9.11",
+      "round": 4,
+      "replies": 1000,
+      "exit": 0,
+      "stdout": "{\"file\":\"/workspace/six-sided-integration/baseline-backend.js\",\"messages\":2000,\"coldMs\":342.38,\"medianMs\":76.32,\"warnings\":0}\n",
+      "stderr": ""
+    },
+    {
+      "benchmark": "panel",
+      "version": "candidate",
+      "round": 4,
+      "replies": 1000,
+      "exit": 0,
+      "stdout": "{\"file\":\"/workspace/six-sided-integration/candidate-backend.js\",\"messages\":2000,\"coldMs\":454.67,\"medianMs\":75.69,\"warnings\":0}\n",
+      "stderr": ""
+    },
+    {
+      "benchmark": "pipeline",
+      "version": "2.9.11",
+      "round": 0,
+      "exit": 0,
+      "stdout": "{\"file\":\"/workspace/six-sided-integration/baseline-backend.js\",\"parseReportMedianMs\":0.439,\"processResponseMedianMs\":0.5469,\"promptConstructMedianMs\":0.2606,\"promptCharacters\":14832,\"populatedPromptCharacters\":18528,\"warnings\":0}\n",
+      "stderr": ""
+    },
+    {
+      "benchmark": "memory",
+      "version": "2.9.11",
+      "round": 0,
+      "exit": 0,
+      "stdout": "{\"file\":\"/workspace/six-sided-integration/baseline-backend.js\",\"coldVmInitMs\":24.039296999999998,\"warmVmInitMs\":[5.013185,4.202875000000006,3.9495940000000047,3.9977059999999938,3.9177959999999956],\"initHeapDelta\":3163392,\"messages\":1000,\"fixturePlusInitHeapDelta\":11841816,\"statesFillAdditionalHeap\":164272,\"rssAfterFixture\":67059712,\"cachedReports\":1000}\n",
+      "stderr": ""
+    },
+    {
+      "benchmark": "pipeline",
+      "version": "candidate",
+      "round": 0,
+      "exit": 0,
+      "stdout": "{\"file\":\"/workspace/six-sided-integration/candidate-backend.js\",\"parseReportMedianMs\":0.41,\"processResponseMedianMs\":0.5398,\"promptConstructMedianMs\":0.2591,\"promptCharacters\":14832,\"populatedPromptCharacters\":18528,\"warnings\":0}\n",
+      "stderr": ""
+    },
+    {
+      "benchmark": "memory",
+      "version": "candidate",
+      "round": 0,
+      "exit": 0,
+      "stdout": "{\"file\":\"/workspace/six-sided-integration/candidate-backend.js\",\"coldVmInitMs\":25.518933,\"warmVmInitMs\":[5.217288999999994,4.412682000000004,4.131279000000006,4.276426999999998,4.4313999999999965],\"initHeapDelta\":3167656,\"messages\":1000,\"fixturePlusInitHeapDelta\":11847936,\"statesFillAdditionalHeap\":164272,\"rssAfterFixture\":67346432,\"cachedReports\":1000}\n",
+      "stderr": ""
+    },
+    {
+      "benchmark": "pipeline",
+      "version": "candidate",
+      "round": 1,
+      "exit": 0,
+      "stdout": "{\"file\":\"/workspace/six-sided-integration/candidate-backend.js\",\"parseReportMedianMs\":0.4313,\"processResponseMedianMs\":0.5358,\"promptConstructMedianMs\":0.2577,\"promptCharacters\":14832,\"populatedPromptCharacters\":18528,\"warnings\":0}\n",
+      "stderr": ""
+    },
+    {
+      "benchmark": "memory",
+      "version": "candidate",
+      "round": 1,
+      "exit": 0,
+      "stdout": "{\"file\":\"/workspace/six-sided-integration/candidate-backend.js\",\"coldVmInitMs\":23.981358000000004,\"warmVmInitMs\":[5.280358,5.150998000000001,4.195255000000003,4.223276999999996,4.145360000000011],\"initHeapDelta\":3167656,\"messages\":1000,\"fixturePlusInitHeapDelta\":11846400,\"statesFillAdditionalHeap\":164272,\"rssAfterFixture\":67084288,\"cachedReports\":1000}\n",
+      "stderr": ""
+    },
+    {
+      "benchmark": "pipeline",
+      "version": "2.9.11",
+      "round": 1,
+      "exit": 0,
+      "stdout": "{\"file\":\"/workspace/six-sided-integration/baseline-backend.js\",\"parseReportMedianMs\":0.4378,\"processResponseMedianMs\":0.5529,\"promptConstructMedianMs\":0.2678,\"promptCharacters\":14832,\"populatedPromptCharacters\":18528,\"warnings\":0}\n",
+      "stderr": ""
+    },
+    {
+      "benchmark": "memory",
+      "version": "2.9.11",
+      "round": 1,
+      "exit": 0,
+      "stdout": "{\"file\":\"/workspace/six-sided-integration/baseline-backend.js\",\"coldVmInitMs\":24.198560999999998,\"warmVmInitMs\":[5.132436999999996,4.2067750000000075,4.177660000000003,4.140474999999995,4.031329999999997],\"initHeapDelta\":3163392,\"messages\":1000,\"fixturePlusInitHeapDelta\":11842584,\"statesFillAdditionalHeap\":164272,\"rssAfterFixture\":67174400,\"cachedReports\":1000}\n",
+      "stderr": ""
+    },
+    {
+      "benchmark": "pipeline",
+      "version": "2.9.11",
+      "round": 2,
+      "exit": 0,
+      "stdout": "{\"file\":\"/workspace/six-sided-integration/baseline-backend.js\",\"parseReportMedianMs\":0.4108,\"processResponseMedianMs\":0.5396,\"promptConstructMedianMs\":0.2587,\"promptCharacters\":14832,\"populatedPromptCharacters\":18528,\"warnings\":0}\n",
+      "stderr": ""
+    },
+    {
+      "benchmark": "memory",
+      "version": "2.9.11",
+      "round": 2,
+      "exit": 0,
+      "stdout": "{\"file\":\"/workspace/six-sided-integration/baseline-backend.js\",\"coldVmInitMs\":24.467476000000005,\"warmVmInitMs\":[5.218646999999997,4.379162999999991,4.232644000000008,4.4356790000000075,4.193263999999999],\"initHeapDelta\":3163392,\"messages\":1000,\"fixturePlusInitHeapDelta\":11796608,\"statesFillAdditionalHeap\":163336,\"rssAfterFixture\":67190784,\"cachedReports\":1000}\n",
+      "stderr": ""
+    },
+    {
+      "benchmark": "pipeline",
+      "version": "candidate",
+      "round": 2,
+      "exit": 0,
+      "stdout": "{\"file\":\"/workspace/six-sided-integration/candidate-backend.js\",\"parseReportMedianMs\":0.4126,\"processResponseMedianMs\":0.5771,\"promptConstructMedianMs\":0.2843,\"promptCharacters\":14832,\"populatedPromptCharacters\":18528,\"warnings\":0}\n",
+      "stderr": ""
+    },
+    {
+      "benchmark": "memory",
+      "version": "candidate",
+      "round": 2,
+      "exit": 0,
+      "stdout": "{\"file\":\"/workspace/six-sided-integration/candidate-backend.js\",\"coldVmInitMs\":27.644088000000004,\"warmVmInitMs\":[5.364943999999994,4.655938999999989,4.26686500000001,4.4686379999999986,4.322257999999991],\"initHeapDelta\":3167656,\"messages\":1000,\"fixturePlusInitHeapDelta\":11845312,\"statesFillAdditionalHeap\":164272,\"rssAfterFixture\":67190784,\"cachedReports\":1000}\n",
+      "stderr": ""
+    },
+    {
+      "benchmark": "operations",
+      "version": "2.9.11",
+      "exit": 0,
+      "stdout": "{\"file\":\"/workspace/six-sided-integration/baseline-backend.js\",\"transport\":{\"model\":1,\"getMessages\":6,\"metadataWrites\":1,\"storageReads\":2,\"storageWrites\":4,\"historyElementReads\":0,\"traversals\":{}},\"panel\":{\"messages\":600,\"historyElementReads\":9101,\"traversals\":{\"mtEventLedgerUncached\":1,\"atlasObserveHistory\":1,\"relReadingsUncached\":1,\"hmsTimelineUncached\":1,\"simReplies\":1,\"spellStoryFoldUncached\":1}}}\n",
+      "stderr": ""
+    },
+    {
+      "benchmark": "operations",
+      "version": "candidate",
+      "exit": 0,
+      "stdout": "{\"file\":\"/workspace/six-sided-integration/candidate-backend.js\",\"transport\":{\"model\":1,\"getMessages\":6,\"metadataWrites\":1,\"storageReads\":2,\"storageWrites\":4,\"historyElementReads\":0,\"traversals\":{}},\"panel\":{\"messages\":600,\"historyElementReads\":9101,\"traversals\":{\"mtEventLedgerUncached\":1,\"atlasObserveHistory\":1,\"relReadingsUncached\":1,\"hmsTimelineUncached\":1,\"simReplies\":1,\"spellStoryFoldUncached\":1}}}\n",
+      "stderr": ""
+    }
+  ],
+  "focusedRepeat": [
+    {
+      "round": 0,
+      "version": "2.9.11",
+      "file": "/workspace/six-sided-integration/baseline-backend.js",
+      "messages": 2000,
+      "coldMs": 337.18,
+      "medianMs": 71.76,
+      "warnings": 0
+    },
+    {
+      "round": 0,
+      "version": "candidate",
+      "file": "/workspace/six-sided-integration/candidate-backend.js",
+      "messages": 2000,
+      "coldMs": 325.98,
+      "medianMs": 72.23,
+      "warnings": 0
+    },
+    {
+      "round": 1,
+      "version": "candidate",
+      "file": "/workspace/six-sided-integration/candidate-backend.js",
+      "messages": 2000,
+      "coldMs": 349.05,
+      "medianMs": 70.34,
+      "warnings": 0
+    },
+    {
+      "round": 1,
+      "version": "2.9.11",
+      "file": "/workspace/six-sided-integration/baseline-backend.js",
+      "messages": 2000,
+      "coldMs": 327.27,
+      "medianMs": 68.82,
+      "warnings": 0
+    },
+    {
+      "round": 2,
+      "version": "2.9.11",
+      "file": "/workspace/six-sided-integration/baseline-backend.js",
+      "messages": 2000,
+      "coldMs": 322.18,
+      "medianMs": 67.71,
+      "warnings": 0
+    },
+    {
+      "round": 2,
+      "version": "candidate",
+      "file": "/workspace/six-sided-integration/candidate-backend.js",
+      "messages": 2000,
+      "coldMs": 325.86,
+      "medianMs": 68.8,
+      "warnings": 0
+    },
+    {
+      "round": 3,
+      "version": "candidate",
+      "file": "/workspace/six-sided-integration/candidate-backend.js",
+      "messages": 2000,
+      "coldMs": 345.07,
+      "medianMs": 71.48,
+      "warnings": 0
+    },
+    {
+      "round": 3,
+      "version": "2.9.11",
+      "file": "/workspace/six-sided-integration/baseline-backend.js",
+      "messages": 2000,
+      "coldMs": 350.63,
+      "medianMs": 73.19,
+      "warnings": 0
+    },
+    {
+      "round": 4,
+      "version": "2.9.11",
+      "file": "/workspace/six-sided-integration/baseline-backend.js",
+      "messages": 2000,
+      "coldMs": 317.94,
+      "medianMs": 67.39,
+      "warnings": 0
+    },
+    {
+      "round": 4,
+      "version": "candidate",
+      "file": "/workspace/six-sided-integration/candidate-backend.js",
+      "messages": 2000,
+      "coldMs": 340.17,
+      "medianMs": 71.04,
+      "warnings": 0
+    }
+  ],
+  "limitations": "Mock host/provider, synthetic history, limited full-card timing pairs, GC deltas not leak proof, no live install/provider/storage/tokenizer measurement. Prompt lengths are characters, not tokens."
+}

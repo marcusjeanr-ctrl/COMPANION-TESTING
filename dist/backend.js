@@ -1028,23 +1028,23 @@ function loreNormEntry(e) {
     if (!isPlainObject(e)) return null;
     const content = String(e.content || '').trim();
     if (!content) return null;
-    if (e.disabled === true) return null;
+    if (e.disabled === true || e.enabled === false) return null;
     return {
-        id: String(e.id || ''),
+        id: String(e.id ?? ''),
         comment: String(e.comment || '').trim(),
         category: String(e.extensions?.category || e.category || '').trim(),
         content,
         key: Array.isArray(e.key || e.keys) ? (e.key || e.keys).map(String).filter(Boolean) : [],
-        keysecondary: Array.isArray(e.keysecondary) ? e.keysecondary.map(String).filter(Boolean) : [],
+        keysecondary: Array.isArray(e.keysecondary || e.secondary_keys) ? (e.keysecondary || e.secondary_keys).map(String).filter(Boolean) : [],
         constant: !!e.constant,
         selective: !!e.selective,
         // Host semantics (world-info-matcher.service.ts): 0 AND all, 1 none, 2 any, 3 not all.
-        selectiveLogic: Number(e.selective_logic) || 0,
+        selectiveLogic: Number(e.selective_logic ?? e.extensions?.selective_logic) || 0,
         caseSensitive: !!e.case_sensitive,
         wholeWords: e.match_whole_words !== false,
-        useRegex: !!e.use_regex,
-        order: Number.isFinite(Number(e.order_value)) ? Number(e.order_value) : 100,
-        priority: Number.isFinite(Number(e.priority)) ? Number(e.priority) : 10,
+        useRegex: !!(e.use_regex ?? e.extensions?.use_regex),
+        order: Number.isFinite(Number(e.order_value ?? e.insertion_order)) ? Number(e.order_value ?? e.insertion_order) : 100,
+        priority: Number.isFinite(Number(e.priority ?? e.extensions?.priority)) ? Number(e.priority ?? e.extensions?.priority) : 10,
         book: String(e.world_book_id || e.bookId || ''),
         scope: e.book_source || e.bookSource || null
     };
@@ -1053,7 +1053,9 @@ function loreNormEntry(e) {
 function setLorePool(chatId, entries) {
     if (!chatId || !Array.isArray(entries)) return;
     const keep = entries.map(loreNormEntry).filter(Boolean);
-    if (!keep.length && lorePool.has(chatId)) return;   // keep the last good pool
+    // An empty API snapshot can be transient; an explicitly disabled-only book
+    // is a real state change and must not retain its previously enabled lore.
+    if (!keep.length && lorePool.has(chatId) && !(entries.length && entries.every(e => e && (e.disabled === true || e.enabled === false)))) return;
     lorePool.set(chatId, { at: Date.now(), entries: keep });
     while (lorePool.size > LORE_POOL_MAX_CHATS) {
         const oldest = lorePool.keys().next().value;
@@ -2374,7 +2376,7 @@ async function pushState(chatId, snapshot = null) {
 // Demo mode plays scripted turns (no tokens); Live mode asks the model, with a small
 // world narrator standing in for a bot card.
 
-const RPGC_VERSION = '2.9.11';
+const RPGC_VERSION = '2.9.12';
 const diagLog = [];
 function diagPush(kind, m) { diagLog.push({ at: new Date().toISOString(), kind, text: String(m).slice(0, 400) }); if (diagLog.length > 60) diagLog.shift(); }
 function logW(m) { diagPush('warn', m); return spindle.log.warn(m); }
@@ -6627,11 +6629,18 @@ function hudLinesEqual(a, b) {
 /** Locates the HUD block. Returns offsets into the text plus the raw lines. */
 function findHud(text) {
     if (!text) return null;
-    const direct = findHudRaw(text);
-    if (direct || !/<\/?(br|p|div|span|strong|b|em|i|font|h[1-6]|li|ul|pre|code)\b[^>]*>/i.test(text)) return direct;
+    // Explicitly labelled examples are not live state. Keep unlabelled fenced
+    // HUDs readable for legacy cards; continuation also unwraps saved fences.
+    // Same-length masking preserves every rewrite offset.
+    const original = String(text);
+    const maskExample = (m, _tag, offset) => /\b(?:example|sample|template|historical (?:HUD|state))\b/i.test(original.slice(0, offset).trimEnd().split('\n').pop() || '') ? m.replace(/[^\n]/g, ' ') : m;
+    const source = original.replace(/^[ \t]*(`{3,}|~{3,})[^\n]*\n[\s\S]*?^[ \t]*\1[ \t]*\r?$/gm, maskExample)
+        .replace(/<(pre|code)\b[^>]*>[\s\S]*?<\/\1\s*>/gi, maskExample);
+    const direct = findHudRaw(source);
+    if (direct || !/<\/?(br|p|div|span|strong|b|em|i|font|h[1-6]|li|ul|pre|code)\b[^>]*>/i.test(source)) return direct;
     // Some presets and models write the reply as HTML. Read the HUD through the markup; such a HUD is
     // only read, never written back into the message (its offsets belong to the plain text).
-    const plain = String(text).replace(/<br\s*\/?>/gi, '\n').replace(/<\/(p|div|li|h[1-6]|pre)>/gi, '\n').replace(/<[^>]+>/g, '')
+    const plain = source.replace(/<br\s*\/?>/gi, '\n').replace(/<\/(p|div|li|h[1-6]|pre)>/gi, '\n').replace(/<[^>]+>/g, '')
         .replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&#39;/g, "'");
     const f = findHudRaw(plain);
     if (f) { f.fromHtml = true; f.plainText = plain; }
@@ -6810,8 +6819,7 @@ function parseHud(text) {
     }) : null;
     hmsMarkBlocks(lines);
     const location = loc ? loc.segments : null;
-    const mushoku = lines.some(l => /^(?:Armored Dragon Calendar:\s*K|Year:\s*K\.?\s*\d+)/i.test(l.text)) &&
-        lines.some(l => /^(?:Magic Tiers|Magic School|Mana Capacity|Sword Style|Martial Style):/i.test(l.text));
+    const mushoku = lines.some(l => /^(?:Armored Dragon Calendar:\s*K|Year:\s*K\.?\s*\d+)/i.test(hudSemanticText(l.text)));
     return { lines, find: f, time, location: mushoku && location ? mushokuLocationSegments(location) : location, arc: arcText, quests };
 }
 
@@ -6871,6 +6879,17 @@ function rewriteHud(content, mutate) {
     const items = hud.lines.map(l => ({ key: l.key, text: l.text, kind: l.kind, block: l.block || null }));
     const changed = mutate(items);
     if (!changed) return { content, hud, changed: false };
+    // A plain field edit should keep the existing Visual label and icon. Values,
+    // untouched lines and narration remain narrator-owned; no template is rebuilt.
+    for (const item of items) {
+        const old = hud.lines.find(l => l.key === item.key);
+        if (!old || old.text === item.text || !/^\s*[\p{Extended_Pictographic}]/u.test(old.text)) continue;
+        const styled = old.text.match(/^(\s*[\s\S]*?\*\*[^*]+?:\*\*\s*)([\s\S]*)$/);
+        if (!styled || /^\s*[\p{Extended_Pictographic}]/u.test(item.text)) continue;
+        const field = item.text.match(/^([^:]+):\s*([\s\S]*)$/);
+        const label = hudSemanticText(styled[1]).replace(/:\s*$/, '');
+        if (field && field[1].trim().toLowerCase() === label.toLowerCase()) item.text = styled[1] + field[2];
+    }
     const f = hud.find;
     if (f.fromHtml) return { content, hud, changed: false };   // read through HTML: never spliced back
     const next = content.slice(0, f.bodyStart) + items.map(i => i.text).join('\n') + '\n' + content.slice(f.bodyEnd);
@@ -9455,10 +9474,11 @@ function worldMushoku(chatId, lines, st, chat = null) {
     const birth = worldFind(lines, /^Birth:\s*K\.?\s*(\d+)\s*\|\s*Race:\s*([^|]+?)\s*\|\s*Age:\s*(\d+)\s*\|\s*Origin:\s*(.+)$/i);
     const born = worldFind(lines, /\bAge:\s*(\d+)\s*(?:🎂\s*)?\(born\s*K\.?\s*(\d+)(?:\s*,\s*Month\s*(\d{1,2}))?\)/i);
     const bornField = worldFind(lines, /(?:^|\|)\s*(?:Birth|Born):\s*K\.?\s*(\d{3,4})(?:\s*,\s*Month\s*(\d{1,2}))?/i);
-    const ageField = worldFind(lines, /\bAge:\s*(\d{1,3})\b/i);
+    const ageField = worldFind(lines, /\bAge:\s*(\d{1,6})\b/i);
     const race = worldFind(lines, /\bRace:\s*([^|]+?)(?:\s*\||$)/i);
     const origin = worldFind(lines, /\bOrigin:\s*([^|]+?)(?:\s*\||$)/i);
-    const adv = worldFind(lines, /^Adventurer:\s*([A-S])-?\s*Rank(?:\s*\|\s*(Solo|Party:\s*([^|]+?)))?(?:\s*\|\s*Clan:\s*(.+))?$/i);
+    const adv = worldFind(lines, /^Adventurer:\s*([A-S])-?\s*Rank(?:\s*\|\s*(Solo|Party:\s*([^|]+?)))?(?:\s*\|\s*Clan:\s*(.+))?$/i)
+        || worldFind(lines, /(?:^|\|\s*)Guild:\s*([FEDCBAS])(?:-Rank)?(?=\s*(?:\(|\||$))/i);
     const one = (re) => { const m = worldFind(lines, re); return m ? m[1].trim() : null; };
     const hg = worldFind(lines, /^\[HITOGAMI:\s*([^\]]+)\]/i);
     const dreams = hg ? (hg[1].match(/Dreams:\s*(\d+)/i) || [])[1] : null;
@@ -9494,12 +9514,12 @@ function worldMushoku(chatId, lines, st, chat = null) {
         })(),
         languages: (one(/^Languages:\s*(.+)$/i) || '').split(/\s*,\s*/).filter(Boolean).map(x => { const m = x.match(/^(.+?)\s*\(([^)]+)\)$/); return m ? { name: m[1].trim(), fluency: m[2].trim() } : { name: x.trim(), fluency: null }; }),
         contracts: one(/^Contracts:\s*(.+)$/i),
-        eyes: worldAll(lines, /^\[DEMON EYE:\s*([^\]]+)\]/i).map(m => ({ text: m[1].trim(), lore: worldLore(chatId, m[1].split(/\s*[\u2014\u2013-]\s*/)[0]) })),
-        marks: worldAll(lines, /^\[(CURSE|BLESSING):\s*([^\]]+)\]/i).map(m => ({ kind: m[1].toUpperCase(), name: m[2].trim(), lore: worldLore(chatId, m[2]) })),
+        eyes: worldAll(lines, /^(?:\[DEMON EYE:\s*([^\]]+)\]|\[?DEMON EYE\]?:\s*(.+))/i).map(m => { const text = (m[1] || m[2]).trim(); return { text, lore: worldLore(chatId, text.split(/\s*[\u2014\u2013-]\s*/)[0]) }; }),
+        marks: worldAll(lines, /^(?:\[(CURSE(?:\s*\/\s*BLESSING)?|BLESSING):\s*([^\]]+)\]|\[?(CURSE(?:\s*\/\s*BLESSING)?|BLESSING)\]?:\s*(.+))/i).map(m => { const name = (m[2] || m[4]).trim(); return { kind: (m[1] || m[3]).toUpperCase().replace(/\s*\/\s*/, ' / '), name, lore: worldLore(chatId, name) }; }),
         drain: (() => { const m = worldFind(lines, /^Drain Syndrome:\s*([^|]+?)(?:\s*\|\s*Onset:\s*(.+))?$/i); return m ? { stage: m[1].trim(), onset: m[2] ? m[2].trim() : null } : null; })(),
         term: (() => { const m = worldFind(lines, /^Term:\s*(.+?)\s*\|\s*Role:\s*(.+)$/i); return m ? { term: m[1].trim(), role: m[2].trim() } : null; })(),
         hitogami: hg ? { state: hg[1].trim(), dreams: dreams ? Number(dreams) : null } : null,
-        saga: (() => { try { const saga = mtSaga(chatId, date ? date.year : null, (one(/^(?:Current )?Arc:\s*(.+)$/i) || lines.find(line => /^(?:Arc\s+\d|Era\s+\d|Sandbox:)/i.test(line)) || null), date); if (saga) { saga.canonMode = one(/^Canon:\s*([^|]+)/i); saga.events = chat ? mtEventLedger(chat) : []; } return saga; } catch { return null; } })(),
+        saga: (() => { try { const saga = mtSaga(chatId, date ? date.year : null, (one(/^(?:(?:Current )?Arc|Era\s*\/\s*Arc):\s*(.+)$/i) || lines.find(line => /^(?:Arc\s+\d|Era\s+\d|Sandbox:)/i.test(line)) || null), date); if (saga) { saga.canonMode = one(/^Canon:\s*([^|]+)/i); saga.events = chat ? mtEventLedger(chat) : []; } return saga; } catch { return null; } })(),
         advice: (Array.isArray(w.advice) ? w.advice : []).slice(-12).reverse()
     };
 }
@@ -14015,10 +14035,11 @@ function simKeyer(roster, you) {
     const fn = (name) => {
         let k = lockKey(String(name ?? '').replace(/\s+/g, ' '));
         if (!k) return null;
+        if (you.has(k)) return SIM_YOU;
         if (known.has(k)) return k;
         const member = partyMatch(roster, name);
         if (member) k = lockKey(member.key || member.name);
-        else if (you.has(k)) return SIM_YOU;
+        if (you.has(k)) return SIM_YOU;
         if (!known.has(k)) known.set(k, String(member?.name || name).replace(/\s+/g, ' ').trim());
         return k;
     };
