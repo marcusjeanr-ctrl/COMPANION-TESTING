@@ -82,7 +82,7 @@ def main():
             'activation_extensions':{k:ext.get(k) for k in ['priority','selective_logic','use_regex','probability','sticky','cooldown','delay','scan_depth','prevent_recursion','exclude_recursion']},
             'rule_evidence':[s[:240] for s in candidates[:4]],'handling_functions':functions.split('; '),'family_test_files':tests.split('; '),
             'source_refs':['dist/backend.js:'+str(backend[:re.search(r'function '+re.escape(fn)+r'\(',backend).start()].count('\n')+1)+':'+fn for fn in functions.split('; ')],
-            'assertion_refs':['probe_six_sided_card.cjs:12-13: enabled flag, original ID and unchanged content assertions'] + [name+':'+str(i)+':'+line.strip()[:180] for name in tests.split('; ') for i,line in enumerate((ROOT/'tools'/name).read_text().splitlines(),1) if 'assert.' in line and re.search(ASSERTION_TERMS[f],line,re.I)][:8],
+            'assertion_refs':['probe_six_sided_card.cjs:10-11: enabled flag, original ID and unchanged content assertions'] + [name+':'+str(i)+':'+line.strip()[:180] for name in tests.split('; ') for i,line in enumerate((ROOT/'tools'/name).read_text().splitlines(),1) if 'assert.' in line and re.search(ASSERTION_TERMS[f],line,re.I)][:8],
             'direct_assertion':'probe_six_sided_card.cjs: per-entry normalization/disabled flag/ID/content invariants',
             'direct_result':probe_ids[e['id']]['normalization'],'family_assertion_scope':limit,
             'individual_mechanics_result':'Not individually simulated; family tests do not certify every narrative transition',
