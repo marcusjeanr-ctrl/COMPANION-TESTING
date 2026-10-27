@@ -1,11 +1,12 @@
-# Living World compatibility — 2.9.14 RC proposal
+# Living World compatibility — 2.9.14 RC
 
 ## Delivery boundary and protected baseline
 
 Repository: `marcusjeanr-ctrl/COMPANION-TESTING` only. The verified protected source
 is `601e98e140227fbfa3ffd3066e4fd46417d1ddd0`, the merge of PR #8, version 2.9.13.
-Work is on `compatibility/living-world-2.9.14-rc`. This proposal is for review:
-**no merge, release tag, release publication or update to main is authorized.**
+Development branch: `compatibility/living-world-2.9.14-rc`, PR #9. Following review,
+the user authorized publication. Merge and RC publication require passing candidate
+and main CI plus staged, hash-verified artifacts through the established workflow.
 The original `marcusjeanr-ctrl/Companion` repository is untouched.
 
 The annotated rollback tag is
@@ -156,8 +157,7 @@ passing mock suite.
 
 ## Exact rollback
 
-No rollback is currently needed on main: this PR has not been merged. To inspect
-or package the exact original 2.9.13 code from a clean checkout:
+To inspect or package the exact original 2.9.13 code from a clean checkout:
 
 ```sh
 git fetch origin main 'refs/tags/rollback/2.9.13-rc-before-living-world-601e98e:refs/tags/rollback/2.9.13-rc-before-living-world-601e98e'
@@ -170,11 +170,11 @@ python3 tools/package_rc.py /tmp/RPG_Companion_HMS_2.9.13_RC.zip
 
 This does not publish or force-push anything. Back up current Lumiverse chat and
 extension data before an installation rollback; this patch introduces no schema
-migration or destructive conversion. Repository rollback after any future approval
-should be a reviewed revert PR: `git revert -m 1 <compatibility-merge-SHA>` for a
+migration or destructive conversion. A repository rollback should be a reviewed
+revert PR: `git revert -m 1 <compatibility-merge-SHA>` for a
 merge commit, or `git revert <compatibility-squash-SHA>` if squashed. Never reset or
-force-push main, and never repoint the rollback tag. The merge SHA is intentionally
-not supplied now because no merge has occurred.
+force-push main, and never repoint the rollback tag. Use the actual merged PR #9 commit from GitHub for the revert; the feature-branch
+head is not a substitute for its merge commit.
 
 ## Files changed and RC changelog
 
@@ -186,11 +186,13 @@ fixture, runtime tests, read-only audit, coverage builder and measurement helper
 are development tools. Existing test runner/browser fixture include new coverage.
 No dependency, timer, schema migration, model call or automatic refresh is added.
 
-2.9.14 RC proposal: read Living World's explicit spell/technique formats; retain
+2.9.14 RC: read Living World's explicit spell/technique formats; retain
 fan provenance and rankless definitions; recognize its continuer; preserve
 unscheduled Sandbox/divergence identity; display explicit pacts/Drain state and
 extended campaign days; retain universal tracking and saved-state compatibility.
-See the root changelog for the release-candidate summary. Not published.
+See the root changelog for the release-candidate summary. GitHub publication
+confirmation and artifact hashes accompany delivery; these tests alone do not
+establish live acceptance or a stable release.
 
 ## Measured performance assessment
 

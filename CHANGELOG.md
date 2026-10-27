@@ -1,6 +1,6 @@
 # Changelog — RPG Companion HMS Edition
 
-## 2.9.14 RC proposal — Living World compatibility
+## 2.9.14 RC — Living World compatibility
 
 - Read explicit field-based and Markdown spell/technique references without granting
   player knowledge from catalog capabilities, school ranks or NPC descriptions.
@@ -14,8 +14,8 @@
   World rows. Retain dates for extended legacy campaign-day counters.
 - Add full-card traceability, targeted multi-turn/browser regressions and measured
   performance evidence. No extra model calls, polling, scans, dependencies or migration.
-- Review proposal only: not merged or published. Individual mechanics and live
-  Lumiverse/provider acceptance remain partial; see the Living World report.
+- Release candidate: individual mechanics and live Lumiverse/provider acceptance
+  remain partial; see the Living World report. No stable-release certification.
 
 ## 2.9.13 RC candidate — Universal tracking evidence
 

@@ -1,6 +1,6 @@
 # RPG Companion HMS Edition 2.9.14 — Release Candidate
 
-> Living World: [2.9.14 RC compatibility proposal and limitations](docs/compatibility/living_world_2_9_14/REPORT.md).
+> Living World: [2.9.14 RC compatibility report and limitations](docs/compatibility/living_world_2_9_14/REPORT.md).
 
 > Previous tracking stabilization: [2.9.13 candidate report](docs/compatibility/2_9_13/REPORT.md).
 
