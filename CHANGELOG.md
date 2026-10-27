@@ -1,5 +1,23 @@
 # Changelog — RPG Companion HMS Edition
 
+## 2.9.12 RC — Universal HUD and lore compatibility
+
+- Read Visual Era / Arc, Demon Eye and combined Curse / Blessing labels in the
+  World panel; keep combined modifiers neutral and recognize documented guild ranks.
+- Preserve long-lived ages and non-caster geographic paths without guessing birth
+  dates, abilities or mana costs. Existing Visual field edits retain their icon/label.
+- Exclude an established player and uniquely matched roster aliases from NPC Minds
+  and daily routines while retaining the character's normal panel record.
+- Respect imported disabled lore, ID zero, secondary keys and exported activation
+  settings; explicitly disabled-only books no longer keep stale enabled lore.
+- Ignore explicitly labelled fenced/HTML code HUD examples as current state;
+  preserve legacy unlabelled fenced HUDs and explicit continuation restoration.
+- Add a complete 1,296-entry coverage register, focused regressions, 32 representative
+  legal HUD configurations and a browser regression. Compatibility remains partial
+  and narrator-dependent; see the audit for live Lumiverse acceptance requirements.
+- Preserve 2.9.11 tracking fixes, metadata contracts, presets, model-call count and
+  refresh frequency. No dependency, storage migration or independent rule engine.
+
 ## 2.9.11 RC — Agenda and stored tracking accuracy
 
 - Reconcile same-day broad/narrow time wording and omitted appended conditions

@@ -72,6 +72,19 @@ class BrowserUi(unittest.TestCase):
         widths = row.evaluate('(e)=>({scroll:e.scrollWidth,client:e.clientWidth})')
         self.assertLessEqual(widths['scroll'],widths['client']+1,'Spell text overflows the card')
 
+    def test_six_sided_visual_world_projection(self):
+        # Synthetic current observations, including a long-lived non-human and an
+        # explicitly ambiguous combined tag. The World panel must not relabel it.
+        payload=json.loads(json.dumps(FIXTURE['payload']))
+        payload['world'].update(age=1200, eyes=[{'text':'Foresight (Sealed)','lore':None}],
+            marks=[{'kind':'CURSE / BLESSING','name':'Ageless — 長命の旅人','lore':None}])
+        self.receive(payload)
+        text=self.page.locator('.rpgc').inner_text()
+        self.assertIn('1200',text)
+        self.assertIn('Foresight (Sealed)',text)
+        self.assertIn('Curse / Blessing',text)
+        self.assertIn('Ageless — 長命の旅人',text)
+
     def test_mobile_float_and_enlarge(self):
         self.page.get_by_label('Where the panel lives').select_option('float')
         self.assert_float_inside_viewport()

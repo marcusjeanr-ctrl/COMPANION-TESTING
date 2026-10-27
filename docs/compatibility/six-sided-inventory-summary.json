@@ -1,0 +1,211 @@
+{
+  "card_sha256": "df2fd8b90c1f8ee1bac2a054dd7acb60d165555022a7e8c59e34d149d84a69d7",
+  "inventory_sha256": "889d32b75380a6d88f4fbbd9924ceb7c96a59d73d33ff8c73224f63410dea3a4",
+  "baseline_commit": "8d54bc65cfe965291329d812b8dfcec64ed6148a",
+  "method": "Complete JSON/CSV cross-check and per-entry actual runtime normalization. Mechanic-family mapping is conservative; individual semantics are not exhaustively simulated.",
+  "fields": {
+    "name": {
+      "chars": 36,
+      "sha256": "1064386ef2fd57f5c41cd477846840e5f4b86a45c55f2b546b0ac424b8217803"
+    },
+    "description": {
+      "chars": 16536,
+      "sha256": "8a460f4478e4aadf71f77b7f72befac4007b892458c37ed36b13bb633060ea35"
+    },
+    "personality": {
+      "chars": 3181,
+      "sha256": "d6360800dee226b75bbff565ddc63d43879478ecca90e2f911626663c4879122"
+    },
+    "scenario": {
+      "chars": 2211,
+      "sha256": "6a9a8dacc82df103cba029fa9f14b07249aa163c9d84c8af35ac6b5bc44d666a"
+    },
+    "first_mes": {
+      "chars": 5086,
+      "sha256": "e264f7431a2c7e11527943724cfe5b6e7526a5ed1672879bfde21e2fe71f218d"
+    },
+    "mes_example": {
+      "chars": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "creator": {
+      "chars": 32,
+      "sha256": "02cedb4ab4d55f43f9f0a328161355319045a56f5b54a2b1acea3acf669b8c3e"
+    },
+    "creator_notes": {
+      "chars": 690,
+      "sha256": "52967cfab1cc7dd9c1cb6547bd014fdc3209baeafb77ecd8dd8a7cbd900a0eeb"
+    },
+    "system_prompt": {
+      "chars": 18358,
+      "sha256": "768f8b16f6d588509fc43b134b6ed8fbead22e0954cd8c61eaa19286ff201c5d"
+    },
+    "post_history_instructions": {
+      "chars": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  },
+  "greetings": [
+    {
+      "index": 0,
+      "chars": 357,
+      "sha256": "dc03d3d42a9a8c9f8d162851167bdffc106337182c9aa84ff392efd0645ea213",
+      "headings": [
+        "🎨 PAGE 2 · CANVAS"
+      ]
+    },
+    {
+      "index": 1,
+      "chars": 1750,
+      "sha256": "fee1f97e15b5936e4eafa559ea6666966be85ab82c7213f9da73551ca9c0a7f0",
+      "headings": [
+        "🕰️ PAGE 3 · CATALOG: ERAS",
+        "**1. ERA 1: THE PEACEFUL FRONTIER (Pre-K417)**",
+        "**2. ERA 2: THE DEMON CONTINENT (Post-K417)**",
+        "**3. ERA 3: RANOA MAGIC ACADEMY (K422)**",
+        "**4. ERA 4: THE ASURAN SUCCESSION WAR (K425)**",
+        "**SANDBOX MODE**"
+      ]
+    },
+    {
+      "index": 2,
+      "chars": 12285,
+      "sha256": "bc5f4ba56efbf536119969bd39cd6e659177e670e0e5f557b34dec6a12c9c7e4",
+      "headings": [
+        "🗺️ PAGE 4 · SANDBOX MODE: START BY YEAR",
+        "**📅 THE YEAR** · `Year: K[number]`",
+        "**🎭 CANON** · `Canon: Off-Screen / Join / None`",
+        "**⏳ CANON CLOCK** *(new)*",
+        "**🔁 ORSTED'S LOOP** *(K330)* **[NEW]**",
+        "**🐺 THE FANGS OF THE BLACK WOLF** *(K400 – K406)* **[NEW]**",
+        "**✏️ CUSTOM CHANGES** · `Change: [what is different]`",
+        "**📍 THE PLACE** · `Start in: [Location]`",
+        "**EXAMPLES**"
+      ]
+    },
+    {
+      "index": 3,
+      "chars": 10553,
+      "sha256": "8e88be071912460654eb7e98363ffaec85cd22f1e6024633aed23c398a391e7c",
+      "headings": [
+        "📜 PAGE 5 · CATALOG: STORY ARCS",
+        "BOOK 1 · THE CHILDHOOD SAGA",
+        "BOOK 2 · THE QUAGMIRE & ACADEMY SAGA",
+        "BOOK 3 · THE LABYRINTH & ORSTED SAGA",
+        "BOOK 4 · THE ASURA & SHIRONE SAGA",
+        "BOOK 5 · THE MILLIS & KING DRAGON SAGA",
+        "BOOK 6 · THE FINAL BATTLE SAGA"
+      ]
+    },
+    {
+      "index": 4,
+      "chars": 12913,
+      "sha256": "eb93c56a3743f5c79466a391beab316b9a50a0fd88261c148b852fb430002a40",
+      "headings": [
+        "🔀 PAGE 6 · CATALOG: DIVERGENCE PATHS I",
+        "I. THE CHILDHOOD SAGA — Buena Village & Roa",
+        "II. THE CALAMITY & THE DEMON CONTINENT — Dead End's Road",
+        "III. SHIRONE, THE QUAGMIRE & RANOA ACADEMY"
+      ]
+    },
+    {
+      "index": 5,
+      "chars": 16685,
+      "sha256": "6a2245fe83d3e8b6d8387795cbe2cfba48228ef81024df965644fd137aea3750",
+      "headings": [
+        "🔀 PAGE 7 · CATALOG: DIVERGENCE PATHS II",
+        "IV. THE LABYRINTH, PERUGIUS & THE DIARY",
+        "V. ASURA, SHIRONE & MILLIS — The Wars of Kings and Churches"
+      ]
+    },
+    {
+      "index": 6,
+      "chars": 8561,
+      "sha256": "79729f735b30ffcfe4a72f434280992e8fe4fb355a879008dd46df48e1ee89ea",
+      "headings": [
+        "🔀 PAGE 8 · CATALOG: DIVERGENCE PATHS III",
+        "VI. THE FINAL WAR — Geese, Biheiril & the Fall of Gods",
+        "VII. WORLD-SHAKERS — Anytime, Anywhere"
+      ]
+    },
+    {
+      "index": 7,
+      "chars": 2670,
+      "sha256": "8f6ece2cf6440e679ef1822a9378eac94c60d20a4b860f8860a1cad2ee0655ce",
+      "headings": [
+        "🧬 PAGE 9 · CATALOG: ORIGINS & RACES",
+        "**ORIGINS**",
+        "**RACES**"
+      ]
+    },
+    {
+      "index": 8,
+      "chars": 7894,
+      "sha256": "9deb0029ee03c9a7371dc6eb72e8bca98f445505d260181c701ed6b392a16cf4",
+      "headings": [
+        "⚔️ PAGE 10 · CATALOG: COMBAT, MAGIC & GIFTS",
+        "**SWORD STYLES** · `Style: [Style] ([Rank])`",
+        "**MANA CAPACITY** · `Mana: [Tier]`",
+        "**MAGIC** · `Magic: [School] ([Tier])`",
+        "**DEMON EYES** · `Demon Eye: [Type]`",
+        "**CURSES** · `Curse: [Type]`",
+        "**MIKO (BLESSED CHILD)** · `Gift: Miko ([power])`",
+        "**SPECIAL GIFTS & GEAR** · `Gear:` / `Gift:`",
+        "**LANGUAGES** · `Languages: [list]`"
+      ]
+    },
+    {
+      "index": 9,
+      "chars": 4174,
+      "sha256": "1e40652179fc3d71955ed5519d296c2a8fe7bcbafdcbea449da0367e5899e06c",
+      "headings": [
+        "👥 PAGE 11 · CATALOG: CHARACTERS",
+        "**THE GREYRATS & ALLIES**",
+        "**NOBLES, RIVALS & THE EXTENDED ROSTER**",
+        "**WORLD POWERS & GODS** · **[EXTREME MODE]**"
+      ]
+    },
+    {
+      "index": 10,
+      "chars": 6623,
+      "sha256": "1202c58c269ca8c75187fe82ea264d57129961c98c18549bc668987d96f690cf",
+      "headings": [
+        "🧾 PAGE 12 · COMMAND BUILDER",
+        "WORLD STATE ###",
+        "SAVE NOTES ###",
+        "**🎮 GAME MODES** · `Game Mode: [modes]` *(stackable)*",
+        "**🔮 GAME MODIFIERS** · add to `Game Mode:` *(stackable, permanent)*",
+        "**🎬 NARRATIVE MODES** · `Narrative Mode: [mode]`",
+        "**EXAMPLES**"
+      ]
+    }
+  ],
+  "mirror": {
+    "entries": 1296,
+    "same_content_entries": 1291,
+    "differences": {
+      "extensions": 1296,
+      "id": 1291,
+      "comment": 1296,
+      "insertion_order": 5,
+      "keys": 1
+    },
+    "authority": "Use original data.character_book IDs; extension mirror has distinct IDs and labels, not another 1296 mechanics."
+  },
+  "counts": {
+    "Partially supported": 450,
+    "Dependent on narrator output": 820,
+    "Not applicable to Companion": 23,
+    "Compatible by design with no special tracking required": 3
+  },
+  "probe_summary": {
+    "poolCount": 1273,
+    "spellCount": 111,
+    "chantCount": 22,
+    "techniqueCount": 23,
+    "arcCount": 22,
+    "scheduleCount": 64,
+    "noAutomaticKnowledge": true,
+    "noAutomaticNpcs": true
+  }
+}
