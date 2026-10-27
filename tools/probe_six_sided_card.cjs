@@ -17,6 +17,8 @@ assert.equal(c.spellKnown([],c.emptyChatState(),null,'card-audit').size,0,'Book 
 assert.equal(c.simFold([],c.emptyChatState()).minds.size,0,'Book creates no campaign NPCs');
 const spells=c.spellCatalog('card-audit'), techniques=c.techCatalog('card-audit');
 const evidence=entries.map((e,i)=>({id:e.id,normalization:'pass',enabled:!!normalized[i],
+    directSpellSource:spells.some(s=>String(s.src)===String(e.id)),
+    directTechniqueSource:techniques.some(s=>String(s.src)===String(e.id)),
     // Catalog provenance is reference availability, never proof of narrative mastery.
     spellNames:spells.filter(s=>e.content.includes(s.name)).map(s=>s.name),
     techniqueNames:techniques.filter(s=>e.content.includes(s.name)).map(s=>s.name)}));

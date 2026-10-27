@@ -1,0 +1,10 @@
+{
+  "poolCount": 1273,
+  "spellCount": 111,
+  "chantCount": 22,
+  "techniqueCount": 23,
+  "arcCount": 22,
+  "scheduleCount": 64,
+  "noAutomaticKnowledge": true,
+  "noAutomaticNpcs": true
+}

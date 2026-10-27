@@ -1,6 +1,8 @@
-# RPG Companion HMS Edition 2.9.12 — Release Candidate
+# RPG Companion HMS Edition 2.9.13 — Release Candidate
 
-> Universal compatibility: [2.9.12 RC audit and limitations](docs/compatibility/SIX_SIDED_2_9_12.md).
+> Tracking stabilization: [2.9.13 candidate report](docs/compatibility/2_9_13/REPORT.md).
+
+> Previous universal compatibility: [2.9.12 RC audit and limitations](docs/compatibility/SIX_SIDED_2_9_12.md).
 
 > Previous tracking maintenance: [2.9.11 RC report](docs/stabilization/AGENDA_2_9_11.md).
 > Phase 3 stabilization: [2.9.10 RC report](docs/stabilization/PHASE3_2_9_10.md).
