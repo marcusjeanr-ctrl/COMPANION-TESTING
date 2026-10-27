@@ -1,5 +1,22 @@
 # Changelog — RPG Companion HMS Edition
 
+## 2.9.14 RC — Living World compatibility
+
+- Read explicit field-based and Markdown spell/technique references without granting
+  player knowledge from catalog capabilities, school ranks or NPC descriptions.
+- Preserve detailed effects, correct schools, fan-extension labels and explicitly
+  rankless techniques; deduplicate repeated card definitions without editing the card.
+- Recognize `MUSHOKU_TENSEI_START_CONTINUER` using existing snapshot/source/swipe
+  safeguards and Internal States display, without replaying copied transactions.
+- Keep an unscheduled `Sandbox — objective` separate from clock-selected canon arcs;
+  read explicit numbered divergences and preserve older Six-Sided reference formats.
+- Show explicit summoning pacts and both reported Drain Syndrome formats in existing
+  World rows. Retain dates for extended legacy campaign-day counters.
+- Add full-card traceability, targeted multi-turn/browser regressions and measured
+  performance evidence. No extra model calls, polling, scans, dependencies or migration.
+- Release candidate: individual mechanics and live Lumiverse/provider acceptance
+  remain partial; see the Living World report. No stable-release certification.
+
 ## 2.9.13 RC candidate — Universal tracking evidence
 
 - Expose explicit rescheduling in the Agenda report schema, normalize rescheduled/

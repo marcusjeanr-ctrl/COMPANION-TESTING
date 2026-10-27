@@ -1125,7 +1125,7 @@ export function setup(ctx) {
         id: 'rpg-companion-hms',
         title: 'RPG Companion (HMS)',
         shortName: 'RPG',
-        headerTitle: 'RPG Companion HMS Edition 2.9.13',
+        headerTitle: 'RPG Companion HMS Edition 2.9.14',
         description: 'The side panel for HMS bots: the HUD as cards, people, quests, the map, fights, the Chronicle, and a guide',
         keywords: ['rpg', 'hms', 'tracker', 'hud', 'quests', 'dice', 'guide'],
         iconSvg: ICON_SVG
@@ -6073,7 +6073,7 @@ body{background:${bs ? bs.backgroundColor : '#111'};color:${bs ? bs.color : '#dd
         const bar = h('div', { class: 'rpgc-arc0 rpgc-saga', role: 'img', 'aria-label': TT('Year K.{0}', S.year) },
             ...S.arcs.map(a => h('span', { class: 'mark' + (a.no === S.current ? ' cur' : ''), style: `left:${at(a.year)}%`, title: TT('Arc {0}', a.no) + ` \u00B7 K.${a.year}: ${a.title}` })),
             h('i', { style: `left:${at(S.year)}%` }));
-        const where = S.next ? (S.next.inYears > 1 ? TT('{0} years to Arc {1}', S.next.inYears, S.next.no) : S.next.inYears === 1 ? TT('1 year to Arc {0}', S.next.no) : TT('Arc {0} begins this year', S.next.no)) : T('the last arc');
+        const where = S.personalArc && /^Sandbox\s*[—–-]/i.test(S.personalArc) ? 'No scheduled canon progression' : S.next ? (S.next.inYears > 1 ? TT('{0} years to Arc {1}', S.next.inYears, S.next.no) : S.next.inYears === 1 ? TT('1 year to Arc {0}', S.next.no) : TT('Arc {0} begins this year', S.next.no)) : T('the last arc');
         const head = S.personalArc ? S.personalArc : cur && S.participation === 'explicit' ? TT('Arc {0}', cur.no) + (S.part ? (/^\d+$/.test(S.part) ? '.' : '-') + S.part : '') + ': ' + (S.partName || cur.title) : TT('Year K.{0}', S.year);
         const near = S.arcs.filter(a => S.current === null || (a.no >= S.current - 2 && a.no <= S.current + 4));
         const row = (a) => h('li', { class: (S.current !== null && a.no < S.current) || (S.current === null && a.year < S.year) ? 'past' : a.no === S.current ? 'cur' : '' },
@@ -6306,7 +6306,7 @@ body{background:${bs ? bs.backgroundColor : '#111'};color:${bs ? bs.color : '#dd
             if (!popWin || popWin.closed) {
                 popWin = window.open('', 'rpgc_popout', 'width=460,height=860');
                 if (!popWin) { state.status = { kind: 'warning', text: 'The browser blocked the pop-out window. Allow pop-ups for Lumiverse and try again.' }; const s = S(); s.uiPanelMode = 'drawer'; return applyPanelMode(); }
-                popWin.document.title = 'RPG Companion HMS Edition 2.9.13 RC';
+                popWin.document.title = 'RPG Companion HMS Edition 2.9.14 RC';
                 syncPopoutLook(popWin);
                 try { if (!popLookObs) { popLookObs = new MutationObserver(() => syncPopoutLook(popWin)); popLookObs.observe(document.documentElement, { attributes: true }); if (document.body) popLookObs.observe(document.body, { attributes: true, attributeFilter: ['class'] }); } } catch { /* optional */ }
                 popWin.addEventListener('beforeunload', () => { popWin = null; if (panelMode() === 'popout') { const s = S(); s.uiPanelMode = 'drawer'; saveSettings(false); applyPanelMode(); render(); } });

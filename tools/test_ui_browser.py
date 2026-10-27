@@ -172,6 +172,22 @@ class BrowserUi(unittest.TestCase):
         self.assertEqual(self.page.locator('#continued-ui .rs').count(),1)
         self.assertEqual(self.page.locator('#continued-ui .rs input[type=radio]').count(),self.page.locator('#continued-ui .rs label').count())
 
+    def test_living_world_sandbox_pacts_and_drain_display(self):
+        payload=json.loads(json.dumps(FIXTURE['payload']))
+        payload['world'].update(contracts='Lantern | RANK: Spirit; Watcher',drain={'stage':'Year 3 of 10','onset':None},
+            saga={'year':417,'from':407,'to':431,'arcs':[],'current':None,'next':None,'personalArc':'Sandbox — Build a workshop','participation':'personal'})
+        self.receive(payload)
+        text=self.page.locator('.rpgc').inner_text()
+        self.assertIn('No scheduled canon progression',text)
+        self.assertIn('Lantern | RANK: Spirit; Watcher',text)
+        self.assertIn('Drain Syndrome: Year 3 of 10',text)
+
+    def test_living_world_continuation_internal_states(self):
+        html=FIXTURE['livingContinuationHtml']
+        self.assertIn('Internal states',html)
+        self.page.evaluate('(html)=>{const a=document.createElement("article");a.id="living-restored";a.innerHTML=html;document.body.append(a)}',html)
+        self.assertEqual(self.page.locator('#living-restored .rs').count(),1)
+
     def test_internal_states_tabs_and_collapse(self):
         self.page.add_style_tag(content=FIXTURE['statesCss'])
         self.page.evaluate('(html)=>{let reply=document.createElement("article");reply.id="reply";reply.innerHTML=html;document.body.append(reply)}',FIXTURE['internalStates'])
