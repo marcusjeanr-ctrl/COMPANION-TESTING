@@ -1,0 +1,458 @@
+{
+  "baseline": "7a98c1c18070972f3e8201fffe5bbc6955f547da",
+  "runtime": "Node 22.22.2",
+  "method": "Five alternating process pairs at 600/2000 source-bound messages; cold then 3 warmups/10 warm samples; three pipeline and GC pairs. Additional one-process-per-version full-card and maximal assessment pairs have higher variance.",
+  "sourceHashes": {
+    "baseline-backend.js": "33e61974c99f75eeca16466fcc154290d1d7d5d7dd008958d919d865c9415c18",
+    "candidate-backend.js": "06e076484571a49ee50d8cfe75bb9f2165dc09cc1d197d162ba4ccfe15428da1"
+  },
+  "summary": {
+    "panel-300": {
+      "2.9.12": {
+        "messages": 600,
+        "coldMs": 158,
+        "medianMs": 46,
+        "warnings": 0
+      },
+      "candidate": {
+        "messages": 600,
+        "coldMs": 153.87,
+        "medianMs": 43.68,
+        "warnings": 0
+      }
+    },
+    "panel-1000": {
+      "2.9.12": {
+        "messages": 2000,
+        "coldMs": 345.36,
+        "medianMs": 71.57,
+        "warnings": 0
+      },
+      "candidate": {
+        "messages": 2000,
+        "coldMs": 340.07,
+        "medianMs": 70.63,
+        "warnings": 0
+      }
+    },
+    "pipeline-None": {
+      "2.9.12": {
+        "parseReportMedianMs": 0.4103,
+        "processResponseMedianMs": 0.5424,
+        "promptConstructMedianMs": 0.257,
+        "promptCharacters": 14832,
+        "populatedPromptCharacters": 18528,
+        "warnings": 0
+      },
+      "candidate": {
+        "parseReportMedianMs": 0.4212,
+        "processResponseMedianMs": 0.5524,
+        "promptConstructMedianMs": 0.2658,
+        "promptCharacters": 14892,
+        "populatedPromptCharacters": 18721,
+        "warnings": 0
+      }
+    },
+    "memory-None": {
+      "2.9.12": {
+        "coldVmInitMs": 23.8942,
+        "initHeapDelta": 3168152,
+        "messages": 1000,
+        "fixturePlusInitHeapDelta": 11847344,
+        "statesFillAdditionalHeap": 164272,
+        "rssAfterFixture": 67215360,
+        "cachedReports": 1000
+      },
+      "candidate": {
+        "coldVmInitMs": 24.0845,
+        "initHeapDelta": 3183712,
+        "messages": 1000,
+        "fixturePlusInitHeapDelta": 11872184,
+        "statesFillAdditionalHeap": 164272,
+        "rssAfterFixture": 67088384,
+        "cachedReports": 1000
+      }
+    }
+  },
+  "operations": {
+    "2.9.12": {
+      "file": "/workspace/tracking-2.9.13/baseline-backend.js",
+      "transport": {
+        "model": 1,
+        "getMessages": 6,
+        "metadataWrites": 1,
+        "storageReads": 2,
+        "storageWrites": 4,
+        "historyElementReads": 0,
+        "traversals": {}
+      },
+      "panel": {
+        "messages": 600,
+        "historyElementReads": 9101,
+        "traversals": {
+          "mtEventLedgerUncached": 1,
+          "atlasObserveHistory": 1,
+          "relReadingsUncached": 1,
+          "hmsTimelineUncached": 1,
+          "simReplies": 1,
+          "spellStoryFoldUncached": 1
+        }
+      }
+    },
+    "candidate": {
+      "file": "/workspace/tracking-2.9.13/candidate-backend.js",
+      "transport": {
+        "model": 1,
+        "getMessages": 6,
+        "metadataWrites": 1,
+        "storageReads": 2,
+        "storageWrites": 4,
+        "historyElementReads": 0,
+        "traversals": {}
+      },
+      "panel": {
+        "messages": 600,
+        "historyElementReads": 9101,
+        "traversals": {
+          "mtEventLedgerUncached": 1,
+          "atlasObserveHistory": 1,
+          "relReadingsUncached": 1,
+          "hmsTimelineUncached": 1,
+          "simReplies": 1,
+          "spellStoryFoldUncached": 1
+        }
+      }
+    }
+  },
+  "additionalWorkloads": {
+    "eightAssessmentsPerReply": [
+      {
+        "file": "/workspace/tracking-2.9.13/baseline-backend.js",
+        "messages": 600,
+        "coldMs": 229.94,
+        "medianMs": 46.55,
+        "warnings": 0,
+        "assessmentsPerReply": 8,
+        "knownAbilities": 9
+      },
+      {
+        "file": "/workspace/tracking-2.9.13/candidate-backend.js",
+        "messages": 600,
+        "coldMs": 195.75,
+        "medianMs": 57.77,
+        "warnings": 0,
+        "assessmentsPerReply": 8,
+        "knownAbilities": 9
+      }
+    ],
+    "fullCard": [
+      {
+        "file": "/workspace/tracking-2.9.13/candidate-backend.js",
+        "messages": 600,
+        "coldMs": 255.2,
+        "medianMs": 43.74,
+        "warnings": 0
+      },
+      {
+        "file": "/workspace/tracking-2.9.13/baseline-backend.js",
+        "messages": 600,
+        "coldMs": 198.82,
+        "medianMs": 44.43,
+        "warnings": 0
+      }
+    ]
+  },
+  "raw": [
+    {
+      "benchmark": "panel",
+      "version": "2.9.12",
+      "round": 0,
+      "replies": 300,
+      "exit": 0,
+      "stdout": "{\"file\":\"/workspace/tracking-2.9.13/baseline-backend.js\",\"messages\":600,\"coldMs\":156.13,\"medianMs\":41.32,\"warnings\":0}\n",
+      "stderr": ""
+    },
+    {
+      "benchmark": "panel",
+      "version": "candidate",
+      "round": 0,
+      "replies": 300,
+      "exit": 0,
+      "stdout": "{\"file\":\"/workspace/tracking-2.9.13/candidate-backend.js\",\"messages\":600,\"coldMs\":155.49,\"medianMs\":43.24,\"warnings\":0}\n",
+      "stderr": ""
+    },
+    {
+      "benchmark": "panel",
+      "version": "candidate",
+      "round": 1,
+      "replies": 300,
+      "exit": 0,
+      "stdout": "{\"file\":\"/workspace/tracking-2.9.13/candidate-backend.js\",\"messages\":600,\"coldMs\":158.87,\"medianMs\":43.68,\"warnings\":0}\n",
+      "stderr": ""
+    },
+    {
+      "benchmark": "panel",
+      "version": "2.9.12",
+      "round": 1,
+      "replies": 300,
+      "exit": 0,
+      "stdout": "{\"file\":\"/workspace/tracking-2.9.13/baseline-backend.js\",\"messages\":600,\"coldMs\":158.52,\"medianMs\":48.75,\"warnings\":0}\n",
+      "stderr": ""
+    },
+    {
+      "benchmark": "panel",
+      "version": "2.9.12",
+      "round": 2,
+      "replies": 300,
+      "exit": 0,
+      "stdout": "{\"file\":\"/workspace/tracking-2.9.13/baseline-backend.js\",\"messages\":600,\"coldMs\":158,\"medianMs\":43.79,\"warnings\":0}\n",
+      "stderr": ""
+    },
+    {
+      "benchmark": "panel",
+      "version": "candidate",
+      "round": 2,
+      "replies": 300,
+      "exit": 0,
+      "stdout": "{\"file\":\"/workspace/tracking-2.9.13/candidate-backend.js\",\"messages\":600,\"coldMs\":153.87,\"medianMs\":42.44,\"warnings\":0}\n",
+      "stderr": ""
+    },
+    {
+      "benchmark": "panel",
+      "version": "candidate",
+      "round": 3,
+      "replies": 300,
+      "exit": 0,
+      "stdout": "{\"file\":\"/workspace/tracking-2.9.13/candidate-backend.js\",\"messages\":600,\"coldMs\":153.62,\"medianMs\":44.8,\"warnings\":0}\n",
+      "stderr": ""
+    },
+    {
+      "benchmark": "panel",
+      "version": "2.9.12",
+      "round": 3,
+      "replies": 300,
+      "exit": 0,
+      "stdout": "{\"file\":\"/workspace/tracking-2.9.13/baseline-backend.js\",\"messages\":600,\"coldMs\":158.87,\"medianMs\":46,\"warnings\":0}\n",
+      "stderr": ""
+    },
+    {
+      "benchmark": "panel",
+      "version": "2.9.12",
+      "round": 4,
+      "replies": 300,
+      "exit": 0,
+      "stdout": "{\"file\":\"/workspace/tracking-2.9.13/baseline-backend.js\",\"messages\":600,\"coldMs\":155.92,\"medianMs\":49.75,\"warnings\":0}\n",
+      "stderr": ""
+    },
+    {
+      "benchmark": "panel",
+      "version": "candidate",
+      "round": 4,
+      "replies": 300,
+      "exit": 0,
+      "stdout": "{\"file\":\"/workspace/tracking-2.9.13/candidate-backend.js\",\"messages\":600,\"coldMs\":153.62,\"medianMs\":45.75,\"warnings\":0}\n",
+      "stderr": ""
+    },
+    {
+      "benchmark": "panel",
+      "version": "2.9.12",
+      "round": 0,
+      "replies": 1000,
+      "exit": 0,
+      "stdout": "{\"file\":\"/workspace/tracking-2.9.13/baseline-backend.js\",\"messages\":2000,\"coldMs\":334.12,\"medianMs\":68.09,\"warnings\":0}\n",
+      "stderr": ""
+    },
+    {
+      "benchmark": "panel",
+      "version": "candidate",
+      "round": 0,
+      "replies": 1000,
+      "exit": 0,
+      "stdout": "{\"file\":\"/workspace/tracking-2.9.13/candidate-backend.js\",\"messages\":2000,\"coldMs\":373,\"medianMs\":71.22,\"warnings\":0}\n",
+      "stderr": ""
+    },
+    {
+      "benchmark": "panel",
+      "version": "candidate",
+      "round": 1,
+      "replies": 1000,
+      "exit": 0,
+      "stdout": "{\"file\":\"/workspace/tracking-2.9.13/candidate-backend.js\",\"messages\":2000,\"coldMs\":346.45,\"medianMs\":70.63,\"warnings\":0}\n",
+      "stderr": ""
+    },
+    {
+      "benchmark": "panel",
+      "version": "2.9.12",
+      "round": 1,
+      "replies": 1000,
+      "exit": 0,
+      "stdout": "{\"file\":\"/workspace/tracking-2.9.13/baseline-backend.js\",\"messages\":2000,\"coldMs\":345.36,\"medianMs\":76.15,\"warnings\":0}\n",
+      "stderr": ""
+    },
+    {
+      "benchmark": "panel",
+      "version": "2.9.12",
+      "round": 2,
+      "replies": 1000,
+      "exit": 0,
+      "stdout": "{\"file\":\"/workspace/tracking-2.9.13/baseline-backend.js\",\"messages\":2000,\"coldMs\":333.24,\"medianMs\":72.63,\"warnings\":0}\n",
+      "stderr": ""
+    },
+    {
+      "benchmark": "panel",
+      "version": "candidate",
+      "round": 2,
+      "replies": 1000,
+      "exit": 0,
+      "stdout": "{\"file\":\"/workspace/tracking-2.9.13/candidate-backend.js\",\"messages\":2000,\"coldMs\":336.67,\"medianMs\":69.56,\"warnings\":0}\n",
+      "stderr": ""
+    },
+    {
+      "benchmark": "panel",
+      "version": "candidate",
+      "round": 3,
+      "replies": 1000,
+      "exit": 0,
+      "stdout": "{\"file\":\"/workspace/tracking-2.9.13/candidate-backend.js\",\"messages\":2000,\"coldMs\":324.67,\"medianMs\":70.52,\"warnings\":0}\n",
+      "stderr": ""
+    },
+    {
+      "benchmark": "panel",
+      "version": "2.9.12",
+      "round": 3,
+      "replies": 1000,
+      "exit": 0,
+      "stdout": "{\"file\":\"/workspace/tracking-2.9.13/baseline-backend.js\",\"messages\":2000,\"coldMs\":349.37,\"medianMs\":69.65,\"warnings\":0}\n",
+      "stderr": ""
+    },
+    {
+      "benchmark": "panel",
+      "version": "2.9.12",
+      "round": 4,
+      "replies": 1000,
+      "exit": 0,
+      "stdout": "{\"file\":\"/workspace/tracking-2.9.13/baseline-backend.js\",\"messages\":2000,\"coldMs\":352.42,\"medianMs\":71.57,\"warnings\":0}\n",
+      "stderr": ""
+    },
+    {
+      "benchmark": "panel",
+      "version": "candidate",
+      "round": 4,
+      "replies": 1000,
+      "exit": 0,
+      "stdout": "{\"file\":\"/workspace/tracking-2.9.13/candidate-backend.js\",\"messages\":2000,\"coldMs\":340.07,\"medianMs\":73.5,\"warnings\":0}\n",
+      "stderr": ""
+    },
+    {
+      "benchmark": "pipeline",
+      "version": "2.9.12",
+      "round": 0,
+      "exit": 0,
+      "stdout": "{\"file\":\"/workspace/tracking-2.9.13/baseline-backend.js\",\"parseReportMedianMs\":0.4013,\"processResponseMedianMs\":0.5409,\"promptConstructMedianMs\":0.2536,\"promptCharacters\":14832,\"populatedPromptCharacters\":18528,\"warnings\":0}\n",
+      "stderr": ""
+    },
+    {
+      "benchmark": "memory",
+      "version": "2.9.12",
+      "round": 0,
+      "exit": 0,
+      "stdout": "{\"file\":\"/workspace/tracking-2.9.13/baseline-backend.js\",\"coldVmInitMs\":24.094262,\"warmVmInitMs\":[4.999753999999996,4.071580999999995,4.096678999999995,4.096018000000001,3.9894079999999974],\"initHeapDelta\":3168152,\"messages\":1000,\"fixturePlusInitHeapDelta\":11846896,\"statesFillAdditionalHeap\":164272,\"rssAfterFixture\":67215360,\"cachedReports\":1000}\n",
+      "stderr": ""
+    },
+    {
+      "benchmark": "pipeline",
+      "version": "candidate",
+      "round": 0,
+      "exit": 0,
+      "stdout": "{\"file\":\"/workspace/tracking-2.9.13/candidate-backend.js\",\"parseReportMedianMs\":0.4089,\"processResponseMedianMs\":0.5534,\"promptConstructMedianMs\":0.2658,\"promptCharacters\":14892,\"populatedPromptCharacters\":18721,\"warnings\":0}\n",
+      "stderr": ""
+    },
+    {
+      "benchmark": "memory",
+      "version": "candidate",
+      "round": 0,
+      "exit": 0,
+      "stdout": "{\"file\":\"/workspace/tracking-2.9.13/candidate-backend.js\",\"coldVmInitMs\":24.084526999999998,\"warmVmInitMs\":[5.220675,4.310699000000007,3.9742439999999988,4.409577999999996,3.903817999999987],\"initHeapDelta\":3183712,\"messages\":1000,\"fixturePlusInitHeapDelta\":11873304,\"statesFillAdditionalHeap\":164272,\"rssAfterFixture\":67223552,\"cachedReports\":1000}\n",
+      "stderr": ""
+    },
+    {
+      "benchmark": "pipeline",
+      "version": "candidate",
+      "round": 1,
+      "exit": 0,
+      "stdout": "{\"file\":\"/workspace/tracking-2.9.13/candidate-backend.js\",\"parseReportMedianMs\":0.4212,\"processResponseMedianMs\":0.5524,\"promptConstructMedianMs\":0.2586,\"promptCharacters\":14892,\"populatedPromptCharacters\":18721,\"warnings\":0}\n",
+      "stderr": ""
+    },
+    {
+      "benchmark": "memory",
+      "version": "candidate",
+      "round": 1,
+      "exit": 0,
+      "stdout": "{\"file\":\"/workspace/tracking-2.9.13/candidate-backend.js\",\"coldVmInitMs\":24.306048999999998,\"warmVmInitMs\":[5.161026,4.008635999999996,4.036608999999999,4.166854000000001,3.9351060000000047],\"initHeapDelta\":3183712,\"messages\":1000,\"fixturePlusInitHeapDelta\":11871544,\"statesFillAdditionalHeap\":164272,\"rssAfterFixture\":66945024,\"cachedReports\":1000}\n",
+      "stderr": ""
+    },
+    {
+      "benchmark": "pipeline",
+      "version": "2.9.12",
+      "round": 1,
+      "exit": 0,
+      "stdout": "{\"file\":\"/workspace/tracking-2.9.13/baseline-backend.js\",\"parseReportMedianMs\":0.4103,\"processResponseMedianMs\":0.5424,\"promptConstructMedianMs\":0.2599,\"promptCharacters\":14832,\"populatedPromptCharacters\":18528,\"warnings\":0}\n",
+      "stderr": ""
+    },
+    {
+      "benchmark": "memory",
+      "version": "2.9.12",
+      "round": 1,
+      "exit": 0,
+      "stdout": "{\"file\":\"/workspace/tracking-2.9.13/baseline-backend.js\",\"coldVmInitMs\":23.767246999999998,\"warmVmInitMs\":[5.612251999999998,4.546151999999992,4.097879000000006,4.4087960000000095,4.359881999999999],\"initHeapDelta\":3168152,\"messages\":1000,\"fixturePlusInitHeapDelta\":11847344,\"statesFillAdditionalHeap\":164272,\"rssAfterFixture\":67457024,\"cachedReports\":1000}\n",
+      "stderr": ""
+    },
+    {
+      "benchmark": "pipeline",
+      "version": "2.9.12",
+      "round": 2,
+      "exit": 0,
+      "stdout": "{\"file\":\"/workspace/tracking-2.9.13/baseline-backend.js\",\"parseReportMedianMs\":0.4173,\"processResponseMedianMs\":0.5445,\"promptConstructMedianMs\":0.257,\"promptCharacters\":14832,\"populatedPromptCharacters\":18528,\"warnings\":0}\n",
+      "stderr": ""
+    },
+    {
+      "benchmark": "memory",
+      "version": "2.9.12",
+      "round": 2,
+      "exit": 0,
+      "stdout": "{\"file\":\"/workspace/tracking-2.9.13/baseline-backend.js\",\"coldVmInitMs\":23.894197000000002,\"warmVmInitMs\":[5.527955000000006,4.233452999999997,4.1457419999999985,4.169346000000004,4.288415999999998],\"initHeapDelta\":3168152,\"messages\":1000,\"fixturePlusInitHeapDelta\":11847472,\"statesFillAdditionalHeap\":164272,\"rssAfterFixture\":67198976,\"cachedReports\":1000}\n",
+      "stderr": ""
+    },
+    {
+      "benchmark": "pipeline",
+      "version": "candidate",
+      "round": 2,
+      "exit": 0,
+      "stdout": "{\"file\":\"/workspace/tracking-2.9.13/candidate-backend.js\",\"parseReportMedianMs\":0.4241,\"processResponseMedianMs\":0.5412,\"promptConstructMedianMs\":0.2687,\"promptCharacters\":14892,\"populatedPromptCharacters\":18721,\"warnings\":0}\n",
+      "stderr": ""
+    },
+    {
+      "benchmark": "memory",
+      "version": "candidate",
+      "round": 2,
+      "exit": 0,
+      "stdout": "{\"file\":\"/workspace/tracking-2.9.13/candidate-backend.js\",\"coldVmInitMs\":23.631086,\"warmVmInitMs\":[6.25938,4.188353000000006,4.048615000000012,6.033433000000002,4.146571999999992],\"initHeapDelta\":3183712,\"messages\":1000,\"fixturePlusInitHeapDelta\":11872184,\"statesFillAdditionalHeap\":164272,\"rssAfterFixture\":67088384,\"cachedReports\":1000}\n",
+      "stderr": ""
+    },
+    {
+      "benchmark": "operations",
+      "version": "2.9.12",
+      "exit": 0,
+      "stdout": "{\"file\":\"/workspace/tracking-2.9.13/baseline-backend.js\",\"transport\":{\"model\":1,\"getMessages\":6,\"metadataWrites\":1,\"storageReads\":2,\"storageWrites\":4,\"historyElementReads\":0,\"traversals\":{}},\"panel\":{\"messages\":600,\"historyElementReads\":9101,\"traversals\":{\"mtEventLedgerUncached\":1,\"atlasObserveHistory\":1,\"relReadingsUncached\":1,\"hmsTimelineUncached\":1,\"simReplies\":1,\"spellStoryFoldUncached\":1}}}\n",
+      "stderr": ""
+    },
+    {
+      "benchmark": "operations",
+      "version": "candidate",
+      "exit": 0,
+      "stdout": "{\"file\":\"/workspace/tracking-2.9.13/candidate-backend.js\",\"transport\":{\"model\":1,\"getMessages\":6,\"metadataWrites\":1,\"storageReads\":2,\"storageWrites\":4,\"historyElementReads\":0,\"traversals\":{}},\"panel\":{\"messages\":600,\"historyElementReads\":9101,\"traversals\":{\"mtEventLedgerUncached\":1,\"atlasObserveHistory\":1,\"relReadingsUncached\":1,\"hmsTimelineUncached\":1,\"simReplies\":1,\"spellStoryFoldUncached\":1}}}\n",
+      "stderr": ""
+    }
+  ],
+  "limits": "Local mock host, no actual provider billing/tokenizer. New assessment data is additional functionality that the old bundle ignores; its incremental CPU/storage/output cost is not zero. No new model call/polling/history traversal. No memory leak or live latency certification."
+}

@@ -1,0 +1,377 @@
+{
+  "counting_unit": "Named deterministic behavioral contract, separate from lorebook-entry counts",
+  "counts": {
+    "Verified supported": 22,
+    "Partially supported": 0,
+    "Unsupported": 0,
+    "Defective": 0,
+    "Untested": 0,
+    "Not applicable": 0
+  },
+  "live_verification": "Not performed",
+  "units": [
+    {
+      "unit": "test_tracking_evidence_2_9_13.cjs:12",
+      "contract": "Postponement in accepted narration updates one occurrence despite an open report",
+      "status": "Verified supported",
+      "verification_layer": "Deterministic synthetic report/storage/fold/panel or safe-failure behavior; not live provider semantics",
+      "source_fixture": "tools/test_tracking_evidence_2_9_13.cjs:12",
+      "assertions": [
+        "tools/test_tracking_evidence_2_9_13.cjs:15:let items=c.agendaRead(chat,{}).items;assert.equal(items.length,1);assert.equal(items[0].key,key);assert.match(items[0].when,/midday/);",
+        "tools/test_tracking_evidence_2_9_13.cjs:17:items=c.agendaRead(chat,{}).items;assert.equal(items.length,1);assert.equal(items[0].key,key);assert.match(items[0].when,/tomorrow/);",
+        "tools/test_tracking_evidence_2_9_13.cjs:18:assert.equal(c.agendaRead(JSON.parse(JSON.stringify(chat)),{}).items.length,1);",
+        "tools/test_tracking_evidence_2_9_13.cjs:20:assert.equal(c.agendaRead(underway,{}).items[0].state,'open','A postponed active session stayed in progress');"
+      ],
+      "result": "pass",
+      "persistence": "Existing per-swipe metadata, optional survival.abilities and chat-local manual controls; raw HUD remains authoritative",
+      "live_provider_result": "Untested",
+      "limit": "This contract does not certify all lorebook entries sharing its mechanic family."
+    },
+    {
+      "unit": "test_tracking_evidence_2_9_13.cjs:22",
+      "contract": "No title-only merging, hypothetical postponement, recurrence or ambiguous target",
+      "status": "Verified supported",
+      "verification_layer": "Deterministic synthetic report/storage/fold/panel or safe-failure behavior; not live provider semantics",
+      "source_fixture": "tools/test_tracking_evidence_2_9_13.cjs:22",
+      "assertions": [
+        "tools/test_tracking_evidence_2_9_13.cjs:25:assert.equal(c.agendaRead([msg('a',[row],''),msg('b',[later],scene)],{}).items.length,2,scene);",
+        "tools/test_tracking_evidence_2_9_13.cjs:26:assert.equal(c.agendaRead([msg('a',[row],''),msg('b',[later],'Practice is set for midday.',9)],{}).items.length,2);",
+        "tools/test_tracking_evidence_2_9_13.cjs:28:assert.equal(c.agendaRead([msg('a',two,''),msg('b',[later],'Practice has been postponed to midday.')],{}).items.length,3);",
+        "tools/test_tracking_evidence_2_9_13.cjs:30:assert.equal(c.agendaRead([msg('a',[done],''),msg('b',[later],'Practice has been postponed to midday.')],{}).items.length,2);"
+      ],
+      "result": "pass",
+      "persistence": "Existing per-swipe metadata, optional survival.abilities and chat-local manual controls; raw HUD remains authoritative",
+      "live_provider_result": "Untested",
+      "limit": "This contract does not certify all lorebook entries sharing its mechanic family."
+    },
+    {
+      "unit": "test_tracking_evidence_2_9_13.cjs:32",
+      "contract": "Reschedule states are part of the extraction contract and normalize without loss",
+      "status": "Verified supported",
+      "verification_layer": "Deterministic synthetic report/storage/fold/panel or safe-failure behavior; not live provider semantics",
+      "source_fixture": "tools/test_tracking_evidence_2_9_13.cjs:32",
+      "assertions": [
+        "tools/test_tracking_evidence_2_9_13.cjs:33:const request=c.agendaRequest([],{},'Rin');assert(request.json.includes('moved'));",
+        "tools/test_tracking_evidence_2_9_13.cjs:34:for(const state of ['moved','postponed','rescheduled'])assert.equal(c.agendaNormalize([{...row,state}])[0].moved,true);"
+      ],
+      "result": "pass",
+      "persistence": "Existing per-swipe metadata, optional survival.abilities and chat-local manual controls; raw HUD remains authoritative",
+      "live_provider_result": "Untested",
+      "limit": "This contract does not certify all lorebook entries sharing its mechanic family."
+    },
+    {
+      "unit": "test_tracking_evidence_2_9_13.cjs:36",
+      "contract": "Lessons, appointments, departures, meetings, ceremonies and training preserve explicit move context",
+      "status": "Verified supported",
+      "verification_layer": "Deterministic synthetic report/storage/fold/panel or safe-failure behavior; not live provider semantics",
+      "source_fixture": "tools/test_tracking_evidence_2_9_13.cjs:36",
+      "assertions": [
+        "tools/test_tracking_evidence_2_9_13.cjs:42:assert.equal(item.length,1);assert.equal(item[0].key,key);assert.equal(item[0].where,'West Annex');assert.equal(item[0].with,'New coordinator');assert.equal(item[0].dueAt,null);",
+        "tools/test_tracking_evidence_2_9_13.cjs:44:assert.equal(c.agendaRead(chat,manual).items[0].state,'cancelled');"
+      ],
+      "result": "pass",
+      "persistence": "Existing per-swipe metadata, optional survival.abilities and chat-local manual controls; raw HUD remains authoritative",
+      "live_provider_result": "Untested",
+      "limit": "This contract does not certify all lorebook entries sharing its mechanic family."
+    },
+    {
+      "unit": "test_tracking_evidence_2_9_13.cjs:47",
+      "contract": "Historical ability evidence preserves provenance without inventing new learning or mastery",
+      "status": "Verified supported",
+      "verification_layer": "Deterministic synthetic report/storage/fold/panel or safe-failure behavior; not live provider semantics",
+      "source_fixture": "tools/test_tracking_evidence_2_9_13.cjs:47",
+      "assertions": [
+        "tools/test_tracking_evidence_2_9_13.cjs:50:assert.equal(data.you.abilities.length,1);",
+        "tools/test_tracking_evidence_2_9_13.cjs:52:const fold=c.spellStoryFold([m]);assert.equal(fold.learned.get('solar lance').newlyLearned,false);",
+        "tools/test_tracking_evidence_2_9_13.cjs:53:const known=c.spellKnown([m],{},fold);assert(known.has('solar lance'));assert(!known.get('solar lance').mastered);",
+        "tools/test_tracking_evidence_2_9_13.cjs:54:assert.equal(known.get('solar lance').evidence.historical,true);",
+        "tools/test_tracking_evidence_2_9_13.cjs:55:assert.equal(c.spellKnown(JSON.parse(JSON.stringify([m])),{}).size,1);"
+      ],
+      "result": "pass",
+      "persistence": "Existing per-swipe metadata, optional survival.abilities and chat-local manual controls; raw HUD remains authoritative",
+      "live_provider_result": "Untested",
+      "limit": "This contract does not certify all lorebook entries sharing its mechanic family."
+    },
+    {
+      "unit": "test_tracking_evidence_2_9_13.cjs:57",
+      "contract": "NPC, hypothetical, missing-source, attempts and historical downgrades are guarded",
+      "status": "Verified supported",
+      "verification_layer": "Deterministic synthetic report/storage/fold/panel or safe-failure behavior; not live provider semantics",
+      "source_fixture": "tools/test_tracking_evidence_2_9_13.cjs:57",
+      "assertions": [
+        "tools/test_tracking_evidence_2_9_13.cjs:63:const known=c.spellKnown([a,old],{});assert(known.get('vector fold').mastered);assert.equal(known.get('vector fold').evidence.state,'mastered');",
+        "tools/test_tracking_evidence_2_9_13.cjs:64:assert.equal(c.spellKnown([ability('npc','known',false,'The pilot knows Vector Fold.','NPC')],{}).size,0);",
+        "tools/test_tracking_evidence_2_9_13.cjs:65:assert.equal(c.spellKnown([ability('attempt','attempted',false,'You attempted Vector Fold unsuccessfully.')],{}).size,0);",
+        "tools/test_tracking_evidence_2_9_13.cjs:66:const forged=ability('forged','known',false,'An unsupported quote.');forged.content=hud()+'\\nNo acquisition.';assert.equal(c.spellKnown([forged],{}).size,0);",
+        "tools/test_tracking_evidence_2_9_13.cjs:67:const forgot=ability('forget','forgotten',false,'You have lost the ability to use Vector Fold.');assert.equal(c.spellKnown([a,forgot],{}).size,0);",
+        "tools/test_tracking_evidence_2_9_13.cjs:69:assert(c.spellKnown([a,forgot,relearned],{}).has('vector fold'));",
+        "tools/test_tracking_evidence_2_9_13.cjs:70:assert.equal(c.spellKnown([a,forgot,relearned],{}).get('vector fold').evidence,undefined,'An obsolete loss assessment masked relearning');",
+        "tools/test_tracking_evidence_2_9_13.cjs:71:assert.equal(c.spellKnown([a],{spellForget:{'vector fold':'current'}}).size,0);"
+      ],
+      "result": "pass",
+      "persistence": "Existing per-swipe metadata, optional survival.abilities and chat-local manual controls; raw HUD remains authoritative",
+      "live_provider_result": "Untested",
+      "limit": "This contract does not certify all lorebook entries sharing its mechanic family."
+    },
+    {
+      "unit": "test_tracking_evidence_2_9_13.cjs:73",
+      "contract": "Refresh stores and projects historical proficiency through the real pipeline",
+      "status": "Verified supported",
+      "verification_layer": "Deterministic synthetic report/storage/fold/panel or safe-failure behavior; not live provider semantics",
+      "source_fixture": "tools/test_tracking_evidence_2_9_13.cjs:73",
+      "assertions": [
+        "tools/test_tracking_evidence_2_9_13.cjs:78:const stored=r.ctx.getSwipeData(r.messages[1]);assert.equal(stored.survival.abilities[0].evidence,quote);",
+        "tools/test_tracking_evidence_2_9_13.cjs:79:const st=await r.ctx.getChatState('test');assert(r.ctx.spellKnown(r.messages,st,null,'test').has('signal weaving'));",
+        "tools/test_tracking_evidence_2_9_13.cjs:80:assert(r.events.filter(x=>x.type==='state').at(-1).hms.magic.spellbook.some(x=>x.name==='Signal Weaving'));",
+        "tools/test_tracking_evidence_2_9_13.cjs:81:assert.equal(calls,1);r.response({you:{mood:'calm'}});await r.ctx.runSeparateUpdate('test');assert.equal(calls,2);assert.equal(r.ctx.spellKnown(r.messages,st).size,1);"
+      ],
+      "result": "pass",
+      "persistence": "Existing per-swipe metadata, optional survival.abilities and chat-local manual controls; raw HUD remains authoritative",
+      "live_provider_result": "Untested",
+      "limit": "This contract does not certify all lorebook entries sharing its mechanic family."
+    },
+    {
+      "unit": "test_tracking_evidence_2_9_13.cjs:83",
+      "contract": "Fantasy, science-fiction and generic abilities preserve source boundaries and live-validation limits",
+      "status": "Verified supported",
+      "verification_layer": "Deterministic synthetic report/storage/fold/panel or safe-failure behavior; not live provider semantics",
+      "source_fixture": "tools/test_tracking_evidence_2_9_13.cjs:83",
+      "assertions": [
+        "tools/test_tracking_evidence_2_9_13.cjs:88:assert(c.spellKnown([make('a',[row])],{}).has(c.spellKey(name)));",
+        "tools/test_tracking_evidence_2_9_13.cjs:90:assert.equal(c.spellKnown([make('a',[bad])],{}).size,0);",
+        "tools/test_tracking_evidence_2_9_13.cjs:91:const swipe=make('a',[row]);swipe.swipe_id=1;assert.equal(c.spellKnown([swipe],{}).size,0);",
+        "tools/test_tracking_evidence_2_9_13.cjs:93:snapshot.content+=' A source edit.';assert.equal(c.spellKnown([snapshot],{}).size,0);",
+        "tools/test_tracking_evidence_2_9_13.cjs:97:assert(request.includes('\"abilities\"'));assert(request.includes('\"historical\":false'));",
+        "tools/test_tracking_evidence_2_9_13.cjs:98:for(const field of ['learned','study','mastered']) assert(request.includes('\"'+field+'\"'),field+' remained world-gated');"
+      ],
+      "result": "pass",
+      "persistence": "Existing per-swipe metadata, optional survival.abilities and chat-local manual controls; raw HUD remains authoritative",
+      "live_provider_result": "Untested",
+      "limit": "This contract does not certify all lorebook entries sharing its mechanic family."
+    },
+    {
+      "unit": "test_tracking_evidence_2_9_13.cjs:100",
+      "contract": "Existing current mastery outranks a newly revealed old failed assessment",
+      "status": "Verified supported",
+      "verification_layer": "Deterministic synthetic report/storage/fold/panel or safe-failure behavior; not live provider semantics",
+      "source_fixture": "tools/test_tracking_evidence_2_9_13.cjs:100",
+      "assertions": [
+        "tools/test_tracking_evidence_2_9_13.cjs:104:assert(c.spellKnown([a,b],{}).get('ember veil').mastered);",
+        "tools/test_tracking_evidence_2_9_13.cjs:105:assert.equal(c.spellKnown([a,b],{}).get('ember veil').evidence,undefined);",
+        "tools/test_tracking_evidence_2_9_13.cjs:107:assert.equal(c.spellKnown([a,b],{spellForget:{'ember veil':'now'}}).size,0,'A historical backfill overrode a manual correction');"
+      ],
+      "result": "pass",
+      "persistence": "Existing per-swipe metadata, optional survival.abilities and chat-local manual controls; raw HUD remains authoritative",
+      "live_provider_result": "Untested",
+      "limit": "This contract does not certify all lorebook entries sharing its mechanic family."
+    },
+    {
+      "unit": "test_tracking_evidence_2_9_13.cjs:109",
+      "contract": "Historical knowledge does not finish current deliberate study",
+      "status": "Verified supported",
+      "verification_layer": "Deterministic synthetic report/storage/fold/panel or safe-failure behavior; not live provider semantics",
+      "source_fixture": "tools/test_tracking_evidence_2_9_13.cjs:109",
+      "assertions": [
+        "tools/test_tracking_evidence_2_9_13.cjs:114:assert.equal(ctx.spellStudyActive(chat,{},null,'study').length,1);",
+        "tools/test_tracking_evidence_2_9_13.cjs:116:assert.equal(panel.studying[0].progress,40);assert.equal(panel.studying[0].done,false);"
+      ],
+      "result": "pass",
+      "persistence": "Existing per-swipe metadata, optional survival.abilities and chat-local manual controls; raw HUD remains authoritative",
+      "live_provider_result": "Untested",
+      "limit": "This contract does not certify all lorebook entries sharing its mechanic family."
+    },
+    {
+      "unit": "test_tracking_evidence_2_9_13.cjs:118",
+      "contract": "Application restart and older-message reprocessing retain the latest accepted state",
+      "status": "Verified supported",
+      "verification_layer": "Deterministic synthetic report/storage/fold/panel or safe-failure behavior; not live provider semantics",
+      "source_fixture": "tools/test_tracking_evidence_2_9_13.cjs:118",
+      "assertions": [
+        "tools/test_tracking_evidence_2_9_13.cjs:127:assert(reloaded.ctx.spellKnown(reloaded.messages,{}).get('solar lance').mastered);",
+        "tools/test_tracking_evidence_2_9_13.cjs:128:assert.equal(reloaded.ctx.spellKnown(reloaded.messages,{}).size,1);"
+      ],
+      "result": "pass",
+      "persistence": "Existing per-swipe metadata, optional survival.abilities and chat-local manual controls; raw HUD remains authoritative",
+      "live_provider_result": "Untested",
+      "limit": "This contract does not certify all lorebook entries sharing its mechanic family."
+    },
+    {
+      "unit": "test_tracking_evidence_2_9_13.cjs:130",
+      "contract": "Incompatible provider fails once and preserves existing committed metadata",
+      "status": "Verified supported",
+      "verification_layer": "Deterministic synthetic report/storage/fold/panel or safe-failure behavior; not live provider semantics",
+      "source_fixture": "tools/test_tracking_evidence_2_9_13.cjs:130",
+      "assertions": [
+        "tools/test_tracking_evidence_2_9_13.cjs:133:await r.ctx.runSeparateUpdate('test');assert.equal(calls,1);",
+        "tools/test_tracking_evidence_2_9_13.cjs:134:assert.equal(JSON.stringify(r.ctx.getSwipeData(r.messages[1])),before);",
+        "tools/test_tracking_evidence_2_9_13.cjs:135:assert(r.warnings.some(x=>x.includes('Decision models')));"
+      ],
+      "result": "pass",
+      "persistence": "Existing per-swipe metadata, optional survival.abilities and chat-local manual controls; raw HUD remains authoritative",
+      "live_provider_result": "Untested",
+      "limit": "This contract does not certify all lorebook entries sharing its mechanic family."
+    },
+    {
+      "unit": "test_tracking_evidence_2_9_13.cjs:137",
+      "contract": "Confirmed aliases reconcile evidence and retractions without merging distinct abilities",
+      "status": "Verified supported",
+      "verification_layer": "Deterministic synthetic report/storage/fold/panel or safe-failure behavior; not live provider semantics",
+      "source_fixture": "tools/test_tracking_evidence_2_9_13.cjs:137",
+      "assertions": [
+        "tools/test_tracking_evidence_2_9_13.cjs:143:assert.equal(ctx.spellKnown(chat,{},null,'alias').size,1);",
+        "tools/test_tracking_evidence_2_9_13.cjs:144:chat.push(message('c','Water Ball Storm','known'));assert.equal(ctx.spellKnown(chat,{},null,'alias').size,2);",
+        "tools/test_tracking_evidence_2_9_13.cjs:145:chat.push(message('d','Waterball','forgotten'));const result=ctx.spellKnown(chat,{},null,'alias');assert.equal(result.size,1);assert(result.has('water ball storm'));"
+      ],
+      "result": "pass",
+      "persistence": "Existing per-swipe metadata, optional survival.abilities and chat-local manual controls; raw HUD remains authoritative",
+      "live_provider_result": "Untested",
+      "limit": "This contract does not certify all lorebook entries sharing its mechanic family."
+    },
+    {
+      "unit": "test_tracking_evidence_2_9_13.cjs:147",
+      "contract": "Long ability identities survive manual learn/forget controls without prefix truncation",
+      "status": "Verified supported",
+      "verification_layer": "Deterministic synthetic report/storage/fold/panel or safe-failure behavior; not live provider semantics",
+      "source_fixture": "tools/test_tracking_evidence_2_9_13.cjs:147",
+      "assertions": [
+        "tools/test_tracking_evidence_2_9_13.cjs:151:assert(r.ctx.spellKnown(r.messages,{}).has(r.ctx.spellKey(name)));",
+        "tools/test_tracking_evidence_2_9_13.cjs:152:assert.equal(r.ctx.spellKnown(r.messages,{}).size,1,'Legacy string and evidence fields split one long identity');",
+        "tools/test_tracking_evidence_2_9_13.cjs:153:assert(r.frontendHandlers.length>0);await r.frontendHandlers[0]({type:'spell_known',chatId:'test',name,on:false});",
+        "tools/test_tracking_evidence_2_9_13.cjs:154:const st=await r.ctx.getChatState('test');assert.equal(r.ctx.spellKnown(r.messages,st).size,0);",
+        "tools/test_tracking_evidence_2_9_13.cjs:156:const latest=await r.ctx.getChatState('test');assert(r.ctx.spellKnown(r.messages,latest).has(r.ctx.spellKey(name)));assert.equal(latest.spellbook[0].name,name);"
+      ],
+      "result": "pass",
+      "persistence": "Existing per-swipe metadata, optional survival.abilities and chat-local manual controls; raw HUD remains authoritative",
+      "live_provider_result": "Untested",
+      "limit": "This contract does not certify all lorebook entries sharing its mechanic family."
+    },
+    {
+      "unit": "test_tracking_cross_system_2_9_13.cjs:12",
+      "contract": "Casting, Demon Eye drain and rest change reserve without capacity or ability grants",
+      "status": "Verified supported",
+      "verification_layer": "Deterministic synthetic report/storage/fold/panel or safe-failure behavior; not live provider semantics",
+      "source_fixture": "tools/test_tracking_cross_system_2_9_13.cjs:12",
+      "assertions": [
+        "tools/test_tracking_cross_system_2_9_13.cjs:16:const state=r.events.filter(x=>x.type==='state').at(-1);assert.equal(state.world.mana,'Vast');assert.equal(state.world.reserve,reserve);",
+        "tools/test_tracking_cross_system_2_9_13.cjs:17:assert.match(state.world.eyes[0].text,i===1?/Active/:/Sealed/);",
+        "tools/test_tracking_cross_system_2_9_13.cjs:18:assert.equal(c.spellKnown(r.messages,{}).size,0);"
+      ],
+      "result": "pass",
+      "persistence": "Existing per-swipe metadata, optional survival.abilities and chat-local manual controls; raw HUD remains authoritative",
+      "live_provider_result": "Untested",
+      "limit": "This contract does not certify all lorebook entries sharing its mechanic family."
+    },
+    {
+      "unit": "test_tracking_cross_system_2_9_13.cjs:21",
+      "contract": "Training, study and explicit new learning do not auto-promote a school or imply mastery",
+      "status": "Verified supported",
+      "verification_layer": "Deterministic synthetic report/storage/fold/panel or safe-failure behavior; not live provider semantics",
+      "source_fixture": "tools/test_tracking_cross_system_2_9_13.cjs:21",
+      "assertions": [
+        "tools/test_tracking_cross_system_2_9_13.cjs:24:assert.equal(c.spellKnown(r.messages,{}).size,0);assert.equal(c.spellStudyActive(r.messages,{}).length,1);",
+        "tools/test_tracking_cross_system_2_9_13.cjs:26:const fold=c.spellStoryFold(r.messages);assert.equal(fold.learned.get('ember veil').newlyLearned,true);",
+        "tools/test_tracking_cross_system_2_9_13.cjs:27:assert(c.spellKnown(r.messages,{}).has('ember veil'));assert(!c.spellKnown(r.messages,{}).get('ember veil').mastered);",
+        "tools/test_tracking_cross_system_2_9_13.cjs:28:const world=r.events.filter(x=>x.type==='state').at(-1).world;assert.equal(world.magic[0].rank,'Intermediate');"
+      ],
+      "result": "pass",
+      "persistence": "Existing per-swipe metadata, optional survival.abilities and chat-local manual controls; raw HUD remains authoritative",
+      "live_provider_result": "Untested",
+      "limit": "This contract does not certify all lorebook entries sharing its mechanic family."
+    },
+    {
+      "unit": "test_tracking_cross_system_2_9_13.cjs:30",
+      "contract": "Offered vs received/stored gear, completed rewards and cancelled objectives stay distinct",
+      "status": "Verified supported",
+      "verification_layer": "Deterministic synthetic report/storage/fold/panel or safe-failure behavior; not live provider semantics",
+      "source_fixture": "tools/test_tracking_cross_system_2_9_13.cjs:30",
+      "assertions": [
+        "tools/test_tracking_cross_system_2_9_13.cjs:33:assert.equal((d.gear||[]).length,0);assert.equal(d.survival.got.length,0);assert.equal(d.objectives[0].state,'abandoned');",
+        "tools/test_tracking_cross_system_2_9_13.cjs:35:const before=JSON.stringify(c.moneyRead(r.messages,{}));assert.equal(c.moneyRead(r.messages,{}).list.length,1);assert.equal(c.questDetailsLatest(r.messages)[0].progress,100);",
+        "tools/test_tracking_cross_system_2_9_13.cjs:36:assert.equal(c.gearRead(r.messages,{}).items.find(x=>x.name==='Inspection toolkit').state,'stowed');",
+        "tools/test_tracking_cross_system_2_9_13.cjs:37:await r.ctx.runSeparateUpdate('test','paid');assert.equal(JSON.stringify(c.moneyRead(r.messages,{})),before);"
+      ],
+      "result": "pass",
+      "persistence": "Existing per-swipe metadata, optional survival.abilities and chat-local manual controls; raw HUD remains authoritative",
+      "live_provider_result": "Untested",
+      "limit": "This contract does not certify all lorebook entries sharing its mechanic family."
+    },
+    {
+      "unit": "test_tracking_cross_system_2_9_13.cjs:39",
+      "contract": "Travel and birthdays update current HUD without rewriting skill history or creating forecast events",
+      "status": "Verified supported",
+      "verification_layer": "Deterministic synthetic report/storage/fold/panel or safe-failure behavior; not live provider semantics",
+      "source_fixture": "tools/test_tracking_cross_system_2_9_13.cjs:39",
+      "assertions": [
+        "tools/test_tracking_cross_system_2_9_13.cjs:44:const w=r.events.filter(x=>x.type==='state').at(-1).world;assert.equal(w.year,418);assert.equal(w.age,14);",
+        "tools/test_tracking_cross_system_2_9_13.cjs:45:assert(c.spellKnown(r.messages,{}).has('signal weaving'));assert.equal(c.mtEventLedger(r.messages).length,0);",
+        "tools/test_tracking_cross_system_2_9_13.cjs:46:assert.equal(c.spellStoryFold(r.messages).abilityEvidence.get('signal weaving').msgId,'old');",
+        "tools/test_tracking_cross_system_2_9_13.cjs:49:assert.equal(c.mtEventLedger(r.messages)[0].state,'prevented');assert.equal(JSON.stringify(c.getSwipeData(r.messages.find(m=>m.id==='old'))),prior);"
+      ],
+      "result": "pass",
+      "persistence": "Existing per-swipe metadata, optional survival.abilities and chat-local manual controls; raw HUD remains authoritative",
+      "live_provider_result": "Untested",
+      "limit": "This contract does not certify all lorebook entries sharing its mechanic family."
+    },
+    {
+      "unit": "test_tracking_cross_system_2_9_13.cjs:51",
+      "contract": "Combat damage and temporary conditions reach the HUD panel without invented acquisitions",
+      "status": "Verified supported",
+      "verification_layer": "Deterministic synthetic report/storage/fold/panel or safe-failure behavior; not live provider semantics",
+      "source_fixture": "tools/test_tracking_cross_system_2_9_13.cjs:51",
+      "assertions": [
+        "tools/test_tracking_cross_system_2_9_13.cjs:55:const systems=c.hmsReadSystems(c.parseHud(r.messages.at(-1).content));assert(systems.wounds.some(x=>/Bruised left arm/i.test(x.name)));",
+        "tools/test_tracking_cross_system_2_9_13.cjs:56:assert(systems.conditions.some(x=>/Winded/i.test(x.text)));assert(c.hudToBlock(c.parseHud(text)).includes('Training sword (chipped)'));",
+        "tools/test_tracking_cross_system_2_9_13.cjs:57:assert.equal(c.getSwipeData(r.messages.at(-1)).survival.got.length,0);"
+      ],
+      "result": "pass",
+      "persistence": "Existing per-swipe metadata, optional survival.abilities and chat-local manual controls; raw HUD remains authoritative",
+      "live_provider_result": "Untested",
+      "limit": "This contract does not certify all lorebook entries sharing its mechanic family."
+    },
+    {
+      "unit": "test_tracking_cross_system_2_9_13.cjs:59",
+      "contract": "Hidden power and narrator-private facts do not spread knowledge between unrelated NPCs",
+      "status": "Verified supported",
+      "verification_layer": "Deterministic synthetic report/storage/fold/panel or safe-failure behavior; not live provider semantics",
+      "source_fixture": "tools/test_tracking_cross_system_2_9_13.cjs:59",
+      "assertions": [
+        "tools/test_tracking_cross_system_2_9_13.cjs:62:const fold=c.simFold(r.messages,c.emptyChatState());assert(fold.knows.has(fold.keyOf('Pilot')));assert(!fold.knows.has(fold.keyOf('Merchant')));",
+        "tools/test_tracking_cross_system_2_9_13.cjs:63:assert.equal(fold.knows.get(fold.keyOf('Pilot')).facts.length,1);"
+      ],
+      "result": "pass",
+      "persistence": "Existing per-swipe metadata, optional survival.abilities and chat-local manual controls; raw HUD remains authoritative",
+      "live_provider_result": "Untested",
+      "limit": "This contract does not certify all lorebook entries sharing its mechanic family."
+    },
+    {
+      "unit": "test_tracking_cross_system_2_9_13.cjs:65",
+      "contract": "Quest deadlines and related appointments change only from their own accepted reports",
+      "status": "Verified supported",
+      "verification_layer": "Deterministic synthetic report/storage/fold/panel or safe-failure behavior; not live provider semantics",
+      "source_fixture": "tools/test_tracking_cross_system_2_9_13.cjs:65",
+      "assertions": [
+        "tools/test_tracking_cross_system_2_9_13.cjs:70:assert.equal(c.agendaRead(r.messages,{}).items.length,1);assert.equal(c.agendaRead(r.messages,{}).items[0].key,key);assert.equal(c.questDetailsLatest(r.messages)[0].deadline,'Day 10');",
+        "tools/test_tracking_cross_system_2_9_13.cjs:72:assert.equal(c.questDetailsLatest(r.messages)[0].deadline,'Day 10');assert.match(c.agendaRead(r.messages,{}).items[0].when,/Day 10/);"
+      ],
+      "result": "pass",
+      "persistence": "Existing per-swipe metadata, optional survival.abilities and chat-local manual controls; raw HUD remains authoritative",
+      "live_provider_result": "Untested",
+      "limit": "This contract does not certify all lorebook entries sharing its mechanic family."
+    },
+    {
+      "unit": "test_tracking_cross_system_2_9_13.cjs:74",
+      "contract": "Source edits invalidate stored event/ability projections and JSON-restored histories stay idempotent",
+      "status": "Verified supported",
+      "verification_layer": "Deterministic synthetic report/storage/fold/panel or safe-failure behavior; not live provider semantics",
+      "source_fixture": "tools/test_tracking_cross_system_2_9_13.cjs:74",
+      "assertions": [
+        "tools/test_tracking_cross_system_2_9_13.cjs:78:assert.equal(restart.ctx.spellKnown(restart.messages,{}).size,1);assert.equal(restart.ctx.agendaRead(restart.messages,{}).items.length,1);",
+        "tools/test_tracking_cross_system_2_9_13.cjs:79:restart.messages.at(-1).content+=' An edited branch.';assert.equal(restart.ctx.spellKnown(restart.messages,{}).size,0);assert.equal(restart.ctx.agendaRead(restart.messages,{}).items.length,0);"
+      ],
+      "result": "pass",
+      "persistence": "Existing per-swipe metadata, optional survival.abilities and chat-local manual controls; raw HUD remains authoritative",
+      "live_provider_result": "Untested",
+      "limit": "This contract does not certify all lorebook entries sharing its mechanic family."
+    }
+  ]
+}

@@ -1,0 +1,16 @@
+{
+  "source_sha256": "df2fd8b90c1f8ee1bac2a054dd7acb60d165555022a7e8c59e34d149d84a69d7",
+  "baseline_commit": "7a98c1c18070972f3e8201fffe5bbc6955f547da",
+  "counting_unit": "Original lorebook entry ID, not a verified gameplay mechanic. No semantic percentage is inferred from entry counts.",
+  "counts": {
+    "Verified supported": 0,
+    "Partially supported": 174,
+    "Unsupported": 0,
+    "Defective": 0,
+    "Untested": 1096,
+    "Not applicable": 26
+  },
+  "full_content_fixture": "tools/updated_six_sided_fixture.json.gz",
+  "lossless_core_inventory": "tools/six_sided_core_inventory.json.gz",
+  "lossless_card_reconstruction_verified": true
+}

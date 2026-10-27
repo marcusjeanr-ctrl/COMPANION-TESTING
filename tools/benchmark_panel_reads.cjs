@@ -8,13 +8,20 @@ if (!files.length) files.push(path.join(__dirname, '../dist/backend.js'));
 for (const filename of files) {
     const rt = runtime(filename);
     const samples = [];
+    const assessmentCount = Math.max(0, Math.min(8, Number(process.env.COMPANION_BENCH_ASSESSMENTS) || 0));
+    const fixture = assessmentCount ? structuredClone(reading) : reading;
+    if (assessmentCount) {
+        fixture.you.abilities = Array.from({length:assessmentCount}, (_, i) => ({name:`Navigation Skill ${i}`, owner:'you', historical:true, state:'known', evidence:`Your signed record confirms Navigation Skill ${i}.`}));
+        // Equal known-ability counts in both versions; only the candidate retains provenance.
+        fixture.you.spells = fixture.you.abilities.map(row => row.name);
+    }
     // 300 active readings, with user turns, many rooms, and full panel metadata.
     const replies = Math.max(1, Math.min(5000, Number(process.env.COMPANION_BENCH_REPLIES) || 300));
     for (let i = 0; i < replies; i++) {
         rt.messages.push({ id: `u${i}`, role: 'user', content: 'I continue training.' });
-        const data = rt.ctx.parseCompanion(`<rpg_companion>${JSON.stringify(reading)}</rpg_companion>`, [], null, null);
+        const data = rt.ctx.parseCompanion(`<rpg_companion>${JSON.stringify(fixture)}</rpg_companion>`, [], null, null);
         rt.messages.push({ id: `a${i}`, role: 'assistant', swipe_id: 0,
-            content: hud(`Training Room ${i % 12}`, `07:${String(i % 60).padStart(2, '0')}`),
+            content: hud(`Training Room ${i % 12}`, `07:${String(i % 60).padStart(2, '0')}`) + (assessmentCount ? '\n' + fixture.you.abilities.map(row => row.evidence).join('\n') : ''),
             metadata: { rpg_companion: { swipes: { 0: { ...data, survival: data.you } } } } });
     }
     if (process.env.COMPANION_BIND_READINGS === '1' && typeof rt.ctx.readingSource === 'function') {
@@ -40,6 +47,7 @@ for (const filename of files) {
     }
     samples.sort((a, b) => a - b);
     console.log(JSON.stringify({ file: filename, messages: rt.messages.length, coldMs: +coldMs.toFixed(2),
-        medianMs: +((samples[4] + samples[5]) / 2).toFixed(2), warnings: rt.warnings.length }));
+        medianMs: +((samples[4] + samples[5]) / 2).toFixed(2), warnings: rt.warnings.length,
+        ...(assessmentCount ? {assessmentsPerReply:assessmentCount,knownAbilities:rt.ctx.spellKnown(rt.messages,rt.run('benchmarkState')).size} : {}) }));
 }
 

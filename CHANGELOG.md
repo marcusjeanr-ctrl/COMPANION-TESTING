@@ -1,5 +1,25 @@
 # Changelog — RPG Companion HMS Edition
 
+## 2.9.13 RC candidate — Universal tracking evidence
+
+- Expose explicit rescheduling in the Agenda report schema, normalize rescheduled/
+  postponed states, and reconcile legacy open reports only with a narration-backed,
+  uniquely matched active commitment. Preserve separate sessions and schedule history.
+- Accept historical player ability assessments through the existing extraction call,
+  preserving source quotes and separating attempted, practiced, known, reliable and
+  explicitly mastered states. Historical records are not new-learning transactions.
+- Add optional backward-compatible `survival.abilities` metadata with source/swipe,
+  ownership, uncertainty, chronology, alias and manual-correction guards. No migration.
+- Preserve omitted assessment fields on same-source refreshes. Show assessment
+  provenance in existing spell/technique rows without redesigning panels.
+- Keep full ability identities up to 160 characters through manual learn/forget/study
+  controls; the former 60-character identity clipping could target the wrong key.
+- Add focused lifecycle, cross-genre, cross-system, browser and actual-export checks,
+  plus a lossless card inventory and a conservative per-entry coverage register.
+- No extra model calls, polling or full-chat traversals. Prompt/metadata costs are
+  bounded and measured. Actual provider re-extraction and live Lumiverse acceptance
+  remain unverified; see `docs/compatibility/2_9_13/REPORT.md` for precise limitations.
+
 ## 2.9.12 RC — Universal HUD and lore compatibility
 
 - Read Visual Era / Arc, Demon Eye and combined Curse / Blessing labels in the

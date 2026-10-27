@@ -85,6 +85,17 @@ class BrowserUi(unittest.TestCase):
         self.assertIn('Curse / Blessing',text)
         self.assertIn('Ageless — 長命の旅人',text)
 
+    def test_historical_ability_assessment_is_visible_and_escaped(self):
+        payload=json.loads(json.dumps(FIXTURE['payload']))
+        spell=payload['hms']['magic']['list']['schools'][0]['spells'][0]
+        quote='A signed record confirms prior knowledge. <img src=x onerror="window.bad=true">'
+        spell['status']='known'
+        spell['evidence']={'historical':True,'state':'reliable','evidence':quote}
+        self.receive(payload)
+        text=self.page.locator('.rpgc').inner_text()
+        self.assertIn('Historical assessment · reliable: '+quote,text)
+        self.assertFalse(self.page.evaluate('!!window.bad'))
+
     def test_mobile_float_and_enlarge(self):
         self.page.get_by_label('Where the panel lives').select_option('float')
         self.assert_float_inside_viewport()
