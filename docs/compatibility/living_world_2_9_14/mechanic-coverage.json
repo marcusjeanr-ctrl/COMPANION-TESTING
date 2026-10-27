@@ -1,0 +1,250 @@
+{
+  "contracts": [
+    {
+      "mechanic": "Full card normalizes every enabled entry without granting abilities or NPCs",
+      "status": "supported",
+      "scope": "Deterministic accepted-report / runtime contract; not live extraction or the entire narrative law",
+      "test": "tools/test_living_world_compatibility.cjs:9",
+      "assertions": [
+        {
+          "line": 10,
+          "assertion": "assert.equal(card.character_book.entries.length,1004);assert.equal(c.getLorePool('living').length,998);"
+        },
+        {
+          "line": 11,
+          "assertion": "for(const e of card.character_book.entries){const n=c.loreNormEntry(e);assert.equal(!!n,e.enabled!==false);if(n)assert.equal(n.content,e.content.trim());}"
+        },
+        {
+          "line": 12,
+          "assertion": "assert.equal(c.spellKnown([],{},null,'living').size,0);assert.equal(c.simFold([],c.emptyChatState()).minds.size,0);"
+        }
+      ]
+    },
+    {
+      "mechanic": "All ten catalogue greetings stay reference-only and extended campaign days retain their date",
+      "status": "supported",
+      "scope": "Deterministic accepted-report / runtime contract; not live extraction or the entire narrative law",
+      "test": "tools/test_living_world_compatibility.cjs:14",
+      "assertions": [
+        {
+          "line": 15,
+          "assertion": "for(const text of [card.first_mes,...card.alternate_greetings])assert.equal(c.parseHud(text),null,'A catalogue example became current state');"
+        },
+        {
+          "line": 16,
+          "assertion": "const text=base().replace('Day: 8','Day: 721');const w=c.worldMushoku('living',c.worldLines(c.parseHud(text)),c.emptyChatState());assert.equal(w.day,721);assert.equal(w.year,417);"
+        },
+        {
+          "line": 17,
+          "assertion": "const before=c.hmsClock(c.parseHud(base().replace('Day: 8','Day: 720'))).minutes;assert.equal(c.hmsClock(c.parseHud(text)).minutes-before,1440);"
+        }
+      ]
+    },
+    {
+      "mechanic": "Every explicit field-based spell retains name, school, tier and fan status",
+      "status": "supported",
+      "scope": "Deterministic accepted-report / runtime contract; not live extraction or the entire narrative law",
+      "test": "tools/test_living_world_compatibility.cjs:19",
+      "assertions": [
+        {
+          "line": 23,
+          "assertion": "const row=cat.find(x=>x.key===c.spellKey(title[1]));assert(row,'Missing spell '+e.id);"
+        },
+        {
+          "line": 24,
+          "assertion": "const first=card.character_book.entries.find(x=>x.content===e.content);assert.equal(row.src,String(first.id),'Missing dedicated source '+e.id);assert(row.effect,'Missing effect '+e.id);"
+        },
+        {
+          "line": 25,
+          "assertion": "assert.equal(row.fan,/^Status: Fan-extension/m.test(e.content),'Fan status '+e.id);"
+        },
+        {
+          "line": 26,
+          "assertion": "if(/School: Healing Branch \\(Detoxification\\)/.test(e.content))assert.equal(row.school,'Detoxification');"
+        },
+        {
+          "line": 28,
+          "assertion": "assert.equal(count,244);assert(!cat.some(x=>x.name.includes('|')||/fan-extension spells/i.test(x.school)));"
+        }
+      ]
+    },
+    {
+      "mechanic": "Markdown school/rank spell lists and detailed sword techniques are usable references",
+      "status": "supported",
+      "scope": "Deterministic accepted-report / runtime contract; not live extraction or the entire narrative law",
+      "test": "tools/test_living_world_compatibility.cjs:30",
+      "assertions": [
+        {
+          "line": 32,
+          "assertion": "assert.equal(cat.find(x=>x.key==='waterball').school,'Water');"
+        },
+        {
+          "line": 33,
+          "assertion": "assert(cat.find(x=>x.key==='waterball').effect);assert(cat.find(x=>x.key==='quagmire').kind==='melded');"
+        },
+        {
+          "line": 34,
+          "assertion": "for(const name of ['Arm Chop','Longsword of Silence','Longsword of Light','Light Reversal','Flow','Deprivation Sword Kingdom','Four Legged Form','Hazy Cross','Teardrop Bullet'])assert(tech.some(x=>x.key===c.spellKey(name)),name);"
+        },
+        {
+          "line": 35,
+          "assertion": "assert.equal(tech.find(x=>x.key==='longsword of light').step,3);assert.equal(tech.find(x=>x.key==='teardrop bullet').step,null);"
+        },
+        {
+          "line": 36,
+          "assertion": "assert(!tech.some(x=>/measure:|proof:|, three mastered/i.test(x.name)));assert(tech.some(x=>x.fan));assert(tech.find(x=>x.key==='longsword of light').effect);"
+        },
+        {
+          "line": 37,
+          "assertion": "assert.equal(c.spellKnown([],{},null,'living').size,0);"
+        }
+      ]
+    },
+    {
+      "mechanic": "Living continuation command respects snapshot and active-swipe Internal States boundaries",
+      "status": "supported",
+      "scope": "Deterministic accepted-report / runtime contract; not live extraction or the entire narrative law",
+      "test": "tools/test_living_world_compatibility.cjs:39",
+      "assertions": [
+        {
+          "line": 43,
+          "assertion": "assert.equal(msg._rpgcPurpose,'continue');assert(c.messageHud(msg));assert.equal(c.getSwipeData(msg),null);"
+        },
+        {
+          "line": 44,
+          "assertion": "c.statesFill('living-resume',chat);assert(c.statesReading(msg).minds.length);msg.swipe_id=1;assert.equal(c.statesReading(msg),null);"
+        },
+        {
+          "line": 45,
+          "assertion": "assert.equal(c.companionTurnPurpose('MUSHOKU_TENSEI_START_CONTINUER\\nResume without a HUD'),'continue');"
+        },
+        {
+          "line": 46,
+          "assertion": "assert.equal(c.companionTurnPurpose('MUSHOKU_TENSEI_START_HANDLER\\nStart at Arc 1'),'story');"
+        }
+      ]
+    },
+    {
+      "mechanic": "Sandbox and explicit divergence do not acquire a clock-selected personal arc",
+      "status": "supported",
+      "scope": "Deterministic accepted-report / runtime contract; not live extraction or the entire narrative law",
+      "test": "tools/test_living_world_compatibility.cjs:48",
+      "assertions": [
+        {
+          "line": 50,
+          "assertion": "assert.equal(w.saga.current,null);assert.equal(w.saga.next,null);assert.equal(w.saga.participation,'personal');"
+        },
+        {
+          "line": 52,
+          "assertion": "assert.equal(w.saga.current,3);assert.equal(w.saga.participation,'explicit');assert.equal(w.saga.partName,'The Road West');"
+        },
+        {
+          "line": 53,
+          "assertion": "w=c.worldMushoku('living',c.worldLines(c.parseHud(base().replace('Sandbox \u2014 Build a workshop','Arc 23: Conclusion'))),st);assert.equal(w.saga.current,23);assert.equal(w.saga.next,null);assert.equal(w.saga.personalArc,'Arc 23: Conclusion');"
+        }
+      ]
+    },
+    {
+      "mechanic": "Canonical summoning pacts and alternate Drain Syndrome output reach existing World rows",
+      "status": "supported",
+      "scope": "Deterministic accepted-report / runtime contract; not live extraction or the entire narrative law",
+      "test": "tools/test_living_world_compatibility.cjs:55",
+      "assertions": [
+        {
+          "line": 58,
+          "assertion": "assert.match(w.contracts,/Lantern/);assert.match(w.contracts,/Watcher/);assert.match(w.drain.stage,/Year 3 of 10/);"
+        },
+        {
+          "line": 59,
+          "assertion": "assert.equal(c.worldMushoku('living',c.worldLines(c.parseHud(base())),c.emptyChatState()).contracts,null);"
+        },
+        {
+          "line": 60,
+          "assertion": "assert.equal(c.worldMushoku('living',c.worldLines(c.parseHud(base())),c.emptyChatState()).drain,null);"
+        }
+      ]
+    },
+    {
+      "mechanic": "Raw/Treated/Permanent wounds, conditions, curses, eyes and item blocks remain narrator-owned",
+      "status": "supported",
+      "scope": "Deterministic accepted-report / runtime contract; not live extraction or the entire narrative law",
+      "test": "tools/test_living_world_compatibility.cjs:62",
+      "assertions": [
+        {
+          "line": 65,
+          "assertion": "const h=c.parseHud(text),sys=c.hmsReadSystems(h);assert.equal(sys.wounds[0].tag,tag);assert(sys.conditions.length);"
+        },
+        {
+          "line": 66,
+          "assertion": "assert.equal(c.hudToBlock(h),text.split('***')[0]+'***');assert.equal(c.worldMushoku('living',c.worldLines(h),c.emptyChatState()).marks.length,1);"
+        },
+        {
+          "line": 68,
+          "assertion": "const object=base().replace('***','Game Mode: Item Mode\\nForm: Sentient staff\\nBearer: None\\nPowers: Stores one light spell\\nBond: Unaware\\n***');assert(c.hudToBlock(c.parseHud(object)).includes('Bearer: None'));"
+        }
+      ]
+    },
+    {
+      "mechanic": "Multi-turn practice, learning, mastery, rescheduling and NPC absence preserve separate states",
+      "status": "supported",
+      "scope": "Deterministic accepted-report / runtime contract; not live extraction or the entire narrative law",
+      "test": "tools/test_living_world_compatibility.cjs:70",
+      "assertions": [
+        {
+          "line": 75,
+          "assertion": "assert.equal(rt.ctx.spellKnown(rt.messages,{}).size,0);"
+        },
+        {
+          "line": 77,
+          "assertion": "assert.equal(rt.ctx.agendaRead(rt.messages,{}).items.length,1);assert(rt.ctx.spellKnown(rt.messages,{}).has('waterball'));assert(!rt.ctx.spellKnown(rt.messages,{}).get('waterball').mastered);"
+        },
+        {
+          "line": 79,
+          "assertion": "assert(rt.ctx.spellKnown(rt.messages,{}).get('waterball').mastered);assert.equal(rt.ctx.famRead(rt.messages,{}).members.length,1);"
+        },
+        {
+          "line": 80,
+          "assertion": "const fold=rt.ctx.simFold(rt.messages,rt.ctx.emptyChatState());assert(!fold.knows.has(fold.keyOf('Merchant')));"
+        },
+        {
+          "line": 81,
+          "assertion": "assert.equal(rt.ctx.famRead(rt.messages,{}).members[0].where,'Market');"
+        },
+        {
+          "line": 83,
+          "assertion": "assert.equal(rt.ctx.famRead(rt.messages,{}).members.length,1);assert.equal(rt.ctx.famRead(rt.messages,{}).members[0].where,'Courtyard');"
+        },
+        {
+          "line": 84,
+          "assertion": "const restart=runtime();restart.messages.push(...JSON.parse(JSON.stringify(rt.messages)));assert(restart.ctx.spellKnown(restart.messages,{}).get('waterball').mastered);assert.equal(restart.ctx.agendaRead(restart.messages,{}).items.length,1);"
+        },
+        {
+          "line": 85,
+          "assertion": "assert.equal(calls,4);"
+        }
+      ]
+    },
+    {
+      "mechanic": "Observed ownership, currency, organizations and quest resets survive sparse turns",
+      "status": "supported",
+      "scope": "Deterministic accepted-report / runtime contract; not live extraction or the entire narrative law",
+      "test": "tools/test_living_world_compatibility.cjs:87",
+      "assertions": [
+        {
+          "line": 92,
+          "assertion": "assert(rt.ctx.gearRead(rt.messages,{}).items.some(x=>x.name==='Workshop key'),'gear');assert(rt.ctx.holdRead(rt.messages,{}).items.some(x=>x.name==='Workshop'),'holdings');assert.equal(rt.ctx.moneyRead(rt.messages,{}).list.length,1);"
+        },
+        {
+          "line": 93,
+          "assertion": "assert(rt.ctx.factionRead(rt.messages,{}).items.some(x=>x.name==='Artisans guild'),'factions');assert.equal(rt.ctx.questDetailsLatest(rt.messages).length,1);"
+        },
+        {
+          "line": 94,
+          "assertion": "const q=rt.ctx.questDetailsLatest(rt.messages)[0];assert.equal(q.progress,0);assert.match(q.objective,/bellows/);"
+        }
+      ]
+    }
+  ],
+  "universal_pipeline": "buildCompanionInstructionRead \u2192 parseCompanion \u2192 setSwipeData/getSwipeData \u2192 chronological folds/panel payload \u2192 existing frontend; source-bound active swipes and existing caches",
+  "limits": "Entry-level and live semantic verification remain partial. No 100% compatibility claim."
+}

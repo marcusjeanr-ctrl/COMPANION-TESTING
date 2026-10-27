@@ -1,0 +1,534 @@
+{
+  "baseline": "601e98e140227fbfa3ffd3066e4fd46417d1ddd0",
+  "runtime": "Node 22.22.2",
+  "method": "Five alternating process pairs at 600/2000 source-bound messages; cold, 3 warmups, 10 warm samples. Six pipeline pairs and three full-card/GC pairs, alternating order. Existing mock host, same fixtures and complete card. Tests were not run concurrently with these final measurements.",
+  "source_sha256": {
+    "baseline": "06e076484571a49ee50d8cfe75bb9f2165dc09cc1d197d162ba4ccfe15428da1",
+    "candidate": "217af6ae0c7b0d4207385afd106080191af342c5d6c21394fce119bbdea29666"
+  },
+  "summary": {
+    "panel-300": {
+      "2.9.13": {
+        "messages": 600,
+        "coldMs": 249.94,
+        "medianMs": 76.24,
+        "warnings": 0
+      },
+      "candidate": {
+        "messages": 600,
+        "coldMs": 225.77,
+        "medianMs": 56.5,
+        "warnings": 0
+      }
+    },
+    "panel-1000": {
+      "2.9.13": {
+        "messages": 2000,
+        "coldMs": 550.34,
+        "medianMs": 119.58,
+        "warnings": 0
+      },
+      "candidate": {
+        "messages": 2000,
+        "coldMs": 536.59,
+        "medianMs": 110.61,
+        "warnings": 0
+      }
+    },
+    "pipeline": {
+      "2.9.13": {
+        "parseReportMedianMs": 0.74285,
+        "processResponseMedianMs": 0.94705,
+        "promptConstructMedianMs": 0.44475,
+        "promptCharacters": 14892.0,
+        "populatedPromptCharacters": 18721.0,
+        "warnings": 0.0
+      },
+      "candidate": {
+        "parseReportMedianMs": 0.7598,
+        "processResponseMedianMs": 1.0623,
+        "promptConstructMedianMs": 0.49215,
+        "promptCharacters": 14892.0,
+        "populatedPromptCharacters": 18721.0,
+        "warnings": 0.0
+      }
+    },
+    "full-card-panel": {
+      "2.9.13": {
+        "messages": 600,
+        "coldMs": 1153.98,
+        "medianMs": 90.29,
+        "warnings": 0
+      },
+      "candidate": {
+        "messages": 600,
+        "coldMs": 1176.54,
+        "medianMs": 84.01,
+        "warnings": 0
+      }
+    },
+    "full-card-memory": {
+      "2.9.13": {
+        "messages": 1000,
+        "enabledEntries": 998,
+        "vmInitMs": 52.802,
+        "fixturePlusVmHeapBytes": 12120744,
+        "catalogAdditionalHeapBytes": 381336,
+        "catalogColdMs": 87.457,
+        "catalogWarmMedianMs": 0.00113,
+        "spells": 123,
+        "techniques": 0
+      },
+      "candidate": {
+        "messages": 1000,
+        "enabledEntries": 998,
+        "vmInitMs": 41.889,
+        "fixturePlusVmHeapBytes": 12128256,
+        "catalogAdditionalHeapBytes": 768120,
+        "catalogColdMs": 103.654,
+        "catalogWarmMedianMs": 0.00107,
+        "spells": 348,
+        "techniques": 31
+      }
+    }
+  },
+  "operations": {
+    "2.9.13": {
+      "file": "/workspace/living-world/baseline-backend.js",
+      "transport": {
+        "model": 1,
+        "getMessages": 6,
+        "metadataWrites": 1,
+        "storageReads": 2,
+        "storageWrites": 4,
+        "historyElementReads": 0,
+        "traversals": {}
+      },
+      "panel": {
+        "messages": 600,
+        "historyElementReads": 9101,
+        "traversals": {
+          "mtEventLedgerUncached": 1,
+          "atlasObserveHistory": 1,
+          "relReadingsUncached": 1,
+          "hmsTimelineUncached": 1,
+          "simReplies": 1,
+          "spellStoryFoldUncached": 1
+        }
+      }
+    },
+    "candidate": {
+      "file": "/workspace/living-world/candidate-backend.js",
+      "transport": {
+        "model": 1,
+        "getMessages": 6,
+        "metadataWrites": 1,
+        "storageReads": 2,
+        "storageWrites": 4,
+        "historyElementReads": 0,
+        "traversals": {}
+      },
+      "panel": {
+        "messages": 600,
+        "historyElementReads": 9101,
+        "traversals": {
+          "mtEventLedgerUncached": 1,
+          "atlasObserveHistory": 1,
+          "relReadingsUncached": 1,
+          "hmsTimelineUncached": 1,
+          "simReplies": 1,
+          "spellStoryFoldUncached": 1
+        }
+      }
+    }
+  },
+  "raw": [
+    {
+      "benchmark": "panel",
+      "version": "2.9.13",
+      "round": 0,
+      "replies": 300,
+      "exit": 0,
+      "stdout": "{\"file\":\"/workspace/living-world/baseline-backend.js\",\"messages\":600,\"coldMs\":225.58,\"medianMs\":71.81,\"warnings\":0}\n",
+      "stderr": ""
+    },
+    {
+      "benchmark": "panel",
+      "version": "candidate",
+      "round": 0,
+      "replies": 300,
+      "exit": 0,
+      "stdout": "{\"file\":\"/workspace/living-world/candidate-backend.js\",\"messages\":600,\"coldMs\":278.31,\"medianMs\":73.36,\"warnings\":0}\n",
+      "stderr": ""
+    },
+    {
+      "benchmark": "panel",
+      "version": "candidate",
+      "round": 1,
+      "replies": 300,
+      "exit": 0,
+      "stdout": "{\"file\":\"/workspace/living-world/candidate-backend.js\",\"messages\":600,\"coldMs\":221.49,\"medianMs\":54.72,\"warnings\":0}\n",
+      "stderr": ""
+    },
+    {
+      "benchmark": "panel",
+      "version": "2.9.13",
+      "round": 1,
+      "replies": 300,
+      "exit": 0,
+      "stdout": "{\"file\":\"/workspace/living-world/baseline-backend.js\",\"messages\":600,\"coldMs\":216.64,\"medianMs\":94.3,\"warnings\":0}\n",
+      "stderr": ""
+    },
+    {
+      "benchmark": "panel",
+      "version": "2.9.13",
+      "round": 2,
+      "replies": 300,
+      "exit": 0,
+      "stdout": "{\"file\":\"/workspace/living-world/baseline-backend.js\",\"messages\":600,\"coldMs\":249.94,\"medianMs\":68.01,\"warnings\":0}\n",
+      "stderr": ""
+    },
+    {
+      "benchmark": "panel",
+      "version": "candidate",
+      "round": 2,
+      "replies": 300,
+      "exit": 0,
+      "stdout": "{\"file\":\"/workspace/living-world/candidate-backend.js\",\"messages\":600,\"coldMs\":232.22,\"medianMs\":55.62,\"warnings\":0}\n",
+      "stderr": ""
+    },
+    {
+      "benchmark": "panel",
+      "version": "candidate",
+      "round": 3,
+      "replies": 300,
+      "exit": 0,
+      "stdout": "{\"file\":\"/workspace/living-world/candidate-backend.js\",\"messages\":600,\"coldMs\":213.58,\"medianMs\":56.5,\"warnings\":0}\n",
+      "stderr": ""
+    },
+    {
+      "benchmark": "panel",
+      "version": "2.9.13",
+      "round": 3,
+      "replies": 300,
+      "exit": 0,
+      "stdout": "{\"file\":\"/workspace/living-world/baseline-backend.js\",\"messages\":600,\"coldMs\":308.92,\"medianMs\":76.24,\"warnings\":0}\n",
+      "stderr": ""
+    },
+    {
+      "benchmark": "panel",
+      "version": "2.9.13",
+      "round": 4,
+      "replies": 300,
+      "exit": 0,
+      "stdout": "{\"file\":\"/workspace/living-world/baseline-backend.js\",\"messages\":600,\"coldMs\":391.21,\"medianMs\":86.64,\"warnings\":0}\n",
+      "stderr": ""
+    },
+    {
+      "benchmark": "panel",
+      "version": "candidate",
+      "round": 4,
+      "replies": 300,
+      "exit": 0,
+      "stdout": "{\"file\":\"/workspace/living-world/candidate-backend.js\",\"messages\":600,\"coldMs\":225.77,\"medianMs\":56.5,\"warnings\":0}\n",
+      "stderr": ""
+    },
+    {
+      "benchmark": "panel",
+      "version": "2.9.13",
+      "round": 0,
+      "replies": 1000,
+      "exit": 0,
+      "stdout": "{\"file\":\"/workspace/living-world/baseline-backend.js\",\"messages\":2000,\"coldMs\":491.66,\"medianMs\":107.72,\"warnings\":0}\n",
+      "stderr": ""
+    },
+    {
+      "benchmark": "panel",
+      "version": "candidate",
+      "round": 0,
+      "replies": 1000,
+      "exit": 0,
+      "stdout": "{\"file\":\"/workspace/living-world/candidate-backend.js\",\"messages\":2000,\"coldMs\":692.2,\"medianMs\":110.5,\"warnings\":0}\n",
+      "stderr": ""
+    },
+    {
+      "benchmark": "panel",
+      "version": "candidate",
+      "round": 1,
+      "replies": 1000,
+      "exit": 0,
+      "stdout": "{\"file\":\"/workspace/living-world/candidate-backend.js\",\"messages\":2000,\"coldMs\":519.07,\"medianMs\":204.57,\"warnings\":0}\n",
+      "stderr": ""
+    },
+    {
+      "benchmark": "panel",
+      "version": "2.9.13",
+      "round": 1,
+      "replies": 1000,
+      "exit": 0,
+      "stdout": "{\"file\":\"/workspace/living-world/baseline-backend.js\",\"messages\":2000,\"coldMs\":968.92,\"medianMs\":204.18,\"warnings\":0}\n",
+      "stderr": ""
+    },
+    {
+      "benchmark": "panel",
+      "version": "2.9.13",
+      "round": 2,
+      "replies": 1000,
+      "exit": 0,
+      "stdout": "{\"file\":\"/workspace/living-world/baseline-backend.js\",\"messages\":2000,\"coldMs\":622.29,\"medianMs\":114.88,\"warnings\":0}\n",
+      "stderr": ""
+    },
+    {
+      "benchmark": "panel",
+      "version": "candidate",
+      "round": 2,
+      "replies": 1000,
+      "exit": 0,
+      "stdout": "{\"file\":\"/workspace/living-world/candidate-backend.js\",\"messages\":2000,\"coldMs\":642.15,\"medianMs\":120.76,\"warnings\":0}\n",
+      "stderr": ""
+    },
+    {
+      "benchmark": "panel",
+      "version": "candidate",
+      "round": 3,
+      "replies": 1000,
+      "exit": 0,
+      "stdout": "{\"file\":\"/workspace/living-world/candidate-backend.js\",\"messages\":2000,\"coldMs\":536.59,\"medianMs\":110.61,\"warnings\":0}\n",
+      "stderr": ""
+    },
+    {
+      "benchmark": "panel",
+      "version": "2.9.13",
+      "round": 3,
+      "replies": 1000,
+      "exit": 0,
+      "stdout": "{\"file\":\"/workspace/living-world/baseline-backend.js\",\"messages\":2000,\"coldMs\":550.34,\"medianMs\":119.58,\"warnings\":0}\n",
+      "stderr": ""
+    },
+    {
+      "benchmark": "panel",
+      "version": "2.9.13",
+      "round": 4,
+      "replies": 1000,
+      "exit": 0,
+      "stdout": "{\"file\":\"/workspace/living-world/baseline-backend.js\",\"messages\":2000,\"coldMs\":516.33,\"medianMs\":127.35,\"warnings\":0}\n",
+      "stderr": ""
+    },
+    {
+      "benchmark": "panel",
+      "version": "candidate",
+      "round": 4,
+      "replies": 1000,
+      "exit": 0,
+      "stdout": "{\"file\":\"/workspace/living-world/candidate-backend.js\",\"messages\":2000,\"coldMs\":427.27,\"medianMs\":90.32,\"warnings\":0}\n",
+      "stderr": ""
+    },
+    {
+      "benchmark": "pipeline",
+      "version": "2.9.13",
+      "round": 0,
+      "exit": 0,
+      "stdout": "{\"file\":\"/workspace/living-world/baseline-backend.js\",\"parseReportMedianMs\":0.8773,\"processResponseMedianMs\":0.936,\"promptConstructMedianMs\":0.5134,\"promptCharacters\":14892,\"populatedPromptCharacters\":18721,\"warnings\":0}\n",
+      "stderr": ""
+    },
+    {
+      "benchmark": "pipeline",
+      "version": "candidate",
+      "round": 0,
+      "exit": 0,
+      "stdout": "{\"file\":\"/workspace/living-world/candidate-backend.js\",\"parseReportMedianMs\":0.7322,\"processResponseMedianMs\":0.9722,\"promptConstructMedianMs\":0.4408,\"promptCharacters\":14892,\"populatedPromptCharacters\":18721,\"warnings\":0}\n",
+      "stderr": ""
+    },
+    {
+      "benchmark": "pipeline",
+      "version": "candidate",
+      "round": 1,
+      "exit": 0,
+      "stdout": "{\"file\":\"/workspace/living-world/candidate-backend.js\",\"parseReportMedianMs\":0.8648,\"processResponseMedianMs\":1.0946,\"promptConstructMedianMs\":0.4735,\"promptCharacters\":14892,\"populatedPromptCharacters\":18721,\"warnings\":0}\n",
+      "stderr": ""
+    },
+    {
+      "benchmark": "pipeline",
+      "version": "2.9.13",
+      "round": 1,
+      "exit": 0,
+      "stdout": "{\"file\":\"/workspace/living-world/baseline-backend.js\",\"parseReportMedianMs\":0.7285,\"processResponseMedianMs\":0.906,\"promptConstructMedianMs\":0.5023,\"promptCharacters\":14892,\"populatedPromptCharacters\":18721,\"warnings\":0}\n",
+      "stderr": ""
+    },
+    {
+      "benchmark": "pipeline",
+      "version": "2.9.13",
+      "round": 2,
+      "exit": 0,
+      "stdout": "{\"file\":\"/workspace/living-world/baseline-backend.js\",\"parseReportMedianMs\":0.8443,\"processResponseMedianMs\":0.8201,\"promptConstructMedianMs\":0.3803,\"promptCharacters\":14892,\"populatedPromptCharacters\":18721,\"warnings\":0}\n",
+      "stderr": ""
+    },
+    {
+      "benchmark": "pipeline",
+      "version": "candidate",
+      "round": 2,
+      "exit": 0,
+      "stdout": "{\"file\":\"/workspace/living-world/candidate-backend.js\",\"parseReportMedianMs\":0.7874,\"processResponseMedianMs\":1.1323,\"promptConstructMedianMs\":0.4774,\"promptCharacters\":14892,\"populatedPromptCharacters\":18721,\"warnings\":0}\n",
+      "stderr": ""
+    },
+    {
+      "benchmark": "operations",
+      "version": "2.9.13",
+      "exit": 0,
+      "stdout": "{\"file\":\"/workspace/living-world/baseline-backend.js\",\"transport\":{\"model\":1,\"getMessages\":6,\"metadataWrites\":1,\"storageReads\":2,\"storageWrites\":4,\"historyElementReads\":0,\"traversals\":{}},\"panel\":{\"messages\":600,\"historyElementReads\":9101,\"traversals\":{\"mtEventLedgerUncached\":1,\"atlasObserveHistory\":1,\"relReadingsUncached\":1,\"hmsTimelineUncached\":1,\"simReplies\":1,\"spellStoryFoldUncached\":1}}}\n",
+      "stderr": ""
+    },
+    {
+      "benchmark": "operations",
+      "version": "candidate",
+      "exit": 0,
+      "stdout": "{\"file\":\"/workspace/living-world/candidate-backend.js\",\"transport\":{\"model\":1,\"getMessages\":6,\"metadataWrites\":1,\"storageReads\":2,\"storageWrites\":4,\"historyElementReads\":0,\"traversals\":{}},\"panel\":{\"messages\":600,\"historyElementReads\":9101,\"traversals\":{\"mtEventLedgerUncached\":1,\"atlasObserveHistory\":1,\"relReadingsUncached\":1,\"hmsTimelineUncached\":1,\"simReplies\":1,\"spellStoryFoldUncached\":1}}}\n",
+      "stderr": ""
+    },
+    {
+      "benchmark": "pipeline",
+      "version": "candidate",
+      "round": 3,
+      "exit": 0,
+      "stdout": "{\"file\":\"/workspace/living-world/candidate-backend.js\",\"parseReportMedianMs\":0.7256,\"processResponseMedianMs\":0.9893,\"promptConstructMedianMs\":0.5069,\"promptCharacters\":14892,\"populatedPromptCharacters\":18721,\"warnings\":0}\n",
+      "stderr": ""
+    },
+    {
+      "benchmark": "pipeline",
+      "version": "2.9.13",
+      "round": 3,
+      "exit": 0,
+      "stdout": "{\"file\":\"/workspace/living-world/baseline-backend.js\",\"parseReportMedianMs\":0.6849,\"processResponseMedianMs\":0.9581,\"promptConstructMedianMs\":0.4417,\"promptCharacters\":14892,\"populatedPromptCharacters\":18721,\"warnings\":0}\n",
+      "stderr": ""
+    },
+    {
+      "benchmark": "pipeline",
+      "version": "2.9.13",
+      "round": 4,
+      "exit": 0,
+      "stdout": "{\"file\":\"/workspace/living-world/baseline-backend.js\",\"parseReportMedianMs\":0.7126,\"processResponseMedianMs\":0.9733,\"promptConstructMedianMs\":0.4227,\"promptCharacters\":14892,\"populatedPromptCharacters\":18721,\"warnings\":0}\n",
+      "stderr": ""
+    },
+    {
+      "benchmark": "pipeline",
+      "version": "candidate",
+      "round": 4,
+      "exit": 0,
+      "stdout": "{\"file\":\"/workspace/living-world/candidate-backend.js\",\"parseReportMedianMs\":0.7237,\"processResponseMedianMs\":1.03,\"promptConstructMedianMs\":0.6114,\"promptCharacters\":14892,\"populatedPromptCharacters\":18721,\"warnings\":0}\n",
+      "stderr": ""
+    },
+    {
+      "benchmark": "pipeline",
+      "version": "candidate",
+      "round": 5,
+      "exit": 0,
+      "stdout": "{\"file\":\"/workspace/living-world/candidate-backend.js\",\"parseReportMedianMs\":0.7915,\"processResponseMedianMs\":1.4419,\"promptConstructMedianMs\":0.5511,\"promptCharacters\":14892,\"populatedPromptCharacters\":18721,\"warnings\":0}\n",
+      "stderr": ""
+    },
+    {
+      "benchmark": "pipeline",
+      "version": "2.9.13",
+      "round": 5,
+      "exit": 0,
+      "stdout": "{\"file\":\"/workspace/living-world/baseline-backend.js\",\"parseReportMedianMs\":0.7572,\"processResponseMedianMs\":1.0277,\"promptConstructMedianMs\":0.4478,\"promptCharacters\":14892,\"populatedPromptCharacters\":18721,\"warnings\":0}\n",
+      "stderr": ""
+    },
+    {
+      "benchmark": "full-card-panel",
+      "version": "2.9.13",
+      "round": 0,
+      "exit": 0,
+      "stdout": "{\"file\":\"/workspace/living-world/baseline-backend.js\",\"messages\":600,\"coldMs\":1153.98,\"medianMs\":69.63,\"warnings\":0}\n",
+      "stderr": ""
+    },
+    {
+      "benchmark": "full-card-memory",
+      "version": "2.9.13",
+      "round": 0,
+      "exit": 0,
+      "stdout": "{\"file\":\"/workspace/living-world/baseline-backend.js\",\"messages\":1000,\"enabledEntries\":998,\"vmInitMs\":38.808,\"fixturePlusVmHeapBytes\":12121712,\"catalogAdditionalHeapBytes\":381336,\"catalogColdMs\":87.457,\"catalogWarmMedianMs\":0.00105,\"spells\":123,\"techniques\":0}\n",
+      "stderr": ""
+    },
+    {
+      "benchmark": "full-card-panel",
+      "version": "candidate",
+      "round": 0,
+      "exit": 0,
+      "stdout": "{\"file\":\"/workspace/living-world/candidate-backend.js\",\"messages\":600,\"coldMs\":1173.82,\"medianMs\":84.45,\"warnings\":0}\n",
+      "stderr": ""
+    },
+    {
+      "benchmark": "full-card-memory",
+      "version": "candidate",
+      "round": 0,
+      "exit": 0,
+      "stdout": "{\"file\":\"/workspace/living-world/candidate-backend.js\",\"messages\":1000,\"enabledEntries\":998,\"vmInitMs\":41.889,\"fixturePlusVmHeapBytes\":12129024,\"catalogAdditionalHeapBytes\":768248,\"catalogColdMs\":143.878,\"catalogWarmMedianMs\":0.00184,\"spells\":348,\"techniques\":31}\n",
+      "stderr": ""
+    },
+    {
+      "benchmark": "full-card-panel",
+      "version": "candidate",
+      "round": 1,
+      "exit": 0,
+      "stdout": "{\"file\":\"/workspace/living-world/candidate-backend.js\",\"messages\":600,\"coldMs\":1245.6,\"medianMs\":82.95,\"warnings\":0}\n",
+      "stderr": ""
+    },
+    {
+      "benchmark": "full-card-memory",
+      "version": "candidate",
+      "round": 1,
+      "exit": 0,
+      "stdout": "{\"file\":\"/workspace/living-world/candidate-backend.js\",\"messages\":1000,\"enabledEntries\":998,\"vmInitMs\":41.321,\"fixturePlusVmHeapBytes\":12127400,\"catalogAdditionalHeapBytes\":767840,\"catalogColdMs\":103.654,\"catalogWarmMedianMs\":0.00107,\"spells\":348,\"techniques\":31}\n",
+      "stderr": ""
+    },
+    {
+      "benchmark": "full-card-panel",
+      "version": "2.9.13",
+      "round": 1,
+      "exit": 0,
+      "stdout": "{\"file\":\"/workspace/living-world/baseline-backend.js\",\"messages\":600,\"coldMs\":1129.71,\"medianMs\":90.29,\"warnings\":0}\n",
+      "stderr": ""
+    },
+    {
+      "benchmark": "full-card-memory",
+      "version": "2.9.13",
+      "round": 1,
+      "exit": 0,
+      "stdout": "{\"file\":\"/workspace/living-world/baseline-backend.js\",\"messages\":1000,\"enabledEntries\":998,\"vmInitMs\":90.149,\"fixturePlusVmHeapBytes\":12120744,\"catalogAdditionalHeapBytes\":381336,\"catalogColdMs\":80.091,\"catalogWarmMedianMs\":0.00134,\"spells\":123,\"techniques\":0}\n",
+      "stderr": ""
+    },
+    {
+      "benchmark": "full-card-panel",
+      "version": "2.9.13",
+      "round": 2,
+      "exit": 0,
+      "stdout": "{\"file\":\"/workspace/living-world/baseline-backend.js\",\"messages\":600,\"coldMs\":1154.07,\"medianMs\":90.52,\"warnings\":0}\n",
+      "stderr": ""
+    },
+    {
+      "benchmark": "full-card-memory",
+      "version": "2.9.13",
+      "round": 2,
+      "exit": 0,
+      "stdout": "{\"file\":\"/workspace/living-world/baseline-backend.js\",\"messages\":1000,\"enabledEntries\":998,\"vmInitMs\":52.802,\"fixturePlusVmHeapBytes\":12119984,\"catalogAdditionalHeapBytes\":381336,\"catalogColdMs\":91.016,\"catalogWarmMedianMs\":0.00113,\"spells\":123,\"techniques\":0}\n",
+      "stderr": ""
+    },
+    {
+      "benchmark": "full-card-panel",
+      "version": "candidate",
+      "round": 2,
+      "exit": 0,
+      "stdout": "{\"file\":\"/workspace/living-world/candidate-backend.js\",\"messages\":600,\"coldMs\":1176.54,\"medianMs\":84.01,\"warnings\":0}\n",
+      "stderr": ""
+    },
+    {
+      "benchmark": "full-card-memory",
+      "version": "candidate",
+      "round": 2,
+      "exit": 0,
+      "stdout": "{\"file\":\"/workspace/living-world/candidate-backend.js\",\"messages\":1000,\"enabledEntries\":998,\"vmInitMs\":57.113,\"fixturePlusVmHeapBytes\":12128256,\"catalogAdditionalHeapBytes\":768120,\"catalogColdMs\":100.038,\"catalogWarmMedianMs\":0.00106,\"spells\":348,\"techniques\":31}\n",
+      "stderr": ""
+    }
+  ],
+  "limits": "Local synthetic/mock host, no live provider latency or actual tokenizer/billing. Larger catalog intentionally retains more useful references and costs memory. GC/process load/JIT variance; no universal speedup or zero-overhead claim. An earlier external memory harness was absent after workspace recovery; final memory measurements use the committed self-contained helper instead."
+}

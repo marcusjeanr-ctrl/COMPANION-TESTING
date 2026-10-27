@@ -2376,7 +2376,7 @@ async function pushState(chatId, snapshot = null) {
 // Demo mode plays scripted turns (no tokens); Live mode asks the model, with a small
 // world narrator standing in for a bot card.
 
-const RPGC_VERSION = '2.9.13';
+const RPGC_VERSION = '2.9.14';
 const diagLog = [];
 function diagPush(kind, m) { diagLog.push({ at: new Date().toISOString(), kind, text: String(m).slice(0, 400) }); if (diagLog.length > 60) diagLog.shift(); }
 function logW(m) { diagPush('warn', m); return spindle.log.warn(m); }
@@ -2403,7 +2403,7 @@ function companionTurnPurpose(content) {
     const text = textOf(content).trim();
     const first = text.split('\n')[0].trim();
     if (/^(?:Mushoku_Save|\[SAVE GAME\])$/i.test(first)) return 'save';
-    if (/^Mushoku_Continue_Handler$/i.test(first)) return 'continue';
+    if (/^(?:Mushoku_Continue_Handler|MUSHOKU_TENSEI_START_CONTINUER)$/i.test(first)) return 'continue';
     if (/^(?:Mushoku_Start_Handler|MUSHOKU_TENSEI_START_HANDLER)$/i.test(first) && companionResumeHud(text)) return 'continue';
     if (/^(?:###\s*(?:🌐\s*)?WORLD STATE\s*###|```(?:text|markdown)?\s*)$/i.test(first)
         && companionResumeHud(text) && /Armored Dragon Calendar|Year:\s*K\.?\s*\d+/i.test(text)) return 'continue';
@@ -6578,8 +6578,8 @@ function mtCalendar(text) {
         const year = Number(m[1]), month = Number(m[3] || m[4]), day = Number(m[5]);
         return month >= 1 && month <= 12 && day >= 1 && day <= 30 ? { year, month, day, monthName: m[2]?.trim() || null } : null;
     }
-    const old = t.match(/\bYear:\s*K\.?\s*(\d{3,4})\s*\|\s*Day:\s*(\d{1,3})\b/i);
-    return old && Number(old[2]) >= 1 && Number(old[2]) <= 360 ? { year: Number(old[1]), month: null, day: Number(old[2]), monthName: null } : null;
+    const old = t.match(/\bYear:\s*K\.?\s*(\d{3,4})\s*\|\s*Day:\s*(\d{1,6})\b/i);
+    return old && Number(old[2]) >= 1 && Number(old[2]) <= 999999 ? { year: Number(old[1]), month: null, day: Number(old[2]), monthName: null } : null;
 }
 function mtCalendarDay(date) {
     return date.year * 360 + (date.month ? (date.month - 1) * 30 : 0) + date.day - 1;
@@ -9365,10 +9365,11 @@ function worldSpellIndex(chatId, marker = /^\s*#+\s*Master Spell Index/i) {
     for (const raw of e.content.split('\n')) {
         const l = raw.trim();
         const h = l.match(/^#+\s*(?:ATTACK\s*[\u2014\u2013-]\s*)?(.+)$/i);
+        if (/^#+\s*FAN-EXTENSION SPELLS\b/i.test(l)) { school = null; continue; }
         if (h && !/Master (Spell|Technique) Index/i.test(l)) { school = h[1].split(/\s+[\u2014\u2013]\s+/)[0].trim().toLowerCase().replace(/\s+system$/, ''); continue; }
         if (!school || !l) continue;
         for (const part of l.split(/\s+\|\s+/)) {
-            const m = part.match(/^(Elementary|Intermediate|Advanced|Saint|King|Emperor|God):\s*(.+)$/i);
+            const m = part.match(/^(Beginner|Elementary|Intermediate|Advanced|Saint|King|Emperor|God):\s*(.+)$/i);
             if (m) { (out[school] = out[school] || []).push({ rank: m[1], step: MT_ABBR[m[1].toLowerCase()], spells: m[2].split(/\s*\u00B7\s*/).filter(Boolean) }); continue; }
             const s = part.match(/^([A-Z][A-Za-z ]+):\s*(.+)$/);           // "Healing: Healing (Elem) \u00B7 X-Healing (Int)"
             if (s) {
@@ -9445,8 +9446,9 @@ function mtSaga(chatId, year, arcLine, date = null) {
     const arcs = mtArcList(chatId);
     if (!arcs.length) return null;
     const text = String(arcLine || '').trim();
-    const sandbox = /^Sandbox:/i.test(text);
-    const am = text.match(/\bArc\s+(\d{1,2})(?:(?:\.(\d+))|(?:\s*-\s*([A-Z])))?(?:\s*:\s*(.+?))?(?:\)|$)/i);
+    const sandbox = /^Sandbox\b/i.test(text);
+    const unscheduled = /^Sandbox\s*[—–-]/i.test(text);
+    const am = text.match(/\bArc\s+(\d{1,2})(?:(?:\.(\d+))|(?:\s*-\s*([A-Z])))?(?:\s+DIVERGENCE)?(?:\s*:\s*(.+?))?(?:\)|$)/i);
     const explicit = !!am && !sandbox;
     const participation = explicit ? 'explicit' : text ? 'personal' : 'unknown';
     const schedule = mtCanonSchedule(chatId);
@@ -9455,14 +9457,14 @@ function mtSaga(chatId, year, arcLine, date = null) {
     const available = month ? schedule.filter(e => e.year * 12 + e.month - 1 <= mark) : [];
     const latestMark = available.length ? available[available.length - 1].year * 12 + available[available.length - 1].month - 1 : null;
     const reference = latestMark === null ? null : available.find(e => e.year * 12 + e.month - 1 === latestMark);
-    let cur = am ? arcs.find(e => e.no === Number(am[1])) || null : reference ? arcs.find(e => e.no === reference.no) || null : null;
-    if (!cur && (!month || !schedule.length)) cur = arcs.filter(e => e.year <= year).slice(-1)[0] || null;
-    const next = cur ? arcs.find(e => e.no > cur.no && (e.year > year || e.year === year && (!month || (e.month || 1) > month))) || null
+    let cur = am ? arcs.find(e => e.no === Number(am[1])) || null : !unscheduled && reference ? arcs.find(e => e.no === reference.no) || null : null;
+    if (!am && !unscheduled && !cur && (!month || !schedule.length)) cur = arcs.filter(e => e.year <= year).slice(-1)[0] || null;
+    const next = unscheduled || (am && !cur) ? null : cur ? arcs.find(e => e.no > cur.no && (e.year > year || e.year === year && (!month || (e.month || 1) > month))) || null
         : arcs.find(e => e.year > year || e.year === year && (!month || (e.month || 1) >= month)) || null;
-    const part = am ? am[2] || am[3] || null : reference?.part || null;
+    const part = am ? am[2] || am[3] || null : unscheduled ? null : reference?.part || null;
     return { year, month, day: date?.day || null, monthName: date?.monthName || null,
-        personalArc: participation === 'personal' ? text : null, participation, canonMode: null,
-        from: Math.min(arcs[0].year, year), to: Math.max(arcs[arcs.length - 1].year, year), arcs, current: cur?.no || null,
+        personalArc: participation === 'personal' || (explicit && !cur) ? text : null, participation, canonMode: null,
+        from: Math.min(arcs[0].year, year), to: Math.max(arcs[arcs.length - 1].year, year), arcs, current: explicit ? Number(am[1]) : cur?.no || null,
         part, partName: am?.[4]?.trim() || null,
         next: next ? { no: next.no, title: next.title, year: next.year, inYears: next.year - year,
             ...(month && next.month ? { inMonths: next.year * 12 + next.month - 1 - mark } : {}) } : null };
@@ -9513,10 +9515,10 @@ function worldMushoku(chatId, lines, st, chat = null) {
             return list;
         })(),
         languages: (one(/^Languages:\s*(.+)$/i) || '').split(/\s*,\s*/).filter(Boolean).map(x => { const m = x.match(/^(.+?)\s*\(([^)]+)\)$/); return m ? { name: m[1].trim(), fluency: m[2].trim() } : { name: x.trim(), fluency: null }; }),
-        contracts: one(/^Contracts:\s*(.+)$/i),
+        contracts: one(/^Contracts:\s*(.+)$/i) || worldAll(lines, /^\[(?:SUMMON PACT|SPIRIT):\s*([^\]]+)\]$/i).map(m => m[1].trim()).join('; ') || null,
         eyes: worldAll(lines, /^(?:\[DEMON EYE:\s*([^\]]+)\]|\[?DEMON EYE\]?:\s*(.+))/i).map(m => { const text = (m[1] || m[2]).trim(); return { text, lore: worldLore(chatId, text.split(/\s*[\u2014\u2013-]\s*/)[0]) }; }),
         marks: worldAll(lines, /^(?:\[(CURSE(?:\s*\/\s*BLESSING)?|BLESSING):\s*([^\]]+)\]|\[?(CURSE(?:\s*\/\s*BLESSING)?|BLESSING)\]?:\s*(.+))/i).map(m => { const name = (m[2] || m[4]).trim(); return { kind: (m[1] || m[3]).toUpperCase().replace(/\s*\/\s*/, ' / '), name, lore: worldLore(chatId, name) }; }),
-        drain: (() => { const m = worldFind(lines, /^Drain Syndrome:\s*([^|]+?)(?:\s*\|\s*Onset:\s*(.+))?$/i); return m ? { stage: m[1].trim(), onset: m[2] ? m[2].trim() : null } : null; })(),
+        drain: (() => { const condition = worldFind(lines, /^Condition:\s*Drain Syndrome\s*\(([^)]+)\)/i); const m = worldFind(lines, /^Drain Syndrome:\s*([^|]+?)(?:\s*\|\s*Onset:\s*(.+))?$/i); return m ? { stage: m[1].trim(), onset: m[2] ? m[2].trim() : null } : condition ? { stage: condition[1].trim(), onset: null } : null; })(),
         term: (() => { const m = worldFind(lines, /^Term:\s*(.+?)\s*\|\s*Role:\s*(.+)$/i); return m ? { term: m[1].trim(), role: m[2].trim() } : null; })(),
         hitogami: hg ? { state: hg[1].trim(), dreams: dreams ? Number(dreams) : null } : null,
         saga: (() => { try { const saga = mtSaga(chatId, date ? date.year : null, (one(/^(?:(?:Current )?Arc|Era\s*\/\s*Arc):\s*(.+)$/i) || lines.find(line => /^(?:Arc\s+\d|Era\s+\d|Sandbox:)/i.test(line)) || null), date); if (saga) { saga.canonMode = one(/^Canon:\s*([^|]+)/i); saga.events = chat ? mtEventLedger(chat) : []; } return saga; } catch { return null; } })(),
@@ -15084,7 +15086,7 @@ const SPELL_MT_WORDS = { beginner: 0, basic: 0, elementary: 0, elem: 0, intermed
 const SPELL_RZ_GATE = { F: 0, E: 0, D: 1, C: 2, B: 3, A: 3, S: 4, SS: 4 };
 const SPELL_SCHOOL_ALIAS = { temperature: 'fire', hi: 'fire', mizu: 'water', tsuchi: 'earth', kaze: 'wind', in: 'yin', 'yō': 'yang', yo: 'yang',
     divine: 'barrier', detox: 'detoxification', 'healing (detoxification)': 'detoxification' };
-const SPELL_ELEMENTS = /^(fire|water|earth|wind|air|ice|lightning|thunder|light|dark|darkness|shadow|holy|yin|yang|healing|barrier|summoning|detoxification|space|time|gravity|void|nature|blood|spirit|necromancy|illusion)$/i;
+const SPELL_ELEMENTS = /^(fire|water|earth|wind|air|ice|lightning|thunder|light|dark|darkness|shadow|holy|yin|yang|healing|barrier|summoning|detoxification|divine strike|space|time|gravity|void|nature|blood|spirit|necromancy|illusion)$/i;
 const SPELL_MAX = 400;
 const spellCatalogCache = new Map();   // chatId -> { at, list }
 
@@ -15122,10 +15124,40 @@ function spellClip(s, n) {
     return t.length > n ? t.slice(0, n - 1).replace(/\s+\S*$/, '') + '…' : t;
 }
 
+/** Explicit Markdown school/rank lists are catalog references, never player grants. */
+function rankedLoreBullets(e, martial = false) {
+    const text = String(e.content || '');
+    const head = text.match(/^\s*#{1,4}\s+(.+?)\s+[—–-]\s+(Beginner|Elementary|Intermediate|Advanced|Saint|King|Emperor|God)\s+Rank\b([^\n]*)/i);
+    if (!head || (martial ? !/\bStyle$/i.test(head[1]) : !/^(?:Water|Fire|Earth|Wind|Healing|Detoxification|Divine Strike|Barrier|Summoning|Melded)$/i.test(head[1]))) return [];
+    const rows = []; let fan = /fan-extension/i.test(head[3]);
+    for (const line of text.slice(head.index + head[0].length).split('\n')) {
+        if (/^\s*#/.test(line)) break;
+        if (/^Fan-extension additions/i.test(line)) { fan = true; continue; }
+        const m = line.match(/^\s*[*+-]\s+([^\n]+?)\s+[—–]\s+(.+)$/);
+        if (!m) continue;
+        const name = m[1].replace(/\s*\([^)]*\)/g, '').replace(/,\s*(?:\d+|one|two|three|four|five)\s+mastered$/i, '').trim();
+        if (!name || name.includes(':') || name.length > 160) continue;
+        rows.push({ name, school: head[1].trim(), rank: head[2], effect: m[2], fan: fan && !/\(canon characteristic\)/i.test(m[1]) });
+    }
+    return rows;
+}
+
 /** "[SPELL — Name]" entries, and the "Name [School Magic - Rank]: …" lines older lorebooks use. */
 function spellsFromEntry(e, out) {
     const text = String(e.content || '');
-    const fan = /FAN ADDITION|NOT CANON/i.test(text.slice(0, 300));
+    const fan = /FAN ADDITION|NOT CANON|fan-extension/i.test(text.slice(0, 300));
+    const named = String(e.comment || '').match(/(?:^|\]\s*)Spell:\s*(.+)$/i);
+    const fields = text.match(/^Tier:\s*([^\n]+)\nSchool:\s*([^\n]+)\nStatus:\s*([^\n]+)/i);
+    if (named && fields) {
+        const school = fields[2].replace(/^Unique & Inherent/i, 'Unique').replace(/^(Summoning)\s*\((?:Fiends|Spirits)\)/i, '$1');
+        const description = text.slice(fields[0].length).trim().split('\n')[0];
+        spellsFromEntry({ ...e, content: `[SPELL — ${named[1]}]\nSchool: ${school}\nRank: ${fields[1]}\nStatus: ${fields[3]}\nEffect: ${description}` }, out);
+        return;
+    }
+    for (const row of rankedLoreBullets(e)) {
+        const step = spellMtStep(row.rank);
+        out.push({ name: row.name, school: row.school, parent: null, ladder: 'mt', step: row.school === 'Melded' ? null : step, rank: row.rank, kind: row.school === 'Melded' ? 'melded' : 'ranked', who: null, needs: [], effect: spellClip(row.effect, 240), chant: null, fan: row.fan, src: e.id });
+    }
     const head = text.match(/^\s*\[SPELL\s*[—–-]\s*([^\]]+)\]/i);
     if (head) {
         const name = head[1].trim();
@@ -15672,6 +15704,20 @@ function techsFromEntry(e, out) {
     const text = String(e.content || '');
     if (!text.trim()) return;
     const fan = /FAN ADDITION|NOT CANON/i.test(text.slice(0, 300));
+    const definition = text.match(/^\s*#{1,4}\s+([^\n]+)\n\*\*Rank:\*\*\s*([^\n]+)\n\*\*School:\*\*\s*([^\n]+)/i);
+    if (definition && /\bStyle$/i.test(definition[3])) {
+        const named = String(e.comment || '').match(/(?:^|\]\s*)Technique:\s*(.+)$/i);
+        const name = named ? named[1].trim() : definition[1].replace(/\s*\([^)]*\).*$/, '').trim();
+        const rankless = /rankless|undisclosed/i.test(definition[2]);
+        const step = rankless ? null : techStep(definition[2]);
+        out.push({ name, style: techStyleName(definition[3]), step, rank: step === null ? null : MT_MARTIAL[step], kind: step === null ? 'free' : 'ranked', who: null,
+            effect: spellClip(text.slice(definition[0].length).trim().split('\n')[0], 260), requires: null, fan, rankless, src: e.id, prio: 0 });
+        return;
+    }
+    for (const row of rankedLoreBullets(e, true)) {
+        const step = techStep(row.rank);
+        out.push({ name: row.name, style: techStyleName(row.school), step, rank: MT_MARTIAL[step], kind: 'ranked', who: null, effect: spellClip(row.effect, 260), requires: null, fan: row.fan, src: e.id, prio: 1 });
+    }
     const head = text.match(/^\s*\[TECHNIQUE\s*[—–-]\s*([^\]]+)\]/i);
     if (head) {
         const name = head[1].trim();
@@ -15724,7 +15770,7 @@ function techCatalog(chatId) {
         const had = seen.get(k);
         if (!had) { seen.set(k, { ...r, key: k }); continue; }
         for (const f of ['effect', 'requires', 'who']) if (!had[f] && r[f]) had[f] = r[f];
-        if (had.step === null && r.step !== null && had.kind === 'free') { had.step = r.step; had.rank = r.rank; had.kind = 'ranked'; }
+        if (had.step === null && r.step !== null && had.kind === 'free' && !had.rankless) { had.step = r.step; had.rank = r.rank; had.kind = 'ranked'; }
     }
     const list = [...seen.values()].slice(0, TECH_MAX);
     techCatalogCache.set(chatId, { pool, list });
