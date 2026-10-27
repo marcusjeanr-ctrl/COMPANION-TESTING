@@ -185,10 +185,10 @@
     "same_content_entries": 1291,
     "differences": {
       "extensions": 1296,
-      "id": 1291,
       "comment": 1296,
-      "insertion_order": 5,
-      "keys": 1
+      "id": 1291,
+      "keys": 1,
+      "insertion_order": 5
     },
     "authority": "Use original data.character_book IDs; extension mirror has distinct IDs and labels, not another 1296 mechanics."
   },

@@ -26,6 +26,10 @@ PROFILES = {
     'disabled': ('Not applicable to Companion', 'loreNormEntry', 'test_six_sided_integration.cjs', 'Disabled source entry stays excluded. No crossover mechanics are enabled by this integration.'),
 }
 CORE = {**{i:'system' for i in [1166,1167,1168,1169,1170,1171,1173,1174,1195,1196,1199,1200,1201,1202,1203,1204,1205,1206,1229,1230,1231]}, **{i:'branch' for i in range(1207,1229)}}
+ASSERTION_TERMS = {'identity':r'key\(|minds|family|members|where', 'magic':r'spell|learn|master|progress|chant|known',
+    'combat':r'martial|tech|touki|style', 'geography':r'atlas|nodes|location|continent|clock|month',
+    'ownership':r'gear|pocket|money|hold|faction|owned|permission', 'branch':r'canon|saga|event|arc|agenda|quest',
+    'system':r'purpose|continue|hud|restored|save', 'lore':r'lore|pool|selective|disabled', 'disabled':r'loreNormEntry'}
 
 def family(e):
     if e.get('enabled') is False or e.get('disabled') is True:
@@ -78,7 +82,7 @@ def main():
             'activation_extensions':{k:ext.get(k) for k in ['priority','selective_logic','use_regex','probability','sticky','cooldown','delay','scan_depth','prevent_recursion','exclude_recursion']},
             'rule_evidence':[s[:240] for s in candidates[:4]],'handling_functions':functions.split('; '),'family_test_files':tests.split('; '),
             'source_refs':['dist/backend.js:'+str(backend[:re.search(r'function '+re.escape(fn)+r'\(',backend).start()].count('\n')+1)+':'+fn for fn in functions.split('; ')],
-            'assertion_refs':[name+':'+str(i)+':'+line.strip()[:180] for name in tests.split('; ') for i,line in enumerate((ROOT/'tools'/name).read_text().splitlines(),1) if 'assert.' in line][:8],
+            'assertion_refs':['probe_six_sided_card.cjs:12-13: enabled flag, original ID and unchanged content assertions'] + [name+':'+str(i)+':'+line.strip()[:180] for name in tests.split('; ') for i,line in enumerate((ROOT/'tools'/name).read_text().splitlines(),1) if 'assert.' in line and re.search(ASSERTION_TERMS[f],line,re.I)][:8],
             'direct_assertion':'probe_six_sided_card.cjs: per-entry normalization/disabled flag/ID/content invariants',
             'direct_result':probe_ids[e['id']]['normalization'],'family_assertion_scope':limit,
             'individual_mechanics_result':'Not individually simulated; family tests do not certify every narrative transition',
@@ -100,7 +104,7 @@ def main():
     (output/'coverage-register.json').write_text(json.dumps(result,ensure_ascii=False,indent=2)+'\n')
     with (output/'coverage-register.csv').open('w',newline='') as stream:
         keys=['id','enabled','label','keys','family','classification','source_pointer','content_sha256','source_refs','family_test_files','assertion_refs','direct_assertion','direct_result','individual_mechanics_result','limitations']
-        writer=csv.DictWriter(stream,keys);writer.writeheader()
+        writer=csv.DictWriter(stream,keys,lineterminator='\n');writer.writeheader()
         for r in register: writer.writerow({k:'; '.join(r[k]) if isinstance(r[k],list) else r[k] for k in keys})
     print(json.dumps({'entries':len(register),'enabled':sum(e['enabled'] for e in entries),'classifications':result['counts'],'probe':result['probe_summary']}))
 
