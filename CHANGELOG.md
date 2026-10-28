@@ -1,5 +1,17 @@
 # Changelog — RPG Companion HMS Edition
 
+## 3.0.3 RC — Ability identity and scene outcomes
+
+- Consolidate equivalent absorption-drill descriptions while retaining aliases,
+  source evidence, training notes, proficiency states and legitimate progress resets.
+- Close confirmed scene-level objectives while preserving broader/future quests;
+  distinguish failed, completed and closed outcomes without awarding rewards.
+- Prevent failed practice and NPC demonstrations from granting player knowledge
+  through conflicting assessments or parallel legacy tracking fields.
+- Remove the narrator reminder that one clean execution automatically means learned;
+  preserve card-specific progression rules and existing lore-reference grounding.
+- Preserve manual choices, source/swipe validation, save data and explicit reopening.
+
 ## 3.0.2 RC candidate — Spell grounding and durable tracking
 
 - Retain established People, scheduled Agenda, owner-isolated Secrets, contacts,

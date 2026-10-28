@@ -1125,7 +1125,7 @@ export function setup(ctx) {
         id: 'rpg-companion-hms',
         title: 'RPG Companion (HMS)',
         shortName: 'RPG',
-        headerTitle: 'RPG Companion HMS Edition 3.0.2',
+        headerTitle: 'RPG Companion HMS Edition 3.0.3',
         description: 'The side panel for HMS bots: the HUD as cards, people, quests, the map, fights, the Chronicle, and a guide',
         keywords: ['rpg', 'hms', 'tracker', 'hud', 'quests', 'dice', 'guide'],
         iconSvg: ICON_SVG
@@ -3323,7 +3323,7 @@ export function setup(ctx) {
                     q.key ? h('button', { class: 'rpgc-mini star', 'aria-label': q.key === focus ? 'Unfocus this quest' : 'Focus this quest', title: 'Focus quest', onclick: () => send({ type: 'quest_focus', chatId: state.chatId, name: q.name, key: q.key }) }, q.key === focus ? '\u2605' : '\u2606') : null,
                     h('span', { class: 'name' }, q.name),
                     q.category ? h('span', { class: 'rpgc-chip' }, q.category) : null,
-                    q.state ? h('span', { class: 'qst ' + q.cls }, q.state) : q.fromStory ? h('span', { class: 'qst active' }, 'in the story') : null),
+                    q.state ? h('span', { class: 'qst ' + q.cls, title: q.lifecycleEvidence?.quote || null }, q.state) : q.fromStory ? h('span', { class: 'qst active' }, 'in the story') : null),
                 q.objective ? h('div', { class: 'obj' }, '\u25B8 ' + q.objective) : null,
                 q.progress !== null && q.progress !== undefined ? levelBar(q.progress, 'ok') : null,
                 (q.giver || q.where || q.reward || q.dueIn !== undefined) ? h('div', { class: 'rpgc-chips' },
@@ -3544,7 +3544,7 @@ export function setup(ctx) {
         if (!groups.length && !(sys.attributes || []).length) return null;
         const out = groups.map(g => h('div', { class: 'rpgc-abil' },
             h('h4', null, g.category),
-            h('div', { class: 'rpgc-chips' }, g.items.map(it => h('span', { class: 'rpgc-chip abil', title: [it.label, it.state].filter(Boolean).join(' \u00B7 ') || null },
+            h('div', { class: 'rpgc-chips' }, g.items.map(it => h('span', { class: 'rpgc-chip abil', title: [it.label, it.state, ...(it.observations || []).map(x => [x.name, x.state, x.progress !== null && x.progress !== undefined ? x.progress + '%' : null, x.note, x.evidence].filter(Boolean).join(' · '))].filter(Boolean).join(' \u00B7 ') || null },
                 it.label ? h('em', null, it.label + ': ') : null,
                 it.name,
                 it.level ? h('span', { class: 'lv' }, ` Lv ${it.level}`) : null,
@@ -6309,7 +6309,7 @@ body{background:${bs ? bs.backgroundColor : '#111'};color:${bs ? bs.color : '#dd
             if (!popWin || popWin.closed) {
                 popWin = window.open('', 'rpgc_popout', 'width=460,height=860');
                 if (!popWin) { state.status = { kind: 'warning', text: 'The browser blocked the pop-out window. Allow pop-ups for Lumiverse and try again.' }; const s = S(); s.uiPanelMode = 'drawer'; return applyPanelMode(); }
-                popWin.document.title = 'RPG Companion HMS Edition 3.0.2 RC';
+                popWin.document.title = 'RPG Companion HMS Edition 3.0.3 RC';
                 syncPopoutLook(popWin);
                 try { if (!popLookObs) { popLookObs = new MutationObserver(() => syncPopoutLook(popWin)); popLookObs.observe(document.documentElement, { attributes: true }); if (document.body) popLookObs.observe(document.body, { attributes: true, attributeFilter: ['class'] }); } } catch { /* optional */ }
                 popWin.addEventListener('beforeunload', () => { popWin = null; if (panelMode() === 'popout') { const s = S(); s.uiPanelMode = 'drawer'; saveSettings(false); applyPanelMode(); render(); } });
