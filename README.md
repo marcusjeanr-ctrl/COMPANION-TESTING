@@ -1,5 +1,7 @@
 # RPG Companion HMS Edition 3.0.2 — Release Candidate
 
+> Release readiness: [Six-Sided audit, implemented fixes and blocking long-history cases](docs/compatibility/3_0/SIX_SIDED_RELEASE_READINESS.md). This candidate is not approved for publication.
+
 > Narrator grounding: [3.0.2 RC candidate, validation and limitations](docs/compatibility/3_0/NARRATOR_GROUNDING.md).
 
 > Magic classification: [3.0.1 RC fix, validation and limitations](docs/compatibility/3_0/MAGIC_CLASSIFICATION.md).

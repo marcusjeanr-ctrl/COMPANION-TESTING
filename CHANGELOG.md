@@ -1,7 +1,12 @@
 # Changelog — RPG Companion HMS Edition
 
-## 3.0.2 RC candidate — Narrator spell grounding
+## 3.0.2 RC candidate — Spell grounding and continuity safeguards
 
+- Preserve family and property observations beyond the 300-report window using a
+  shared source-bound index within the existing history-position pass.
+- Prevent contradictory/unsupported quoted mastery assessments from awarding
+  Magic or technique mastery; preserve established knowledge and manual choices.
+- Show assessment evidence counts and preview truncation explicitly in diagnostics.
 - Supply relevant cached canonical spell names, schools and stated ranks to normal
   narrator requests about magic, with named definitions where available.
 - Reuse exact definitions already present in system context; keep whole references

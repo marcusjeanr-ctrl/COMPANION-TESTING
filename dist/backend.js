@@ -12342,6 +12342,31 @@ function famNormalize(list) {
     return out.length ? out.slice(0, 12) : null;
 }
 
+// Reuse the readers' existing full-history position pass for durable observations.
+// Per-read only: edits, swipes, branches and reloads cannot leave stale snapshots.
+function continuityReadIndex(chat) {
+    return memoRead(chat, 'continuity-source-index', () => {
+        const order = new Map(), family = [], holdings = [];
+        for (let i = 0; i < chat.length; i++) {
+            const m = chat[i]; order.set(m.id, i);
+            if (m.role !== 'assistant' || !trackingMessageVisible(m)) continue;
+            const d = getSwipeData(m, true);
+            if (!d) continue;
+            if (d.family?.length || Array.isArray(d.relations) && d.relations.some(r => r && famIsBond(r.bond))) family.push(m);
+            if (m._rpgcPurpose !== 'continue' && d.holdings?.length) holdings.push(m);
+        }
+        return { order, family, holdings, clocks: new Map() };
+    });
+}
+function continuityObservation(m, recent, index) {
+    const found = recent.get(m.id);
+    if (found) return found;
+    const hud = messageHud(m);
+    if (hud && !index.clocks.has(hud)) index.clocks.set(hud, hmsClock(hud));
+    const clock = hud ? index.clocks.get(hud) : null;
+    return { msg: m, hud, clock: clock?.dated ? clock.minutes : null };
+}
+
 /** Everyone in the family, rebuilt from the chat as it stands (so a swipe or an edit is always reflected). */
 function famRead(chat, st, cfg) {
     const c = cfg || hmsCfg();
@@ -12353,9 +12378,9 @@ function famRead(chat, st, cfg) {
     const tl = hmsTimeline(chat);
     const hudAt = new Map(tl.map(e => [e.msg.id, e]));
     const now = tl.length ? tl[tl.length - 1].clock : null;
-    const msgs = relReadings(chat);
-    const lastId = msgs.length ? msgs[msgs.length - 1].id : null;
-    const idxOf = new Map(chat.map((m, i) => [m.id, i]));
+    const indexed = continuityReadIndex(chat), msgs = indexed.family;
+    const latest = relReadings(chat).at(-1), lastId = latest?.id || null;
+    const idxOf = indexed.order;
     const fam = new Map();
     const get = (name) => {
         const key = lockKey(name);
@@ -12380,7 +12405,7 @@ function famRead(chat, st, cfg) {
     };
     for (const m of msgs) {
         const d = getSwipeData(m, true) || {};
-        const e = hudAt.get(m.id);
+        const e = continuityObservation(m, hudAt, indexed);
         const at = e ? e.clock : null;
         const idx = idxOf.has(m.id) ? idxOf.get(m.id) : -1;
         const segs = e && e.hud && Array.isArray(e.hud.location) ? e.hud.location.filter(s => !/^\[/.test(s)) : [];
@@ -13194,14 +13219,14 @@ function holdRead(chat, st) {
     const tl = hmsTimeline(chat);
     const hudAt = new Map(tl.map(e => [e.msg.id, e]));
     const now = tl.length ? tl[tl.length - 1].clock : null;
-    const msgs = relReadings(chat);
-    const lastId = msgs.length ? msgs[msgs.length - 1].id : null;
-    const idxOf = new Map(chat.map((m, i) => [m.id, i]));
+    const indexed = continuityReadIndex(chat), msgs = indexed.holdings;
+    const latest = relReadings(chat).at(-1), lastId = latest?.id || null;
+    const idxOf = indexed.order;
     const map = new Map();
     const find = (k) => { if (map.has(k)) return map.get(k); for (const it of map.values()) if (it.key.length > 3 && k.length > 3 && (it.key.endsWith(k) || k.endsWith(it.key))) return it; return null; };
     for (const m of msgs) {
         const d = getSwipeData(m) || {};
-        const e = hudAt.get(m.id);
+        const e = continuityObservation(m, hudAt, indexed);
         const at = e ? e.clock : null;
         const idx = idxOf.has(m.id) ? idxOf.get(m.id) : -1;
         for (const r of Array.isArray(d.holdings) ? d.holdings : []) {
@@ -15612,6 +15637,27 @@ function abilityEvidenceNormalize(list) {
     return out;
 }
 
+function abilityMasteryConfirmed(evidence) {
+    const text = String(evidence || '').replace(/\bnot only\b/gi, '').replace(/\b(?:haven['’]t|hasn['’]t|hadn['’]t|isn['’]t|aren['’]t|wasn['’]t|weren['’]t|don['’]t|doesn['’]t|didn['’]t|can['’]t|cannot)\b/gi, 'not');
+    return /\b(?:mastered|mastery|perfected)\b/i.test(text) &&
+        !/\b(?:no|not|never|without|yet to|far from)\b.{0,40}\b(?:master(?:ed|y)|perfected)\b|\bmastery\b.{0,24}\b(?:not|unproven|incomplete|unattained)\b/i.test(text);
+}
+function abilityEvidenceRows(msg, data) {
+    const rows = abilityEvidenceNormalize(data?.survival?.abilities);
+    if (!rows.length) return [];
+    const source = stripCompanion(stripLeakedReasoning(textOf(msg.content))).replace(/\s+/g, ' ');
+    return rows.filter(row => source.includes(row.evidence.replace(/\s+/g, ' '))).map(row =>
+        row.state === 'mastered' && !abilityMasteryConfirmed(row.evidence)
+            ? { ...row, state: 'unverified', reportedState: row.state } : row);
+}
+// Counts only: valid message provenance is distinct from valid assessment evidence.
+function abilityEvidenceAudit(msg, data) {
+    const raw = data?.survival?.abilities, normalized = abilityEvidenceNormalize(raw), rows = abilityEvidenceRows(msg, data);
+    return { reported: Array.isArray(raw) ? raw.length : 0, normalized: normalized.length,
+        sourceMatched: rows.length, sourceMismatch: normalized.length - rows.length,
+        unverifiedMastery: rows.filter(row => row.state === 'unverified').length };
+}
+
 function abilityReportMerge(report, previous) {
     if (!report) return previous || null;
     // Omitted optional fields on a refresh are not a retraction. An explicit
@@ -15637,14 +15683,14 @@ function spellStoryFoldUncached(chat, chatId = null) {
         const d = getSwipeData(m);
         const y = d && isPlainObject(d.survival) ? d.survival : null;
         if (!y) continue;
+        const assessments = abilityEvidenceRows(m, d);
+        const unverifiedMastery = new Set(assessments.filter(row => row.state === 'unverified').flatMap(row => resolve.records(row.name).map(target => target.key)));
         for (const n of Array.isArray(y.spells) ? y.spells : []) for (const target of resolve.records(n)) learned.set(target.key, { ...target, ...((target.note || learned.get(target.key)?.note || established.get(target.key)?.note) ? { note: target.note || learned.get(target.key)?.note || established.get(target.key)?.note } : {}), msgId: m.id, at: order.get(m.id), newlyLearned: false });
         for (const n of Array.isArray(y.learned) ? y.learned : []) for (const target of resolve.records(n)) learned.set(target.key, { ...target, msgId: m.id, at: order.get(m.id), newlyLearned: true });
-        for (const n of Array.isArray(y.mastered) ? y.mastered : []) for (const target of resolve.records(n)) mastered.set(target.key, { ...target, msgId: m.id, at: order.get(m.id) });
+        for (const n of Array.isArray(y.mastered) ? y.mastered : []) for (const target of resolve.records(n)) if (!unverifiedMastery.has(target.key)) mastered.set(target.key, { ...target, msgId: m.id, at: order.get(m.id) });
         for (const s of Array.isArray(y.study) ? y.study : []) if (s && s.spell) for (const target of resolve.records(s)) progress.set(target.key, { name: target.name, progress: s.progress, note: s.note || target.note || null, msgId: m.id, at: order.get(m.id) });
-        if (Array.isArray(y.abilities) && y.abilities.length) {
-            const source = stripCompanion(stripLeakedReasoning(textOf(m.content))).replace(/\s+/g, ' ');
-            for (const row of abilityEvidenceNormalize(y.abilities)) {
-                if (!source.includes(row.evidence.replace(/\s+/g, ' '))) continue;
+        if (assessments.length) {
+            for (const row of assessments) {
                 for (const target of resolve.records(row.name)) {
                     const key = target.key, previous = abilityEvidence.get(key);
                     // Unknown historical dates never overrule an established current assessment.
@@ -15834,8 +15880,8 @@ function martialAbilityItems(chatId, chat, st) {
         if ((fold.withdrawn.get(key)?.at ?? -1) >= Math.max(fold.learned.get(key)?.at ?? -1, practice?.at ?? -1, assessment?.at ?? -1)) continue;
         const latestKnowledge = Math.max(fold.learned.get(key)?.at ?? -1, fold.mastered.get(key)?.at ?? -1);
         const verified = assessment && assessment.at >= latestKnowledge ? assessment : null;
-        const states = { known: 'Known', reliable: 'Reliable', mastered: 'Mastered', practiced: 'Practicing', attempted: 'Attempted' };
-        const masteryConfirmed = verified?.state !== 'mastered' || /\b(?:mastered|mastery|perfected)\b/i.test(verified.evidence) && !/\b(?:no|not|never|without|yet to|far from)\b.{0,40}\bmaster(?:ed|y)\b/i.test(verified.evidence);
+        const states = { known: 'Known', reliable: 'Reliable', mastered: 'Mastered', practiced: 'Practicing', attempted: 'Attempted', unverified: 'Reported assessment' };
+        const masteryConfirmed = verified?.state !== 'mastered' || abilityMasteryConfirmed(verified.evidence);
         const state = verified ? masteryConfirmed ? states[verified.state] : 'Reported assessment' : practice && practice.at >= latestKnowledge ? 'Training' :
             fold.mastered.has(key) ? 'Mastery reported' : fold.learned.get(key)?.newlyLearned ? 'Learning reported' : 'Reported maneuver';
         if (state) out.push({ name: event.name, state, level: null, label: null, src: null });
@@ -16390,6 +16436,7 @@ async function hmsDiagnostics(chatId, includeReply) {
                 const data = saved || statesReading(hudMsg);
                 return { live: status(live), exported: status(exported), nested: status(nested),
                     selected: !!data, source: saved ? 'metadata' : data ? 'inline-current' : null,
+                    assessmentEvidence: abilityEvidenceAudit(hudMsg, data),
                     continuationSnapshot: hudMsg._rpgcPurpose === 'continue', transactionSelected: !!getSwipeData(hudMsg), minds: Array.isArray(data?.minds) ? data.minds.length : 0,
                     characters: Array.isArray(data?.characters) ? data.characters.length : 0 };
             })() },
@@ -16416,6 +16463,7 @@ async function hmsDiagnostics(chatId, includeReply) {
         })(),
         recentProblems: diagLog.slice(-40),
         settings: slim,
+        lastReplyTruncated: !!(includeReply && hudMsg && textOf(hudMsg.content).length > 3000),
         lastReply: includeReply && hudMsg ? textOf(hudMsg.content).slice(0, 3000) : undefined
     };
 }
