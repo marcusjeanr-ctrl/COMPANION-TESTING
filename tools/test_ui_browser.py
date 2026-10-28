@@ -188,6 +188,25 @@ class BrowserUi(unittest.TestCase):
         self.page.evaluate('(html)=>{const a=document.createElement("article");a.id="living-restored";a.innerHTML=html;document.body.append(a)}',html)
         self.assertEqual(self.page.locator('#living-restored .rs').count(),1)
 
+    def test_grouped_spell_audit_shows_individual_known_catalogue_rows(self):
+        payload=json.loads(subprocess.check_output(['node',str(ROOT/'tools/magic_browser_fixture.cjs')],text=True))
+        self.receive(payload)
+        self.assertEqual(self.page.locator('.rpgc-spell-row.known[data-find^="squall "]').count(),1)
+        ground=self.page.locator('.rpgc-spell-row.known[data-find^="ground sense "]')
+        self.assertEqual(ground.count(),1)
+        self.assertIn('weak — never held over distance',ground.inner_text())
+        self.assertNotIn('Water Magic (Advanced): Squall',self.page.locator('.rpgc').inner_text())
+        self.page.get_by_label('Find a spell',exact=True).fill('squall')
+        self.assertTrue(self.page.locator('.rpgc-spell-row.known[data-find^="squall "]').is_visible())
+
+    def test_known_spell_weakness_note_is_text_not_markup(self):
+        payload=json.loads(json.dumps(FIXTURE['payload']))
+        row=payload['hms']['magic']['list']['schools'][0]['spells'][0]
+        row.update(status='known',note='Weak at range <img src=x onerror="window.bad=true">')
+        self.receive(payload)
+        self.assertIn(row['note'],self.page.locator('.rpgc').inner_text())
+        self.assertFalse(self.page.evaluate('!!window.bad'))
+
     def test_internal_states_tabs_and_collapse(self):
         self.page.add_style_tag(content=FIXTURE['statesCss'])
         self.page.evaluate('(html)=>{let reply=document.createElement("article");reply.id="reply";reply.innerHTML=html;document.body.append(reply)}',FIXTURE['internalStates'])

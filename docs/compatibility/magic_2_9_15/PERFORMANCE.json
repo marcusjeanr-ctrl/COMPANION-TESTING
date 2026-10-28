@@ -1,0 +1,845 @@
+{
+  "baselineCommit": "415392cd3decefbae260ff898c0a94792656695f",
+  "runtime": "Node 22.22.2",
+  "method": "Alternating baseline/candidate fresh processes, identical fixtures; five panel pairs at each size, three pipeline/full-card/grouped/memory pairs. Panel tool warms three times then takes ten samples. No other benchmarks/tests ran concurrently. Medians of process medians; cloud variance applies.",
+  "sourceSha256": {
+    "baseline-backend.js": "217af6ae0c7b0d4207385afd106080191af342c5d6c21394fce119bbdea29666",
+    "baseline-frontend.js": "b3178710c933ec6d1f4a4cf2fa4c5835568eeb831a756e9979063fe58e43be08",
+    "candidate-backend.js": "eb1ad3d763fc7ec292d8b22bdf89746c4c836ede89c9b5294780600c3c71e263",
+    "candidate-frontend.js": "1bd6f992c5ec4c4f56f28a6566d9353c0779bd5b56adf3340cb66a2df4131511"
+  },
+  "operationsIdentical": true,
+  "summary": [
+    {
+      "benchmark": "panel",
+      "replies": 300,
+      "version": "2.9.14",
+      "processes": 5,
+      "medians": {
+        "messages": 600,
+        "coldMs": 223.18,
+        "medianMs": 63.37,
+        "warnings": 0
+      }
+    },
+    {
+      "benchmark": "panel",
+      "replies": 300,
+      "version": "candidate",
+      "processes": 5,
+      "medians": {
+        "messages": 600,
+        "coldMs": 225.14,
+        "medianMs": 66.56,
+        "warnings": 0
+      }
+    },
+    {
+      "benchmark": "panel",
+      "replies": 1000,
+      "version": "2.9.14",
+      "processes": 5,
+      "medians": {
+        "messages": 2000,
+        "coldMs": 484.24,
+        "medianMs": 103.5,
+        "warnings": 0
+      }
+    },
+    {
+      "benchmark": "panel",
+      "replies": 1000,
+      "version": "candidate",
+      "processes": 5,
+      "medians": {
+        "messages": 2000,
+        "coldMs": 647.56,
+        "medianMs": 104.2,
+        "warnings": 0
+      }
+    },
+    {
+      "benchmark": "pipeline",
+      "replies": null,
+      "version": "2.9.14",
+      "processes": 3,
+      "medians": {
+        "parseReportMedianMs": 0.6558,
+        "processResponseMedianMs": 0.8745,
+        "promptConstructMedianMs": 0.3615,
+        "promptCharacters": 14892,
+        "populatedPromptCharacters": 18721,
+        "warnings": 0
+      }
+    },
+    {
+      "benchmark": "pipeline",
+      "replies": null,
+      "version": "candidate",
+      "processes": 3,
+      "medians": {
+        "parseReportMedianMs": 0.6878,
+        "processResponseMedianMs": 0.9812,
+        "promptConstructMedianMs": 0.4086,
+        "promptCharacters": 14892,
+        "populatedPromptCharacters": 18768,
+        "warnings": 0
+      }
+    },
+    {
+      "benchmark": "operations",
+      "replies": null,
+      "version": "2.9.14",
+      "processes": 1,
+      "medians": {}
+    },
+    {
+      "benchmark": "operations",
+      "replies": null,
+      "version": "candidate",
+      "processes": 1,
+      "medians": {}
+    },
+    {
+      "benchmark": "full-card-panel",
+      "replies": null,
+      "version": "2.9.14",
+      "processes": 3,
+      "medians": {
+        "messages": 600,
+        "coldMs": 943.16,
+        "medianMs": 72.94,
+        "warnings": 0
+      }
+    },
+    {
+      "benchmark": "grouped-card-panel",
+      "replies": null,
+      "version": "2.9.14",
+      "processes": 3,
+      "medians": {
+        "messages": 600,
+        "coldMs": 1000.37,
+        "medianMs": 87.9,
+        "warnings": 0
+      }
+    },
+    {
+      "benchmark": "full-card-memory",
+      "replies": null,
+      "version": "2.9.14",
+      "processes": 3,
+      "medians": {
+        "messages": 1000,
+        "enabledEntries": 998,
+        "vmInitMs": 36.751,
+        "fixturePlusVmHeapBytes": 12128936,
+        "catalogAdditionalHeapBytes": 768152,
+        "catalogColdMs": 83.491,
+        "catalogWarmMedianMs": 0.00108,
+        "spells": 348,
+        "techniques": 31
+      }
+    },
+    {
+      "benchmark": "full-card-panel",
+      "replies": null,
+      "version": "candidate",
+      "processes": 3,
+      "medians": {
+        "messages": 600,
+        "coldMs": 1191,
+        "medianMs": 75.05,
+        "warnings": 0
+      }
+    },
+    {
+      "benchmark": "grouped-card-panel",
+      "replies": null,
+      "version": "candidate",
+      "processes": 3,
+      "medians": {
+        "messages": 600,
+        "coldMs": 1079.54,
+        "medianMs": 81.35,
+        "warnings": 0
+      }
+    },
+    {
+      "benchmark": "full-card-memory",
+      "replies": null,
+      "version": "candidate",
+      "processes": 3,
+      "medians": {
+        "messages": 1000,
+        "enabledEntries": 998,
+        "vmInitMs": 39.068,
+        "fixturePlusVmHeapBytes": 12147832,
+        "catalogAdditionalHeapBytes": 781904,
+        "catalogColdMs": 95.128,
+        "catalogWarmMedianMs": 0.0011,
+        "spells": 348,
+        "techniques": 31
+      }
+    }
+  ],
+  "raw": [
+    {
+      "benchmark": "panel",
+      "version": "2.9.14",
+      "round": 0,
+      "replies": 300,
+      "exit": 0,
+      "result": {
+        "messages": 600,
+        "coldMs": 218.18,
+        "medianMs": 55.84,
+        "warnings": 0
+      }
+    },
+    {
+      "benchmark": "panel",
+      "version": "candidate",
+      "round": 0,
+      "replies": 300,
+      "exit": 0,
+      "result": {
+        "messages": 600,
+        "coldMs": 244.72,
+        "medianMs": 69.01,
+        "warnings": 0
+      }
+    },
+    {
+      "benchmark": "panel",
+      "version": "candidate",
+      "round": 1,
+      "replies": 300,
+      "exit": 0,
+      "result": {
+        "messages": 600,
+        "coldMs": 222.77,
+        "medianMs": 66.56,
+        "warnings": 0
+      }
+    },
+    {
+      "benchmark": "panel",
+      "version": "2.9.14",
+      "round": 1,
+      "replies": 300,
+      "exit": 0,
+      "result": {
+        "messages": 600,
+        "coldMs": 236.71,
+        "medianMs": 61.86,
+        "warnings": 0
+      }
+    },
+    {
+      "benchmark": "panel",
+      "version": "2.9.14",
+      "round": 2,
+      "replies": 300,
+      "exit": 0,
+      "result": {
+        "messages": 600,
+        "coldMs": 211.8,
+        "medianMs": 65.13,
+        "warnings": 0
+      }
+    },
+    {
+      "benchmark": "panel",
+      "version": "candidate",
+      "round": 2,
+      "replies": 300,
+      "exit": 0,
+      "result": {
+        "messages": 600,
+        "coldMs": 225.14,
+        "medianMs": 58.73,
+        "warnings": 0
+      }
+    },
+    {
+      "benchmark": "panel",
+      "version": "candidate",
+      "round": 3,
+      "replies": 300,
+      "exit": 0,
+      "result": {
+        "messages": 600,
+        "coldMs": 239.83,
+        "medianMs": 96.25,
+        "warnings": 0
+      }
+    },
+    {
+      "benchmark": "panel",
+      "version": "2.9.14",
+      "round": 3,
+      "replies": 300,
+      "exit": 0,
+      "result": {
+        "messages": 600,
+        "coldMs": 223.18,
+        "medianMs": 67.36,
+        "warnings": 0
+      }
+    },
+    {
+      "benchmark": "panel",
+      "version": "2.9.14",
+      "round": 4,
+      "replies": 300,
+      "exit": 0,
+      "result": {
+        "messages": 600,
+        "coldMs": 225.18,
+        "medianMs": 63.37,
+        "warnings": 0
+      }
+    },
+    {
+      "benchmark": "panel",
+      "version": "candidate",
+      "round": 4,
+      "replies": 300,
+      "exit": 0,
+      "result": {
+        "messages": 600,
+        "coldMs": 221.82,
+        "medianMs": 64.22,
+        "warnings": 0
+      }
+    },
+    {
+      "benchmark": "panel",
+      "version": "2.9.14",
+      "round": 0,
+      "replies": 1000,
+      "exit": 0,
+      "result": {
+        "messages": 2000,
+        "coldMs": 466.35,
+        "medianMs": 97.86,
+        "warnings": 0
+      }
+    },
+    {
+      "benchmark": "panel",
+      "version": "candidate",
+      "round": 0,
+      "replies": 1000,
+      "exit": 0,
+      "result": {
+        "messages": 2000,
+        "coldMs": 734.66,
+        "medianMs": 117.3,
+        "warnings": 0
+      }
+    },
+    {
+      "benchmark": "panel",
+      "version": "candidate",
+      "round": 1,
+      "replies": 1000,
+      "exit": 0,
+      "result": {
+        "messages": 2000,
+        "coldMs": 677.22,
+        "medianMs": 102.72,
+        "warnings": 0
+      }
+    },
+    {
+      "benchmark": "panel",
+      "version": "2.9.14",
+      "round": 1,
+      "replies": 1000,
+      "exit": 0,
+      "result": {
+        "messages": 2000,
+        "coldMs": 490.35,
+        "medianMs": 100.09,
+        "warnings": 0
+      }
+    },
+    {
+      "benchmark": "panel",
+      "version": "2.9.14",
+      "round": 2,
+      "replies": 1000,
+      "exit": 0,
+      "result": {
+        "messages": 2000,
+        "coldMs": 478.52,
+        "medianMs": 103.5,
+        "warnings": 0
+      }
+    },
+    {
+      "benchmark": "panel",
+      "version": "candidate",
+      "round": 2,
+      "replies": 1000,
+      "exit": 0,
+      "result": {
+        "messages": 2000,
+        "coldMs": 516.34,
+        "medianMs": 103.28,
+        "warnings": 0
+      }
+    },
+    {
+      "benchmark": "panel",
+      "version": "candidate",
+      "round": 3,
+      "replies": 1000,
+      "exit": 0,
+      "result": {
+        "messages": 2000,
+        "coldMs": 523.22,
+        "medianMs": 104.2,
+        "warnings": 0
+      }
+    },
+    {
+      "benchmark": "panel",
+      "version": "2.9.14",
+      "round": 3,
+      "replies": 1000,
+      "exit": 0,
+      "result": {
+        "messages": 2000,
+        "coldMs": 484.24,
+        "medianMs": 109.51,
+        "warnings": 0
+      }
+    },
+    {
+      "benchmark": "panel",
+      "version": "2.9.14",
+      "round": 4,
+      "replies": 1000,
+      "exit": 0,
+      "result": {
+        "messages": 2000,
+        "coldMs": 484.45,
+        "medianMs": 107.13,
+        "warnings": 0
+      }
+    },
+    {
+      "benchmark": "panel",
+      "version": "candidate",
+      "round": 4,
+      "replies": 1000,
+      "exit": 0,
+      "result": {
+        "messages": 2000,
+        "coldMs": 647.56,
+        "medianMs": 116.67,
+        "warnings": 0
+      }
+    },
+    {
+      "benchmark": "pipeline",
+      "version": "2.9.14",
+      "round": 0,
+      "exit": 0,
+      "result": {
+        "parseReportMedianMs": 0.8503,
+        "processResponseMedianMs": 0.9265,
+        "promptConstructMedianMs": 0.3568,
+        "promptCharacters": 14892,
+        "populatedPromptCharacters": 18721,
+        "warnings": 0
+      }
+    },
+    {
+      "benchmark": "pipeline",
+      "version": "candidate",
+      "round": 0,
+      "exit": 0,
+      "result": {
+        "parseReportMedianMs": 0.6878,
+        "processResponseMedianMs": 0.9812,
+        "promptConstructMedianMs": 0.4066,
+        "promptCharacters": 14892,
+        "populatedPromptCharacters": 18768,
+        "warnings": 0
+      }
+    },
+    {
+      "benchmark": "pipeline",
+      "version": "candidate",
+      "round": 1,
+      "exit": 0,
+      "result": {
+        "parseReportMedianMs": 0.6278,
+        "processResponseMedianMs": 0.9671,
+        "promptConstructMedianMs": 0.4487,
+        "promptCharacters": 14892,
+        "populatedPromptCharacters": 18768,
+        "warnings": 0
+      }
+    },
+    {
+      "benchmark": "pipeline",
+      "version": "2.9.14",
+      "round": 1,
+      "exit": 0,
+      "result": {
+        "parseReportMedianMs": 0.5763,
+        "processResponseMedianMs": 0.7632,
+        "promptConstructMedianMs": 0.3982,
+        "promptCharacters": 14892,
+        "populatedPromptCharacters": 18721,
+        "warnings": 0
+      }
+    },
+    {
+      "benchmark": "pipeline",
+      "version": "2.9.14",
+      "round": 2,
+      "exit": 0,
+      "result": {
+        "parseReportMedianMs": 0.6558,
+        "processResponseMedianMs": 0.8745,
+        "promptConstructMedianMs": 0.3615,
+        "promptCharacters": 14892,
+        "populatedPromptCharacters": 18721,
+        "warnings": 0
+      }
+    },
+    {
+      "benchmark": "pipeline",
+      "version": "candidate",
+      "round": 2,
+      "exit": 0,
+      "result": {
+        "parseReportMedianMs": 0.8941,
+        "processResponseMedianMs": 1.0325,
+        "promptConstructMedianMs": 0.4086,
+        "promptCharacters": 14892,
+        "populatedPromptCharacters": 18768,
+        "warnings": 0
+      }
+    },
+    {
+      "benchmark": "operations",
+      "version": "2.9.14",
+      "exit": 0,
+      "result": {
+        "transport": {
+          "model": 1,
+          "getMessages": 6,
+          "metadataWrites": 1,
+          "storageReads": 2,
+          "storageWrites": 4,
+          "historyElementReads": 0,
+          "traversals": {}
+        },
+        "panel": {
+          "messages": 600,
+          "historyElementReads": 9101,
+          "traversals": {
+            "mtEventLedgerUncached": 1,
+            "atlasObserveHistory": 1,
+            "relReadingsUncached": 1,
+            "hmsTimelineUncached": 1,
+            "simReplies": 1,
+            "spellStoryFoldUncached": 1
+          }
+        }
+      }
+    },
+    {
+      "benchmark": "operations",
+      "version": "candidate",
+      "exit": 0,
+      "result": {
+        "transport": {
+          "model": 1,
+          "getMessages": 6,
+          "metadataWrites": 1,
+          "storageReads": 2,
+          "storageWrites": 4,
+          "historyElementReads": 0,
+          "traversals": {}
+        },
+        "panel": {
+          "messages": 600,
+          "historyElementReads": 9101,
+          "traversals": {
+            "mtEventLedgerUncached": 1,
+            "atlasObserveHistory": 1,
+            "relReadingsUncached": 1,
+            "hmsTimelineUncached": 1,
+            "simReplies": 1,
+            "spellStoryFoldUncached": 1
+          }
+        }
+      }
+    },
+    {
+      "benchmark": "full-card-panel",
+      "version": "2.9.14",
+      "round": 0,
+      "exit": 0,
+      "result": {
+        "messages": 600,
+        "coldMs": 1021.41,
+        "medianMs": 82.06,
+        "warnings": 0
+      }
+    },
+    {
+      "benchmark": "grouped-card-panel",
+      "version": "2.9.14",
+      "round": 0,
+      "exit": 0,
+      "result": {
+        "messages": 600,
+        "coldMs": 1194.28,
+        "medianMs": 96.26,
+        "warnings": 0,
+        "groupedAudit": true
+      }
+    },
+    {
+      "benchmark": "full-card-memory",
+      "version": "2.9.14",
+      "round": 0,
+      "exit": 0,
+      "result": {
+        "messages": 1000,
+        "enabledEntries": 998,
+        "vmInitMs": 40.37,
+        "fixturePlusVmHeapBytes": 12128256,
+        "catalogAdditionalHeapBytes": 768136,
+        "catalogColdMs": 84.367,
+        "catalogWarmMedianMs": 0.00114,
+        "spells": 348,
+        "techniques": 31
+      }
+    },
+    {
+      "benchmark": "full-card-panel",
+      "version": "candidate",
+      "round": 0,
+      "exit": 0,
+      "result": {
+        "messages": 600,
+        "coldMs": 997.42,
+        "medianMs": 71.67,
+        "warnings": 0
+      }
+    },
+    {
+      "benchmark": "grouped-card-panel",
+      "version": "candidate",
+      "round": 0,
+      "exit": 0,
+      "result": {
+        "messages": 600,
+        "coldMs": 1079.54,
+        "medianMs": 93.42,
+        "warnings": 0,
+        "groupedAudit": true
+      }
+    },
+    {
+      "benchmark": "full-card-memory",
+      "version": "candidate",
+      "round": 0,
+      "exit": 0,
+      "result": {
+        "messages": 1000,
+        "enabledEntries": 998,
+        "vmInitMs": 39.597,
+        "fixturePlusVmHeapBytes": 12147248,
+        "catalogAdditionalHeapBytes": 781904,
+        "catalogColdMs": 111.889,
+        "catalogWarmMedianMs": 0.00114,
+        "spells": 348,
+        "techniques": 31
+      }
+    },
+    {
+      "benchmark": "full-card-panel",
+      "version": "candidate",
+      "round": 1,
+      "exit": 0,
+      "result": {
+        "messages": 600,
+        "coldMs": 1191,
+        "medianMs": 76.03,
+        "warnings": 0
+      }
+    },
+    {
+      "benchmark": "grouped-card-panel",
+      "version": "candidate",
+      "round": 1,
+      "exit": 0,
+      "result": {
+        "messages": 600,
+        "coldMs": 1142.05,
+        "medianMs": 81.35,
+        "warnings": 0,
+        "groupedAudit": true
+      }
+    },
+    {
+      "benchmark": "full-card-memory",
+      "version": "candidate",
+      "round": 1,
+      "exit": 0,
+      "result": {
+        "messages": 1000,
+        "enabledEntries": 998,
+        "vmInitMs": 39.068,
+        "fixturePlusVmHeapBytes": 12149192,
+        "catalogAdditionalHeapBytes": 781816,
+        "catalogColdMs": 95.128,
+        "catalogWarmMedianMs": 0.0011,
+        "spells": 348,
+        "techniques": 31
+      }
+    },
+    {
+      "benchmark": "full-card-panel",
+      "version": "2.9.14",
+      "round": 1,
+      "exit": 0,
+      "result": {
+        "messages": 600,
+        "coldMs": 943.16,
+        "medianMs": 63.73,
+        "warnings": 0
+      }
+    },
+    {
+      "benchmark": "grouped-card-panel",
+      "version": "2.9.14",
+      "round": 1,
+      "exit": 0,
+      "result": {
+        "messages": 600,
+        "coldMs": 1000.37,
+        "medianMs": 87.9,
+        "warnings": 0,
+        "groupedAudit": true
+      }
+    },
+    {
+      "benchmark": "full-card-memory",
+      "version": "2.9.14",
+      "round": 1,
+      "exit": 0,
+      "result": {
+        "messages": 1000,
+        "enabledEntries": 998,
+        "vmInitMs": 35.422,
+        "fixturePlusVmHeapBytes": 12128936,
+        "catalogAdditionalHeapBytes": 768248,
+        "catalogColdMs": 82.799,
+        "catalogWarmMedianMs": 0.00106,
+        "spells": 348,
+        "techniques": 31
+      }
+    },
+    {
+      "benchmark": "full-card-panel",
+      "version": "2.9.14",
+      "round": 2,
+      "exit": 0,
+      "result": {
+        "messages": 600,
+        "coldMs": 937.06,
+        "medianMs": 72.94,
+        "warnings": 0
+      }
+    },
+    {
+      "benchmark": "grouped-card-panel",
+      "version": "2.9.14",
+      "round": 2,
+      "exit": 0,
+      "result": {
+        "messages": 600,
+        "coldMs": 941.08,
+        "medianMs": 80.44,
+        "warnings": 0,
+        "groupedAudit": true
+      }
+    },
+    {
+      "benchmark": "full-card-memory",
+      "version": "2.9.14",
+      "round": 2,
+      "exit": 0,
+      "result": {
+        "messages": 1000,
+        "enabledEntries": 998,
+        "vmInitMs": 36.751,
+        "fixturePlusVmHeapBytes": 12129504,
+        "catalogAdditionalHeapBytes": 768152,
+        "catalogColdMs": 83.491,
+        "catalogWarmMedianMs": 0.00108,
+        "spells": 348,
+        "techniques": 31
+      }
+    },
+    {
+      "benchmark": "full-card-panel",
+      "version": "candidate",
+      "round": 2,
+      "exit": 0,
+      "result": {
+        "messages": 600,
+        "coldMs": 1343.47,
+        "medianMs": 75.05,
+        "warnings": 0
+      }
+    },
+    {
+      "benchmark": "grouped-card-panel",
+      "version": "candidate",
+      "round": 2,
+      "exit": 0,
+      "result": {
+        "messages": 600,
+        "coldMs": 1055.06,
+        "medianMs": 78.14,
+        "warnings": 0,
+        "groupedAudit": true
+      }
+    },
+    {
+      "benchmark": "full-card-memory",
+      "version": "candidate",
+      "round": 2,
+      "exit": 0,
+      "result": {
+        "messages": 1000,
+        "enabledEntries": 998,
+        "vmInitMs": 36.48,
+        "fixturePlusVmHeapBytes": 12147832,
+        "catalogAdditionalHeapBytes": 782056,
+        "catalogColdMs": 79.461,
+        "catalogWarmMedianMs": 0.0011,
+        "spells": 348,
+        "techniques": 31
+      }
+    }
+  ],
+  "limitations": [
+    "Mock host; no live Lumiverse latency, WebView performance, tokenizer or provider measurement.",
+    "Grouped workload repairs opaque groups into additional canonical facts, so equivalent raw input does not mean equivalent useful work.",
+    "Cold/JIT and small CPU timings vary; these measurements establish bounded costs, not a universal speed guarantee."
+  ]
+}

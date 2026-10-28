@@ -1,6 +1,8 @@
-# RPG Companion HMS Edition 2.9.14 — Release Candidate
+# RPG Companion HMS Edition 2.9.15 — Release Candidate
 
-> Living World: [2.9.14 RC compatibility report and limitations](docs/compatibility/living_world_2_9_14/REPORT.md).
+> Magic tracking: [2.9.15 RC rework, evidence and limitations](docs/compatibility/magic_2_9_15/REPORT.md).
+
+> Previous Living World: [2.9.14 RC compatibility report and limitations](docs/compatibility/living_world_2_9_14/REPORT.md).
 
 > Previous tracking stabilization: [2.9.13 candidate report](docs/compatibility/2_9_13/REPORT.md).
 

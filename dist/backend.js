@@ -2376,7 +2376,7 @@ async function pushState(chatId, snapshot = null) {
 // Demo mode plays scripted turns (no tokens); Live mode asks the model, with a small
 // world narrator standing in for a bot card.
 
-const RPGC_VERSION = '2.9.14';
+const RPGC_VERSION = '2.9.15';
 const diagLog = [];
 function diagPush(kind, m) { diagLog.push({ at: new Date().toISOString(), kind, text: String(m).slice(0, 400) }); if (diagLog.length > 60) diagLog.shift(); }
 function logW(m) { diagPush('warn', m); return spindle.log.warn(m); }
@@ -9905,10 +9905,10 @@ function parseCompanion(text, roster = [], relSt = null, immSt = null) {
         res.you = { slept: y.slept === true, ate: y.ate === true, drank: y.drank === true, rested: y.rested === true, mind: HMS_MIND_SCALE.includes(mind) ? mind : null,
             mood: partyText(y.mood, 40), stress: partyLevel(y.stress), sanity: Number.isFinite(sn) ? Math.max(0, Math.min(100, Math.round(sn))) : null,
             xp: Number.isFinite(xp) && xp > 0 ? Math.min(100000, Math.round(xp)) : 0, xpWhy: partyText(y.xpWhy, 100),
-            spells: Array.isArray(y.spells) ? y.spells.filter(x => typeof x === 'string' && x.trim()).map(x => x.trim().slice(0, 160)).slice(0, 8) : [],
-            learned: Array.isArray(y.learned) ? y.learned.map(x => (typeof x === 'string' ? x : isPlainObject(x) ? x.name || x.spell : '')).filter(x => typeof x === 'string' && x.trim() && !/^(none|null|n\/a)$/i.test(x.trim())).map(x => x.trim().slice(0, 160)).slice(0, 6) : [],
-            mastered: Array.isArray(y.mastered) ? y.mastered.filter(x => typeof x === 'string' && x.trim()).map(x => x.trim().slice(0, 160)).slice(0, 6) : [],
-            study: Array.isArray(y.study) ? y.study.filter(x => isPlainObject(x) && typeof (x.spell || x.name) === 'string' && (x.spell || x.name).trim()).map(x => { const n = reportNumber(x.progress); return { spell: String(x.spell || x.name).trim().slice(0, 160), progress: Number.isFinite(n) ? Math.max(0, Math.min(100, Math.round(n))) : null, note: reportText(x.note, 500) }; }).slice(0, 8) : [],
+            spells: Array.isArray(y.spells) ? y.spells.filter(x => typeof x === 'string' && x.trim()).map(x => x.trim().slice(0, 160)).slice(0, 32) : [],
+            learned: Array.isArray(y.learned) ? y.learned.filter(x => !isPlainObject(x) || !reportSpeculative(x) && x.uncertain !== true && (!x.owner || /^(you|player|self)$/i.test(x.owner))).map(x => (typeof x === 'string' ? x : isPlainObject(x) ? x.name || x.spell : '')).filter(x => typeof x === 'string' && x.trim() && !/^(none|null|n\/a)$/i.test(x.trim())).map(x => x.trim().slice(0, 160)).slice(0, 32) : [],
+            mastered: Array.isArray(y.mastered) ? y.mastered.filter(x => typeof x === 'string' && x.trim()).map(x => x.trim().slice(0, 160)).slice(0, 32) : [],
+            study: Array.isArray(y.study) ? y.study.filter(x => isPlainObject(x) && !reportSpeculative(x) && x.uncertain !== true && (!x.owner || /^(you|player|self)$/i.test(x.owner)) && typeof (x.spell || x.name) === 'string' && (x.spell || x.name).trim()).map(x => { const n = reportNumber(x.progress); return { spell: String(x.spell || x.name).trim().slice(0, 160), progress: Number.isFinite(n) ? Math.max(0, Math.min(100, Math.round(n))) : null, note: reportText(x.note, 500) }; }).slice(0, 8) : [],
             ...(Array.isArray(y.abilities) ? { abilities: abilityEvidenceNormalize(y.abilities) } : {}),
             got: pocketList(y.got, true), lost: pocketList(y.lost) };
         res.found = true;
@@ -10170,8 +10170,8 @@ function buildCompanionInstructionRead(committed, userName, locks, st = null, ch
         const yf = [];
         if (wantSurvival) yf.push('"slept": false, "ate": false, "drank": false, "rested": false', `"mind": "${HMS_MIND_SCALE.join('|')}"`);
         if (yc.on) { yf.push(wantSurvival ? '"mood": "1-3 words", "sanity": 0..100' : '"mood": "1-3 words", "stress": "L", "sanity": 0..100'); if (askXp) yf.push('"xp": 0, "xpWhy": "or null"'); yf.push('"got": [], "lost": []'); }
-        if (magicSeen) yf.push('"spells": ["player abilities established here, including prior knowledge revealed by records; not NPC, hypothetical, instructional or failed-only mentions"]');
-        if (abilitiesSeen) yf.push('"abilities": [{"name":"ability", "owner":"you", "state":"known|practiced|attempted|reliable|mastered|forgotten", "historical":false, "evidence":"short exact quote from this reply, <=160 chars"}]');
+        if (magicSeen) yf.push('"spells": ["one individual player spell/technique name per entry; include confirmed prior knowledge; no grouped lists, school/style ranks, casting methods, NPC, hypothetical or failed-only mentions"]');
+        if (abilitiesSeen) yf.push('"abilities": [{"name":"individual ability", "owner":"you", "state":"known|practiced|attempted|reliable|mastered|forgotten", "historical":false, "evidence":"short exact quote from this reply, <=160 chars"}]');
         const studying = magicSeen ? spellStudyActive(chat, st).map(x => x.name).slice(0, 8) : [];
         if (abilitiesSeen || studying.length) yf.push(`"learned": ["new player learning: first clean execution or teacher sign-off this turn; not historical knowledge"], "study": [{"spell": "${abilitiesSeen ? 'ability deliberately practiced/taught now' : `one of: ${studying.join(', ')}`}", "progress": "explicit measured percentage or null", "note": "practice evidence or null"}]`);
         if (abilitiesSeen)
@@ -10233,7 +10233,7 @@ function buildCompanionInstructionRead(committed, userName, locks, st = null, ch
     if (posReq) s += '\n' + posReq.rules;
     if (wantSurvival) s += `\nIn "you", set a flag to true only if ${userName} actually did it in this reply's events: a proper sleep counts as slept; a short break or sitting down counts as rested; a real meal counts as ate. Set "mind" to ${userName}'s state of mind at the end of this reply, as one of the listed words.`;
     if (yc.on) s += `\n"you" also holds ${userName}'s own state at the end of this reply: mood, ${wantSurvival ? '' : 'stress (L), '}sanity (100 steady, 0 broken)${askXp ? ', and xp earned in this reply for a real accomplishment (0 if none) with why' : ''}. "got" and "lost": physical things ${userName} was handed, picked up, gave away, used up or lost — in their own last message or on screen in this reply — that the HUD does not list (a handout, a key, a note, a booklet), a few words each; [] when nothing changed hands. A message, a notice or news is not a thing.`;
-    if (abilitiesSeen) s += '\n"you.abilities": use historical:true for earlier records/assessments; explicit player assessments only, not NPC, catalog, instructions or hypotheticals. Historical knowledge is not new learning or current study; attempts are not knowledge, reliability is not mastery. Quote the evidence. A missing ability is not a loss.';
+    if (abilitiesSeen) s += '\n"you.abilities": one confirmed player spell/technique/skill per row; no ranks, casting labels, NPCs, catalog entries, instructions or hypotheticals. historical:true for past records, not new learning/current study. Attempts are not knowledge; reliability is not mastery. Exact quote required. Absence is not loss.';
     if (abilitiesSeen) s += '\nStudy requires deliberate practice/teaching now, not NPC demonstrations, spell lists or failed combat alone. Never invent percentages. Omit empty study/learning.';
     if (wantQuests) s += '\n"quests": accepted goals only; reuse existing names. Progress only if explicitly measured, else null. Omit suggestions; never equate introduction with completion.';
     if (plotReq) s += '\n' + plotReq.rules;
@@ -15045,7 +15045,7 @@ function hmsMagicPanel(chat, st, cfg, sys, chatId = null) {
     const resolve = spellResolver(chatId);
     const saved = new Map(spellResolveState(chatId, st, spellStoryFold(chat, chatId)).st.spellbook.map(x => { const target = resolve(x.name); return [target.key, { ...x, name: target.name }]; }));
     const techKeys = techKeySet(chatId);
-    const book = [...spellKnown(chat, st, null, chatId)].filter(([key]) => !techKeys.has(key)).map(([key, value]) => saved.get(key) || { name: value.name, from: value.from }).slice(-60);
+    const book = [...spellKnown(chat, st, null, chatId)].filter(([key]) => !techKeys.has(key)).map(([key, value]) => saved.get(key) || { name: value.name, from: value.from, ...(value.note ? { note: value.note } : {}) }).slice(-60);
     if (!pools.length && !meters.length && !arts.length && !cooldowns.length && !book.length && !list && !ranked) return null;
     return { pools, meters, arts, cooldowns, spellbook: book, list };
 }
@@ -15137,7 +15137,7 @@ function rankedLoreBullets(e, martial = false) {
         if (!m) continue;
         const name = m[1].replace(/\s*\([^)]*\)/g, '').replace(/,\s*(?:\d+|one|two|three|four|five)\s+mastered$/i, '').trim();
         if (!name || name.includes(':') || name.length > 160) continue;
-        rows.push({ name, school: head[1].trim(), rank: head[2], effect: m[2], fan: fan && !/\(canon characteristic\)/i.test(m[1]) });
+        rows.push({ name, school: head[1].trim(), rank: head[2], needs: (m[1].match(/\(([^)]+\+[^)]+)\)/) || [])[1]?.split(/\s*\+\s*/).filter(Boolean) || [], effect: m[2], fan: fan && !/\(canon characteristic\)/i.test(m[1]) });
     }
     return rows;
 }
@@ -15156,7 +15156,7 @@ function spellsFromEntry(e, out) {
     }
     for (const row of rankedLoreBullets(e)) {
         const step = spellMtStep(row.rank);
-        out.push({ name: row.name, school: row.school, parent: null, ladder: 'mt', step: row.school === 'Melded' ? null : step, rank: row.rank, kind: row.school === 'Melded' ? 'melded' : 'ranked', who: null, needs: [], effect: spellClip(row.effect, 240), chant: null, fan: row.fan, src: e.id });
+        out.push({ name: row.name, school: row.school, parent: null, ladder: 'mt', step, rank: row.rank, kind: row.school === 'Melded' ? 'melded' : 'ranked', who: null, needs: row.needs, effect: spellClip(row.effect, 240), chant: null, fan: row.fan, src: e.id });
     }
     const head = text.match(/^\s*\[SPELL\s*[—–-]\s*([^\]]+)\]/i);
     if (head) {
@@ -15169,7 +15169,7 @@ function spellsFromEntry(e, out) {
             aliases: Array.isArray(e.key) ? e.key : [], kind: 'ranked', who: null, needs: [], effect: eff ? spellClip(eff[1], 240) : null, chant: ch ? spellClip(ch[1].replace(/^["“]|["”]$/g, ''), 200) : null, fan, src: e.id };
         const p = raw.match(/^(.+?)\s*\(([^)]+)\)\s*$/);
         const base = p ? p[1].trim() : raw;
-        if (/^melded$/i.test(base)) { row.school = 'Melded'; row.kind = 'melded'; row.needs = p ? p[2].split(/\s*\+\s*/).map(x => x.trim()).filter(Boolean) : []; row.step = null; }
+        if (/^melded$/i.test(base)) { row.school = 'Melded'; row.kind = 'melded'; row.needs = p ? p[2].split(/\s*\+\s*/).map(x => x.trim()).filter(Boolean) : []; }
         else if (/^unique$/i.test(base)) { row.school = 'Unique'; row.kind = 'unique'; row.who = p ? p[2].trim() : null; }
         else if (p && /,|;/.test(p[2])) { row.school = spellSchoolName(base); row.who = p[2].trim(); }          // "Summoning (Perugius, Rudeus)"
         else if (p && SPELL_ELEMENTS.test(spellSchoolKey(p[2]))) { row.school = spellSchoolName(p[2]); row.parent = spellSchoolName(base); }   // "Healing (Detoxification)"
@@ -15256,6 +15256,7 @@ function spellCatalog(chatId) {
         const had = seen.get(k);
         if (!had) { seen.set(k, { ...r, key: k }); continue; }
         had.aliases = [...new Set([...(had.aliases || []), ...(r.aliases || [])])];
+        if (had.school !== r.school) had.alsoSchools = [...new Set([...(had.alsoSchools || []), r.school])];
         // the first description wins; a later one only fills what it lacked
         for (const f of ['effect', 'chant', 'rank', 'who']) if (!had[f] && r[f]) had[f] = r[f];
         if (had.step === null && r.step !== null && had.kind !== 'unique' && had.kind !== 'rare' && had.kind !== 'melded') { had.step = r.step; had.kind = 'ranked'; }
@@ -15354,9 +15355,11 @@ function spellStoryFold(chat, chatId = null) {
     const id = chatId || chatIdOf(chat);
     return memoRead(chat, `spells:${id || ''}`, () => spellStoryFoldUncached(chat, id));
 }
+const SPELL_EMPTY_CATALOG = [];
 const spellAliasIndexes = new WeakMap();
+const spellRecordIndexes = new WeakMap();
 function spellResolver(chatId) {
-    const catalog = chatId ? spellCatalog(chatId) : [];
+    const catalog = chatId ? spellCatalog(chatId) : SPELL_EMPTY_CATALOG;
     let index = spellAliasIndexes.get(catalog);
     if (!index) {
         index = new Map(catalog.map(row => [row.key, row]));
@@ -15371,7 +15374,7 @@ function spellResolver(chatId) {
         for (const [key, row] of proposals) if (row) index.set(key, row);
         spellAliasIndexes.set(catalog, index);
     }
-    return name => {
+    const resolve = name => {
         const key = spellKey(name), row = index.get(key);
         if (row) return { key: row.key, name: row.name };
         const label = String(name || '').trim();
@@ -15382,22 +15385,74 @@ function spellResolver(chatId) {
         }
         return { key, name: label };
     };
+    let cache = spellRecordIndexes.get(index);
+    if (!cache) { cache = { values: new Map(), groups: new Map(), schools: new Set(catalog.map(row => spellSchoolKey(row.school))) }; spellRecordIndexes.set(index, cache); }
+    // Normalize report names once per catalog, not by matching spell names inside prose.
+    // Canonical names win before delimiters, so a named spell containing commas stays whole.
+    resolve.records = value => {
+        if (value && typeof value === 'object') {
+            if (!isPlainObject(value) || reportSpeculative(value) || value.uncertain === true || value.owner && !/^(you|player|self)$/i.test(value.owner)) return [];
+            value = value.name || value.spell || '';
+        }
+        const label = String(value || '').trim(), cached = cache.values.get(label);
+        if (cached) return cached;
+        const key = spellKey(label);
+        if (index.has(key)) { const out = [resolve(label)]; cache.values.set(label, out); if (cache.values.size > 512) cache.values.delete(cache.values.keys().next().value); return out; }
+        if (cache.groups.has(key)) return cache.groups.get(key);
+        const invalid = text => !text || text.length > 160 || /[.!?:]/.test(text) ||
+            /^(?:none|null|n\/a|unknown|unlearned|unconfirmed)$/i.test(text) || /^not\s+/i.test(text) ||
+            /\b(?:might|could|would|should|plans?|intends?)\s+(?:to\s+)?(?:know|learn|cast|study|use)\b|\b(?:knows?|demonstrates?)\s+\S|\bnever\s+(?:knew|known|learned|cast|used)\b/i.test(text);
+        const single = text => {
+            const exact = index.get(spellKey(text));
+            if (exact) return { key: exact.key, name: exact.name };
+            const q = text.match(/^(.+?)\s*\(([^()]*)\)\s*$/);
+            if (q && /^(?:weak|unreliable|unstable|limited|needs? practice|not mastered|improv|practic|voiceless|silent|without incantation|with incantation|standard incantation)/i.test(q[2])) {
+                const base = index.get(spellKey(q[1])) || (!invalid(q[1].trim()) ? resolve(q[1].trim()) : null);
+                if (base) return { key: base.key, name: base.name, ...(!/^(?:voiceless|silent|without incantation|with incantation|standard incantation)/i.test(q[2]) ? { note: q[2].trim() } : {}) };
+            }
+            if (invalid(text)) return null;
+            return resolve(text);
+        };
+        const schoolKey = value => spellSchoolKey(value.replace(/\s*\([^)]*\)\s*$/, '').replace(/\s+(?:Magic|School)$/i, '').trim());
+        const category = label.match(/^([^:]+?)(?:\s*:\s*(.+))?$/);
+        const school = category && (cache.schools.has(schoolKey(category[1])) || SPELL_ELEMENTS.test(schoolKey(category[1])));
+        const nonSpell = !!(school && !category[2] && /\b(?:Magic|School)\b|\(\s*(?:Beginner|Elementary|Intermediate|Advanced|Saint|King|Emperor|God)\s*\)/i.test(label)) || /^(?:Mana Capacity|Casting Method|Magic Schools?|Magic Tiers?|Martial Styles?|Sword Styles?)\s*:/i.test(label) ||
+            /^(?:Voiceless|Silent|Incantation|Truncated) Casting\b/i.test(label) ||
+            /\b(?:Magic|Style|School)\s*(?:\(\s*|:\s*)(?:Beginner|Elementary|Intermediate|Advanced|Saint|King|Emperor|God)\b[^:]*$/i.test(label);
+        let out = [];
+        if (!nonSpell) {
+            const group = label.match(/^(?:Known (?:spells|techniques)|[^:]+?\b(?:Magic|Spells?|Techniques?)\s*(?:\([^)]*\))?)\s*:\s*(.+)$/i);
+            const grouped = group || school && category[2];
+            const body = group ? group[1] : grouped ? category[2] : label;
+            const parts = hmsSplitTop(body, /\s*[,;·]\s*|\s+and\s+/g);
+            const targets = parts.length > 1 && parts.length <= 32 ? parts.map(single) : [];
+            if (targets.length && targets.every(Boolean) && (grouped || targets.some(t => index.has(t.key)))) out = targets;
+            else if (grouped && parts.length === 1) { const target = single(body); if (target) out = [target]; }
+            else if (!grouped) { const target = single(label); if (target) out = [target]; }
+        }
+        cache.values.set(label, out);
+        if (out.length > 1) cache.groups.set(key, out); // preserve old manual negatives stored under a grouped key
+        while (cache.values.size > 512) cache.values.delete(cache.values.keys().next().value);
+        while (cache.groups.size > 512) cache.groups.delete(cache.groups.keys().next().value);
+        return out;
+    };
+    return resolve;
 }
 function spellResolveState(chatId, st, fold) {
     const resolve = spellResolver(chatId);
     const events = (source, assessments = false) => {
         const out = new Map();
-        for (const [key, event] of source) {
-            const target = resolve(event.name || key), previous = out.get(target.key);
+        for (const [key, event] of source) for (const target of resolve.records(event.name || key)) {
+            const previous = out.get(target.key);
             if (!previous || (assessments && !event.historical && previous.historical) ||
-                ((!assessments || !!event.historical === !!previous.historical) && event.at >= previous.at)) out.set(target.key, { ...event, name: target.name });
+                ((!assessments || !!event.historical === !!previous.historical) && event.at >= previous.at)) out.set(target.key, { ...event, name: target.name, ...(target.note ? { note: target.note } : {}) });
         }
         return out;
     };
     const anchors = source => {
         const out = {};
-        for (const [key, id] of Object.entries(isPlainObject(source) ? source : {})) {
-            const target = resolve(key).key;
+        for (const [key, id] of Object.entries(isPlainObject(source) ? source : {})) for (const item of (resolve.records(key).length ? resolve.records(key) : [resolve(key)])) {
+            const target = item.key;
             const at = id ? (fold.order.get(id) ?? Infinity) : -1;
             const previous = out[target] ? (fold.order.get(out[target]) ?? Infinity) : -1;
             if (!(target in out) || at >= previous) out[target] = id;
@@ -15406,9 +15461,9 @@ function spellResolveState(chatId, st, fold) {
     };
     const rows = source => {
         const out = new Map();
-        for (const row of Array.isArray(source) ? source : []) if (row?.name) {
-            const target = resolve(row.name), previous = out.get(target.key);
-            out.set(target.key, { ...previous, ...row, name: target.name,
+        for (const row of Array.isArray(source) ? source : []) if (row?.name) for (const target of (resolve.records(row.name).length ? resolve.records(row.name) : [resolve(row.name)])) {
+            const previous = out.get(target.key);
+            out.set(target.key, { ...previous, ...row, name: target.name, ...(target.note && !row.note ? { note: target.note } : {}),
                 ...(previous?.from === 'you' ? { from: 'you' } : {}) });
         }
         return [...out.values()];
@@ -15424,7 +15479,7 @@ function abilityEvidenceNormalize(list) {
     const states = ['known', 'practiced', 'attempted', 'reliable', 'mastered', 'forgotten'];
     const out = [];
     for (const row of list.slice(0, 8)) {
-        if (!isPlainObject(row) || reportSpeculative(row) || row.owner !== 'you' || typeof row.historical !== 'boolean' || !states.includes(row.state)) continue;
+        if (!isPlainObject(row) || reportSpeculative(row) || row.uncertain === true || row.owner !== 'you' || typeof row.historical !== 'boolean' || !states.includes(row.state)) continue;
         const name = typeof row.name === 'string' ? row.name.trim() : '';
         const evidence = typeof row.evidence === 'string' ? row.evidence.trim() : '';
         if (!name || !spellKey(name) || name.length > 160 || !evidence || evidence.length > 160) continue;
@@ -15443,37 +15498,41 @@ function abilityReportMerge(report, previous) {
 
 function spellStoryFoldUncached(chat, chatId = null) {
     const playerName = chatId ? userNameCache.get(chatId) || '' : '';
+    const resolve = spellResolver(chatId);
     const established = new Map();
     const learned = new Map(), mastered = new Map(), progress = new Map(), order = new Map(), abilityEvidence = new Map(), withdrawn = new Map();
     let i = 0;
     for (const m of chat || []) {
         if (m.role !== 'assistant') continue;
         order.set(m.id, i++);
-        for (const name of spellEstablishedNames(m, playerName)) {
-            const key = spellKey(name);
-            if (key) established.set(key, { name, msgId: m.id, at: order.get(m.id) });
+        if (!trackingMessageVisible(m) || m._rpgcPurpose === 'continue') continue;
+        for (const raw of spellEstablishedNames(m, playerName)) for (const target of resolve.records(raw)) {
+            const note = target.note || established.get(target.key)?.note;
+            if (target.key) established.set(target.key, { ...target, ...(note ? { note } : {}), msgId: m.id, at: order.get(m.id) });
         }
         const d = getSwipeData(m);
         const y = d && isPlainObject(d.survival) ? d.survival : null;
         if (!y) continue;
-        for (const n of Array.isArray(y.spells) ? y.spells : []) { const k = spellKey(n); if (k) learned.set(k, { name: n, msgId: m.id, at: order.get(m.id), newlyLearned: false }); }
-        for (const n of Array.isArray(y.learned) ? y.learned : []) { const k = spellKey(n); if (k) learned.set(k, { name: n, msgId: m.id, at: order.get(m.id), newlyLearned: true }); }
-        for (const n of Array.isArray(y.mastered) ? y.mastered : []) { const k = spellKey(n); if (k) mastered.set(k, { name: n, msgId: m.id, at: order.get(m.id) }); }
-        for (const s of Array.isArray(y.study) ? y.study : []) if (s && s.spell) progress.set(spellKey(s.spell), { name: s.spell, progress: s.progress, note: s.note || null, msgId: m.id, at: order.get(m.id) });
+        for (const n of Array.isArray(y.spells) ? y.spells : []) for (const target of resolve.records(n)) learned.set(target.key, { ...target, ...((target.note || learned.get(target.key)?.note || established.get(target.key)?.note) ? { note: target.note || learned.get(target.key)?.note || established.get(target.key)?.note } : {}), msgId: m.id, at: order.get(m.id), newlyLearned: false });
+        for (const n of Array.isArray(y.learned) ? y.learned : []) for (const target of resolve.records(n)) learned.set(target.key, { ...target, msgId: m.id, at: order.get(m.id), newlyLearned: true });
+        for (const n of Array.isArray(y.mastered) ? y.mastered : []) for (const target of resolve.records(n)) mastered.set(target.key, { ...target, msgId: m.id, at: order.get(m.id) });
+        for (const s of Array.isArray(y.study) ? y.study : []) if (s && s.spell) for (const target of resolve.records(s)) progress.set(target.key, { name: target.name, progress: s.progress, note: s.note || target.note || null, msgId: m.id, at: order.get(m.id) });
         if (Array.isArray(y.abilities) && y.abilities.length) {
             const source = stripCompanion(stripLeakedReasoning(textOf(m.content))).replace(/\s+/g, ' ');
             for (const row of abilityEvidenceNormalize(y.abilities)) {
                 if (!source.includes(row.evidence.replace(/\s+/g, ' '))) continue;
-                const key = spellKey(row.name), previous = abilityEvidence.get(key);
-                // Unknown historical dates never overrule an established current assessment.
-                if (row.historical && previous && !previous.historical) continue;
-                if (row.historical && (mastered.has(key) && row.state !== 'mastered' || learned.has(key) && ['attempted','practiced','forgotten'].includes(row.state))) continue;
-                const event = { ...row, msgId: m.id, at: order.get(m.id),
-                    newlyLearned: !row.historical && learned.get(key)?.at === order.get(m.id) && learned.get(key)?.newlyLearned === true };
-                abilityEvidence.set(key, event);
-                if (['known', 'reliable', 'mastered'].includes(row.state)) learned.set(key, event);
-                if (row.state === 'mastered') mastered.set(key, event);
-                if (row.state === 'forgotten' && !row.historical) { withdrawn.set(key, event); learned.delete(key); mastered.delete(key); established.delete(key); progress.delete(key); }
+                for (const target of resolve.records(row.name)) {
+                    const key = target.key, previous = abilityEvidence.get(key);
+                    // Unknown historical dates never overrule an established current assessment.
+                    if (row.historical && previous && !previous.historical) continue;
+                    if (row.historical && (mastered.has(key) && row.state !== 'mastered' || learned.has(key) && ['attempted','practiced','forgotten'].includes(row.state))) continue;
+                    const event = { ...row, name: target.name, ...(target.note || learned.get(key)?.at === order.get(m.id) && learned.get(key)?.note ? { note: target.note || learned.get(key).note } : {}), msgId: m.id, at: order.get(m.id),
+                        newlyLearned: !row.historical && learned.get(key)?.at === order.get(m.id) && learned.get(key)?.newlyLearned === true };
+                    abilityEvidence.set(key, event);
+                    if (['known', 'reliable', 'mastered'].includes(row.state)) learned.set(key, event);
+                    if (row.state === 'mastered') mastered.set(key, event);
+                    if (row.state === 'forgotten' && !row.historical) { withdrawn.set(key, event); learned.delete(key); mastered.delete(key); established.delete(key); progress.delete(key); }
+                }
             }
         }
     }
@@ -15499,21 +15558,32 @@ function spellKnown(chat, st, fold, chatId = null, alreadyResolved = false) {
     const out = new Map();
     for (const sp of Array.isArray(st && st.spellbook) ? st.spellbook : []) {
         const key = spellKey(sp.name);
-        if (key && sp.from !== 'story' && sp.from !== 'fight' && !(key in forget)) out.set(key, { name: sp.name, from: sp.from || 'you' });
+        if (key && sp.from !== 'story' && sp.from !== 'fight' && !(key in forget)) out.set(key, { name: sp.name, from: sp.from || 'you', practiceAfter: st.spellStudyStopped?.[key], ...(sp.note ? { note: sp.note } : {}) });
     }
-    for (const [key, event] of f.established) if (!(key in forget) && allowed(key, event) && !out.has(key)) out.set(key, { name: event.name, from: 'established', msgId: event.msgId });
-    for (const [key, event] of f.learned) if (allowed(key, event) && !out.has(key)) out.set(key, { name: event.name, from: 'learned', msgId: event.msgId });
+    for (const [key, event] of f.established) if (!(key in forget) && allowed(key, event) && !out.has(key)) out.set(key, { name: event.name, from: 'established', msgId: event.msgId, ...(event.note ? { note: event.note } : {}) });
+    for (const [key, event] of f.learned) if (allowed(key, event) && (!out.has(key) || out.get(key).from === 'established' && event.at > (f.established.get(key)?.at ?? -1))) out.set(key, { name: event.name, from: 'learned', msgId: event.msgId, ...(event.note ? { note: event.note } : {}) });
     for (const [key, event] of f.mastered) if (allowed(key, event)) {
         if (!out.has(key)) out.set(key, { name: event.name, from: 'mastered', msgId: event.msgId });
         out.get(key).mastered = true;
+        if (event.note) out.get(key).note = event.note;
+        else if (event.at >= Math.max(f.learned.get(key)?.at ?? -1, f.established.get(key)?.at ?? -1)) delete out.get(key).note;
     }
-    for (const [key, evidence] of f.abilityEvidence || []) if (out.has(key) && evidence.state !== 'forgotten') out.get(key).evidence = evidence;
+    for (const [key, evidence] of f.abilityEvidence || []) if (out.has(key) && evidence.state !== 'forgotten' &&
+        evidence.at >= Math.max(f.learned.get(key)?.at ?? -1, f.mastered.get(key)?.at ?? -1, f.established.get(key)?.at ?? -1)) out.get(key).evidence = evidence;
     return out;
 }
 
 /** Manual study choices and practice the story reported, rebuilt from the active swipes. */
-function spellHistoricalPractice(fold, known, key) {
-    return !!(fold.progress.has(key) && known?.get(key)?.evidence?.historical && !known.get(key).mastered && !fold.learned.get(key)?.newlyLearned);
+function spellOngoingPractice(fold, known, key) {
+    const practice = fold.progress.get(key), earned = fold.learned.get(key), mastered = fold.mastered.get(key);
+    if (practice && known?.get(key)?.from === 'you') {
+        const anchor = known.get(key).practiceAfter;
+        const after = anchor === null ? -1 : fold.order.get(anchor);
+        return after !== undefined && practice.at > after;
+    }
+    return !!(practice && known?.has(key) &&
+        ((practice.at > Math.max(earned?.at ?? -1, mastered?.at ?? -1)) ||
+        (known.get(key).evidence?.historical && !known.get(key).mastered && !earned?.newlyLearned)));
 }
 function spellStudyActive(chat, st, fold = null, chatId = null, knownMap = null) {
     const resolved = spellResolveState(chatId || chatIdOf(chat), st, fold || spellStoryFold(chat, chatId));
@@ -15528,7 +15598,7 @@ function spellStudyActive(chat, st, fold = null, chatId = null, knownMap = null)
         const after = stopped[key] && f.order.has(stopped[key]) ? f.order.get(stopped[key]) : -1;
         const earned = f.learned.get(key), mastered = f.mastered.get(key);
         const completedHere = (earned?.newlyLearned && earned.at >= p.at) || (mastered && mastered.at >= p.at);
-        if (p.at > after && (!known?.has(key) || completedHere || spellHistoricalPractice(f, known, key)) && !active.has(key)) active.set(key, { name: p.name, school: null, rank: null, from: 'story' });
+        if (p.at > after && (!known?.has(key) || completedHere || spellOngoingPractice(f, known, key)) && !active.has(key)) active.set(key, { name: p.name, school: null, rank: null, from: 'story' });
     }
     return [...active.values()].slice(-8);
 }
@@ -15570,6 +15640,10 @@ function spellListPanel(chatId, chat, st, sys) {
             const miss = r.needs.filter(n => !has(n) && !isKnown(spellKey(n)));
             status = !stand.schools.size ? 'open' : miss.length ? 'locked' : 'reach';
             why = r.needs.length ? `Needs ${r.needs.join(' + ')}${miss.length && stand.schools.size ? ` (missing ${miss.join(', ')})` : ''}` : 'A melded spell';
+            if (status === 'reach' && r.step !== null) {
+                if (!sch || sch.step === null) { status = 'unranked'; why += ' — melded proficiency is not established; the story decides'; }
+                else if (r.step > sch.step) { status = r.step === sch.step + 1 ? 'next' : 'locked'; why = needs(r); }
+            }
         } else if (!stand.schools.size) status = 'open';
         else if (!sch) { status = 'locked'; why = stand.ladder === 'rz' ? 'Not your element' : 'Not one of your schools'; }
         else if (r.step === null || sch.step === null) { status = 'unranked'; why = r.step === null ? 'No spell rank given — the story decides' : 'Your school rank is unknown — the story decides'; }
@@ -15580,11 +15654,11 @@ function spellListPanel(chatId, chat, st, sys) {
         const evidence = known.has(r.key) ? known.get(r.key).evidence || null : fold.abilityEvidence?.get(r.key) || null;
         return { name: r.name, key: r.key, school: r.school, rank: r.rank, step: r.step, status, why, who: r.who, effect: r.effect, chant: r.chant, fan: !!r.fan,
             progress: status === 'study' && pr && pr.progress !== null && pr.progress !== undefined && Number.isFinite(Number(pr.progress)) ? Math.max(0, Math.min(100, Math.round(Number(pr.progress)))) : null,
-            note: status === 'study' && pr ? pr.note : null, ...(evidence ? { evidence } : {}) };
+            note: status === 'study' && pr ? pr.note : known.get(r.key)?.note || (spellOngoingPractice(fold, known, r.key) ? pr?.note : null) || null, ...(evidence ? { evidence } : {}) };
     });
     // a known spell the lorebook does not have still shows, under its own heading
     const catKeys = cat.map(r => r.key);
-    for (const [k, v] of known) if (!techKeys.has(k) && !catKeys.some(c => spellSame(c, k))) spells.push({ name: v.name, key: k, school: 'Other', rank: null, step: null, status: v.mastered ? 'mastered' : 'known', why: v.from === 'you' ? 'Marked by you' : 'From the story', who: null, effect: null, chant: null, fan: false, progress: null, note: null, ...(v.evidence ? { evidence: v.evidence } : {}) });
+    for (const [k, v] of known) if (!techKeys.has(k) && !catKeys.some(c => spellSame(c, k))) spells.push({ name: v.name, key: k, school: 'Other', rank: null, step: null, status: v.mastered ? 'mastered' : 'known', why: v.from === 'you' ? 'Marked by you' : 'From the story', who: null, effect: null, chant: null, fan: false, progress: null, note: v.note || null, ...(v.evidence ? { evidence: v.evidence } : {}) });
     for (const [key, evidence] of fold.abilityEvidence || []) if (!known.has(key) && !techKeys.has(key) && !catKeys.includes(key))
         spells.push({ name:evidence.name, key, school:'Other', rank:null, step:null, status:'unranked', why:'No confirmed current knowledge', evidence, effect:null, chant:null, fan:false, progress:null, note:null });
     const bySchool = new Map();
@@ -15614,7 +15688,7 @@ function spellListPanel(chatId, chat, st, sys) {
         const k = spellKey(s.name);
         const row = spells.find(x => x.key === k || spellSame(x.key, k));
         const pr = fold.progress.get(k);
-        return { name: s.name, school: row ? row.school : s.school || null, rank: row ? row.rank : s.rank || null, done: !spellHistoricalPractice(fold, known, k) && (!!(row && ['known', 'mastered'].includes(row.status)) || isKnown(k)),
+        return { name: s.name, school: row ? row.school : s.school || null, rank: row ? row.rank : s.rank || null, done: !spellOngoingPractice(fold, known, k) && (!!(row && ['known', 'mastered'].includes(row.status)) || isKnown(k)),
             progress: pr && pr.progress !== null && pr.progress !== undefined && Number.isFinite(Number(pr.progress)) ? Math.max(0, Math.min(100, Math.round(Number(pr.progress)))) : null, note: pr ? pr.note : null, why: row ? row.why : null };
     });
     return { total: cat.length, ladder: stand.ladder, gate: stand.gate, casting: stand.casting, voiceless: stand.voiceless,
@@ -15854,7 +15928,7 @@ function techListPanel(chatId, chat, st, sys) {
         const k = spellKey(s.name);
         const row = items.find(x => x.key === k);
         const pr = fold.progress.get(k);
-        return { name: s.name, school: row ? row.school : null, rank: row ? row.rank : null, done: !spellHistoricalPractice(fold, known, spellKey(s.name)) && !!(row && ['known', 'mastered'].includes(row.status)),
+        return { name: s.name, school: row ? row.school : null, rank: row ? row.rank : null, done: !spellOngoingPractice(fold, known, spellKey(s.name)) && !!(row && ['known', 'mastered'].includes(row.status)),
             progress: pr && pr.progress !== null && pr.progress !== undefined && Number.isFinite(Number(pr.progress)) ? Math.max(0, Math.min(100, Math.round(Number(pr.progress)))) : null,
             note: pr ? pr.note : null, why: row ? row.why : null };
     });
@@ -16769,7 +16843,7 @@ spindle.onFrontendMessage(async (payload, userId) => {
             case 'spell_study': {
                 if (!payload.chatId || typeof payload.name !== 'string' || !payload.name.trim()) return;
                 const chat = await chatApi.getMessages(payload.chatId).catch(() => []);
-                const st = spellResolveState(payload.chatId, await getChatState(payload.chatId), spellStoryFold(chat)).st;
+                const st = spellResolveState(payload.chatId, await getChatState(payload.chatId), spellStoryFold(chat, payload.chatId)).st;
                 const target = spellResolver(payload.chatId)(payload.name.trim().slice(0, 160));
                 const name = target.name, k = target.key;
                 const list = (Array.isArray(st.spellStudy) ? st.spellStudy : []).filter(x => x && spellKey(x.name) !== k);
@@ -16790,7 +16864,7 @@ spindle.onFrontendMessage(async (payload, userId) => {
                 // Marked by hand: learned (into the spellbook) or forgotten (out of it, and the story's earlier word on it with it).
                 if (!payload.chatId || typeof payload.name !== 'string' || !payload.name.trim()) return;
                 const chat = await chatApi.getMessages(payload.chatId).catch(() => []);
-                const st = spellResolveState(payload.chatId, await getChatState(payload.chatId), spellStoryFold(chat)).st;
+                const st = spellResolveState(payload.chatId, await getChatState(payload.chatId), spellStoryFold(chat, payload.chatId)).st;
                 const target = spellResolver(payload.chatId)(payload.name.trim().slice(0, 160));
                 const name = target.name, k = target.key;
                 if (!isPlainObject(st.spellForget)) st.spellForget = {};
@@ -16798,10 +16872,11 @@ spindle.onFrontendMessage(async (payload, userId) => {
                     spellbookAdd(st, [{ name }], 'you');
                     delete st.spellForget[k];
                     st.spellStudy = (Array.isArray(st.spellStudy) ? st.spellStudy : []).filter(x => x && spellKey(x.name) !== k);
-                    if (isPlainObject(st.spellStudyStopped)) delete st.spellStudyStopped[k];
+                    if (!isPlainObject(st.spellStudyStopped)) st.spellStudyStopped = {};
+                    st.spellStudyStopped[k] = lastAssistant(chat)?.id || null;
                 } else {
                     st.spellbook = (Array.isArray(st.spellbook) ? st.spellbook : []).filter(x => spellKey(x.name) !== k);
-                    const last = [...(chat || [])].reverse().find(m => m.role === 'assistant');
+                    const last = lastAssistant(chat);
                     st.spellForget[k] = last ? last.id : null;
                     const ks = Object.keys(st.spellForget);
                     if (ks.length > 200) for (const x of ks.slice(0, ks.length - 200)) delete st.spellForget[x];
