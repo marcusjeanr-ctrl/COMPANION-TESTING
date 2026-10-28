@@ -13,6 +13,14 @@
   first names from receiving another character's private knowledge.
 - Inventory all systems and Living World entry IDs, with before/after export counts,
   defect regressions, browser verification, measured costs and open provider limits.
+- Integrate Six-Sided's explicitly owned spell-list format, rank/cost annotations
+  and Known-not-Mastered evidence without granting theoretical/NPC abilities.
+- Reconcile unique full/short family identities and Agenda place abbreviations only
+  when both HUD observations establish the same parent location.
+- Reject pending/uncertain property and inheritance grants; add dual-card lifetime,
+  chronology, continuation and full-source regression coverage.
+- Preserve Task 1 checkpoint `31e44da`; see the dual-card report for inherited
+  history-window and live-provider limits. Neither card is claimed fully certified.
 - No visual redesign, new dependency, model call, polling or saved-data migration.
   See [3.0 RC report](docs/compatibility/3_0/REPORT.md); live acceptance is outstanding.
 

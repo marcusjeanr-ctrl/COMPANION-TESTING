@@ -1,5 +1,7 @@
 # RPG Companion 3.0 RC — tracking and compatibility review
 
+> Task 1 checkpoint report. See [integrated dual-card results](DUAL_CARD_REPORT.md) for Task 2, current test totals and final limitations.
+
 ## Delivery and protected baseline
 
 Repository: `marcusjeanr-ctrl/COMPANION-TESTING` only. Published baseline is

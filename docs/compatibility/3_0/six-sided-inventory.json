@@ -1,0 +1,90 @@
+{
+  "checkpoint": "31e44daef9966cce9b4f05eecd31c259aa8db6e5",
+  "cardSha256": "df2fd8b90c1f8ee1bac2a054dd7acb60d165555022a7e8c59e34d149d84a69d7",
+  "entries": 1296,
+  "enabled": 1273,
+  "disabled": 23,
+  "classifications": {
+    "Partially supported": 450,
+    "Dependent on narrator output": 820,
+    "Not applicable to Companion": 23,
+    "Compatible by design with no special tracking required": 3
+  },
+  "families": {
+    "geography": 76,
+    "magic": 257,
+    "identity": 205,
+    "branch": 367,
+    "disabled": 23,
+    "ownership": 175,
+    "combat": 73,
+    "lore": 3,
+    "system": 117
+  },
+  "coreFields": {
+    "name": {
+      "characters": 36,
+      "sha256": "1064386ef2fd57f5c41cd477846840e5f4b86a45c55f2b546b0ac424b8217803"
+    },
+    "description": {
+      "characters": 16536,
+      "sha256": "8a460f4478e4aadf71f77b7f72befac4007b892458c37ed36b13bb633060ea35"
+    },
+    "personality": {
+      "characters": 3181,
+      "sha256": "d6360800dee226b75bbff565ddc63d43879478ecca90e2f911626663c4879122"
+    },
+    "scenario": {
+      "characters": 2211,
+      "sha256": "6a9a8dacc82df103cba029fa9f14b07249aa163c9d84c8af35ac6b5bc44d666a"
+    },
+    "first_mes": {
+      "characters": 5086,
+      "sha256": "e264f7431a2c7e11527943724cfe5b6e7526a5ed1672879bfde21e2fe71f218d"
+    },
+    "mes_example": {
+      "characters": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "creator": {
+      "characters": 32,
+      "sha256": "02cedb4ab4d55f43f9f0a328161355319045a56f5b54a2b1acea3acf669b8c3e"
+    },
+    "creator_notes": {
+      "characters": 690,
+      "sha256": "52967cfab1cc7dd9c1cb6547bd014fdc3209baeafb77ecd8dd8a7cbd900a0eeb"
+    },
+    "system_prompt": {
+      "characters": 18358,
+      "sha256": "768f8b16f6d588509fc43b134b6ed8fbead22e0954cd8c61eaa19286ff201c5d"
+    },
+    "post_history_instructions": {
+      "characters": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  },
+  "alternateGreetings": 11,
+  "runtimeSummary": {
+    "poolCount": 1273,
+    "spellCount": 111,
+    "chantCount": 22,
+    "techniqueCount": 23,
+    "arcCount": 22,
+    "scheduleCount": 64,
+    "noAutomaticKnowledge": true,
+    "noAutomaticNpcs": true
+  },
+  "mirror": {
+    "entries": 1296,
+    "same_content_entries": 1291,
+    "differences": {
+      "id": 1291,
+      "comment": 1296,
+      "extensions": 1296,
+      "insertion_order": 5,
+      "keys": 1
+    },
+    "authority": "Use original data.character_book IDs; extension mirror has distinct IDs and labels, not another 1296 mechanics."
+  },
+  "limits": "Full source reading/inventory and deterministic contracts; no individual lore-rule or live-playthrough certification."
+}

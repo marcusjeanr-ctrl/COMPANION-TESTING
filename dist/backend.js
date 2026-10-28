@@ -12276,6 +12276,8 @@ function famRead(chat, st, cfg) {
         const key = lockKey(name);
         if (!key || hidden.has(key)) return null;
         let p = fam.get(key);
+        if (!p && !key.includes(' ')) p = partyMatch([...fam.values(), ...[...hidden].filter(k => !fam.has(k)).map(k => ({ name: k, key: k }))], name);
+        if (p && hidden.has(p.key)) return null;
         if (!p) { p = { key, name, relation: null, status: null, where: null, known: null, at: null, idx: -1, msgId: null, statusIdx: -1, doing: null, doingAt: null, history: [], changes: [], from: 'story', seenIn: null, seenAt: null }; fam.set(key, p); }
         return p;
     };
@@ -12306,7 +12308,7 @@ function famRead(chat, st, cfg) {
             const p = get(r.name);
             if (!p) continue;
             reported.add(p.key);
-            p.name = r.name;
+            if (lockKey(r.name) === p.key) p.name = r.name;
             if (r.relation) p.relation = r.relation;
             setStatus(p, r.status, at, m.id, idx);
             const where = r.where || (r.known === 'seen' ? here : null);
@@ -12322,7 +12324,8 @@ function famRead(chat, st, cfg) {
             const p = get(r.name);
             if (!p) continue;
             if (!p.relation) p.relation = r.bond;
-            if (appeared ? !appeared.has(p.key) : reported.has(p.key)) continue;
+            if (reported.has(p.key) || seenNow.has(p.key)) continue;
+            if (appeared && !appeared.has(p.key) && !appeared.has(r.key)) continue;
             if (p.status === 'missing' || p.status === 'unknown' || !p.status) setStatus(p, 'alive', at, m.id, idx);
             if (here) moveTo(p, here, 'seen', at, m.id, idx);
             p.seenIn = m.id; p.seenAt = at;
@@ -12858,7 +12861,7 @@ function agendaReportedState(row, data, at, dueAt, previous = 'open') {
     return agendaActivityState(row, data) === 'in_progress' ? row.state : previous;
 }
 
-function agendaPlaceCompatible(a, b, refine = false) {
+function agendaPlaceCompatible(a, b, refine = false, context = null) {
     if (a === b) return true;
     const A = lockKey(a || ''), B = lockKey(b || '');
     if (A === B) return true;
@@ -12866,7 +12869,11 @@ function agendaPlaceCompatible(a, b, refine = false) {
     // A room's threshold is a location detail, not a different room. Keep annexes,
     // wings and other destinations distinct; only refine across reports.
     const room = text => text.replace(/\s+(?:doorway|threshold|entrance)$/, '');
-    return room(A) === room(B);
+    if (room(A) === room(B)) return true;
+    const norm = text => lockKey(text || '').replace(/[^\p{L}\p{N}]+/gu, ' ').trim();
+    const x = norm(a), y = norm(b), short = x.length < y.length ? x : y, long = x.length < y.length ? y : x;
+    return short.split(' ').length >= 2 && long.endsWith(' ' + short) && !!context?.before && !!context?.after &&
+        norm(context.before).endsWith(long) && norm(context.after).endsWith(long);
 }
 
 /** Legacy reports sometimes called a postponed occurrence merely "open". Require
@@ -12901,7 +12908,7 @@ function agendaRead(chat, st) {
     const items = [];
     const compatible = (x, row, dueAt = null) => (!row?.moved || ['open', 'in_progress'].includes(x.state)) &&
         (!row?.with || !x.with || row.moved || lockKey(row.with) === lockKey(x.with)) &&
-        (!row?.where || !x.where || row.moved || agendaPlaceCompatible(x.where, row.where, !!row.reportedIn && row.reportedIn !== x.changedIn)) &&
+        (!row?.where || !x.where || row.moved || agendaPlaceCompatible(x.where, row.where, !!row.reportedIn && row.reportedIn !== x.changedIn, { before: x.scenePlace, after: row.scenePlace })) &&
         (!row || agendaScheduleCompatible(x, row, dueAt, !!row.reportedIn && row.reportedIn !== x.changedIn));
     const find = (key, row = null, dueAt = null) => {
         if (!row) { const exact = items.find(x => x.key === key); if (exact) return exact; }
@@ -12917,7 +12924,8 @@ function agendaRead(chat, st) {
             if (!r || typeof r.key !== 'string' || typeof r.what !== 'string') continue;
             const dueAt = r.when || r.due ? agendaWhen(r.due, r.when, at, e && e.hud, stripThink(textOf(m.content)).replace(COMPANION_RE, '')) : null;
             const scheduleDay = dueAt !== null ? Math.floor(dueAt / 1440) : agendaScheduleDay(r.due, r.when, at, e && e.hud);
-            let it = find(r.key, { ...r, scheduleDay, reportedIn: m.id }, dueAt);
+            const scenePlace = e?.hud?.location?.join(' ') || null;
+            let it = find(r.key, { ...r, scheduleDay, reportedIn: m.id, scenePlace }, dueAt);
             const moved = !it && it !== undefined && !r.moved &&
                 (d.agenda || []).filter(x => x && lockKey(x.what || '') === lockKey(r.what)).length === 1 &&
                 agendaNarratedMove(r, items, m.content, m.id);
@@ -12931,6 +12939,7 @@ function agendaRead(chat, st) {
                 if (!it.reschedules) it.reschedules = [];
                 if (it.when && it.when !== r.when) it.reschedules.push({ when: it.when, where: it.where, with: it.with, dueAt: it.dueAt, msgId: m.id });
             }
+            if (scenePlace) it.scenePlace = scenePlace;
             it.what = r.what; // The first key remains stable; show the latest confirmed description.
             if (scheduleDay !== null) it.scheduleDay = scheduleDay;
             if (r.with) it.with = r.with;
@@ -13054,11 +13063,15 @@ function holdKind(kind, name, label) {
     return 'other';
 }
 
+function holdPending(row) {
+    return row?.accepted === false || reportSpeculative(row) || /^(?:offered|proposed|promised|pending|planned|expected|prospective|unaccepted)\b/i.test(String(row?.state || ''));
+}
+
 function holdNormalize(list) {
     if (!Array.isArray(list)) return null;
     const out = [];
     for (const e of list) {
-        if (!isPlainObject(e)) continue;
+        if (!isPlainObject(e) || holdPending(e)) continue;
         const name = partyText(e.name ?? e.item ?? e.title, 70);
         if (!name) continue;
         const key = lockKey(name);
@@ -13107,6 +13120,7 @@ function holdRead(chat, st) {
         const at = e ? e.clock : null;
         const idx = idxOf.has(m.id) ? idxOf.get(m.id) : -1;
         for (const r of Array.isArray(d.holdings) ? d.holdings : []) {
+            if (!r || holdPending(r)) continue;
             let it = find(r.key);
             if (!it) { it = { key: r.key, name: r.name, kind: r.kind, where: null, note: null, lost: false, since: at, from: 'story', idx, changedIn: m.id, onHud: false }; map.set(r.key, it); }
             if (r.kind && r.kind !== 'other') it.kind = r.kind;
@@ -15301,14 +15315,18 @@ function spellEstablishedList(content, playerName) {
     const out = [], seen = new Set();
     const identity = spellKey(playerName);
     const clean = value => String(value).replace(/[*_`]/g, '').replace(/^\s*#{1,6}\s*/, '').trim();
-    let active = false, fenced = false;
+    let active = false, fenced = false, theory = false;
     for (const raw of String(content || '').split('\n')) {
         if (/^\s*(?:```|~~~)/.test(raw)) { fenced = !fenced; continue; }
         if (fenced || /^\s*>/.test(raw)) continue;
+        if (/^\s*(?:\*{3,}|-{3,}|_{3,})\s*$/.test(raw)) { active = false; theory = false; continue; }
         const line = clean(raw);
         const heading = line.replace(/\s*\([^)]*\)\s*$/, '').replace(/:\s*$/, '').trim();
+        const ownedList = heading.match(/^spell list\s*[—–:-]\s*(.+)$/i);
+        if (ownedList) { active = !!identity && spellKey(ownedList[1]) === identity; theory = false; continue; }
         if (/\bknown spells\b/i.test(heading)) {
             const owner = spellKey(heading.replace(/\bknown spells\b/i, '').replace(/[’']s\b/gi, '').replace(/\b(?:of|for|list)\b/gi, ''));
+            theory = false;
             active = owner === 'your' || owner === 'you' || owner === 'player' || !!identity && owner === identity;
             continue;
         }
@@ -15320,18 +15338,29 @@ function spellEstablishedList(content, playerName) {
         const listed = bullet.test(raw) || tier.test(line) || line.includes('·');
         if (!listed) {
             const school = /(?:\b(?:rank|tier|magic)\b|^(?:water|earth|fire|wind|healing|summoning|barrier|other|unranked)$)/i.test(heading);
-            if ((/^\s*#{1,6}\s/.test(raw) || /^\s*\*\*[^*]+\*\*\s*$/.test(raw)) && !school) active = false;
+            if (/^\s*#{1,6}\s/.test(raw) || /^\s*\*\*[^*]+\*\*\s*$/.test(raw)) {
+                const namedSchool = /^(?:water|earth|fire|wind|healing|detoxification|divine strike|barrier|summoning|melded|unique|inherent|other)\b/i.test(heading);
+                if (!school && !namedSchool) active = false;
+                else theory = /\b(?:theory|unlearned|hypothetical|reference)\b/i.test(heading);
+            }
             continue;
         }
-        if (/\b(?:can learn|could learn|not learned|not known|not trained|not yet|unlearned|unavailable|do not know|don't know|wish|recommended|requires|costs?|per cast)\b/i.test(line)) continue;
-        const body = line.replace(bullet, '').replace(tier, '');
+        const incompleteMastery = /\bknown but not (?:yet )?mastered\b/i.test(line);
+        if (theory || /\b(?:can learn|could learn|not learned|not known|not trained|not yet|unlearned|unavailable|do not know|don't know|wish|recommended|requires|costs?|per cast)\b/i.test(line.replace(/known but not (?:yet )?mastered/gi, 'known'))) continue;
+        let body = line.replace(bullet, '').replace(tier, '');
+        if (/^next tier\b/i.test(body)) {
+            if (!incompleteMastery) continue;
+            body = body.replace(/^next tier\s*[—–:-]\s*[^:]+:\s*/i, '');
+        }
+        // Strip rank/cost annotations before splitting names; description punctuation is not a list.
+        body = body.replace(/\s+[—–]\s+.*$/, '').replace(/\s*\((?:beginner|elementary|intermediate|advanced|saint|king|emperor|god)\b[^)]*\)\s*$/i, '');
         for (let name of body.split(/\s*[·;,]\s*/)) {
             name = name.replace(/\s*:\s+.*$/, '').replace(/\s+[—–]\s+.*$/, '').trim();
             name = name.replace(/\s*\((?:beginner|elementary|intermediate|advanced|saint|king|emperor|imperial|god|divine|small-scale\b[^)]*|localized\b[^)]*|basic section\b[^)]*|warming\b[^)]*)\)\s*$/i, '').trim();
             if (!name || name.length > 160 || name.split(/\s+/).length > 8 || /[.!?]|^(?:none|unknown|not trained)$/i.test(name)) continue;
             const key = spellKey(name);
             if (!key || seen.has(key)) continue;
-            seen.add(key); out.push(name);
+            seen.add(key); out.push(incompleteMastery ? name + ' (not mastered)' : name);
             if (out.length >= 120) return out;
         }
     }
@@ -15344,7 +15373,7 @@ function spellEstablishedNames(message, playerName) {
     const key = `${message.id}:${message.swipe_id ?? 0}:${spellKey(playerName)}`;
     const cached = spellEstablishedCache.get(key);
     if (cached && cached.text === text) return cached.names;
-    const names = /\bknown spells\b|\bspells you (?:already )?know\b|\byou (?:already )?know (?:these|the following) spells\b/i.test(text)
+    const names = /\bspell list\s*[—–:-]|\bknown spells\b|\bspells you (?:already )?know\b|\byou (?:already )?know (?:these|the following) spells\b/i.test(text)
         ? spellEstablishedList(stripCompanion(stripLeakedReasoning(text)), playerName) : [];
     spellEstablishedCache.set(key, { text, names });
     while (spellEstablishedCache.size > 3000) spellEstablishedCache.delete(spellEstablishedCache.keys().next().value);
@@ -16061,7 +16090,7 @@ function agendaVaguePeriod(text) {
     if (!parts.length) return null;
     // Do not discard conditions or other distinguishing qualifiers just because
     // two descriptions mention the same daypart.
-    const remainder = t.replace(/\b(?:called for|now past|this|the|today|early|late|dawn|morning|noon|midday|afternoon|evening|sunset|sundown|tonight|night|dusk)\b/g, '').replace(/[^\p{L}\p{N}]+/gu, '');
+    const remainder = t.replace(/\b(?:called for|now past|now|this|the|today|early|late|dawn|morning|noon|midday|afternoon|evening|sunset|sundown|tonight|night|dusk)\b/g, '').replace(/[^\p{L}\p{N}]+/gu, '');
     if (remainder) return null;
     const period = part => part === 'dawn' ? 'morning' : part;
     if (!parts.every(part => period(part) === period(parts[0]))) return null;

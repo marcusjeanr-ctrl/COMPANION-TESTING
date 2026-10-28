@@ -1,0 +1,843 @@
+{
+  "checkpoint": "31e44daef9966cce9b4f05eecd31c259aa8db6e5",
+  "runtime": "Node 22.22.2",
+  "method": "Three alternating fresh-process pairs at identical source-bound workloads, normal and each complete-card panel; existing warmups/sample counts. Equal GC-assisted 1000-message catalogue/memory fixtures for each card. One operation-count run per version. No correctness suites or browser tests run concurrently with benchmarks.",
+  "sourceSha256": {
+    "candidate-backend.js": "d381826f9fb3259454de3579de7768b11170d447f9476b58a6c7839794ee4dd8",
+    "candidate-frontend.js": "feeff48d24d6ca23d206b9f736988780144c4cb3121e7937c06d32890a7facff",
+    "final-backend.js": "c55ad8d6215b85eee42bfcdc297fd234abefb9abbccd77dbef17b64d813e9063",
+    "final-frontend.js": "feeff48d24d6ca23d206b9f736988780144c4cb3121e7937c06d32890a7facff"
+  },
+  "summary": [
+    {
+      "benchmark": "panel600",
+      "version": "task1",
+      "processes": 3,
+      "median": {
+        "messages": 600,
+        "coldMs": 277.11,
+        "medianMs": 76.13,
+        "warnings": 0
+      }
+    },
+    {
+      "benchmark": "panel2000",
+      "version": "task1",
+      "processes": 3,
+      "median": {
+        "messages": 2000,
+        "coldMs": 493.22,
+        "medianMs": 112.32,
+        "warnings": 0
+      }
+    },
+    {
+      "benchmark": "livingPanel",
+      "version": "task1",
+      "processes": 3,
+      "median": {
+        "messages": 600,
+        "coldMs": 1191.36,
+        "medianMs": 100.75,
+        "warnings": 0
+      }
+    },
+    {
+      "benchmark": "sixPanel",
+      "version": "task1",
+      "processes": 3,
+      "median": {
+        "messages": 600,
+        "coldMs": 459.65,
+        "medianMs": 88.49,
+        "warnings": 0
+      }
+    },
+    {
+      "benchmark": "pipeline",
+      "version": "task1",
+      "processes": 3,
+      "median": {
+        "parseReportMedianMs": 0.7586,
+        "processResponseMedianMs": 0.9057,
+        "promptConstructMedianMs": 0.4685,
+        "promptCharacters": 14949,
+        "populatedPromptCharacters": 18819,
+        "warnings": 0
+      }
+    },
+    {
+      "benchmark": "livingMemory",
+      "version": "task1",
+      "processes": 3,
+      "median": {
+        "messages": 1000,
+        "enabledEntries": 998,
+        "vmInitMs": 38.779,
+        "fixturePlusVmHeapBytes": 12174904,
+        "catalogAdditionalHeapBytes": 782024,
+        "catalogColdMs": 91.229,
+        "catalogWarmMedianMs": 0.0011,
+        "spells": 348,
+        "techniques": 31
+      }
+    },
+    {
+      "benchmark": "sixMemory",
+      "version": "task1",
+      "processes": 3,
+      "median": {
+        "messages": 1000,
+        "enabledEntries": 1273,
+        "vmInitMs": 45.64,
+        "fixturePlusVmHeapBytes": 12256776,
+        "catalogAdditionalHeapBytes": 539104,
+        "catalogColdMs": 35.329,
+        "catalogWarmMedianMs": 0.00135,
+        "spells": 111,
+        "techniques": 23
+      }
+    },
+    {
+      "benchmark": "panel600",
+      "version": "task2",
+      "processes": 3,
+      "median": {
+        "messages": 600,
+        "coldMs": 249.6,
+        "medianMs": 68.38,
+        "warnings": 0
+      }
+    },
+    {
+      "benchmark": "panel2000",
+      "version": "task2",
+      "processes": 3,
+      "median": {
+        "messages": 2000,
+        "coldMs": 533.54,
+        "medianMs": 112.83,
+        "warnings": 0
+      }
+    },
+    {
+      "benchmark": "livingPanel",
+      "version": "task2",
+      "processes": 3,
+      "median": {
+        "messages": 600,
+        "coldMs": 1107.84,
+        "medianMs": 71.6,
+        "warnings": 0
+      }
+    },
+    {
+      "benchmark": "sixPanel",
+      "version": "task2",
+      "processes": 3,
+      "median": {
+        "messages": 600,
+        "coldMs": 404.54,
+        "medianMs": 70.01,
+        "warnings": 0
+      }
+    },
+    {
+      "benchmark": "pipeline",
+      "version": "task2",
+      "processes": 3,
+      "median": {
+        "parseReportMedianMs": 0.7405,
+        "processResponseMedianMs": 1.1467,
+        "promptConstructMedianMs": 0.4819,
+        "promptCharacters": 14949,
+        "populatedPromptCharacters": 18819,
+        "warnings": 0
+      }
+    },
+    {
+      "benchmark": "livingMemory",
+      "version": "task2",
+      "processes": 3,
+      "median": {
+        "messages": 1000,
+        "enabledEntries": 998,
+        "vmInitMs": 39.086,
+        "fixturePlusVmHeapBytes": 12186296,
+        "catalogAdditionalHeapBytes": 782024,
+        "catalogColdMs": 100.083,
+        "catalogWarmMedianMs": 0.00109,
+        "spells": 348,
+        "techniques": 31
+      }
+    },
+    {
+      "benchmark": "sixMemory",
+      "version": "task2",
+      "processes": 3,
+      "median": {
+        "messages": 1000,
+        "enabledEntries": 1273,
+        "vmInitMs": 42.398,
+        "fixturePlusVmHeapBytes": 12268088,
+        "catalogAdditionalHeapBytes": 539216,
+        "catalogColdMs": 36.254,
+        "catalogWarmMedianMs": 0.00117,
+        "spells": 111,
+        "techniques": 23
+      }
+    },
+    {
+      "benchmark": "operations",
+      "version": "task1",
+      "processes": 1,
+      "median": {}
+    },
+    {
+      "benchmark": "operations",
+      "version": "task2",
+      "processes": 1,
+      "median": {}
+    }
+  ],
+  "operationsIdentical": true,
+  "raw": [
+    {
+      "benchmark": "panel600",
+      "version": "task1",
+      "round": 0,
+      "exit": 0,
+      "result": {
+        "messages": 600,
+        "coldMs": 277.11,
+        "medianMs": 76.13,
+        "warnings": 0
+      }
+    },
+    {
+      "benchmark": "panel2000",
+      "version": "task1",
+      "round": 0,
+      "exit": 0,
+      "result": {
+        "messages": 2000,
+        "coldMs": 479.82,
+        "medianMs": 112.32,
+        "warnings": 0
+      }
+    },
+    {
+      "benchmark": "livingPanel",
+      "version": "task1",
+      "round": 0,
+      "exit": 0,
+      "result": {
+        "messages": 600,
+        "coldMs": 1178.23,
+        "medianMs": 100.75,
+        "warnings": 0
+      }
+    },
+    {
+      "benchmark": "sixPanel",
+      "version": "task1",
+      "round": 0,
+      "exit": 0,
+      "result": {
+        "messages": 600,
+        "coldMs": 382.81,
+        "medianMs": 70.81,
+        "warnings": 0
+      }
+    },
+    {
+      "benchmark": "pipeline",
+      "version": "task1",
+      "round": 0,
+      "exit": 0,
+      "result": {
+        "parseReportMedianMs": 0.7586,
+        "processResponseMedianMs": 0.9057,
+        "promptConstructMedianMs": 0.4119,
+        "promptCharacters": 14949,
+        "populatedPromptCharacters": 18819,
+        "warnings": 0
+      }
+    },
+    {
+      "benchmark": "livingMemory",
+      "version": "task1",
+      "round": 0,
+      "exit": 0,
+      "result": {
+        "messages": 1000,
+        "enabledEntries": 998,
+        "vmInitMs": 38.779,
+        "fixturePlusVmHeapBytes": 12173552,
+        "catalogAdditionalHeapBytes": 781904,
+        "catalogColdMs": 91.229,
+        "catalogWarmMedianMs": 0.00112,
+        "spells": 348,
+        "techniques": 31
+      }
+    },
+    {
+      "benchmark": "sixMemory",
+      "version": "task1",
+      "round": 0,
+      "exit": 0,
+      "result": {
+        "messages": 1000,
+        "enabledEntries": 1273,
+        "vmInitMs": 39.923,
+        "fixturePlusVmHeapBytes": 12256832,
+        "catalogAdditionalHeapBytes": 539216,
+        "catalogColdMs": 40.637,
+        "catalogWarmMedianMs": 0.0019,
+        "spells": 111,
+        "techniques": 23
+      }
+    },
+    {
+      "benchmark": "panel600",
+      "version": "task2",
+      "round": 0,
+      "exit": 0,
+      "result": {
+        "messages": 600,
+        "coldMs": 249.79,
+        "medianMs": 68.38,
+        "warnings": 0
+      }
+    },
+    {
+      "benchmark": "panel2000",
+      "version": "task2",
+      "round": 0,
+      "exit": 0,
+      "result": {
+        "messages": 2000,
+        "coldMs": 533.54,
+        "medianMs": 112.83,
+        "warnings": 0
+      }
+    },
+    {
+      "benchmark": "livingPanel",
+      "version": "task2",
+      "round": 0,
+      "exit": 0,
+      "result": {
+        "messages": 600,
+        "coldMs": 1107.84,
+        "medianMs": 71.6,
+        "warnings": 0
+      }
+    },
+    {
+      "benchmark": "sixPanel",
+      "version": "task2",
+      "round": 0,
+      "exit": 0,
+      "result": {
+        "messages": 600,
+        "coldMs": 454.91,
+        "medianMs": 81.71,
+        "warnings": 0
+      }
+    },
+    {
+      "benchmark": "pipeline",
+      "version": "task2",
+      "round": 0,
+      "exit": 0,
+      "result": {
+        "parseReportMedianMs": 0.7292,
+        "processResponseMedianMs": 1.0135,
+        "promptConstructMedianMs": 0.4621,
+        "promptCharacters": 14949,
+        "populatedPromptCharacters": 18819,
+        "warnings": 0
+      }
+    },
+    {
+      "benchmark": "livingMemory",
+      "version": "task2",
+      "round": 0,
+      "exit": 0,
+      "result": {
+        "messages": 1000,
+        "enabledEntries": 998,
+        "vmInitMs": 39.086,
+        "fixturePlusVmHeapBytes": 12184904,
+        "catalogAdditionalHeapBytes": 782024,
+        "catalogColdMs": 100.083,
+        "catalogWarmMedianMs": 0.00113,
+        "spells": 348,
+        "techniques": 31
+      }
+    },
+    {
+      "benchmark": "sixMemory",
+      "version": "task2",
+      "round": 0,
+      "exit": 0,
+      "result": {
+        "messages": 1000,
+        "enabledEntries": 1273,
+        "vmInitMs": 36.689,
+        "fixturePlusVmHeapBytes": 12267392,
+        "catalogAdditionalHeapBytes": 539248,
+        "catalogColdMs": 42.354,
+        "catalogWarmMedianMs": 0.00113,
+        "spells": 111,
+        "techniques": 23
+      }
+    },
+    {
+      "benchmark": "panel600",
+      "version": "task2",
+      "round": 1,
+      "exit": 0,
+      "result": {
+        "messages": 600,
+        "coldMs": 244.48,
+        "medianMs": 68.75,
+        "warnings": 0
+      }
+    },
+    {
+      "benchmark": "panel2000",
+      "version": "task2",
+      "round": 1,
+      "exit": 0,
+      "result": {
+        "messages": 2000,
+        "coldMs": 491.79,
+        "medianMs": 107.21,
+        "warnings": 0
+      }
+    },
+    {
+      "benchmark": "livingPanel",
+      "version": "task2",
+      "round": 1,
+      "exit": 0,
+      "result": {
+        "messages": 600,
+        "coldMs": 1052.32,
+        "medianMs": 67.7,
+        "warnings": 0
+      }
+    },
+    {
+      "benchmark": "sixPanel",
+      "version": "task2",
+      "round": 1,
+      "exit": 0,
+      "result": {
+        "messages": 600,
+        "coldMs": 368.53,
+        "medianMs": 70.01,
+        "warnings": 0
+      }
+    },
+    {
+      "benchmark": "pipeline",
+      "version": "task2",
+      "round": 1,
+      "exit": 0,
+      "result": {
+        "parseReportMedianMs": 0.7405,
+        "processResponseMedianMs": 1.1467,
+        "promptConstructMedianMs": 0.4828,
+        "promptCharacters": 14949,
+        "populatedPromptCharacters": 18819,
+        "warnings": 0
+      }
+    },
+    {
+      "benchmark": "livingMemory",
+      "version": "task2",
+      "round": 1,
+      "exit": 0,
+      "result": {
+        "messages": 1000,
+        "enabledEntries": 998,
+        "vmInitMs": 38.453,
+        "fixturePlusVmHeapBytes": 12186296,
+        "catalogAdditionalHeapBytes": 782024,
+        "catalogColdMs": 84.508,
+        "catalogWarmMedianMs": 0.00107,
+        "spells": 348,
+        "techniques": 31
+      }
+    },
+    {
+      "benchmark": "sixMemory",
+      "version": "task2",
+      "round": 1,
+      "exit": 0,
+      "result": {
+        "messages": 1000,
+        "enabledEntries": 1273,
+        "vmInitMs": 42.398,
+        "fixturePlusVmHeapBytes": 12268088,
+        "catalogAdditionalHeapBytes": 538168,
+        "catalogColdMs": 36.254,
+        "catalogWarmMedianMs": 0.00117,
+        "spells": 111,
+        "techniques": 23
+      }
+    },
+    {
+      "benchmark": "panel600",
+      "version": "task1",
+      "round": 1,
+      "exit": 0,
+      "result": {
+        "messages": 600,
+        "coldMs": 256.11,
+        "medianMs": 67.48,
+        "warnings": 0
+      }
+    },
+    {
+      "benchmark": "panel2000",
+      "version": "task1",
+      "round": 1,
+      "exit": 0,
+      "result": {
+        "messages": 2000,
+        "coldMs": 619.36,
+        "medianMs": 119.17,
+        "warnings": 0
+      }
+    },
+    {
+      "benchmark": "livingPanel",
+      "version": "task1",
+      "round": 1,
+      "exit": 0,
+      "result": {
+        "messages": 600,
+        "coldMs": 1191.36,
+        "medianMs": 140.09,
+        "warnings": 0
+      }
+    },
+    {
+      "benchmark": "sixPanel",
+      "version": "task1",
+      "round": 1,
+      "exit": 0,
+      "result": {
+        "messages": 600,
+        "coldMs": 615.36,
+        "medianMs": 88.49,
+        "warnings": 0
+      }
+    },
+    {
+      "benchmark": "pipeline",
+      "version": "task1",
+      "round": 1,
+      "exit": 0,
+      "result": {
+        "parseReportMedianMs": 0.671,
+        "processResponseMedianMs": 0.8934,
+        "promptConstructMedianMs": 0.4685,
+        "promptCharacters": 14949,
+        "populatedPromptCharacters": 18819,
+        "warnings": 0
+      }
+    },
+    {
+      "benchmark": "livingMemory",
+      "version": "task1",
+      "round": 1,
+      "exit": 0,
+      "result": {
+        "messages": 1000,
+        "enabledEntries": 998,
+        "vmInitMs": 39.143,
+        "fixturePlusVmHeapBytes": 12177896,
+        "catalogAdditionalHeapBytes": 782024,
+        "catalogColdMs": 89.589,
+        "catalogWarmMedianMs": 0.0011,
+        "spells": 348,
+        "techniques": 31
+      }
+    },
+    {
+      "benchmark": "sixMemory",
+      "version": "task1",
+      "round": 1,
+      "exit": 0,
+      "result": {
+        "messages": 1000,
+        "enabledEntries": 1273,
+        "vmInitMs": 52.385,
+        "fixturePlusVmHeapBytes": 12256776,
+        "catalogAdditionalHeapBytes": 538888,
+        "catalogColdMs": 35.329,
+        "catalogWarmMedianMs": 0.00135,
+        "spells": 111,
+        "techniques": 23
+      }
+    },
+    {
+      "benchmark": "panel600",
+      "version": "task1",
+      "round": 2,
+      "exit": 0,
+      "result": {
+        "messages": 600,
+        "coldMs": 288.75,
+        "medianMs": 79.56,
+        "warnings": 0
+      }
+    },
+    {
+      "benchmark": "panel2000",
+      "version": "task1",
+      "round": 2,
+      "exit": 0,
+      "result": {
+        "messages": 2000,
+        "coldMs": 493.22,
+        "medianMs": 108.89,
+        "warnings": 0
+      }
+    },
+    {
+      "benchmark": "livingPanel",
+      "version": "task1",
+      "round": 2,
+      "exit": 0,
+      "result": {
+        "messages": 600,
+        "coldMs": 1491.06,
+        "medianMs": 90.66,
+        "warnings": 0
+      }
+    },
+    {
+      "benchmark": "sixPanel",
+      "version": "task1",
+      "round": 2,
+      "exit": 0,
+      "result": {
+        "messages": 600,
+        "coldMs": 459.65,
+        "medianMs": 99.52,
+        "warnings": 0
+      }
+    },
+    {
+      "benchmark": "pipeline",
+      "version": "task1",
+      "round": 2,
+      "exit": 0,
+      "result": {
+        "parseReportMedianMs": 0.8513,
+        "processResponseMedianMs": 1.0621,
+        "promptConstructMedianMs": 0.4794,
+        "promptCharacters": 14949,
+        "populatedPromptCharacters": 18819,
+        "warnings": 0
+      }
+    },
+    {
+      "benchmark": "livingMemory",
+      "version": "task1",
+      "round": 2,
+      "exit": 0,
+      "result": {
+        "messages": 1000,
+        "enabledEntries": 998,
+        "vmInitMs": 36.972,
+        "fixturePlusVmHeapBytes": 12174904,
+        "catalogAdditionalHeapBytes": 782136,
+        "catalogColdMs": 140.89,
+        "catalogWarmMedianMs": 0.00108,
+        "spells": 348,
+        "techniques": 31
+      }
+    },
+    {
+      "benchmark": "sixMemory",
+      "version": "task1",
+      "round": 2,
+      "exit": 0,
+      "result": {
+        "messages": 1000,
+        "enabledEntries": 1273,
+        "vmInitMs": 45.64,
+        "fixturePlusVmHeapBytes": 12256272,
+        "catalogAdditionalHeapBytes": 539104,
+        "catalogColdMs": 35.105,
+        "catalogWarmMedianMs": 0.00132,
+        "spells": 111,
+        "techniques": 23
+      }
+    },
+    {
+      "benchmark": "panel600",
+      "version": "task2",
+      "round": 2,
+      "exit": 0,
+      "result": {
+        "messages": 600,
+        "coldMs": 249.6,
+        "medianMs": 67.36,
+        "warnings": 0
+      }
+    },
+    {
+      "benchmark": "panel2000",
+      "version": "task2",
+      "round": 2,
+      "exit": 0,
+      "result": {
+        "messages": 2000,
+        "coldMs": 683.51,
+        "medianMs": 139.23,
+        "warnings": 0
+      }
+    },
+    {
+      "benchmark": "livingPanel",
+      "version": "task2",
+      "round": 2,
+      "exit": 0,
+      "result": {
+        "messages": 600,
+        "coldMs": 1417.22,
+        "medianMs": 79.01,
+        "warnings": 0
+      }
+    },
+    {
+      "benchmark": "sixPanel",
+      "version": "task2",
+      "round": 2,
+      "exit": 0,
+      "result": {
+        "messages": 600,
+        "coldMs": 404.54,
+        "medianMs": 65.51,
+        "warnings": 0
+      }
+    },
+    {
+      "benchmark": "pipeline",
+      "version": "task2",
+      "round": 2,
+      "exit": 0,
+      "result": {
+        "parseReportMedianMs": 1.1295,
+        "processResponseMedianMs": 1.4363,
+        "promptConstructMedianMs": 0.4819,
+        "promptCharacters": 14949,
+        "populatedPromptCharacters": 18819,
+        "warnings": 0
+      }
+    },
+    {
+      "benchmark": "livingMemory",
+      "version": "task2",
+      "round": 2,
+      "exit": 0,
+      "result": {
+        "messages": 1000,
+        "enabledEntries": 998,
+        "vmInitMs": 50.022,
+        "fixturePlusVmHeapBytes": 12186696,
+        "catalogAdditionalHeapBytes": 782056,
+        "catalogColdMs": 111.02,
+        "catalogWarmMedianMs": 0.00109,
+        "spells": 348,
+        "techniques": 31
+      }
+    },
+    {
+      "benchmark": "sixMemory",
+      "version": "task2",
+      "round": 2,
+      "exit": 0,
+      "result": {
+        "messages": 1000,
+        "enabledEntries": 1273,
+        "vmInitMs": 51.167,
+        "fixturePlusVmHeapBytes": 12268576,
+        "catalogAdditionalHeapBytes": 539216,
+        "catalogColdMs": 35.043,
+        "catalogWarmMedianMs": 0.00122,
+        "spells": 111,
+        "techniques": 23
+      }
+    },
+    {
+      "benchmark": "operations",
+      "version": "task1",
+      "exit": 0,
+      "result": {
+        "transport": {
+          "model": 1,
+          "getMessages": 6,
+          "metadataWrites": 1,
+          "storageReads": 2,
+          "storageWrites": 4,
+          "historyElementReads": 0,
+          "traversals": {}
+        },
+        "panel": {
+          "messages": 600,
+          "historyElementReads": 9101,
+          "traversals": {
+            "mtEventLedgerUncached": 1,
+            "atlasObserveHistory": 1,
+            "relReadingsUncached": 1,
+            "hmsTimelineUncached": 1,
+            "simReplies": 1,
+            "spellStoryFoldUncached": 1
+          }
+        }
+      }
+    },
+    {
+      "benchmark": "operations",
+      "version": "task2",
+      "exit": 0,
+      "result": {
+        "transport": {
+          "model": 1,
+          "getMessages": 6,
+          "metadataWrites": 1,
+          "storageReads": 2,
+          "storageWrites": 4,
+          "historyElementReads": 0,
+          "traversals": {}
+        },
+        "panel": {
+          "messages": 600,
+          "historyElementReads": 9101,
+          "traversals": {
+            "mtEventLedgerUncached": 1,
+            "atlasObserveHistory": 1,
+            "relReadingsUncached": 1,
+            "hmsTimelineUncached": 1,
+            "simReplies": 1,
+            "spellStoryFoldUncached": 1
+          }
+        }
+      }
+    }
+  ],
+  "limits": [
+    "Synthetic/mock host; not live provider, WebView or storage latency.",
+    "GC/JIT/cloud load affects small changes; no zero overhead or universal speed guarantee.",
+    "Characters are not tokenizer measurements."
+  ]
+}

@@ -188,6 +188,16 @@ class BrowserUi(unittest.TestCase):
         self.page.evaluate('(html)=>{const a=document.createElement("article");a.id="living-restored";a.innerHTML=html;document.body.append(a)}',html)
         self.assertEqual(self.page.locator('#living-restored .rs').count(),1)
 
+    def test_six_sided_owned_list_and_family_alias_payload_render(self):
+        observed=json.loads(subprocess.check_output(['node',str(ROOT/'tools/dual_browser_fixture.cjs')],text=True))
+        self.assertEqual(len(observed['hms']['family']['members']),1)
+        payload=json.loads(json.dumps(FIXTURE['payload']))
+        payload.update(observed)
+        self.receive(payload)
+        self.assertEqual(self.page.locator('.rpgc-spell-row.known[data-find^="water ball "]').count(),1)
+        self.assertEqual(self.page.locator('.rpgc-spell-row.known[data-find^="squall "]').count(),1)
+        self.assertIn('Alden Vale',self.page.locator('.rpgc').inner_text())
+
     def test_renamed_quest_focus_uses_stable_key_and_renders_failed_state(self):
         payload=json.loads(json.dumps(FIXTURE['payload']))
         payload['hms']['systems']['quests']=[{'key':'original assignment','name':'Revised assignment','state':'failed','cls':'failed','objective':'Diagnose the aqueduct <img src=x onerror="window.bad=true">','progress':None}]
