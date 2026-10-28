@@ -1125,7 +1125,7 @@ export function setup(ctx) {
         id: 'rpg-companion-hms',
         title: 'RPG Companion (HMS)',
         shortName: 'RPG',
-        headerTitle: 'RPG Companion HMS Edition 3.0.1',
+        headerTitle: 'RPG Companion HMS Edition 3.0.2',
         description: 'The side panel for HMS bots: the HUD as cards, people, quests, the map, fights, the Chronicle, and a guide',
         keywords: ['rpg', 'hms', 'tracker', 'hud', 'quests', 'dice', 'guide'],
         iconSvg: ICON_SVG
@@ -3860,6 +3860,8 @@ export function setup(ctx) {
         const c = (sysCfg().money) || {};
         if (!m || c.enabled === false) return null;
         const out = [];
+        if (m.correctionsNeedingReview) out.push(h('div', { class: 'rpgc-note', role: 'status' }, `${m.correctionsNeedingReview} older money correction${m.correctionsNeedingReview === 1 ? '' : 's'} could not be matched uniquely. Original corrections are preserved. Review the entries before relying on totals, make any corrections, then confirm review.`,
+            h('button', { class: 'rpgc-mini', 'aria-label': 'Confirm review of older money corrections', onclick: () => send({ type: 'money', chatId: state.chatId, op: 'review_legacy', ids: m.reviewCorrections || [] }) }, 'Confirm review')));
         if (m.balance) out.push(h('div', { class: 'rpgc-money-bal' }, h('span', { class: 'lbl' }, m.balance.label), h('b', null, m.balance.value), h('span', { class: 'meta' }, ' · from the HUD')));
         if (m.totals.length) out.push(h('div', { class: 'rpgc-money-totals' }, m.totals.map(t => h('span', { class: 'rpgc-chip' }, h('span', { class: 'in' }, `+${fmtAmt(t.in, t.currency)}`), ' / ', h('span', { class: 'out' }, `−${fmtAmt(t.out, t.currency)}`)))));
         if (m.debts.length) out.push(h('div', { class: 'rpgc-gear-group' }, h('h4', null, '📝 Open debts'), h('ul', null, m.debts.map(d => h('li', { class: 'rpgc-money-row ' + (d.owe ? 'owe' : 'owed') },
@@ -6307,7 +6309,7 @@ body{background:${bs ? bs.backgroundColor : '#111'};color:${bs ? bs.color : '#dd
             if (!popWin || popWin.closed) {
                 popWin = window.open('', 'rpgc_popout', 'width=460,height=860');
                 if (!popWin) { state.status = { kind: 'warning', text: 'The browser blocked the pop-out window. Allow pop-ups for Lumiverse and try again.' }; const s = S(); s.uiPanelMode = 'drawer'; return applyPanelMode(); }
-                popWin.document.title = 'RPG Companion HMS Edition 3.0.1 RC';
+                popWin.document.title = 'RPG Companion HMS Edition 3.0.2 RC';
                 syncPopoutLook(popWin);
                 try { if (!popLookObs) { popLookObs = new MutationObserver(() => syncPopoutLook(popWin)); popLookObs.observe(document.documentElement, { attributes: true }); if (document.body) popLookObs.observe(document.body, { attributes: true, attributeFilter: ['class'] }); } } catch { /* optional */ }
                 popWin.addEventListener('beforeunload', () => { popWin = null; if (panelMode() === 'popout') { const s = S(); s.uiPanelMode = 'drawer'; saveSettings(false); applyPanelMode(); render(); } });

@@ -1,5 +1,36 @@
 # Changelog — RPG Companion HMS Edition
 
+## 3.0.2 RC candidate — Spell grounding and durable tracking
+
+- Retain established People, scheduled Agenda, owner-isolated Secrets, contacts,
+  cumulative earned XP and carried acquisitions beyond the recent-report window.
+- Preserve activity-start cues, rescheduling, completed history and off-scene status;
+  keep scheduled appointments separate from NPC daily routines.
+- Anchor manual carried-item removal to chat order and allow explicit later
+  reacquisition; reconcile automatic carried rows with confirmed Gear losses.
+- Render unknown legacy emotion labels safely instead of blanking Minds.
+- Reuse bounded activity-word sets within a read pass for repeated Agenda cues.
+
+- Preserve family, property, equipment, guild membership, quest details and debts
+  beyond the 300-report window using one shared source-bound history index.
+- Give financial controls stable source IDs; preserve identifiable legacy hide/settle
+  corrections with additive anchors on existing saves and flag ambiguous old keys.
+- Reuse Gear reads and repeated financial fingerprints within each panel read.
+- Prevent contradictory/unsupported quoted mastery assessments from awarding
+  Magic or technique mastery; preserve established knowledge and manual choices.
+- Show assessment evidence counts and preview truncation explicitly in diagnostics.
+- Supply relevant cached canonical spell names, schools and stated ranks to normal
+  narrator requests about magic, with named definitions where available.
+- Reuse exact definitions already present in system context; keep whole references
+  within the configured lore character budget (maximum 6,000 added characters).
+- Separate reference availability from character knowledge. Preserve Known,
+  Mastered, custom spells, manual choices and study progress; label unlisted names
+  without renaming or deleting them.
+- Keep both Mushoku cards' own terminology and caches; do not grant spells from
+  school ranks or add model/API calls, polling or chat-history scans.
+- This improves supplied context, not guaranteed narrator obedience. No live model
+  acceptance or complete-lore compatibility claim; see the grounding report.
+
 ## 3.0.1 RC — Magic / martial classification
 
 - Keep physical sword maneuvers, Touki moves and training goals out of Magic counts
