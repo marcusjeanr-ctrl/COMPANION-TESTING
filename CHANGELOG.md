@@ -1,6 +1,6 @@
 # Changelog — RPG Companion HMS Edition
 
-## Unreleased — Ability identity and scene outcomes
+## 3.0.3 RC — Ability identity and scene outcomes
 
 - Consolidate equivalent absorption-drill descriptions while retaining aliases,
   source evidence, training notes, proficiency states and legitimate progress resets.

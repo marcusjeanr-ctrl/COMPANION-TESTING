@@ -1,6 +1,12 @@
 # Ability identity, scene objectives and progression evidence
 
-Unreleased targeted fix on `fix/ability-identity-quest-evidence`, based on published
+**Release preparation:** these fixes are included in 3.0.3 RC under PR #15.
+The investigation below records checkpoint `f518159`, before the release identity
+change from 3.0.2 to 3.0.3. Its runtime hashes and measurements remain unchanged
+as historical evidence; release asset checksums identify the packaged version.
+
+
+Investigation checkpoint `f518159` on `fix/ability-identity-quest-evidence`, based on published
 3.0.2 RC (`efdf4419c9bba39f7301d573b5f68cbd7650f5e9`). Original Companion,
 character cards, presets and raw saved reports remain unchanged. This report
 covers this follow-up; older reports describe their own checkpoints.
@@ -94,7 +100,9 @@ or ambiguous objectives remain unresolved. Unsupported synonyms are kept separat
 No extra AI judge, blanket spell blacklist, whole-response rewrite or independent
 game-rules simulator is introduced.
 
-No release, version increment or merge is performed as part of this branch.
+The investigation checkpoint made no release, version increment or merge.
+The authorized 3.0.3 RC preparation now uses current GitHub validation and the
+manual release workflow; release checksums identify the exact packaged commit.
 
 ### Measured comparison against published 3.0.2
 
