@@ -1,9 +1,12 @@
 # Changelog — RPG Companion HMS Edition
 
-## 3.0.2 RC candidate — Spell grounding and continuity safeguards
+## 3.0.2 RC candidate — Spell grounding and durable tracking
 
-- Preserve family and property observations beyond the 300-report window using a
-  shared source-bound index within the existing history-position pass.
+- Preserve family, property, equipment, guild membership, quest details and debts
+  beyond the 300-report window using one shared source-bound history index.
+- Give financial controls stable source IDs; preserve identifiable legacy hide/settle
+  corrections with additive anchors on existing saves and flag ambiguous old keys.
+- Reuse Gear reads and repeated financial fingerprints within each panel read.
 - Prevent contradictory/unsupported quoted mastery assessments from awarding
   Magic or technique mastery; preserve established knowledge and manual choices.
 - Show assessment evidence counts and preview truncation explicitly in diagnostics.

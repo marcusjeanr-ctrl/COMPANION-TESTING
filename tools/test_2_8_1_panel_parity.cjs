@@ -57,8 +57,19 @@ if (process.argv[2] === '--capture') {
             assert.equal(paul.standing, null);
             Object.assign(paul, { standing: 'Wary', rank: 3, tone: 'neg' });
         }
+        // Intentional control-ID contract: source-bound IDs replace window ordinals.
+        // Check the new invariant, then compare every other legacy field unchanged.
+        for (const key of ['ledger', 'debts']) {
+            const rows = actual.hms.money?.[key] || [], old = expected.hms.money?.[key] || [];
+            assert.equal(rows.length, old.length);
+            assert.equal(new Set(rows.map(row => row.id)).size, rows.length);
+            rows.forEach((row, i) => {
+                if (old[i].from !== 'you') assert.match(row.id, /^money:v1:/);
+                row.id = old[i].id;
+            });
+        }
         assert.deepEqual(actual, expected, `${sample.world}: existing 2.8.1 panels changed`);
     }
-    console.log('2.8.1 panel parity passed: all four original demo worlds preserved except the explicit Mushoku calendar, observed-Atlas and omitted-standing corrections.');
+    console.log('2.8.1 panel parity passed: all four original demo worlds preserved except the explicit Mushoku calendar, observed-Atlas, omitted-standing corrections and source-bound money control IDs.');
 }
 

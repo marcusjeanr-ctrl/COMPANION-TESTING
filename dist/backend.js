@@ -5188,6 +5188,7 @@ async function loadChatState(chatId) {
 }
 
 async function saveChatState(chatId, st) {
+    moneyPreserveCorrectionAnchors(st, chatStateCache.get(chatId));
     const snapshot = clone(st);
     chatStateCache.set(chatId, st);
     const write = (chatStateWrites.get(chatId) || Promise.resolve()).catch(() => {}).then(async () => {
@@ -10125,6 +10126,9 @@ function plotPanel(chat, st) {
 }
 
 function classicExtrasRequest(st, chat, userName) {
+    return withReadPass(chat, () => classicExtrasRequestRead(st, chat, userName));
+}
+function classicExtrasRequestRead(st, chat, userName) {
     const parts = [], rules = [];
     const party = partyRequest(st, chat, userName, undefined, true);
     const rel = relRequest(chat, userName, null, st, true);
@@ -12210,7 +12214,14 @@ async function hmsRelPin(chatId, p) {
 
 /** Two readings that differ only in capitals, punctuation, spacing or a leading "a/the" say the same thing. */
 function relSameWords(a, b) {
-    const n = (v) => String(v ?? '').toLowerCase().normalize('NFKC').replace(/[^\p{L}\p{N}]+/gu, ' ').trim().replace(/^(?:a|an|the)\s+/, '');
+    const cache = activeReadPass ? memoRead(activeReadPass.chat, 'same-word-keys', () => new Map()) : null;
+    const n = (v) => {
+        const text = String(v ?? '');
+        if (cache?.has(text)) return cache.get(text);
+        const key = text.toLowerCase().normalize('NFKC').replace(/[^\p{L}\p{N}]+/gu, ' ').trim().replace(/^(?:a|an|the)\s+/, '');
+        if (cache && cache.size < 512) cache.set(text, key);
+        return key;
+    };
     return n(a) === n(b);
 }
 
@@ -12346,16 +12357,22 @@ function famNormalize(list) {
 // Per-read only: edits, swipes, branches and reloads cannot leave stale snapshots.
 function continuityReadIndex(chat) {
     return memoRead(chat, 'continuity-source-index', () => {
-        const order = new Map(), family = [], holdings = [];
+        const order = new Map(), family = [], holdings = [], gear = [], factions = [], money = [], quests = [];
         for (let i = 0; i < chat.length; i++) {
             const m = chat[i]; order.set(m.id, i);
             if (m.role !== 'assistant' || !trackingMessageVisible(m)) continue;
             const d = getSwipeData(m, true);
             if (!d) continue;
             if (d.family?.length || Array.isArray(d.relations) && d.relations.some(r => r && famIsBond(r.bond))) family.push(m);
-            if (m._rpgcPurpose !== 'continue' && d.holdings?.length) holdings.push(m);
+            if (d.quests?.length) quests.push(m);
+            if (m._rpgcPurpose !== 'continue') {
+                if (d.holdings?.length) holdings.push(m);
+                if (d.gear?.length || d.survival?.got?.length || d.survival?.lost?.length) gear.push(m);
+                if (d.factions?.length) factions.push(m);
+                if (d.money?.length) money.push(m);
+            }
         }
-        return { order, family, holdings, clocks: new Map() };
+        return { order, family, holdings, gear, factions, money, quests, clocks: new Map() };
     });
 }
 function continuityObservation(m, recent, index) {
@@ -12701,13 +12718,19 @@ function gearFromHud(hud) {
 
 /** Every item and how it is carried now, rebuilt from the chat as it stands. */
 function gearRead(chat, st, cfg) {
+    if (!activeReadPass || activeReadPass.chat !== chat) return gearReadUncached(chat, st, cfg);
+    const cache = memoRead(chat, 'gear-state', () => new Map());
+    if (!cache.has(st)) cache.set(st, gearReadUncached(chat, st, cfg));
+    return cache.get(st);
+}
+function gearReadUncached(chat, st, cfg) {
     const g = st && isPlainObject(st.gear) ? st.gear : {};
     const tl = hmsTimeline(chat);
     const hudAt = new Map(tl.map(e => [e.msg.id, e]));
     const now = tl.length ? tl[tl.length - 1].clock : null;
-    const msgs = relReadings(chat);
-    const lastId = msgs.length ? msgs[msgs.length - 1].id : null;
-    const idxOf = new Map(chat.map((m, i) => [m.id, i]));
+    const indexed = continuityReadIndex(chat), msgs = indexed.gear;
+    const latest = relReadings(chat).at(-1), lastId = latest?.id || null;
+    const idxOf = indexed.order;
     const items = new Map();
     const find = (name) => {
         const k = lockKey(name);
@@ -12734,13 +12757,14 @@ function gearRead(chat, st, cfg) {
     };
     for (const m of msgs) {
         const d = getSwipeData(m) || {};
-        const e = hudAt.get(m.id);
+        const e = continuityObservation(m, hudAt, indexed);
         const at = e ? e.clock : null;
         const idx = idxOf.has(m.id) ? idxOf.get(m.id) : -1;
         const y = isPlainObject(d.survival) ? d.survival : {};
         for (const n of Array.isArray(y.got) ? y.got : []) { if (pocketIsMessage(n) || pocketAcquisitionPending(n)) continue; const it = ensure(n, 'story'); if (it && (!it.state || it.state === 'gone')) apply(it, 'on body', null, null, at, m.id, idx); }
         for (const n of Array.isArray(y.lost) ? y.lost : []) { const it = find(n); if (it) apply(it, 'gone', null, null, at, m.id, idx); }
         for (const r of Array.isArray(d.gear) ? d.gear : []) {
+            if (!isPlainObject(r) || !r.name) continue;
             if (pocketIsAuthorization(r?.name)) continue;
             const it = ensure(r.name, 'story');
             if (!it) continue;
@@ -13360,28 +13384,96 @@ function moneyNormalize(list) {
     return out.length ? out.slice(0, 10) : null;
 }
 
+// Old window-relative IDs remain readable; new controls use source-bound IDs.
+const moneyCorrectionCache = new WeakMap();
+function moneySourceId(message, row, occurrences, signatures) {
+    const signature = JSON.stringify([row.amount, row.currency || '', row.kind || '', row.dir || '', row.what || '', row.with || '', row.accepted !== false && !reportSpeculative(row)]);
+    const ordinal = occurrences.get(signature) || 0; occurrences.set(signature, ordinal + 1);
+    if (!signatures.has(signature)) signatures.set(signature, readingSource(signature));
+    return `money:v1:${encodeURIComponent(message.id)}:${message.swipe_id ?? 0}:${signatures.get(signature)}:${ordinal}`;
+}
+function moneyCorrectionTargets(g, ledger, recentAliases) {
+    const cached = moneyCorrectionCache.get(g) || { resolved: new Map(), recent: new Map() };
+    const anchored = isPlainObject(g.correctionAnchors) ? g.correctionAnchors : {};
+    const sourceIds = new Set(ledger.map(row => row.sourceId || row.id));
+    const byMessage = new Map();
+    for (const row of ledger) if (row.from === 'story') {
+        if (!byMessage.has(row.msgId)) byMessage.set(row.msgId, []);
+        byMessage.get(row.msgId).push(row);
+    }
+    const unresolved = new Set(), reviewed = new Set(Array.isArray(g.legacyReviewed) ? g.legacyReviewed : []);
+    const resolve = keys => {
+        const targets = new Set();
+        for (const key of Array.isArray(keys) ? keys : []) {
+            if (typeof key !== 'string' || reviewed.has(key)) continue;
+            if (key.startsWith('money:v1:') || sourceIds.has(key)) { targets.add(key); continue; }
+            const saved = typeof anchored[key] === 'string' ? anchored[key] : cached.resolved.get(key);
+            if (saved) { targets.add(saved); continue; } // never retarget an anchored correction after edits
+            let target = recentAliases.get(key);
+            if (!target) {
+                const match = key.match(/^(.*):(\d+)$/), rows = match ? byMessage.get(match[1]) : null;
+                // Historical multi-row ordinals can be ambiguous. Do not guess.
+                if (rows?.length === 1 && rows[0].id === key) target = rows[0].sourceId;
+                else if (rows?.length) unresolved.add(key);
+            }
+            if (target) { cached.resolved.set(key, target); targets.add(target); }
+        }
+        return targets;
+    };
+    const hidden = resolve(g.hidden), settled = resolve(g.settled);
+    const active = new Set([...(Array.isArray(g.hidden) ? g.hidden : []), ...(Array.isArray(g.settled) ? g.settled : [])]);
+    for (const key of cached.resolved.keys()) if (!active.has(key) || reviewed.has(key)) cached.resolved.delete(key);
+    cached.recent = recentAliases; moneyCorrectionCache.set(g, cached);
+    return { hidden, settled, unresolved: [...unresolved] };
+}
+// Promote resolved legacy aliases only in the next already-authorized state save.
+// Reads stay read-only, and primary/recovery writes keep their existing cadence.
+function moneyPreserveCorrectionAnchors(st, previous) {
+    const g = isPlainObject(st?.money) ? st.money : null;
+    if (!g) return;
+    const active = new Set([...(Array.isArray(g.hidden) ? g.hidden : []), ...(Array.isArray(g.settled) ? g.settled : [])]);
+    const anchors = new Map(Object.entries(isPlainObject(g.correctionAnchors) ? g.correctionAnchors : {}));
+    for (const source of [g, previous?.money]) {
+        const cached = isPlainObject(source) ? moneyCorrectionCache.get(source) : null;
+        if (!cached) continue;
+        for (const key of active) if (!anchors.has(key)) {
+            const id = cached.resolved.get(key) || cached.recent.get(key);
+            if (id) anchors.set(key, id);
+        }
+    }
+    const kept = [...anchors].filter(([key, id]) => active.has(key) && typeof id === 'string' && id.startsWith('money:v1:'));
+    if (kept.length || g.correctionAnchors) g.correctionAnchors = Object.fromEntries(kept);
+}
+
 /** The ledger and the debts, rebuilt from the chat as it stands. */
 function moneyRead(chat, st) {
     const g = st && isPlainObject(st.money) ? st.money : {};
     const tl = hmsTimeline(chat);
     const hudAt = new Map(tl.map(e => [e.msg.id, e]));
     const now = tl.length ? tl[tl.length - 1].clock : null;
-    const msgs = relReadings(chat);
-    const lastId = msgs.length ? msgs[msgs.length - 1].id : null;
-    const ledger = [];
+    const indexed = continuityReadIndex(chat), msgs = indexed.money;
+    const recent = relReadings(chat), lastId = recent.at(-1)?.id || null;
+    const recentIds = new Set(recent.map(m => m.id)), recentAliases = new Map();
+    let recentOrdinal = 0, fullOrdinal = 0;
+    const ledger = [], signatures = new Map();
     for (const m of msgs) {
         const d = getSwipeData(m) || {};
-        const e = hudAt.get(m.id);
-        for (const r of Array.isArray(d.money) ? d.money : []) ledger.push({ ...r, at: e ? e.clock : null, msgId: m.id, from: 'story', id: `${m.id}:${ledger.length}` });
+        const e = continuityObservation(m, hudAt, indexed), occurrences = new Map();
+        for (const r of Array.isArray(d.money) ? d.money : []) {
+            const id = `${m.id}:${fullOrdinal++}`, recentId = recentIds.has(m.id) ? `${m.id}:${recentOrdinal++}` : null;
+            if (!isPlainObject(r)) continue;
+            const sourceId = moneySourceId(m, r, occurrences, signatures);
+            if (recentId) recentAliases.set(recentId, sourceId);
+            ledger.push({ ...r, at: e.clock, msgId: m.id, from: 'story', id, sourceId });
+        }
     }
     for (const a of Array.isArray(g.added) ? g.added : []) if (a && a.amount) ledger.push({ ...a, from: 'you', msgId: null });
-    const hidden = new Set(Array.isArray(g.hidden) ? g.hidden : []);
-    const settled = new Set(Array.isArray(g.settled) ? g.settled : []);
-    const list = ledger.filter(x => !hidden.has(x.id) && (x.from === 'you' || x.accepted !== false && !reportSpeculative(x))); // keep original ledger IDs for saved manual corrections
+    const { hidden, settled, unresolved } = moneyCorrectionTargets(g, ledger, recentAliases);
+    const list = ledger.filter(x => !hidden.has(x.sourceId || x.id) && (x.from === 'you' || x.accepted !== false && !reportSpeculative(x))); // keep original ledger IDs for saved manual corrections
     // debts: "debt" (you owe) and "loan" (owed to you) stay open until a "repaid" with the same person or settled by hand
     const debts = [];
     for (const x of list) {
-        if (x.kind === 'debt' || x.kind === 'loan') debts.push({ id: x.id, owe: x.kind === 'debt', with: x.with, what: x.what, amount: x.amount, currency: x.currency, left: x.amount, at: x.at });
+        if (x.kind === 'debt' || x.kind === 'loan') debts.push({ id: x.sourceId || x.id, owe: x.kind === 'debt', with: x.with, what: x.what, amount: x.amount, currency: x.currency, left: x.amount, at: x.at });
         else if (x.kind === 'repaid') {
             const d = debts.find(y => y.left > 0 && (!x.with || !y.with || relSameWords(y.with, x.with)) && (!x.currency || !y.currency || relSameWords(x.currency, y.currency)));
             if (d) d.left = Math.max(0, Math.round((d.left - x.amount) * 100) / 100);
@@ -13397,17 +13489,17 @@ function moneyRead(chat, st) {
     }
     let balance = null;
     try { const hud = tl.length ? tl[tl.length - 1].hud : null; balance = commsBalance(hud, commsCfg()); } catch { balance = null; }
-    return { list, open, totals, balance, now, lastId };
+    return { list, open, totals, balance, now, lastId, unresolvedCorrections: unresolved };
 }
 
 function hmsMoneyPanel(chat, st, cfg) {
     const mc = moneyCfg(cfg);
     if (!mc.on) return null;
-    const { list, open, totals, balance, now, lastId } = moneyRead(chat, st);
+    const { list, open, totals, balance, now, lastId, unresolvedCorrections } = moneyRead(chat, st);
     const ago = (at) => at !== null && at !== undefined && now !== null ? Math.max(0, now - at) : null;
     return {
-        balance, totals: Object.entries(totals).map(([cur, t]) => ({ currency: cur === '?' ? '' : cur, in: Math.round(t.in * 100) / 100, out: Math.round(t.out * 100) / 100 })),
-        ledger: list.slice(-40).reverse().map(x => ({ id: x.id, amount: x.amount, currency: x.currency, kind: x.kind, dir: x.dir, what: x.what, with: x.with, from: x.from, ago: ago(x.at), isNew: x.msgId === lastId && !!lastId })),
+        balance, ...(unresolvedCorrections.length ? { correctionsNeedingReview: unresolvedCorrections.length, reviewCorrections: unresolvedCorrections } : {}), totals: Object.entries(totals).map(([cur, t]) => ({ currency: cur === '?' ? '' : cur, in: Math.round(t.in * 100) / 100, out: Math.round(t.out * 100) / 100 })),
+        ledger: list.slice(-40).reverse().map(x => ({ id: x.sourceId || x.id, amount: x.amount, currency: x.currency, kind: x.kind, dir: x.dir, what: x.what, with: x.with, from: x.from, ago: ago(x.at), isNew: x.msgId === lastId && !!lastId })),
         debts: open.map(d => ({ id: d.id, owe: d.owe, with: d.with, what: d.what, amount: d.amount, left: d.left, currency: d.currency, ago: ago(d.at) })),
         ask: mc.ask, tell: mc.tell
     };
@@ -13421,7 +13513,8 @@ function moneyRequest(chat, st, userName, cfg) {
     if (mc.tell && chat && st) {
         let r = null;
         try { r = moneyRead(chat, st); } catch { r = null; }
-        if (r && r.open.length) rules += `\nOpen debts — ${r.open.slice(0, 8).map(d => d.owe ? `${userName} owes ${d.with || 'someone'} ${d.left} ${d.currency}${d.what ? ` (${d.what})` : ''}` : `${d.with || 'someone'} owes ${userName} ${d.left} ${d.currency}${d.what ? ` (${d.what})` : ''}`).join('; ')}.`;
+        if (r?.unresolvedCorrections.length) rules += '\nOlder money corrections need review. Do not infer unpaid debts from disputed history; report only newly established transactions.';
+        else if (r && r.open.length) rules += `\nOpen debts — ${r.open.slice(0, 8).map(d => d.owe ? `${userName} owes ${d.with || 'someone'} ${d.left} ${d.currency}${d.what ? ` (${d.what})` : ''}` : `${d.with || 'someone'} owes ${userName} ${d.left} ${d.currency}${d.what ? ` (${d.what})` : ''}`).join('; ')}.`;
     }
     return { json, rules };
 }
@@ -13444,6 +13537,11 @@ async function hmsMoneyEdit(chatId, p) {
         if (g.added.length === before && !g.hidden.includes(p.id)) g.hidden.push(p.id);
     } else if (p.op === 'settle' && p.id) {
         if (!g.settled.includes(p.id)) g.settled.push(p.id);
+    } else if (p.op === 'review_legacy' && Array.isArray(p.ids)) {
+        const active = new Set([...g.hidden, ...g.settled]);
+        const reviewed = new Set(Array.isArray(g.legacyReviewed) ? g.legacyReviewed : []);
+        for (const id of p.ids) if (typeof id === 'string' && !id.startsWith('money:v1:') && active.has(id)) reviewed.add(id);
+        g.legacyReviewed = [...reviewed];
     }
     await saveChatState(chatId, st);
 }
@@ -13516,18 +13614,19 @@ function factionRead(chat, st) {
     const tl = hmsTimeline(chat);
     const hudAt = new Map(tl.map(e => [e.msg.id, e]));
     const now = tl.length ? tl[tl.length - 1].clock : null;
-    const msgs = relReadings(chat);
-    const lastId = msgs.length ? msgs[msgs.length - 1].id : null;
-    const idxOf = new Map(chat.map((m, i) => [m.id, i]));
+    const indexed = continuityReadIndex(chat), msgs = indexed.factions;
+    const latest = relReadings(chat).at(-1), lastId = latest?.id || null;
+    const idxOf = indexed.order;
     const map = new Map();
     const find = (k) => { if (map.has(k)) return map.get(k); for (const it of map.values()) if (it.key.length > 4 && k.length > 4 && (it.key.includes(k) || k.includes(it.key))) return it; return null; };
     const ensure = (name, from) => { const k = lockKey(name); let it = find(k); if (!it) { it = { key: k, name, standing: null, rank: null, bounty: null, why: null, who: new Set(), history: [], from, idx: -1, changedIn: null, onHud: false }; map.set(k, it); } return it; };
     for (const m of msgs) {
         const d = getSwipeData(m) || {};
-        const e = hudAt.get(m.id);
+        const e = continuityObservation(m, hudAt, indexed);
         const at = e ? e.clock : null;
         const idx = idxOf.has(m.id) ? idxOf.get(m.id) : -1;
         for (const r of Array.isArray(d.factions) ? d.factions : []) {
+            if (!isPlainObject(r) || !r.name) continue;
             const it = ensure(r.name, 'story');
             if (r.standing && r.standing !== it.standing) { it.history.push({ from: it.standing, to: r.standing, why: r.why, at }); it.standing = r.standing; }
             if (r.rank) it.rank = r.rank;
@@ -16360,9 +16459,13 @@ function hmsParseWhen(text, now, hud = null) {
 function questDetailsLatest(chat) {
     return memoRead(chat, 'quest-details', () => {
         const rows = [];
-        for (const m of relReadings(chat)) {
+        let previousReport = null;
+        for (const m of continuityReadIndex(chat).quests) {
             const data = getSwipeData(m, true);
             if (!Array.isArray(data?.quests) || !data.quests.length) continue;
+            const report = JSON.stringify(data.quests);
+            if (report === previousReport) continue; // exact consecutive confirmations cannot change this fold
+            previousReport = report;
             for (const q of data.quests) {
                 if (!q || !q.name || q.accepted === false || reportSpeculative(q)) continue;
                 const exact = rows.filter(x => questKey(x.name) === questKey(q.name) && questMatch(x, q));

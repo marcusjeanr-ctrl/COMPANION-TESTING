@@ -3860,6 +3860,8 @@ export function setup(ctx) {
         const c = (sysCfg().money) || {};
         if (!m || c.enabled === false) return null;
         const out = [];
+        if (m.correctionsNeedingReview) out.push(h('div', { class: 'rpgc-note', role: 'status' }, `${m.correctionsNeedingReview} older money correction${m.correctionsNeedingReview === 1 ? '' : 's'} could not be matched uniquely. Original corrections are preserved. Review the entries before relying on totals, make any corrections, then confirm review.`,
+            h('button', { class: 'rpgc-mini', 'aria-label': 'Confirm review of older money corrections', onclick: () => send({ type: 'money', chatId: state.chatId, op: 'review_legacy', ids: m.reviewCorrections || [] }) }, 'Confirm review')));
         if (m.balance) out.push(h('div', { class: 'rpgc-money-bal' }, h('span', { class: 'lbl' }, m.balance.label), h('b', null, m.balance.value), h('span', { class: 'meta' }, ' · from the HUD')));
         if (m.totals.length) out.push(h('div', { class: 'rpgc-money-totals' }, m.totals.map(t => h('span', { class: 'rpgc-chip' }, h('span', { class: 'in' }, `+${fmtAmt(t.in, t.currency)}`), ' / ', h('span', { class: 'out' }, `−${fmtAmt(t.out, t.currency)}`)))));
         if (m.debts.length) out.push(h('div', { class: 'rpgc-gear-group' }, h('h4', null, '📝 Open debts'), h('ul', null, m.debts.map(d => h('li', { class: 'rpgc-money-row ' + (d.owe ? 'owe' : 'owed') },

@@ -188,6 +188,28 @@ class BrowserUi(unittest.TestCase):
         self.page.evaluate('(html)=>{const a=document.createElement("article");a.id="living-restored";a.innerHTML=html;document.body.append(a)}',html)
         self.assertEqual(self.page.locator('#living-restored .rs').count(),1)
 
+    def test_durable_money_controls_and_legacy_review_notice(self):
+        hms=json.loads(subprocess.check_output(['node',str(ROOT/'tools/test_durable_tracking_history.cjs'),'--browser-fixture'],text=True))
+        payload=json.loads(json.dumps(FIXTURE['payload']))
+        payload['hms']=hms
+        payload['world']['covers']=[]
+        self.receive(payload)
+        money=self.page.locator('details[data-open-key="money"]')
+        self.assertIn('could not be matched uniquely',money.inner_text())
+        self.assertEqual(money.get_by_label('Mark settled',exact=True).count(),2)
+        money.get_by_label('Mark settled',exact=True).first.click()
+        event=self.page.evaluate("sent.filter(x=>x.type==='money').at(-1)")
+        self.assertEqual(event['op'],'settle')
+        self.assertTrue(event['id'].startswith('money:v1:'))
+        money.get_by_label('Confirm review of older money corrections',exact=True).click()
+        review=self.page.evaluate("sent.filter(x=>x.type==='money').at(-1)")
+        self.assertEqual(review['op'],'review_legacy')
+        self.assertEqual(review['ids'],['cash:1'])
+        text=self.page.locator('.rpgc').inner_text()
+        self.assertIn('Survey compass',text)
+        self.assertIn('Explorers Guild',text)
+        self.assertIn('Repair the aqueduct',text)
+
     def test_long_history_family_property_and_unverified_mastery_render(self):
         hms=json.loads(subprocess.check_output(['node',str(ROOT/'tools/test_six_sided_release_integrity.cjs'),'--browser-fixture'],text=True))
         payload=json.loads(json.dumps(FIXTURE['payload']))

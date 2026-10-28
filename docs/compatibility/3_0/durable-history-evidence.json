@@ -1,0 +1,2439 @@
+{
+  "revisions": {
+    "published": "22aabf3c367c95a21f602f2a88fa00802f02f126",
+    "prior": "9b31453d48d42d860ed41d6795c47f6527dd0ad8"
+  },
+  "backendSha256": {
+    "published": "5fbb5ccb863af37deed66bd065187802f17d9d5c5aae9503c680512ff9291346",
+    "prior": "40db9ba00c9473887e1120caf6cc833a49626e281f27f71051c672aa9b6206f1",
+    "candidate": "636efcbadc980cbb8589d6e29a3fc6d16e19f21ffbf7568eb72fbaa52d20cebd"
+  },
+  "frontendSha256": "6baee544d1940b010481da75aa9852559437cafea55749998d8003e3b41e0ac4",
+  "node": "22.22.2",
+  "method": "Five sequential rounds, three revision orders rotated/reversed, same complete card caches and source-bound fixtures. No test processes concurrent. Existing panel/pipeline/interceptor runners. GC probe is one separate process per revision; no production memory guarantee.",
+  "tests": {
+    "suites": 42,
+    "durableGroups": 20,
+    "browserUi": 21,
+    "browserVisibility": 5,
+    "retentionFixture": {
+      "before": {
+        "family": 1,
+        "holdings": 1,
+        "debts": 1,
+        "factions": 1,
+        "quests": 1,
+        "gear": 1,
+        "spells": 1
+      },
+      "after": {
+        "family": 1,
+        "holdings": 1,
+        "debts": 1,
+        "factions": 1,
+        "quests": 1,
+        "gear": 1,
+        "spells": 1
+      },
+      "lost": [],
+      "passed": true
+    },
+    "privateExport": {
+      "messages": 13,
+      "replies": 7,
+      "readableReports": 6,
+      "minds": 1,
+      "pairs": 1,
+      "agenda": 1,
+      "quests": 2,
+      "internalStates": true,
+      "editedSourceRejected": true,
+      "inputUnchanged": true
+    },
+    "privateExportCounts": {
+      "sha256": "24530488965c36a0f9b707e1b26c6b7ecfb6337376236c0fa4174cc0d9dba332",
+      "messages": 13,
+      "reports": 6,
+      "magic": {
+        "canonicalKnown": 0,
+        "knownOther": 0,
+        "mastered": 0,
+        "activeStudy": 0,
+        "reportedStudy": 3
+      },
+      "quests": {
+        "cards": 2,
+        "reportedNumericProgress": 0,
+        "progressWithNoPercentageInSource": 0
+      },
+      "family": {
+        "members": 5
+      },
+      "agenda": {
+        "scheduled": 1
+      },
+      "minds": {
+        "people": 1
+      },
+      "gear": {
+        "items": 2
+      },
+      "money": {
+        "transactions": 0
+      },
+      "factions": {
+        "memberships": 1
+      },
+      "sourceUnchanged": true
+    }
+  },
+  "operations": [
+    {
+      "transport": {
+        "model": 1,
+        "getMessages": 6,
+        "metadataWrites": 1,
+        "storageReads": 2,
+        "storageWrites": 4,
+        "historyElementReads": 0,
+        "traversals": {}
+      },
+      "panel": {
+        "messages": 600,
+        "historyElementReads": 9101,
+        "traversals": {
+          "mtEventLedgerUncached": 1,
+          "atlasObserveHistory": 1,
+          "relReadingsUncached": 1,
+          "hmsTimelineUncached": 1,
+          "simReplies": 1,
+          "spellStoryFoldUncached": 1
+        }
+      },
+      "revision": "published"
+    },
+    {
+      "transport": {
+        "model": 1,
+        "getMessages": 6,
+        "metadataWrites": 1,
+        "storageReads": 2,
+        "storageWrites": 4,
+        "historyElementReads": 0,
+        "traversals": {}
+      },
+      "panel": {
+        "messages": 600,
+        "historyElementReads": 8501,
+        "traversals": {
+          "mtEventLedgerUncached": 1,
+          "atlasObserveHistory": 1,
+          "relReadingsUncached": 1,
+          "hmsTimelineUncached": 1,
+          "simReplies": 1,
+          "spellStoryFoldUncached": 1
+        }
+      },
+      "revision": "prior"
+    },
+    {
+      "transport": {
+        "model": 1,
+        "getMessages": 6,
+        "metadataWrites": 1,
+        "storageReads": 2,
+        "storageWrites": 4,
+        "historyElementReads": 0,
+        "traversals": {}
+      },
+      "panel": {
+        "messages": 600,
+        "historyElementReads": 6701,
+        "traversals": {
+          "mtEventLedgerUncached": 1,
+          "atlasObserveHistory": 1,
+          "relReadingsUncached": 1,
+          "hmsTimelineUncached": 1,
+          "simReplies": 1,
+          "spellStoryFoldUncached": 1
+        }
+      },
+      "revision": "candidate"
+    }
+  ],
+  "memory": [
+    {
+      "afterWarm": 11539808,
+      "after30": 12337520,
+      "delta": 797712,
+      "method": "1000 source-bound replies; loaded legacy correction; retained runtime/state; forced GC; no live process certification",
+      "revision": "published"
+    },
+    {
+      "afterWarm": 11570048,
+      "after30": 12330304,
+      "delta": 760256,
+      "method": "1000 source-bound replies; loaded legacy correction; retained runtime/state; forced GC; no live process certification",
+      "revision": "prior"
+    },
+    {
+      "afterWarm": 11675480,
+      "after30": 12540928,
+      "delta": 865448,
+      "method": "1000 source-bound replies; loaded legacy correction; retained runtime/state; forced GC; no live process certification",
+      "revision": "candidate"
+    }
+  ],
+  "runs": [
+    {
+      "card": "six_sided_world",
+      "scenario": "ordinary",
+      "coldMs": 82.422,
+      "warmMedianMs": 5.376,
+      "spellCharacters": 0,
+      "systemCharacters": 23,
+      "callsPerPass": {
+        "chat.getMessages": 1
+      },
+      "round": 1,
+      "kind": "narrator",
+      "revision": "published"
+    },
+    {
+      "card": "six_sided_world",
+      "scenario": "named",
+      "coldMs": 33.142,
+      "warmMedianMs": 5.892,
+      "spellCharacters": 0,
+      "systemCharacters": 23,
+      "callsPerPass": {
+        "chat.getMessages": 1
+      },
+      "round": 1,
+      "kind": "narrator",
+      "revision": "published"
+    },
+    {
+      "card": "six_sided_world",
+      "scenario": "inventory",
+      "coldMs": 36.778,
+      "warmMedianMs": 5.305,
+      "spellCharacters": 0,
+      "systemCharacters": 23,
+      "callsPerPass": {
+        "chat.getMessages": 1
+      },
+      "round": 1,
+      "kind": "narrator",
+      "revision": "published"
+    },
+    {
+      "card": "six_sided_world",
+      "scenario": "host-provided",
+      "coldMs": 36.734,
+      "warmMedianMs": 5.709,
+      "spellCharacters": 0,
+      "systemCharacters": 3301,
+      "callsPerPass": {
+        "chat.getMessages": 1
+      },
+      "round": 1,
+      "kind": "narrator",
+      "revision": "published"
+    },
+    {
+      "card": "living_world",
+      "scenario": "ordinary",
+      "coldMs": 91.116,
+      "warmMedianMs": 3.917,
+      "spellCharacters": 0,
+      "systemCharacters": 23,
+      "callsPerPass": {
+        "chat.getMessages": 1
+      },
+      "round": 1,
+      "kind": "narrator",
+      "revision": "published"
+    },
+    {
+      "card": "living_world",
+      "scenario": "named",
+      "coldMs": 82.254,
+      "warmMedianMs": 3.967,
+      "spellCharacters": 0,
+      "systemCharacters": 23,
+      "callsPerPass": {
+        "chat.getMessages": 1
+      },
+      "round": 1,
+      "kind": "narrator",
+      "revision": "published"
+    },
+    {
+      "card": "living_world",
+      "scenario": "inventory",
+      "coldMs": 85.08,
+      "warmMedianMs": 3.98,
+      "spellCharacters": 0,
+      "systemCharacters": 23,
+      "callsPerPass": {
+        "chat.getMessages": 1
+      },
+      "round": 1,
+      "kind": "narrator",
+      "revision": "published"
+    },
+    {
+      "card": "living_world",
+      "scenario": "host-provided",
+      "coldMs": 75.311,
+      "warmMedianMs": 3.923,
+      "spellCharacters": 0,
+      "systemCharacters": 6228,
+      "callsPerPass": {
+        "chat.getMessages": 1
+      },
+      "round": 1,
+      "kind": "narrator",
+      "revision": "published"
+    },
+    {
+      "card": "six_sided_world",
+      "scenario": "ordinary",
+      "coldMs": 53.076,
+      "warmMedianMs": 6.084,
+      "spellCharacters": 0,
+      "systemCharacters": 23,
+      "callsPerPass": {
+        "chat.getMessages": 1
+      },
+      "round": 1,
+      "kind": "narrator",
+      "revision": "prior"
+    },
+    {
+      "card": "six_sided_world",
+      "scenario": "named",
+      "coldMs": 35.72,
+      "warmMedianMs": 10.016,
+      "spellCharacters": 535,
+      "systemCharacters": 558,
+      "callsPerPass": {
+        "chat.getMessages": 1
+      },
+      "round": 1,
+      "kind": "narrator",
+      "revision": "prior"
+    },
+    {
+      "card": "six_sided_world",
+      "scenario": "inventory",
+      "coldMs": 50.441,
+      "warmMedianMs": 8.16,
+      "spellCharacters": 1866,
+      "systemCharacters": 1889,
+      "callsPerPass": {
+        "chat.getMessages": 1
+      },
+      "round": 1,
+      "kind": "narrator",
+      "revision": "prior"
+    },
+    {
+      "card": "six_sided_world",
+      "scenario": "host-provided",
+      "coldMs": 41.347,
+      "warmMedianMs": 8.942,
+      "spellCharacters": 447,
+      "systemCharacters": 3748,
+      "callsPerPass": {
+        "chat.getMessages": 1
+      },
+      "round": 1,
+      "kind": "narrator",
+      "revision": "prior"
+    },
+    {
+      "card": "living_world",
+      "scenario": "ordinary",
+      "coldMs": 92.061,
+      "warmMedianMs": 4.663,
+      "spellCharacters": 0,
+      "systemCharacters": 23,
+      "callsPerPass": {
+        "chat.getMessages": 1
+      },
+      "round": 1,
+      "kind": "narrator",
+      "revision": "prior"
+    },
+    {
+      "card": "living_world",
+      "scenario": "named",
+      "coldMs": 84.641,
+      "warmMedianMs": 7.379,
+      "spellCharacters": 546,
+      "systemCharacters": 569,
+      "callsPerPass": {
+        "chat.getMessages": 1
+      },
+      "round": 1,
+      "kind": "narrator",
+      "revision": "prior"
+    },
+    {
+      "card": "living_world",
+      "scenario": "inventory",
+      "coldMs": 81.155,
+      "warmMedianMs": 6.797,
+      "spellCharacters": 1809,
+      "systemCharacters": 1832,
+      "callsPerPass": {
+        "chat.getMessages": 1
+      },
+      "round": 1,
+      "kind": "narrator",
+      "revision": "prior"
+    },
+    {
+      "card": "living_world",
+      "scenario": "host-provided",
+      "coldMs": 97.824,
+      "warmMedianMs": 7.087,
+      "spellCharacters": 447,
+      "systemCharacters": 6675,
+      "callsPerPass": {
+        "chat.getMessages": 1
+      },
+      "round": 1,
+      "kind": "narrator",
+      "revision": "prior"
+    },
+    {
+      "card": "six_sided_world",
+      "scenario": "ordinary",
+      "coldMs": 53.022,
+      "warmMedianMs": 6.046,
+      "spellCharacters": 0,
+      "systemCharacters": 23,
+      "callsPerPass": {
+        "chat.getMessages": 1
+      },
+      "round": 1,
+      "kind": "narrator",
+      "revision": "candidate"
+    },
+    {
+      "card": "six_sided_world",
+      "scenario": "named",
+      "coldMs": 40.306,
+      "warmMedianMs": 8.607,
+      "spellCharacters": 535,
+      "systemCharacters": 558,
+      "callsPerPass": {
+        "chat.getMessages": 1
+      },
+      "round": 1,
+      "kind": "narrator",
+      "revision": "candidate"
+    },
+    {
+      "card": "six_sided_world",
+      "scenario": "inventory",
+      "coldMs": 33.728,
+      "warmMedianMs": 8.286,
+      "spellCharacters": 1866,
+      "systemCharacters": 1889,
+      "callsPerPass": {
+        "chat.getMessages": 1
+      },
+      "round": 1,
+      "kind": "narrator",
+      "revision": "candidate"
+    },
+    {
+      "card": "six_sided_world",
+      "scenario": "host-provided",
+      "coldMs": 31.346,
+      "warmMedianMs": 9.377,
+      "spellCharacters": 447,
+      "systemCharacters": 3748,
+      "callsPerPass": {
+        "chat.getMessages": 1
+      },
+      "round": 1,
+      "kind": "narrator",
+      "revision": "candidate"
+    },
+    {
+      "card": "living_world",
+      "scenario": "ordinary",
+      "coldMs": 82.829,
+      "warmMedianMs": 4.385,
+      "spellCharacters": 0,
+      "systemCharacters": 23,
+      "callsPerPass": {
+        "chat.getMessages": 1
+      },
+      "round": 1,
+      "kind": "narrator",
+      "revision": "candidate"
+    },
+    {
+      "card": "living_world",
+      "scenario": "named",
+      "coldMs": 122.102,
+      "warmMedianMs": 7.043,
+      "spellCharacters": 546,
+      "systemCharacters": 569,
+      "callsPerPass": {
+        "chat.getMessages": 1
+      },
+      "round": 1,
+      "kind": "narrator",
+      "revision": "candidate"
+    },
+    {
+      "card": "living_world",
+      "scenario": "inventory",
+      "coldMs": 90.465,
+      "warmMedianMs": 7.858,
+      "spellCharacters": 1809,
+      "systemCharacters": 1832,
+      "callsPerPass": {
+        "chat.getMessages": 1
+      },
+      "round": 1,
+      "kind": "narrator",
+      "revision": "candidate"
+    },
+    {
+      "card": "living_world",
+      "scenario": "host-provided",
+      "coldMs": 99.784,
+      "warmMedianMs": 7.201,
+      "spellCharacters": 447,
+      "systemCharacters": 6675,
+      "callsPerPass": {
+        "chat.getMessages": 1
+      },
+      "round": 1,
+      "kind": "narrator",
+      "revision": "candidate"
+    },
+    {
+      "parseReportMedianMs": 0.7175,
+      "processResponseMedianMs": 1.0887,
+      "promptConstructMedianMs": 0.4724,
+      "promptCharacters": 14949,
+      "populatedPromptCharacters": 18839,
+      "warnings": 0,
+      "round": 1,
+      "kind": "pipeline",
+      "revision": "published"
+    },
+    {
+      "parseReportMedianMs": 0.7214,
+      "processResponseMedianMs": 1.0045,
+      "promptConstructMedianMs": 0.4188,
+      "promptCharacters": 14949,
+      "populatedPromptCharacters": 18839,
+      "warnings": 0,
+      "round": 1,
+      "kind": "pipeline",
+      "revision": "prior"
+    },
+    {
+      "parseReportMedianMs": 0.6959,
+      "processResponseMedianMs": 1.0305,
+      "promptConstructMedianMs": 0.482,
+      "promptCharacters": 14949,
+      "populatedPromptCharacters": 18839,
+      "warnings": 0,
+      "round": 1,
+      "kind": "pipeline",
+      "revision": "candidate"
+    },
+    {
+      "messages": 600,
+      "coldMs": 450.96,
+      "medianMs": 78.07,
+      "warnings": 0,
+      "round": 1,
+      "kind": "panel-six-600",
+      "revision": "published"
+    },
+    {
+      "messages": 600,
+      "coldMs": 354.95,
+      "medianMs": 81.76,
+      "warnings": 0,
+      "round": 1,
+      "kind": "panel-six-600",
+      "revision": "prior"
+    },
+    {
+      "messages": 600,
+      "coldMs": 340.25,
+      "medianMs": 81.29,
+      "warnings": 0,
+      "round": 1,
+      "kind": "panel-six-600",
+      "revision": "candidate"
+    },
+    {
+      "messages": 2000,
+      "coldMs": 680.69,
+      "medianMs": 117.26,
+      "warnings": 0,
+      "round": 1,
+      "kind": "panel-six-2000",
+      "revision": "published"
+    },
+    {
+      "messages": 2000,
+      "coldMs": 598.92,
+      "medianMs": 134.88,
+      "warnings": 0,
+      "round": 1,
+      "kind": "panel-six-2000",
+      "revision": "prior"
+    },
+    {
+      "messages": 2000,
+      "coldMs": 639.44,
+      "medianMs": 155.26,
+      "warnings": 0,
+      "round": 1,
+      "kind": "panel-six-2000",
+      "revision": "candidate"
+    },
+    {
+      "messages": 600,
+      "coldMs": 1163.29,
+      "medianMs": 79.84,
+      "warnings": 0,
+      "round": 1,
+      "kind": "panel-living-600",
+      "revision": "published"
+    },
+    {
+      "messages": 600,
+      "coldMs": 1082.43,
+      "medianMs": 83.81,
+      "warnings": 0,
+      "round": 1,
+      "kind": "panel-living-600",
+      "revision": "prior"
+    },
+    {
+      "messages": 600,
+      "coldMs": 1063.25,
+      "medianMs": 76.92,
+      "warnings": 0,
+      "round": 1,
+      "kind": "panel-living-600",
+      "revision": "candidate"
+    },
+    {
+      "card": "six_sided_world",
+      "scenario": "ordinary",
+      "coldMs": 75.564,
+      "warmMedianMs": 6.146,
+      "spellCharacters": 0,
+      "systemCharacters": 23,
+      "callsPerPass": {
+        "chat.getMessages": 1
+      },
+      "round": 2,
+      "kind": "narrator",
+      "revision": "published"
+    },
+    {
+      "card": "six_sided_world",
+      "scenario": "named",
+      "coldMs": 35.877,
+      "warmMedianMs": 5.736,
+      "spellCharacters": 0,
+      "systemCharacters": 23,
+      "callsPerPass": {
+        "chat.getMessages": 1
+      },
+      "round": 2,
+      "kind": "narrator",
+      "revision": "published"
+    },
+    {
+      "card": "six_sided_world",
+      "scenario": "inventory",
+      "coldMs": 26.818,
+      "warmMedianMs": 6.057,
+      "spellCharacters": 0,
+      "systemCharacters": 23,
+      "callsPerPass": {
+        "chat.getMessages": 1
+      },
+      "round": 2,
+      "kind": "narrator",
+      "revision": "published"
+    },
+    {
+      "card": "six_sided_world",
+      "scenario": "host-provided",
+      "coldMs": 31.046,
+      "warmMedianMs": 6.435,
+      "spellCharacters": 0,
+      "systemCharacters": 3301,
+      "callsPerPass": {
+        "chat.getMessages": 1
+      },
+      "round": 2,
+      "kind": "narrator",
+      "revision": "published"
+    },
+    {
+      "card": "living_world",
+      "scenario": "ordinary",
+      "coldMs": 94.686,
+      "warmMedianMs": 3.95,
+      "spellCharacters": 0,
+      "systemCharacters": 23,
+      "callsPerPass": {
+        "chat.getMessages": 1
+      },
+      "round": 2,
+      "kind": "narrator",
+      "revision": "published"
+    },
+    {
+      "card": "living_world",
+      "scenario": "named",
+      "coldMs": 84.069,
+      "warmMedianMs": 4.206,
+      "spellCharacters": 0,
+      "systemCharacters": 23,
+      "callsPerPass": {
+        "chat.getMessages": 1
+      },
+      "round": 2,
+      "kind": "narrator",
+      "revision": "published"
+    },
+    {
+      "card": "living_world",
+      "scenario": "inventory",
+      "coldMs": 82.66,
+      "warmMedianMs": 4.366,
+      "spellCharacters": 0,
+      "systemCharacters": 23,
+      "callsPerPass": {
+        "chat.getMessages": 1
+      },
+      "round": 2,
+      "kind": "narrator",
+      "revision": "published"
+    },
+    {
+      "card": "living_world",
+      "scenario": "host-provided",
+      "coldMs": 93.92,
+      "warmMedianMs": 3.992,
+      "spellCharacters": 0,
+      "systemCharacters": 6228,
+      "callsPerPass": {
+        "chat.getMessages": 1
+      },
+      "round": 2,
+      "kind": "narrator",
+      "revision": "published"
+    },
+    {
+      "card": "six_sided_world",
+      "scenario": "ordinary",
+      "coldMs": 71.308,
+      "warmMedianMs": 6.454,
+      "spellCharacters": 0,
+      "systemCharacters": 23,
+      "callsPerPass": {
+        "chat.getMessages": 1
+      },
+      "round": 2,
+      "kind": "narrator",
+      "revision": "candidate"
+    },
+    {
+      "card": "six_sided_world",
+      "scenario": "named",
+      "coldMs": 34.833,
+      "warmMedianMs": 9.574,
+      "spellCharacters": 535,
+      "systemCharacters": 558,
+      "callsPerPass": {
+        "chat.getMessages": 1
+      },
+      "round": 2,
+      "kind": "narrator",
+      "revision": "candidate"
+    },
+    {
+      "card": "six_sided_world",
+      "scenario": "inventory",
+      "coldMs": 47.022,
+      "warmMedianMs": 9.074,
+      "spellCharacters": 1866,
+      "systemCharacters": 1889,
+      "callsPerPass": {
+        "chat.getMessages": 1
+      },
+      "round": 2,
+      "kind": "narrator",
+      "revision": "candidate"
+    },
+    {
+      "card": "six_sided_world",
+      "scenario": "host-provided",
+      "coldMs": 43.309,
+      "warmMedianMs": 10,
+      "spellCharacters": 447,
+      "systemCharacters": 3748,
+      "callsPerPass": {
+        "chat.getMessages": 1
+      },
+      "round": 2,
+      "kind": "narrator",
+      "revision": "candidate"
+    },
+    {
+      "card": "living_world",
+      "scenario": "ordinary",
+      "coldMs": 93.31,
+      "warmMedianMs": 5.113,
+      "spellCharacters": 0,
+      "systemCharacters": 23,
+      "callsPerPass": {
+        "chat.getMessages": 1
+      },
+      "round": 2,
+      "kind": "narrator",
+      "revision": "candidate"
+    },
+    {
+      "card": "living_world",
+      "scenario": "named",
+      "coldMs": 85.677,
+      "warmMedianMs": 7.413,
+      "spellCharacters": 546,
+      "systemCharacters": 569,
+      "callsPerPass": {
+        "chat.getMessages": 1
+      },
+      "round": 2,
+      "kind": "narrator",
+      "revision": "candidate"
+    },
+    {
+      "card": "living_world",
+      "scenario": "inventory",
+      "coldMs": 102.819,
+      "warmMedianMs": 7.294,
+      "spellCharacters": 1809,
+      "systemCharacters": 1832,
+      "callsPerPass": {
+        "chat.getMessages": 1
+      },
+      "round": 2,
+      "kind": "narrator",
+      "revision": "candidate"
+    },
+    {
+      "card": "living_world",
+      "scenario": "host-provided",
+      "coldMs": 91.369,
+      "warmMedianMs": 7.609,
+      "spellCharacters": 447,
+      "systemCharacters": 6675,
+      "callsPerPass": {
+        "chat.getMessages": 1
+      },
+      "round": 2,
+      "kind": "narrator",
+      "revision": "candidate"
+    },
+    {
+      "card": "six_sided_world",
+      "scenario": "ordinary",
+      "coldMs": 63.437,
+      "warmMedianMs": 6.842,
+      "spellCharacters": 0,
+      "systemCharacters": 23,
+      "callsPerPass": {
+        "chat.getMessages": 1
+      },
+      "round": 2,
+      "kind": "narrator",
+      "revision": "prior"
+    },
+    {
+      "card": "six_sided_world",
+      "scenario": "named",
+      "coldMs": 39.094,
+      "warmMedianMs": 8.799,
+      "spellCharacters": 535,
+      "systemCharacters": 558,
+      "callsPerPass": {
+        "chat.getMessages": 1
+      },
+      "round": 2,
+      "kind": "narrator",
+      "revision": "prior"
+    },
+    {
+      "card": "six_sided_world",
+      "scenario": "inventory",
+      "coldMs": 40.531,
+      "warmMedianMs": 9.115,
+      "spellCharacters": 1866,
+      "systemCharacters": 1889,
+      "callsPerPass": {
+        "chat.getMessages": 1
+      },
+      "round": 2,
+      "kind": "narrator",
+      "revision": "prior"
+    },
+    {
+      "card": "six_sided_world",
+      "scenario": "host-provided",
+      "coldMs": 37.474,
+      "warmMedianMs": 10.378,
+      "spellCharacters": 447,
+      "systemCharacters": 3748,
+      "callsPerPass": {
+        "chat.getMessages": 1
+      },
+      "round": 2,
+      "kind": "narrator",
+      "revision": "prior"
+    },
+    {
+      "card": "living_world",
+      "scenario": "ordinary",
+      "coldMs": 88.608,
+      "warmMedianMs": 5.21,
+      "spellCharacters": 0,
+      "systemCharacters": 23,
+      "callsPerPass": {
+        "chat.getMessages": 1
+      },
+      "round": 2,
+      "kind": "narrator",
+      "revision": "prior"
+    },
+    {
+      "card": "living_world",
+      "scenario": "named",
+      "coldMs": 93.015,
+      "warmMedianMs": 7.59,
+      "spellCharacters": 546,
+      "systemCharacters": 569,
+      "callsPerPass": {
+        "chat.getMessages": 1
+      },
+      "round": 2,
+      "kind": "narrator",
+      "revision": "prior"
+    },
+    {
+      "card": "living_world",
+      "scenario": "inventory",
+      "coldMs": 103.723,
+      "warmMedianMs": 7.087,
+      "spellCharacters": 1809,
+      "systemCharacters": 1832,
+      "callsPerPass": {
+        "chat.getMessages": 1
+      },
+      "round": 2,
+      "kind": "narrator",
+      "revision": "prior"
+    },
+    {
+      "card": "living_world",
+      "scenario": "host-provided",
+      "coldMs": 86.857,
+      "warmMedianMs": 8.177,
+      "spellCharacters": 447,
+      "systemCharacters": 6675,
+      "callsPerPass": {
+        "chat.getMessages": 1
+      },
+      "round": 2,
+      "kind": "narrator",
+      "revision": "prior"
+    },
+    {
+      "parseReportMedianMs": 0.8053,
+      "processResponseMedianMs": 0.9079,
+      "promptConstructMedianMs": 0.5191,
+      "promptCharacters": 14949,
+      "populatedPromptCharacters": 18839,
+      "warnings": 0,
+      "round": 2,
+      "kind": "pipeline",
+      "revision": "published"
+    },
+    {
+      "parseReportMedianMs": 0.832,
+      "processResponseMedianMs": 1.0825,
+      "promptConstructMedianMs": 0.5349,
+      "promptCharacters": 14949,
+      "populatedPromptCharacters": 18839,
+      "warnings": 0,
+      "round": 2,
+      "kind": "pipeline",
+      "revision": "candidate"
+    },
+    {
+      "parseReportMedianMs": 0.7733,
+      "processResponseMedianMs": 1.0469,
+      "promptConstructMedianMs": 0.4965,
+      "promptCharacters": 14949,
+      "populatedPromptCharacters": 18839,
+      "warnings": 0,
+      "round": 2,
+      "kind": "pipeline",
+      "revision": "prior"
+    },
+    {
+      "messages": 600,
+      "coldMs": 413.7,
+      "medianMs": 68.3,
+      "warnings": 0,
+      "round": 2,
+      "kind": "panel-six-600",
+      "revision": "published"
+    },
+    {
+      "messages": 600,
+      "coldMs": 342.76,
+      "medianMs": 64.02,
+      "warnings": 0,
+      "round": 2,
+      "kind": "panel-six-600",
+      "revision": "candidate"
+    },
+    {
+      "messages": 600,
+      "coldMs": 361.43,
+      "medianMs": 71.93,
+      "warnings": 0,
+      "round": 2,
+      "kind": "panel-six-600",
+      "revision": "prior"
+    },
+    {
+      "messages": 2000,
+      "coldMs": 836.06,
+      "medianMs": 122.79,
+      "warnings": 0,
+      "round": 2,
+      "kind": "panel-six-2000",
+      "revision": "published"
+    },
+    {
+      "messages": 2000,
+      "coldMs": 672.81,
+      "medianMs": 134.18,
+      "warnings": 0,
+      "round": 2,
+      "kind": "panel-six-2000",
+      "revision": "candidate"
+    },
+    {
+      "messages": 2000,
+      "coldMs": 613.95,
+      "medianMs": 128.5,
+      "warnings": 0,
+      "round": 2,
+      "kind": "panel-six-2000",
+      "revision": "prior"
+    },
+    {
+      "messages": 600,
+      "coldMs": 1122.83,
+      "medianMs": 87.42,
+      "warnings": 0,
+      "round": 2,
+      "kind": "panel-living-600",
+      "revision": "published"
+    },
+    {
+      "messages": 600,
+      "coldMs": 1021.93,
+      "medianMs": 83.2,
+      "warnings": 0,
+      "round": 2,
+      "kind": "panel-living-600",
+      "revision": "candidate"
+    },
+    {
+      "messages": 600,
+      "coldMs": 1064.08,
+      "medianMs": 84.59,
+      "warnings": 0,
+      "round": 2,
+      "kind": "panel-living-600",
+      "revision": "prior"
+    },
+    {
+      "card": "six_sided_world",
+      "scenario": "ordinary",
+      "coldMs": 82.091,
+      "warmMedianMs": 6.642,
+      "spellCharacters": 0,
+      "systemCharacters": 23,
+      "callsPerPass": {
+        "chat.getMessages": 1
+      },
+      "round": 3,
+      "kind": "narrator",
+      "revision": "candidate"
+    },
+    {
+      "card": "six_sided_world",
+      "scenario": "named",
+      "coldMs": 36.118,
+      "warmMedianMs": 8.412,
+      "spellCharacters": 535,
+      "systemCharacters": 558,
+      "callsPerPass": {
+        "chat.getMessages": 1
+      },
+      "round": 3,
+      "kind": "narrator",
+      "revision": "candidate"
+    },
+    {
+      "card": "six_sided_world",
+      "scenario": "inventory",
+      "coldMs": 42.528,
+      "warmMedianMs": 8.187,
+      "spellCharacters": 1866,
+      "systemCharacters": 1889,
+      "callsPerPass": {
+        "chat.getMessages": 1
+      },
+      "round": 3,
+      "kind": "narrator",
+      "revision": "candidate"
+    },
+    {
+      "card": "six_sided_world",
+      "scenario": "host-provided",
+      "coldMs": 44.38,
+      "warmMedianMs": 9.554,
+      "spellCharacters": 447,
+      "systemCharacters": 3748,
+      "callsPerPass": {
+        "chat.getMessages": 1
+      },
+      "round": 3,
+      "kind": "narrator",
+      "revision": "candidate"
+    },
+    {
+      "card": "living_world",
+      "scenario": "ordinary",
+      "coldMs": 117.207,
+      "warmMedianMs": 4.718,
+      "spellCharacters": 0,
+      "systemCharacters": 23,
+      "callsPerPass": {
+        "chat.getMessages": 1
+      },
+      "round": 3,
+      "kind": "narrator",
+      "revision": "candidate"
+    },
+    {
+      "card": "living_world",
+      "scenario": "named",
+      "coldMs": 97.081,
+      "warmMedianMs": 6.876,
+      "spellCharacters": 546,
+      "systemCharacters": 569,
+      "callsPerPass": {
+        "chat.getMessages": 1
+      },
+      "round": 3,
+      "kind": "narrator",
+      "revision": "candidate"
+    },
+    {
+      "card": "living_world",
+      "scenario": "inventory",
+      "coldMs": 109.802,
+      "warmMedianMs": 7.266,
+      "spellCharacters": 1809,
+      "systemCharacters": 1832,
+      "callsPerPass": {
+        "chat.getMessages": 1
+      },
+      "round": 3,
+      "kind": "narrator",
+      "revision": "candidate"
+    },
+    {
+      "card": "living_world",
+      "scenario": "host-provided",
+      "coldMs": 109.844,
+      "warmMedianMs": 7.724,
+      "spellCharacters": 447,
+      "systemCharacters": 6675,
+      "callsPerPass": {
+        "chat.getMessages": 1
+      },
+      "round": 3,
+      "kind": "narrator",
+      "revision": "candidate"
+    },
+    {
+      "card": "six_sided_world",
+      "scenario": "ordinary",
+      "coldMs": 49.799,
+      "warmMedianMs": 5.809,
+      "spellCharacters": 0,
+      "systemCharacters": 23,
+      "callsPerPass": {
+        "chat.getMessages": 1
+      },
+      "round": 3,
+      "kind": "narrator",
+      "revision": "published"
+    },
+    {
+      "card": "six_sided_world",
+      "scenario": "named",
+      "coldMs": 39.822,
+      "warmMedianMs": 5.785,
+      "spellCharacters": 0,
+      "systemCharacters": 23,
+      "callsPerPass": {
+        "chat.getMessages": 1
+      },
+      "round": 3,
+      "kind": "narrator",
+      "revision": "published"
+    },
+    {
+      "card": "six_sided_world",
+      "scenario": "inventory",
+      "coldMs": 27.083,
+      "warmMedianMs": 5.503,
+      "spellCharacters": 0,
+      "systemCharacters": 23,
+      "callsPerPass": {
+        "chat.getMessages": 1
+      },
+      "round": 3,
+      "kind": "narrator",
+      "revision": "published"
+    },
+    {
+      "card": "six_sided_world",
+      "scenario": "host-provided",
+      "coldMs": 27.663,
+      "warmMedianMs": 5.473,
+      "spellCharacters": 0,
+      "systemCharacters": 3301,
+      "callsPerPass": {
+        "chat.getMessages": 1
+      },
+      "round": 3,
+      "kind": "narrator",
+      "revision": "published"
+    },
+    {
+      "card": "living_world",
+      "scenario": "ordinary",
+      "coldMs": 89.564,
+      "warmMedianMs": 4.045,
+      "spellCharacters": 0,
+      "systemCharacters": 23,
+      "callsPerPass": {
+        "chat.getMessages": 1
+      },
+      "round": 3,
+      "kind": "narrator",
+      "revision": "published"
+    },
+    {
+      "card": "living_world",
+      "scenario": "named",
+      "coldMs": 74.543,
+      "warmMedianMs": 3.865,
+      "spellCharacters": 0,
+      "systemCharacters": 23,
+      "callsPerPass": {
+        "chat.getMessages": 1
+      },
+      "round": 3,
+      "kind": "narrator",
+      "revision": "published"
+    },
+    {
+      "card": "living_world",
+      "scenario": "inventory",
+      "coldMs": 90.993,
+      "warmMedianMs": 3.826,
+      "spellCharacters": 0,
+      "systemCharacters": 23,
+      "callsPerPass": {
+        "chat.getMessages": 1
+      },
+      "round": 3,
+      "kind": "narrator",
+      "revision": "published"
+    },
+    {
+      "card": "living_world",
+      "scenario": "host-provided",
+      "coldMs": 121.242,
+      "warmMedianMs": 3.967,
+      "spellCharacters": 0,
+      "systemCharacters": 6228,
+      "callsPerPass": {
+        "chat.getMessages": 1
+      },
+      "round": 3,
+      "kind": "narrator",
+      "revision": "published"
+    },
+    {
+      "card": "six_sided_world",
+      "scenario": "ordinary",
+      "coldMs": 53.504,
+      "warmMedianMs": 5.787,
+      "spellCharacters": 0,
+      "systemCharacters": 23,
+      "callsPerPass": {
+        "chat.getMessages": 1
+      },
+      "round": 3,
+      "kind": "narrator",
+      "revision": "prior"
+    },
+    {
+      "card": "six_sided_world",
+      "scenario": "named",
+      "coldMs": 37.944,
+      "warmMedianMs": 8.382,
+      "spellCharacters": 535,
+      "systemCharacters": 558,
+      "callsPerPass": {
+        "chat.getMessages": 1
+      },
+      "round": 3,
+      "kind": "narrator",
+      "revision": "prior"
+    },
+    {
+      "card": "six_sided_world",
+      "scenario": "inventory",
+      "coldMs": 39.919,
+      "warmMedianMs": 8.626,
+      "spellCharacters": 1866,
+      "systemCharacters": 1889,
+      "callsPerPass": {
+        "chat.getMessages": 1
+      },
+      "round": 3,
+      "kind": "narrator",
+      "revision": "prior"
+    },
+    {
+      "card": "six_sided_world",
+      "scenario": "host-provided",
+      "coldMs": 39.403,
+      "warmMedianMs": 9.135,
+      "spellCharacters": 447,
+      "systemCharacters": 3748,
+      "callsPerPass": {
+        "chat.getMessages": 1
+      },
+      "round": 3,
+      "kind": "narrator",
+      "revision": "prior"
+    },
+    {
+      "card": "living_world",
+      "scenario": "ordinary",
+      "coldMs": 88.377,
+      "warmMedianMs": 4.575,
+      "spellCharacters": 0,
+      "systemCharacters": 23,
+      "callsPerPass": {
+        "chat.getMessages": 1
+      },
+      "round": 3,
+      "kind": "narrator",
+      "revision": "prior"
+    },
+    {
+      "card": "living_world",
+      "scenario": "named",
+      "coldMs": 96.226,
+      "warmMedianMs": 6.663,
+      "spellCharacters": 546,
+      "systemCharacters": 569,
+      "callsPerPass": {
+        "chat.getMessages": 1
+      },
+      "round": 3,
+      "kind": "narrator",
+      "revision": "prior"
+    },
+    {
+      "card": "living_world",
+      "scenario": "inventory",
+      "coldMs": 93.455,
+      "warmMedianMs": 7.307,
+      "spellCharacters": 1809,
+      "systemCharacters": 1832,
+      "callsPerPass": {
+        "chat.getMessages": 1
+      },
+      "round": 3,
+      "kind": "narrator",
+      "revision": "prior"
+    },
+    {
+      "card": "living_world",
+      "scenario": "host-provided",
+      "coldMs": 96.225,
+      "warmMedianMs": 7.283,
+      "spellCharacters": 447,
+      "systemCharacters": 6675,
+      "callsPerPass": {
+        "chat.getMessages": 1
+      },
+      "round": 3,
+      "kind": "narrator",
+      "revision": "prior"
+    },
+    {
+      "parseReportMedianMs": 0.8809,
+      "processResponseMedianMs": 1.2433,
+      "promptConstructMedianMs": 0.5423,
+      "promptCharacters": 14949,
+      "populatedPromptCharacters": 18839,
+      "warnings": 0,
+      "round": 3,
+      "kind": "pipeline",
+      "revision": "candidate"
+    },
+    {
+      "parseReportMedianMs": 0.7923,
+      "processResponseMedianMs": 1.0839,
+      "promptConstructMedianMs": 0.5452,
+      "promptCharacters": 14949,
+      "populatedPromptCharacters": 18839,
+      "warnings": 0,
+      "round": 3,
+      "kind": "pipeline",
+      "revision": "published"
+    },
+    {
+      "parseReportMedianMs": 0.7868,
+      "processResponseMedianMs": 1.077,
+      "promptConstructMedianMs": 0.5439,
+      "promptCharacters": 14949,
+      "populatedPromptCharacters": 18839,
+      "warnings": 0,
+      "round": 3,
+      "kind": "pipeline",
+      "revision": "prior"
+    },
+    {
+      "messages": 600,
+      "coldMs": 513.53,
+      "medianMs": 80.92,
+      "warnings": 0,
+      "round": 3,
+      "kind": "panel-six-600",
+      "revision": "candidate"
+    },
+    {
+      "messages": 600,
+      "coldMs": 366.95,
+      "medianMs": 67.1,
+      "warnings": 0,
+      "round": 3,
+      "kind": "panel-six-600",
+      "revision": "published"
+    },
+    {
+      "messages": 600,
+      "coldMs": 336.72,
+      "medianMs": 66.33,
+      "warnings": 0,
+      "round": 3,
+      "kind": "panel-six-600",
+      "revision": "prior"
+    },
+    {
+      "messages": 2000,
+      "coldMs": 741.46,
+      "medianMs": 171.49,
+      "warnings": 0,
+      "round": 3,
+      "kind": "panel-six-2000",
+      "revision": "candidate"
+    },
+    {
+      "messages": 2000,
+      "coldMs": 869.65,
+      "medianMs": 159.26,
+      "warnings": 0,
+      "round": 3,
+      "kind": "panel-six-2000",
+      "revision": "published"
+    },
+    {
+      "messages": 2000,
+      "coldMs": 1284.31,
+      "medianMs": 292.82,
+      "warnings": 0,
+      "round": 3,
+      "kind": "panel-six-2000",
+      "revision": "prior"
+    },
+    {
+      "messages": 600,
+      "coldMs": 1387.37,
+      "medianMs": 98.26,
+      "warnings": 0,
+      "round": 3,
+      "kind": "panel-living-600",
+      "revision": "candidate"
+    },
+    {
+      "messages": 600,
+      "coldMs": 1199.97,
+      "medianMs": 84.52,
+      "warnings": 0,
+      "round": 3,
+      "kind": "panel-living-600",
+      "revision": "published"
+    },
+    {
+      "messages": 600,
+      "coldMs": 1177.81,
+      "medianMs": 75.91,
+      "warnings": 0,
+      "round": 3,
+      "kind": "panel-living-600",
+      "revision": "prior"
+    },
+    {
+      "card": "six_sided_world",
+      "scenario": "ordinary",
+      "coldMs": 93.228,
+      "warmMedianMs": 6.38,
+      "spellCharacters": 0,
+      "systemCharacters": 23,
+      "callsPerPass": {
+        "chat.getMessages": 1
+      },
+      "round": 4,
+      "kind": "narrator",
+      "revision": "candidate"
+    },
+    {
+      "card": "six_sided_world",
+      "scenario": "named",
+      "coldMs": 44.144,
+      "warmMedianMs": 8.893,
+      "spellCharacters": 535,
+      "systemCharacters": 558,
+      "callsPerPass": {
+        "chat.getMessages": 1
+      },
+      "round": 4,
+      "kind": "narrator",
+      "revision": "candidate"
+    },
+    {
+      "card": "six_sided_world",
+      "scenario": "inventory",
+      "coldMs": 42.272,
+      "warmMedianMs": 8.408,
+      "spellCharacters": 1866,
+      "systemCharacters": 1889,
+      "callsPerPass": {
+        "chat.getMessages": 1
+      },
+      "round": 4,
+      "kind": "narrator",
+      "revision": "candidate"
+    },
+    {
+      "card": "six_sided_world",
+      "scenario": "host-provided",
+      "coldMs": 38.241,
+      "warmMedianMs": 9.962,
+      "spellCharacters": 447,
+      "systemCharacters": 3748,
+      "callsPerPass": {
+        "chat.getMessages": 1
+      },
+      "round": 4,
+      "kind": "narrator",
+      "revision": "candidate"
+    },
+    {
+      "card": "living_world",
+      "scenario": "ordinary",
+      "coldMs": 80.529,
+      "warmMedianMs": 4.862,
+      "spellCharacters": 0,
+      "systemCharacters": 23,
+      "callsPerPass": {
+        "chat.getMessages": 1
+      },
+      "round": 4,
+      "kind": "narrator",
+      "revision": "candidate"
+    },
+    {
+      "card": "living_world",
+      "scenario": "named",
+      "coldMs": 84.173,
+      "warmMedianMs": 6.902,
+      "spellCharacters": 546,
+      "systemCharacters": 569,
+      "callsPerPass": {
+        "chat.getMessages": 1
+      },
+      "round": 4,
+      "kind": "narrator",
+      "revision": "candidate"
+    },
+    {
+      "card": "living_world",
+      "scenario": "inventory",
+      "coldMs": 91.688,
+      "warmMedianMs": 7.05,
+      "spellCharacters": 1809,
+      "systemCharacters": 1832,
+      "callsPerPass": {
+        "chat.getMessages": 1
+      },
+      "round": 4,
+      "kind": "narrator",
+      "revision": "candidate"
+    },
+    {
+      "card": "living_world",
+      "scenario": "host-provided",
+      "coldMs": 83.763,
+      "warmMedianMs": 7.15,
+      "spellCharacters": 447,
+      "systemCharacters": 6675,
+      "callsPerPass": {
+        "chat.getMessages": 1
+      },
+      "round": 4,
+      "kind": "narrator",
+      "revision": "candidate"
+    },
+    {
+      "card": "six_sided_world",
+      "scenario": "ordinary",
+      "coldMs": 45.714,
+      "warmMedianMs": 6.491,
+      "spellCharacters": 0,
+      "systemCharacters": 23,
+      "callsPerPass": {
+        "chat.getMessages": 1
+      },
+      "round": 4,
+      "kind": "narrator",
+      "revision": "prior"
+    },
+    {
+      "card": "six_sided_world",
+      "scenario": "named",
+      "coldMs": 40.814,
+      "warmMedianMs": 7.87,
+      "spellCharacters": 535,
+      "systemCharacters": 558,
+      "callsPerPass": {
+        "chat.getMessages": 1
+      },
+      "round": 4,
+      "kind": "narrator",
+      "revision": "prior"
+    },
+    {
+      "card": "six_sided_world",
+      "scenario": "inventory",
+      "coldMs": 31.013,
+      "warmMedianMs": 8.165,
+      "spellCharacters": 1866,
+      "systemCharacters": 1889,
+      "callsPerPass": {
+        "chat.getMessages": 1
+      },
+      "round": 4,
+      "kind": "narrator",
+      "revision": "prior"
+    },
+    {
+      "card": "six_sided_world",
+      "scenario": "host-provided",
+      "coldMs": 42.346,
+      "warmMedianMs": 9.988,
+      "spellCharacters": 447,
+      "systemCharacters": 3748,
+      "callsPerPass": {
+        "chat.getMessages": 1
+      },
+      "round": 4,
+      "kind": "narrator",
+      "revision": "prior"
+    },
+    {
+      "card": "living_world",
+      "scenario": "ordinary",
+      "coldMs": 183.532,
+      "warmMedianMs": 10.203,
+      "spellCharacters": 0,
+      "systemCharacters": 23,
+      "callsPerPass": {
+        "chat.getMessages": 1
+      },
+      "round": 4,
+      "kind": "narrator",
+      "revision": "prior"
+    },
+    {
+      "card": "living_world",
+      "scenario": "named",
+      "coldMs": 145.655,
+      "warmMedianMs": 14.75,
+      "spellCharacters": 546,
+      "systemCharacters": 569,
+      "callsPerPass": {
+        "chat.getMessages": 1
+      },
+      "round": 4,
+      "kind": "narrator",
+      "revision": "prior"
+    },
+    {
+      "card": "living_world",
+      "scenario": "inventory",
+      "coldMs": 190.826,
+      "warmMedianMs": 15.274,
+      "spellCharacters": 1809,
+      "systemCharacters": 1832,
+      "callsPerPass": {
+        "chat.getMessages": 1
+      },
+      "round": 4,
+      "kind": "narrator",
+      "revision": "prior"
+    },
+    {
+      "card": "living_world",
+      "scenario": "host-provided",
+      "coldMs": 216.039,
+      "warmMedianMs": 8.084,
+      "spellCharacters": 447,
+      "systemCharacters": 6675,
+      "callsPerPass": {
+        "chat.getMessages": 1
+      },
+      "round": 4,
+      "kind": "narrator",
+      "revision": "prior"
+    },
+    {
+      "card": "six_sided_world",
+      "scenario": "ordinary",
+      "coldMs": 47.508,
+      "warmMedianMs": 5.465,
+      "spellCharacters": 0,
+      "systemCharacters": 23,
+      "callsPerPass": {
+        "chat.getMessages": 1
+      },
+      "round": 4,
+      "kind": "narrator",
+      "revision": "published"
+    },
+    {
+      "card": "six_sided_world",
+      "scenario": "named",
+      "coldMs": 44.24,
+      "warmMedianMs": 6.346,
+      "spellCharacters": 0,
+      "systemCharacters": 23,
+      "callsPerPass": {
+        "chat.getMessages": 1
+      },
+      "round": 4,
+      "kind": "narrator",
+      "revision": "published"
+    },
+    {
+      "card": "six_sided_world",
+      "scenario": "inventory",
+      "coldMs": 33.395,
+      "warmMedianMs": 5.753,
+      "spellCharacters": 0,
+      "systemCharacters": 23,
+      "callsPerPass": {
+        "chat.getMessages": 1
+      },
+      "round": 4,
+      "kind": "narrator",
+      "revision": "published"
+    },
+    {
+      "card": "six_sided_world",
+      "scenario": "host-provided",
+      "coldMs": 36.395,
+      "warmMedianMs": 5.862,
+      "spellCharacters": 0,
+      "systemCharacters": 3301,
+      "callsPerPass": {
+        "chat.getMessages": 1
+      },
+      "round": 4,
+      "kind": "narrator",
+      "revision": "published"
+    },
+    {
+      "card": "living_world",
+      "scenario": "ordinary",
+      "coldMs": 114.192,
+      "warmMedianMs": 3.973,
+      "spellCharacters": 0,
+      "systemCharacters": 23,
+      "callsPerPass": {
+        "chat.getMessages": 1
+      },
+      "round": 4,
+      "kind": "narrator",
+      "revision": "published"
+    },
+    {
+      "card": "living_world",
+      "scenario": "named",
+      "coldMs": 86.47,
+      "warmMedianMs": 3.903,
+      "spellCharacters": 0,
+      "systemCharacters": 23,
+      "callsPerPass": {
+        "chat.getMessages": 1
+      },
+      "round": 4,
+      "kind": "narrator",
+      "revision": "published"
+    },
+    {
+      "card": "living_world",
+      "scenario": "inventory",
+      "coldMs": 74.163,
+      "warmMedianMs": 4.106,
+      "spellCharacters": 0,
+      "systemCharacters": 23,
+      "callsPerPass": {
+        "chat.getMessages": 1
+      },
+      "round": 4,
+      "kind": "narrator",
+      "revision": "published"
+    },
+    {
+      "card": "living_world",
+      "scenario": "host-provided",
+      "coldMs": 95.071,
+      "warmMedianMs": 4.554,
+      "spellCharacters": 0,
+      "systemCharacters": 6228,
+      "callsPerPass": {
+        "chat.getMessages": 1
+      },
+      "round": 4,
+      "kind": "narrator",
+      "revision": "published"
+    },
+    {
+      "parseReportMedianMs": 0.8144,
+      "processResponseMedianMs": 1.1683,
+      "promptConstructMedianMs": 0.5471,
+      "promptCharacters": 14949,
+      "populatedPromptCharacters": 18839,
+      "warnings": 0,
+      "round": 4,
+      "kind": "pipeline",
+      "revision": "candidate"
+    },
+    {
+      "parseReportMedianMs": 0.8514,
+      "processResponseMedianMs": 1.1638,
+      "promptConstructMedianMs": 0.518,
+      "promptCharacters": 14949,
+      "populatedPromptCharacters": 18839,
+      "warnings": 0,
+      "round": 4,
+      "kind": "pipeline",
+      "revision": "prior"
+    },
+    {
+      "parseReportMedianMs": 0.8362,
+      "processResponseMedianMs": 1.1369,
+      "promptConstructMedianMs": 0.4507,
+      "promptCharacters": 14949,
+      "populatedPromptCharacters": 18839,
+      "warnings": 0,
+      "round": 4,
+      "kind": "pipeline",
+      "revision": "published"
+    },
+    {
+      "messages": 600,
+      "coldMs": 412.38,
+      "medianMs": 78.84,
+      "warnings": 0,
+      "round": 4,
+      "kind": "panel-six-600",
+      "revision": "candidate"
+    },
+    {
+      "messages": 600,
+      "coldMs": 358.74,
+      "medianMs": 89.55,
+      "warnings": 0,
+      "round": 4,
+      "kind": "panel-six-600",
+      "revision": "prior"
+    },
+    {
+      "messages": 600,
+      "coldMs": 483.97,
+      "medianMs": 93.91,
+      "warnings": 0,
+      "round": 4,
+      "kind": "panel-six-600",
+      "revision": "published"
+    },
+    {
+      "messages": 2000,
+      "coldMs": 710.96,
+      "medianMs": 140.37,
+      "warnings": 0,
+      "round": 4,
+      "kind": "panel-six-2000",
+      "revision": "candidate"
+    },
+    {
+      "messages": 2000,
+      "coldMs": 661.63,
+      "medianMs": 124.02,
+      "warnings": 0,
+      "round": 4,
+      "kind": "panel-six-2000",
+      "revision": "prior"
+    },
+    {
+      "messages": 2000,
+      "coldMs": 542.62,
+      "medianMs": 108.44,
+      "warnings": 0,
+      "round": 4,
+      "kind": "panel-six-2000",
+      "revision": "published"
+    },
+    {
+      "messages": 600,
+      "coldMs": 1366.49,
+      "medianMs": 96.31,
+      "warnings": 0,
+      "round": 4,
+      "kind": "panel-living-600",
+      "revision": "candidate"
+    },
+    {
+      "messages": 600,
+      "coldMs": 1371.25,
+      "medianMs": 92.44,
+      "warnings": 0,
+      "round": 4,
+      "kind": "panel-living-600",
+      "revision": "prior"
+    },
+    {
+      "messages": 600,
+      "coldMs": 1527.74,
+      "medianMs": 95.83,
+      "warnings": 0,
+      "round": 4,
+      "kind": "panel-living-600",
+      "revision": "published"
+    },
+    {
+      "card": "six_sided_world",
+      "scenario": "ordinary",
+      "coldMs": 106.012,
+      "warmMedianMs": 7.157,
+      "spellCharacters": 0,
+      "systemCharacters": 23,
+      "callsPerPass": {
+        "chat.getMessages": 1
+      },
+      "round": 5,
+      "kind": "narrator",
+      "revision": "prior"
+    },
+    {
+      "card": "six_sided_world",
+      "scenario": "named",
+      "coldMs": 41.136,
+      "warmMedianMs": 9.993,
+      "spellCharacters": 535,
+      "systemCharacters": 558,
+      "callsPerPass": {
+        "chat.getMessages": 1
+      },
+      "round": 5,
+      "kind": "narrator",
+      "revision": "prior"
+    },
+    {
+      "card": "six_sided_world",
+      "scenario": "inventory",
+      "coldMs": 51.088,
+      "warmMedianMs": 10.199,
+      "spellCharacters": 1866,
+      "systemCharacters": 1889,
+      "callsPerPass": {
+        "chat.getMessages": 1
+      },
+      "round": 5,
+      "kind": "narrator",
+      "revision": "prior"
+    },
+    {
+      "card": "six_sided_world",
+      "scenario": "host-provided",
+      "coldMs": 41.353,
+      "warmMedianMs": 19.438,
+      "spellCharacters": 447,
+      "systemCharacters": 3748,
+      "callsPerPass": {
+        "chat.getMessages": 1
+      },
+      "round": 5,
+      "kind": "narrator",
+      "revision": "prior"
+    },
+    {
+      "card": "living_world",
+      "scenario": "ordinary",
+      "coldMs": 107.019,
+      "warmMedianMs": 4.956,
+      "spellCharacters": 0,
+      "systemCharacters": 23,
+      "callsPerPass": {
+        "chat.getMessages": 1
+      },
+      "round": 5,
+      "kind": "narrator",
+      "revision": "prior"
+    },
+    {
+      "card": "living_world",
+      "scenario": "named",
+      "coldMs": 102.285,
+      "warmMedianMs": 7.366,
+      "spellCharacters": 546,
+      "systemCharacters": 569,
+      "callsPerPass": {
+        "chat.getMessages": 1
+      },
+      "round": 5,
+      "kind": "narrator",
+      "revision": "prior"
+    },
+    {
+      "card": "living_world",
+      "scenario": "inventory",
+      "coldMs": 97.893,
+      "warmMedianMs": 8.699,
+      "spellCharacters": 1809,
+      "systemCharacters": 1832,
+      "callsPerPass": {
+        "chat.getMessages": 1
+      },
+      "round": 5,
+      "kind": "narrator",
+      "revision": "prior"
+    },
+    {
+      "card": "living_world",
+      "scenario": "host-provided",
+      "coldMs": 95.051,
+      "warmMedianMs": 7.944,
+      "spellCharacters": 447,
+      "systemCharacters": 6675,
+      "callsPerPass": {
+        "chat.getMessages": 1
+      },
+      "round": 5,
+      "kind": "narrator",
+      "revision": "prior"
+    },
+    {
+      "card": "six_sided_world",
+      "scenario": "ordinary",
+      "coldMs": 57.051,
+      "warmMedianMs": 6.677,
+      "spellCharacters": 0,
+      "systemCharacters": 23,
+      "callsPerPass": {
+        "chat.getMessages": 1
+      },
+      "round": 5,
+      "kind": "narrator",
+      "revision": "candidate"
+    },
+    {
+      "card": "six_sided_world",
+      "scenario": "named",
+      "coldMs": 38.494,
+      "warmMedianMs": 8.804,
+      "spellCharacters": 535,
+      "systemCharacters": 558,
+      "callsPerPass": {
+        "chat.getMessages": 1
+      },
+      "round": 5,
+      "kind": "narrator",
+      "revision": "candidate"
+    },
+    {
+      "card": "six_sided_world",
+      "scenario": "inventory",
+      "coldMs": 37.85,
+      "warmMedianMs": 9.843,
+      "spellCharacters": 1866,
+      "systemCharacters": 1889,
+      "callsPerPass": {
+        "chat.getMessages": 1
+      },
+      "round": 5,
+      "kind": "narrator",
+      "revision": "candidate"
+    },
+    {
+      "card": "six_sided_world",
+      "scenario": "host-provided",
+      "coldMs": 45.044,
+      "warmMedianMs": 9.354,
+      "spellCharacters": 447,
+      "systemCharacters": 3748,
+      "callsPerPass": {
+        "chat.getMessages": 1
+      },
+      "round": 5,
+      "kind": "narrator",
+      "revision": "candidate"
+    },
+    {
+      "card": "living_world",
+      "scenario": "ordinary",
+      "coldMs": 97.51,
+      "warmMedianMs": 5.377,
+      "spellCharacters": 0,
+      "systemCharacters": 23,
+      "callsPerPass": {
+        "chat.getMessages": 1
+      },
+      "round": 5,
+      "kind": "narrator",
+      "revision": "candidate"
+    },
+    {
+      "card": "living_world",
+      "scenario": "named",
+      "coldMs": 96.134,
+      "warmMedianMs": 7.256,
+      "spellCharacters": 546,
+      "systemCharacters": 569,
+      "callsPerPass": {
+        "chat.getMessages": 1
+      },
+      "round": 5,
+      "kind": "narrator",
+      "revision": "candidate"
+    },
+    {
+      "card": "living_world",
+      "scenario": "inventory",
+      "coldMs": 173.322,
+      "warmMedianMs": 8.126,
+      "spellCharacters": 1809,
+      "systemCharacters": 1832,
+      "callsPerPass": {
+        "chat.getMessages": 1
+      },
+      "round": 5,
+      "kind": "narrator",
+      "revision": "candidate"
+    },
+    {
+      "card": "living_world",
+      "scenario": "host-provided",
+      "coldMs": 105.882,
+      "warmMedianMs": 7.872,
+      "spellCharacters": 447,
+      "systemCharacters": 6675,
+      "callsPerPass": {
+        "chat.getMessages": 1
+      },
+      "round": 5,
+      "kind": "narrator",
+      "revision": "candidate"
+    },
+    {
+      "card": "six_sided_world",
+      "scenario": "ordinary",
+      "coldMs": 52.512,
+      "warmMedianMs": 6.58,
+      "spellCharacters": 0,
+      "systemCharacters": 23,
+      "callsPerPass": {
+        "chat.getMessages": 1
+      },
+      "round": 5,
+      "kind": "narrator",
+      "revision": "published"
+    },
+    {
+      "card": "six_sided_world",
+      "scenario": "named",
+      "coldMs": 39.613,
+      "warmMedianMs": 5.817,
+      "spellCharacters": 0,
+      "systemCharacters": 23,
+      "callsPerPass": {
+        "chat.getMessages": 1
+      },
+      "round": 5,
+      "kind": "narrator",
+      "revision": "published"
+    },
+    {
+      "card": "six_sided_world",
+      "scenario": "inventory",
+      "coldMs": 35.664,
+      "warmMedianMs": 7.169,
+      "spellCharacters": 0,
+      "systemCharacters": 23,
+      "callsPerPass": {
+        "chat.getMessages": 1
+      },
+      "round": 5,
+      "kind": "narrator",
+      "revision": "published"
+    },
+    {
+      "card": "six_sided_world",
+      "scenario": "host-provided",
+      "coldMs": 35.206,
+      "warmMedianMs": 6.53,
+      "spellCharacters": 0,
+      "systemCharacters": 3301,
+      "callsPerPass": {
+        "chat.getMessages": 1
+      },
+      "round": 5,
+      "kind": "narrator",
+      "revision": "published"
+    },
+    {
+      "card": "living_world",
+      "scenario": "ordinary",
+      "coldMs": 148.14,
+      "warmMedianMs": 5.406,
+      "spellCharacters": 0,
+      "systemCharacters": 23,
+      "callsPerPass": {
+        "chat.getMessages": 1
+      },
+      "round": 5,
+      "kind": "narrator",
+      "revision": "published"
+    },
+    {
+      "card": "living_world",
+      "scenario": "named",
+      "coldMs": 124.022,
+      "warmMedianMs": 3.949,
+      "spellCharacters": 0,
+      "systemCharacters": 23,
+      "callsPerPass": {
+        "chat.getMessages": 1
+      },
+      "round": 5,
+      "kind": "narrator",
+      "revision": "published"
+    },
+    {
+      "card": "living_world",
+      "scenario": "inventory",
+      "coldMs": 97.385,
+      "warmMedianMs": 4.542,
+      "spellCharacters": 0,
+      "systemCharacters": 23,
+      "callsPerPass": {
+        "chat.getMessages": 1
+      },
+      "round": 5,
+      "kind": "narrator",
+      "revision": "published"
+    },
+    {
+      "card": "living_world",
+      "scenario": "host-provided",
+      "coldMs": 93.999,
+      "warmMedianMs": 4.384,
+      "spellCharacters": 0,
+      "systemCharacters": 6228,
+      "callsPerPass": {
+        "chat.getMessages": 1
+      },
+      "round": 5,
+      "kind": "narrator",
+      "revision": "published"
+    },
+    {
+      "parseReportMedianMs": 0.8852,
+      "processResponseMedianMs": 1.0973,
+      "promptConstructMedianMs": 0.5394,
+      "promptCharacters": 14949,
+      "populatedPromptCharacters": 18839,
+      "warnings": 0,
+      "round": 5,
+      "kind": "pipeline",
+      "revision": "prior"
+    },
+    {
+      "parseReportMedianMs": 0.8102,
+      "processResponseMedianMs": 1.0676,
+      "promptConstructMedianMs": 0.519,
+      "promptCharacters": 14949,
+      "populatedPromptCharacters": 18839,
+      "warnings": 0,
+      "round": 5,
+      "kind": "pipeline",
+      "revision": "candidate"
+    },
+    {
+      "parseReportMedianMs": 0.8798,
+      "processResponseMedianMs": 1.0418,
+      "promptConstructMedianMs": 0.4841,
+      "promptCharacters": 14949,
+      "populatedPromptCharacters": 18839,
+      "warnings": 0,
+      "round": 5,
+      "kind": "pipeline",
+      "revision": "published"
+    },
+    {
+      "messages": 600,
+      "coldMs": 416.38,
+      "medianMs": 85.78,
+      "warnings": 0,
+      "round": 5,
+      "kind": "panel-six-600",
+      "revision": "prior"
+    },
+    {
+      "messages": 600,
+      "coldMs": 463.82,
+      "medianMs": 85.33,
+      "warnings": 0,
+      "round": 5,
+      "kind": "panel-six-600",
+      "revision": "candidate"
+    },
+    {
+      "messages": 600,
+      "coldMs": 335.52,
+      "medianMs": 80.75,
+      "warnings": 0,
+      "round": 5,
+      "kind": "panel-six-600",
+      "revision": "published"
+    },
+    {
+      "messages": 2000,
+      "coldMs": 709.1,
+      "medianMs": 139.27,
+      "warnings": 0,
+      "round": 5,
+      "kind": "panel-six-2000",
+      "revision": "prior"
+    },
+    {
+      "messages": 2000,
+      "coldMs": 693.36,
+      "medianMs": 150.62,
+      "warnings": 0,
+      "round": 5,
+      "kind": "panel-six-2000",
+      "revision": "candidate"
+    },
+    {
+      "messages": 2000,
+      "coldMs": 612.61,
+      "medianMs": 128.23,
+      "warnings": 0,
+      "round": 5,
+      "kind": "panel-six-2000",
+      "revision": "published"
+    },
+    {
+      "messages": 600,
+      "coldMs": 1130.91,
+      "medianMs": 82.85,
+      "warnings": 0,
+      "round": 5,
+      "kind": "panel-living-600",
+      "revision": "prior"
+    },
+    {
+      "messages": 600,
+      "coldMs": 1175.53,
+      "medianMs": 86.15,
+      "warnings": 0,
+      "round": 5,
+      "kind": "panel-living-600",
+      "revision": "candidate"
+    },
+    {
+      "messages": 600,
+      "coldMs": 1173.81,
+      "medianMs": 84.01,
+      "warnings": 0,
+      "round": 5,
+      "kind": "panel-living-600",
+      "revision": "published"
+    }
+  ]
+}

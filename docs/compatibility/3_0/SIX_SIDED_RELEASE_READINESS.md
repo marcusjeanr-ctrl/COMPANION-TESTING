@@ -1,9 +1,9 @@
 # Six-Sided World: release-readiness investigation
 
-**Publication status: BLOCKED. This is not a complete rework or a certified stable
-release.** The requested condition—fully verified compatibility before publishing—
-is not met. Passing the bounded-reader regression suite does not supersede the
-explicit failing long-history release gate below.
+**Historical snapshot at `9b31453`:** the four remaining retention failures below
+have since been fixed in the same patch. See [Durable history completion](DURABLE_HISTORY_COMPLETION.md)
+for current results, stable money corrections and performance. The initial failures
+and measurements below are preserved as evidence; live acceptance remains pending.
 
 ## Protected source and scope
 
