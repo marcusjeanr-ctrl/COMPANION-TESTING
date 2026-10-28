@@ -1,5 +1,7 @@
 # Targeted Magic / martial classification fix
 
+> Publication update: the user authorized shipping this fix after review. Version 3.0.1 RC changes only release identity/notes from the tested 3.0.0 classification candidate below. The recorded payload/frontend hashes describe that implementation snapshot; release validation is rerun on the final versioned commit. Live acceptance and existing limitations remain.
+
 ## Scope and baseline
 
 Baseline: merged 3.0 RC at `543e88904a01a9d84912080549fc373f180031ef`

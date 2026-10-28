@@ -1,5 +1,18 @@
 # Changelog — RPG Companion HMS Edition
 
+## 3.0.1 RC — Magic / martial classification
+
+- Keep physical sword maneuvers, Touki moves and training goals out of Magic counts
+  and Studying; route supported observations to the existing Martial Abilities group.
+- Preserve genuine spells, magic study, catalogue identity, Touki Active, raw saved
+  reports and explicit manual choices, including legacy study entries.
+- Distinguish reported maneuvers, attempts, practice and source-backed learning;
+  failed drills and inconsistent reports do not award a Mastered label.
+- Preserve the Magic UI, search and controls; no new panels, model calls, history
+  scans, dependencies or migrations. Ambiguous names retain conservative handling.
+- Includes the merged 3.0 tracking/dual-card foundation described below. RC status
+  remains: live Lumiverse acceptance and documented history/provider limits remain.
+
 ## 3.0.0 RC candidate — Tracking contracts and compatibility
 
 - Preserve all 2.9.15 Magic identity/progression improvements.
