@@ -1324,6 +1324,75 @@ async function buildLoreBlock(chatId, { chat = null, sceneText = '', where = 'ca
     }
 }
 
+// Normal narrator grounding is cache-only; the host remains responsible for activation.
+const NARRATOR_SPELL_HEAD = '[RPG Companion: spell references]';
+function narratorSpellGrounding(chatId, messages, chat, generationType = 'normal') {
+    const cfg = loreCfg(), report = { scope: 'normal narrator', status: 'not-needed', added: [], hostProvided: [], omitted: 0, characters: 0 };
+    const done = text => { report.characters = text.length; return { text, report }; };
+    if (!cfg.enabled || !magicCfg().on || ['quiet', 'impersonate', 'continue'].includes(generationType)) { report.status = 'disabled-or-skipped'; return done(''); }
+    const recent = (chat || []).slice(-3).filter(trackingMessageVisible);
+    const user = recent.slice().reverse().find(m => m.role === 'user');
+    if (!user) return done('');
+    const request = textOf(user.content).slice(0, 6000);
+    const previous = recent.slice().reverse().find(m => m.role === 'assistant');
+    const text = previous ? textOf(previous.content).slice(0, 12000) : '';
+    const hud = text ? parseHud(text) : null, frame = text ? findHud(text) : null;
+    const scene = frame ? text.slice(frame.bodyEnd) : text;
+    const magicCue = /\b(?:spells?|spellbook|magic|magical|mana|cast(?:ing)?|incantations?|grimoire)\b/i;
+    const followup = /\b(?:read|book|list|review|show|study|learn|train|practice|continue)\b/i.test(request);
+    const schools = spellStanding(hud?.lines || []).schools;
+    const inventory = /\b(?:list|show|review|audit|know)\b[\s\S]{0,100}\b(?:abilities|powers|capabilities)\b/i.test(request) && schools.size > 0;
+    if (!magicCue.test(request) && !(followup && magicCue.test(scene)) && !inventory && !/\b(?:study|learn|train|practice|explain|describe|details|about|tell|how|what|why|can|use|perform|try)\b/i.test(request)) return done('');
+    const catalog = spellCatalog(chatId), resolve = spellResolver(chatId), norm = ' ' + spellKey(request) + ' ';
+    const requested = catalog.filter(r => [r.name, ...(r.aliases || []).filter(a => resolve(a).key === r.key)].some(n => norm.includes(' ' + spellKey(n) + ' ')));
+    if (!magicCue.test(request) && !(followup && magicCue.test(scene)) && !inventory && !requested.length) return done('');
+    const budget = Math.min(6000, Math.max(0, Number.isFinite(Number(cfg.maxChars)) ? Number(cfg.maxChars) : 6000));
+    report.budget = budget; report.catalogueCount = catalog.length;
+    const policy = `${NARRATOR_SPELL_HEAD}\nReference definitions, not owned abilities. Use exact names, schools and stated ranks; no invented aliases. Missing entries are unverified, not nonexistent. Custom magic must be explicitly permitted by card/player rules and identified as custom. School rank never grants Known or Mastered status. Preserve agency and private knowledge.`;
+    if (policy.length + 100 > budget) { report.status = 'budget-unavailable'; return done(''); }
+    const hosts = (messages || []).filter(m => m.role === 'system' && !m.__isChatHistory).map(m => textOf(m.content));
+    if (hosts.some(t => t.includes(NARRATOR_SPELL_HEAD))) { report.status = 'already-provided'; return done(''); }
+    if (!catalog.length) { report.status = 'catalogue-unavailable'; return done(policy + '\nCached spell catalogue unavailable; do not invent missing definitions.'); }
+    const pool = loreCatalogPool(chatId), entries = pool?.entries || [], byId = new Map(entries.map(e => [e.id, e]));
+    const named = new Set(requested.map(r => r.key));
+    const askedSchools = new Set(catalog.filter(r => norm.includes(' ' + spellSchoolKey(r.school) + ' ')).map(r => spellSchoolKey(r.school)));
+    const broad = /\b(?:all|every|complete|catalog(?:ue)?|index)\b/i.test(request);
+    const selected = catalog.filter(r => {
+        const source = byId.get(String(r.src));
+        if (source?.selective && source.keysecondary.length && !loreEntryHits(source, request + '\n' + (hud?.lines || []).map(l => l.text).join('\n'))) return false;
+        if (named.has(r.key)) return true;
+        if (requested.length && !broad) return false;
+        if (r.fan || r.who || ['unique', 'rare'].includes(r.kind)) return false;
+        return askedSchools.size ? askedSchools.has(spellSchoolKey(r.school)) : broad || !schools.size || schools.has(spellSchoolKey(r.school));
+    });
+    const selectedSources = new Set(selected.map(r => String(r.src)));
+    const matchedSources = entries.filter(e => (selectedSources.has(e.id) || /master spell index|magic spells\s*[—–-]\s*catalog|spell catalog(?:ue)?/i.test(e.comment + '\n' + e.content.slice(0, 160))) && hosts.some(t => t.includes(e.content)));
+    const direct = new Set(matchedSources.map(e => e.id));
+    const indexes = matchedSources.filter(e => /master spell index|magic spells\s*[—–-]\s*catalog|spell catalog(?:ue)?/i.test(e.comment + '\n' + e.content.slice(0, 160)));
+    const covered = row => direct.has(String(row.src)) || (!(named.has(row.key) && row.effect) && indexes.some(e => new RegExp('(?:^|[,:;·|\\n])\\s*(?:[-*]\\s*)?' + loreEscapeRe(row.name) + '(?=\\s*[,;(·|\\n]|$)', 'im').test(e.content)));
+    const descriptor = row => ({ name: row.name, school: row.school, rank: row.rank || null, source: row.src || null, fan: !!row.fan });
+    const groups = new Map();
+    for (const row of selected.filter(r => !named.has(r.key)).sort((a,b) => (a.step ?? 99)-(b.step ?? 99) || a.name.localeCompare(b.name))) {
+        if (!groups.has(row.school)) groups.set(row.school, []);
+        groups.get(row.school).push(row);
+    }
+    const ordered = selected.filter(r => named.has(r.key));
+    while ([...groups.values()].some(a => a.length)) for (const rows of groups.values()) if (rows.length) ordered.push(rows.shift());
+    const lines = []; let used = policy.length + 100;
+    for (const row of ordered) {
+        if (covered(row)) { report.hostProvided.push(descriptor(row)); continue; }
+        const detail = named.has(row.key) && row.effect ? ` | ${row.effect}` : '';
+        const line = `${row.school} | ${row.name} | ${row.rank || 'rank not stated'}${row.needs?.length ? ' | requires ' + row.needs.join(' + ') : ''}${row.fan ? ' | fan addition: rare, not assumed present' : ''}${row.who ? ' | restricted: ' + row.who : ''}${detail}`;
+        if (used + line.length + 1 > budget) { report.omitted++; continue; }
+        lines.push(line); used += line.length + 1; report.added.push(descriptor(row));
+    }
+    const represented = report.added.length + report.hostProvided.length;
+    report.partial = represented < catalog.length;
+    report.status = report.omitted ? 'partial' : report.added.length ? 'added' : report.hostProvided.length ? 'host-provided' : 'no-matching-references';
+    const footer = `Subset: ${represented}/${catalog.length} cached definitions represented; do not invent missing details.`;
+    return done([policy, ...lines, footer].join('\n'));
+}
+
 /**
  * Everything about a fight the chat history does not already carry.
  *
@@ -2376,7 +2445,7 @@ async function pushState(chatId, snapshot = null) {
 // Demo mode plays scripted turns (no tokens); Live mode asks the model, with a small
 // world narrator standing in for a bot card.
 
-const RPGC_VERSION = '3.0.1';
+const RPGC_VERSION = '3.0.2';
 const diagLog = [];
 function diagPush(kind, m) { diagLog.push({ at: new Date().toISOString(), kind, text: String(m).slice(0, 400) }); if (diagLog.length > 60) diagLog.shift(); }
 function logW(m) { diagPush('warn', m); return spindle.log.warn(m); }
@@ -2922,6 +2991,12 @@ registerInterceptorKeep(async (messages, context) => {
             }
         }
         if (!hmsOn) trailing.push(...extraFeaturePrompts(false, userName));      // HMS: part of hmsRequestParts
+        const grounding = narratorSpellGrounding(chatId, messages, chat, gt);
+        if (grounding.text) {
+            if (contextMsg) contextMsg.content += '\n\n' + grounding.text;
+            else contextMsg = { role: 'system', content: grounding.text };
+            contextName += ' + spell references';
+        }
 
         if (gt !== 'continue' && chapCfg().inPrompt) {
             const chB = chaptersBlock(await getChatState(chatId), userName, null, chat);
@@ -3019,15 +3094,15 @@ registerInterceptorKeep(async (messages, context) => {
             const sl = out.find(m => !m.__isChatHistory && textOf(m.content).includes(RPGC_SLOT_HEAD));
             const tok = sl ? Math.round(textOf(sl.content).slice(textOf(sl.content).indexOf(RPGC_SLOT_HEAD)).length / 4) : 0;
             spindle.log.info(`[RPG Companion HMS] Side-panel request: in the preset's slot (~${tok} tokens), not added again.`);
-            if (!injected.length) { lastInjection.set(chatId, { at: new Date().toISOString(), parts: [`side-panel request (~${tok} tokens, in the preset)`] }); return messages; }
+            if (!injected.length) { lastInjection.set(chatId, { at: new Date().toISOString(), parts: [`side-panel request (~${tok} tokens, in the preset)`], spellReferences: grounding.report }); return messages; }
         }
-        if (!injected.length) return messages;
+        if (!injected.length) { lastInjection.set(chatId, { at: new Date().toISOString(), parts: [], spellReferences: grounding.report }); return messages; }
         spindle.log.info(`[RPG Companion HMS] Injected (${hmsOn ? 'HMS, ' : ''}${settings.generationMode}, ${gt}): ${injected.map(i => i.name.replace('RPG Companion: ', '')).join(', ')}`);
 
         const breakdown = injected
             .map(({ msg, name }) => ({ messageIndex: out.indexOf(msg), name }))
             .filter(b => b.messageIndex >= 0);
-        if (context && context.chatId) lastInjection.set(context.chatId, { at: new Date().toISOString(), parts: (breakdown || []).map(b => b.name).concat(slotted ? ['side-panel request (in the preset)'] : []) });
+        if (context && context.chatId) lastInjection.set(context.chatId, { at: new Date().toISOString(), parts: (breakdown || []).map(b => b.name).concat(slotted ? ['side-panel request (in the preset)'] : []), spellReferences: grounding.report });
         injectedPromptPasses.add(out);
         return { messages: out, breakdown };
     } catch (e) {
@@ -15068,8 +15143,8 @@ function hmsMagicPanel(chat, st, cfg, sys, chatId = null) {
     const cooldowns = (sys._lines || []).filter(l => /cooldown|recharg/i.test(l.text)).map(l => l.text.trim()).slice(0, 4);
     const resolve = spellResolver(chatId);
     const saved = new Map(spellResolveState(chatId, st, spellStoryFold(chat, chatId)).st.spellbook.map(x => { const target = resolve(x.name); return [target.key, { ...x, name: target.name }]; }));
-    const techKeys = techKeySet(chatId);
-    const book = [...spellKnown(chat, st, null, chatId)].filter(([key, value]) => !techKeys.has(key) && (value.from === 'you' || resolve.domain(value.name) !== 'martial')).map(([key, value]) => saved.get(key) || { name: value.name, from: value.from, ...(value.note ? { note: value.note } : {}) }).slice(-60);
+    const techKeys = techKeySet(chatId), hasSpellReferences = spellCatalog(chatId).length > 0;
+    const book = [...spellKnown(chat, st, null, chatId)].filter(([key, value]) => !techKeys.has(key) && (value.from === 'you' || resolve.domain(value.name) !== 'martial')).map(([key, value]) => { const row = saved.get(key) || { name: value.name, from: value.from, ...(value.note ? { note: value.note } : {}) }; return hasSpellReferences && !resolve.reference(row.name) ? { ...row, note: [row.note, 'Not found in loaded spell references'].filter(Boolean).join(' · ') } : row; }).slice(-60);
     if (!pools.length && !meters.length && !arts.length && !cooldowns.length && !book.length && !list && !ranked) return null;
     return { pools, meters, arts, cooldowns, spellbook: book, list };
 }
@@ -15426,6 +15501,7 @@ function spellResolver(chatId) {
     };
     let cache = spellRecordIndexes.get(index);
     if (!cache) { cache = { values: new Map(), groups: new Map(), schools: new Set(catalog.map(row => spellSchoolKey(row.school))) }; spellRecordIndexes.set(index, cache); }
+    resolve.reference = name => index.get(resolve(name).key) || null;
     resolve.domain = name => {
         const key = resolve(name).key;
         if (index.has(key)) return 'magic'; // explicit spell references outrank heuristic wording
@@ -15707,7 +15783,7 @@ function spellListPanel(chatId, chat, st, sys) {
     });
     // a known spell the lorebook does not have still shows, under its own heading
     const catKeys = cat.map(r => r.key);
-    for (const [k, v] of known) if (!techKeys.has(k) && (v.from === 'you' || classify.domain(v.name) !== 'martial') && !catKeys.some(c => spellSame(c, k))) spells.push({ name: v.name, key: k, school: 'Other', rank: null, step: null, status: v.mastered ? 'mastered' : 'known', why: v.from === 'you' ? 'Marked by you' : 'From the story', who: null, effect: null, chant: null, fan: false, progress: null, note: v.note || null, ...(v.evidence ? { evidence: v.evidence } : {}) });
+    for (const [k, v] of known) if (!techKeys.has(k) && (v.from === 'you' || classify.domain(v.name) !== 'martial') && !catKeys.some(c => spellSame(c, k))) spells.push({ name: v.name, key: k, school: 'Other', rank: null, step: null, status: v.mastered ? 'mastered' : 'known', why: v.from === 'you' ? 'Marked by you' : 'From the story', who: null, effect: null, chant: null, fan: false, progress: null, note: [v.note, 'Not found in loaded spell references'].filter(Boolean).join(' · '), ...(v.evidence ? { evidence: v.evidence } : {}) });
     for (const [key, evidence] of fold.abilityEvidence || []) if (!known.has(key) && !techKeys.has(key) && classify.domain(evidence.name) !== 'martial' && !catKeys.includes(key))
         spells.push({ name:evidence.name, key, school:'Other', rank:null, step:null, status:'unranked', why:'No confirmed current knowledge', evidence, effect:null, chant:null, fan:false, progress:null, note:null });
     const bySchool = new Map();
@@ -15738,7 +15814,7 @@ function spellListPanel(chatId, chat, st, sys) {
         const row = spells.find(x => x.key === k || spellSame(x.key, k));
         const pr = fold.progress.get(k);
         return { name: s.name, school: row ? row.school : s.school || null, rank: row ? row.rank : s.rank || null, done: !spellOngoingPractice(fold, known, k) && (!!(row && ['known', 'mastered'].includes(row.status)) || isKnown(k)),
-            progress: pr && pr.progress !== null && pr.progress !== undefined && Number.isFinite(Number(pr.progress)) ? Math.max(0, Math.min(100, Math.round(Number(pr.progress)))) : null, note: pr ? pr.note : null, why: row ? row.why : null };
+            progress: pr && pr.progress !== null && pr.progress !== undefined && Number.isFinite(Number(pr.progress)) ? Math.max(0, Math.min(100, Math.round(Number(pr.progress)))) : null, note: [pr?.note, !classify.reference(s.name) ? 'Not found in loaded spell references' : null].filter(Boolean).join(' · ') || null, why: row ? row.why : null };
     });
     return { total: cat.length, ladder: stand.ladder, gate: stand.gate, casting: stand.casting, voiceless: stand.voiceless,
         mine: [...stand.schools.values()], schools, studying, news };

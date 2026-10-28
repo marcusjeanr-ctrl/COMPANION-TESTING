@@ -188,6 +188,21 @@ class BrowserUi(unittest.TestCase):
         self.page.evaluate('(html)=>{const a=document.createElement("article");a.id="living-restored";a.innerHTML=html;document.body.append(a)}',html)
         self.assertEqual(self.page.locator('#living-restored .rs').count(),1)
 
+    def test_unlisted_spell_reference_label_preserves_known_and_studying(self):
+        hms=json.loads(subprocess.check_output(['node',str(ROOT/'tools/test_narrator_spell_grounding.cjs'),'--browser-fixture'],text=True))
+        payload=json.loads(json.dumps(FIXTURE['payload']))
+        payload['hms']=hms
+        payload['world']['covers']=[]
+        self.receive(payload)
+        magic=self.page.locator('details[data-open-key="magic"]')
+        self.page.get_by_label('Find a spell',exact=True).fill('water sphere')
+        row=magic.locator('.rpgc-spell-row.known[data-find^="water sphere "]')
+        self.assertTrue(row.is_visible())
+        self.assertIn('Not found in loaded spell references',row.inner_text())
+        self.assertIn('Known',row.inner_text())
+        self.assertEqual(magic.locator('.rpgc-spell-row.known[data-find^="water ball "]').count(),1)
+        self.assertIn('Custom Beacon',magic.inner_text())
+
     def test_martial_classification_preserves_magic_counts_search_and_controls(self):
         hms=json.loads(subprocess.check_output(['node',str(ROOT/'tools/test_magic_classification.cjs'),'--browser-fixture'],text=True))
         payload=json.loads(json.dumps(FIXTURE['payload']))

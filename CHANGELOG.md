@@ -1,5 +1,19 @@
 # Changelog — RPG Companion HMS Edition
 
+## 3.0.2 RC candidate — Narrator spell grounding
+
+- Supply relevant cached canonical spell names, schools and stated ranks to normal
+  narrator requests about magic, with named definitions where available.
+- Reuse exact definitions already present in system context; keep whole references
+  within the configured lore character budget (maximum 6,000 added characters).
+- Separate reference availability from character knowledge. Preserve Known,
+  Mastered, custom spells, manual choices and study progress; label unlisted names
+  without renaming or deleting them.
+- Keep both Mushoku cards' own terminology and caches; do not grant spells from
+  school ranks or add model/API calls, polling or chat-history scans.
+- This improves supplied context, not guaranteed narrator obedience. No live model
+  acceptance or complete-lore compatibility claim; see the grounding report.
+
 ## 3.0.1 RC — Magic / martial classification
 
 - Keep physical sword maneuvers, Touki moves and training goals out of Magic counts
