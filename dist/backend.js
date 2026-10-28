@@ -10252,7 +10252,7 @@ function buildCompanionInstructionRead(committed, userName, locks, st = null, ch
         if (magicSeen) yf.push('"spells": ["one individual magical spell name per entry; no physical/Touki maneuvers; include confirmed prior knowledge; no grouped lists, school/style ranks, casting methods, NPC, hypothetical or failed-only mentions"]');
         if (abilitiesSeen) yf.push('"abilities": [{"name":"individual ability", "owner":"you", "state":"known|practiced|attempted|reliable|mastered|forgotten", "historical":false, "evidence":"short exact quote from this reply, <=160 chars"}]');
         const studying = magicSeen ? spellStudyActive(chat, st).map(x => x.name).slice(0, 8) : [];
-        if (abilitiesSeen || studying.length) yf.push(`"learned": ["new player learning: first clean execution or teacher sign-off this turn; not historical knowledge"], "study": [{"spell": "${abilitiesSeen ? 'ability deliberately practiced/taught now' : `one of: ${studying.join(', ')}`}", "progress": "explicit measured percentage or null", "note": "practice evidence or null"}]`);
+        if (abilitiesSeen || studying.length) yf.push(`"learned": ["explicitly earned player learning this turn under the card rules; practice success alone is not learning; not historical knowledge"], "study": [{"spell": "${abilitiesSeen ? 'ability deliberately practiced/taught now' : `one of: ${studying.join(', ')}`}", "progress": "explicit measured percentage or null", "note": "practice evidence or null"}]`);
         if (abilitiesSeen)
             yf.push(`"mastered": ["explicit mastery by ${userName}, not mere success or reliability; otherwise empty"]`);
         parts.push(`"you": {${yf.join(', ')}}`);
@@ -10264,7 +10264,7 @@ function buildCompanionInstructionRead(committed, userName, locks, st = null, ch
     if (momReq) parts.push(momReq.json);
     const injReq = injActive(chat) ? injRequest(userName) : null;
     if (injReq) parts.push(injReq.json);
-    if (wantQuests) parts.push('"quests": [{"name": "…", "objective": "current step", "progress": "measured 0..100 or null", "giver": "or null", "where": "or null", "deadline": "in-world time or null", "reward": "or null", "category": "main|side|personal|party", "state": "active|completed|failed|abandoned or null"}]');
+    if (wantQuests) parts.push('"quests": [{"name": "…", "objective": "current step", "progress": "measured 0..100 or null", "giver": "or null", "where": "or null", "deadline": "in-world time or null", "reward": "or null", "category": "main|side|personal|party", "state": "active|completed|failed|abandoned|closed or null"}]');
     if (party) parts.push(party.json);
     const rel = relRequest(chat, userName, null, st);
     if (rel) parts.push(rel.json);
@@ -10314,7 +10314,7 @@ function buildCompanionInstructionRead(committed, userName, locks, st = null, ch
     if (yc.on) s += `\n"you" also holds ${userName}'s own state at the end of this reply: mood, ${wantSurvival ? '' : 'stress (L), '}sanity (100 steady, 0 broken)${askXp ? ', and xp earned in this reply for a real accomplishment (0 if none) with why' : ''}. "got" and "lost": physical things ${userName} was handed, picked up, gave away, used up or lost — in their own last message or on screen in this reply — that the HUD does not list (a handout, a key, a note, a booklet), a few words each; [] when nothing changed hands. A message, a notice or news is not a thing.`;
     if (abilitiesSeen) s += '\n"you.abilities": one confirmed player spell/technique/skill per row; no ranks, casting labels, NPCs, catalog entries, instructions or hypotheticals. historical:true for past records, not new learning/current study. Attempts are not knowledge; reliability is not mastery. Exact quote required. Absence is not loss.';
     if (abilitiesSeen) s += '\nStudy requires practice begun now, not assigned/future lessons, demonstrations or failed combat alone. Never invent percentages. Omit empty study/learning.';
-    if (wantQuests) s += '\n"quests": accepted goals only; reuse existing names. Progress requires a measured percentage, else null. Report explicit lifecycle; no rewards from completion alone.';
+    if (wantQuests) s += '\n"quests": accepted goals only; reuse existing names. Progress requires a measured percentage, else null. Report ended scene-level goals even when omitted from the HUD; use closed if the scene ended without a confirmed success/failure. Preserve broader quests and future commitments. No rewards from completion alone.';
     if (plotReq) s += '\n' + plotReq.rules;
     if (momReq) s += '\n' + momReq.rules;
     if (injReq) s += '\n' + injReq.rules;
@@ -10713,7 +10713,7 @@ function hmsPanelStateRead(chatId, chat, st) {
                     const find = (q) => { const matches = det.filter(d => questMatch(q, d)); return matches.length === 1 ? matches[0] : null; };
                     // a bare time ("08:40") is read from the clock of the reply that gave it, so a passed deadline shows overdue
                     const whenOf = (d) => hmsParseWhen(d.deadline, d.readAt !== null && d.readAt !== undefined ? d.readAt : now);
-                    const attach = (q) => { const d = find(q); if (!d) return q; const when = whenOf(d); return { ...q, ...d, key: q.key || d.key, name: q.name, ...(q.state ? { state: q.state, cls: q.cls } : {}), dueIn: when !== null && now !== null ? when - now : null }; };
+                    const attach = (q) => { const d = find(q); if (!d) return q; const when = whenOf(d); return { ...q, ...d, key: q.key || d.key, name: q.name, ...(q.state && d.lifecycleEvidence?.msgId !== tl.at(-1)?.msg.id ? { state: q.state, cls: q.cls } : {}), dueIn: when !== null && now !== null ? when - now : null }; };
                     systems.quests = questUnique(systems.quests.map(attach));
                     for (const d of det) if (!systems.quests.some(q => questMatch(q, d))) { const when = whenOf(d); systems.quests.push({ ...d, state: d.state || null, cls: d.cls || 'active', fromStory: true, dueIn: when !== null && now !== null ? when - now : null }); }
                     systems.questFocus = st.questFocus || null;
@@ -12367,7 +12367,7 @@ function continuityReadIndex(chat) {
             if (d.relations?.length) relations.push(m);
             if (d.agenda?.length || d.plot?.now || d.agendas?.length) agenda.push(m);
             if (d.family?.length || Array.isArray(d.relations) && d.relations.some(r => r && famIsBond(r.bond))) family.push(m);
-            if (d.quests?.length) quests.push(m);
+            if (d.quests?.length || m._rpgcPurpose !== 'continue' && /\b(?:dismissed|concluded|completed|finished|ended|failed|succeeded)\b/i.test(d.plot?.now || '')) quests.push(m);
             if (m._rpgcPurpose !== 'continue') {
                 if (d.holdings?.length) holdings.push(m);
                 if (d.gear?.length || d.survival?.got?.length || d.survival?.lost?.length) gear.push(m);
@@ -15769,20 +15769,31 @@ function abilityMasteryConfirmed(evidence) {
     return /\b(?:mastered|mastery|perfected)\b/i.test(text) &&
         !/\b(?:no|not|never|without|yet to|far from)\b.{0,40}\b(?:master(?:ed|y)|perfected)\b|\bmastery\b.{0,24}\b(?:not|unproven|incomplete|unattained)\b/i.test(text);
 }
-function abilityEvidenceRows(msg, data) {
+function abilityEvidenceRows(msg, data, playerName = '') {
     const rows = abilityEvidenceNormalize(data?.survival?.abilities);
     if (!rows.length) return [];
     const source = stripCompanion(stripLeakedReasoning(textOf(msg.content))).replace(/\s+/g, ' ');
-    return rows.filter(row => source.includes(row.evidence.replace(/\s+/g, ' '))).map(row =>
-        row.state === 'mastered' && !abilityMasteryConfirmed(row.evidence)
-            ? { ...row, state: 'unverified', reportedState: row.state } : row);
+    return rows.filter(row => source.includes(row.evidence.replace(/\s+/g, ' '))).map(row => {
+        if (!['known', 'reliable', 'mastered'].includes(row.state)) return row;
+        const text = row.evidence;
+        const actor = '(?:you' + (playerName ? '|' + loreEscapeRe(playerName) : '') + ')';
+        const playerPositive = new RegExp('\\b' + actor + '\\s+(?:(?:have|has|had|now|already)\\s+)*(?:learned|know|knows|mastered|perfected|can\\s+(?:now\\s+)?(?:cast|perform|use))\\b', 'i').test(text);
+        const observed = /\b(?:watch(?:ed)?|observed|witnessed|demonstrat(?:e[ds]?|ion))\b/i.test(text) && !playerPositive;
+        const namedNpc = (Array.isArray(data.characters) ? data.characters : []).some(x => x?.name && !relSameWords(x.name, playerName) && new RegExp('^' + loreEscapeRe(x.name) + '\\b.{0,55}\\b(?:mastered|learned|knows?)\\b', 'i').test(text));
+        const npcMastery = (namedNpc || /^(?:the\s+)?(?:instructor|teacher|tutor|opponent|he|she)\b.{0,55}\b(?:mastered|learned|knows?)\b/i.test(text)) && !playerPositive;
+        const denied = /\byou\s+(?:(?:have|had|do|did)\s+)?(?:not|never|haven['’]t|hadn['’]t|don['’]t|didn['’]t)\s+(?:learn(?:ed)?|know|acquire(?:d)?)\b/i.test(text);
+        const attempted = !playerPositive && new RegExp('\\b' + actor + '\\b.{0,55}\\b(?:attempt(?:ed)?|tr(?:y|ied)|fail(?:ed)?|practic(?:e[ds]?|ing)|train(?:ed|ing)?)\\b', 'i').test(text);
+        if (observed || npcMastery || denied || attempted || row.state === 'mastered' && !abilityMasteryConfirmed(text))
+            return { ...row, state: 'unverified', reportedState: row.state };
+        return row;
+    });
 }
 // Counts only: valid message provenance is distinct from valid assessment evidence.
-function abilityEvidenceAudit(msg, data) {
-    const raw = data?.survival?.abilities, normalized = abilityEvidenceNormalize(raw), rows = abilityEvidenceRows(msg, data);
+function abilityEvidenceAudit(msg, data, playerName = '') {
+    const raw = data?.survival?.abilities, normalized = abilityEvidenceNormalize(raw), rows = abilityEvidenceRows(msg, data, playerName);
     return { reported: Array.isArray(raw) ? raw.length : 0, normalized: normalized.length,
         sourceMatched: rows.length, sourceMismatch: normalized.length - rows.length,
-        unverifiedMastery: rows.filter(row => row.state === 'unverified').length };
+        unverifiedMastery: rows.filter(row => row.state === 'unverified' && row.reportedState === 'mastered').length, unverifiedClaims: rows.filter(row => row.state === 'unverified').length };
 }
 
 function abilityReportMerge(report, previous) {
@@ -15810,11 +15821,11 @@ function spellStoryFoldUncached(chat, chatId = null) {
         const d = getSwipeData(m);
         const y = d && isPlainObject(d.survival) ? d.survival : null;
         if (!y) continue;
-        const assessments = abilityEvidenceRows(m, d);
-        const unverifiedMastery = new Set(assessments.filter(row => row.state === 'unverified').flatMap(row => resolve.records(row.name).map(target => target.key)));
-        for (const n of Array.isArray(y.spells) ? y.spells : []) for (const target of resolve.records(n)) learned.set(target.key, { ...target, ...((target.note || learned.get(target.key)?.note || established.get(target.key)?.note) ? { note: target.note || learned.get(target.key)?.note || established.get(target.key)?.note } : {}), msgId: m.id, at: order.get(m.id), newlyLearned: false });
-        for (const n of Array.isArray(y.learned) ? y.learned : []) for (const target of resolve.records(n)) learned.set(target.key, { ...target, msgId: m.id, at: order.get(m.id), newlyLearned: true });
-        for (const n of Array.isArray(y.mastered) ? y.mastered : []) for (const target of resolve.records(n)) if (!unverifiedMastery.has(target.key)) mastered.set(target.key, { ...target, msgId: m.id, at: order.get(m.id) });
+        const assessments = abilityEvidenceRows(m, d, playerName);
+        const rejectedClaims = new Set(assessments.filter(row => row.state === 'unverified').flatMap(row => resolve.records(row.name).map(target => target.key)));
+        for (const n of Array.isArray(y.spells) ? y.spells : []) for (const target of resolve.records(n)) if (!rejectedClaims.has(target.key)) learned.set(target.key, { ...target, ...((target.note || learned.get(target.key)?.note || established.get(target.key)?.note) ? { note: target.note || learned.get(target.key)?.note || established.get(target.key)?.note } : {}), msgId: m.id, at: order.get(m.id), newlyLearned: false });
+        for (const n of Array.isArray(y.learned) ? y.learned : []) for (const target of resolve.records(n)) if (!rejectedClaims.has(target.key)) learned.set(target.key, { ...target, msgId: m.id, at: order.get(m.id), newlyLearned: true });
+        for (const n of Array.isArray(y.mastered) ? y.mastered : []) for (const target of resolve.records(n)) if (!rejectedClaims.has(target.key)) mastered.set(target.key, { ...target, msgId: m.id, at: order.get(m.id) });
         for (const s of Array.isArray(y.study) ? y.study : []) if (s && s.spell) for (const target of resolve.records(s)) progress.set(target.key, { name: target.name, progress: s.progress, note: s.note || target.note || null, msgId: m.id, at: order.get(m.id) });
         if (assessments.length) {
             for (const row of assessments) {
@@ -15993,10 +16004,19 @@ function spellListPanel(chatId, chat, st, sys) {
         mine: [...stand.schools.values()], schools, studying, news };
 }
 
+function martialIdentity(name) {
+    const core = spellKey(String(name || '').replace(/\s*(?:,\s*per\b.*|[—–]\s*first teacher\b.*)$/i, '').replace(/\s+rather than over[- ]muscling\s*$/i, ''));
+    if (core === 'grounding force absorption' || /^absorbing an opponents? (?:counter pressure|pressure) through a lowered center$/.test(core))
+        return 'grounding force absorption';
+    return core;
+}
+
 /** Read-only projection of non-catalogue martial observations into the existing Abilities group. */
 function martialAbilityItems(chatId, chat, st) {
     const classify = spellResolver(chatId), fold = spellStoryFold(chat, chatId);
     const known = spellKnown(chat, st, fold, chatId), techs = techKeySet(chatId), out = [];
+    const retractions = new Map();
+    for (const [key, event] of fold.withdrawn) { const id = martialIdentity(event.name || key); retractions.set(id, Math.max(retractions.get(id) ?? -1, event.at)); }
     const manualStudy = new Set((Array.isArray(st?.spellStudy) ? st.spellStudy : []).filter(x => x && x.from !== 'story').map(x => spellKey(x.name)));
     const keys = new Set([...known.keys(), ...fold.abilityEvidence.keys(), ...fold.progress.keys()]);
     for (const key of keys) {
@@ -16009,11 +16029,34 @@ function martialAbilityItems(chatId, chat, st) {
         const verified = assessment && assessment.at >= latestKnowledge ? assessment : null;
         const states = { known: 'Known', reliable: 'Reliable', mastered: 'Mastered', practiced: 'Practicing', attempted: 'Attempted', unverified: 'Reported assessment' };
         const masteryConfirmed = verified?.state !== 'mastered' || abilityMasteryConfirmed(verified.evidence);
-        const state = verified ? masteryConfirmed ? states[verified.state] : 'Reported assessment' : practice && practice.at >= latestKnowledge ? 'Training' :
-            fold.mastered.has(key) ? 'Mastery reported' : fold.learned.get(key)?.newlyLearned ? 'Learning reported' : 'Reported maneuver';
-        if (state) out.push({ name: event.name, state, level: null, label: null, src: null });
+        const earnedState = fold.mastered.get(key)?.state === 'mastered' ? 'Mastered' : states[fold.learned.get(key)?.state] || null;
+        const state = earnedState || (verified ? masteryConfirmed ? states[verified.state] : 'Reported assessment' : practice && practice.at >= latestKnowledge ? 'Training' :
+            fold.mastered.has(key) ? 'Mastery reported' : fold.learned.get(key)?.newlyLearned ? 'Learning reported' : 'Reported maneuver');
+        if (state) {
+            const observations = [
+                ...(practice ? [{ name: practice.name, state: 'Training', progress: practice.progress, note: practice.note, at: practice.at, msgId: practice.msgId }] : []),
+                ...(saved ? [{ name: saved.name, state: earnedState || (verified ? states[verified.state] || state : state), at: latestKnowledge, msgId: saved.msgId, evidence: saved.evidence?.evidence }] : []),
+                ...(assessment ? [{ name: assessment.name, state: states[assessment.state] || state, at: assessment.at, msgId: assessment.msgId, evidence: assessment.evidence }] : [])
+            ];
+            const after = retractions.get(martialIdentity(event.name)) ?? -1, retained = observations.filter(x => x.at > after);
+            if (retained.length) out.push({ name: event.name, state: after >= 0 ? retained.at(-1).state : state, level: null, label: null, src: null, observations: retained });
+        }
     }
-    return out.slice(-40);
+    const groups = new Map();
+    const ranks = { Mastered: 6, Reliable: 5, Known: 4, 'Learning reported': 3, Practicing: 2, Training: 2, Attempted: 1 };
+    for (const item of out) {
+        const key = martialIdentity(item.name), previous = groups.get(key);
+        if (!previous) { groups.set(key, { ...item, key, aliases: [item.name], states: [item.state] }); continue; }
+        previous.aliases.push(item.name); previous.states.push(item.state);
+        previous.observations.push(...item.observations);
+        if ((ranks[item.state] || 0) > (ranks[previous.state] || 0)) previous.state = item.state;
+        if (spellKey(item.name) === key) previous.name = item.name;
+    }
+    return [...groups.values()].map(item => {
+        item.states = [...new Set([...item.states, ...item.observations.map(x => x.state)])];
+        const latestProgress = item.observations.filter(x => x.progress !== null && x.progress !== undefined).sort((a,b) => b.at-a.at)[0];
+        return { ...item, ...(latestProgress ? { progress: latestProgress.progress } : {}) };
+    }).slice(-40);
 }
 
 /** The spells being studied, as the reminder the model sees before it writes. Null when there are none. */
@@ -16040,7 +16083,7 @@ function spellStudyReminder(chatId, chat, st, userName) {
     if (!rows.length) return null;
     return `[RPG Companion: spell study] ${userName} is studying these spells and techniques:\n${rows.join('\n')}\n` +
         `Learning comes only from practice, teaching or study the story shows, at the pace this world's rules and the lorebook allow; a spell or sword technique above ${userName}'s rank stays out of reach until the rank is earned. ` +
-        `When ${userName} first performs one cleanly, it is learned. This is a note for you; do not print it as a HUD line.`;
+        `One clean execution is practice evidence, not automatic learning or mastery. Establish earned proficiency only when the narrative and this card's requirements support it. This is a note for you; do not print it as a HUD line.`;
 }
 
 /** The catalog in the Master Spell Index's shape (school → [{ rank, step, spells }]), for the world card. */
@@ -16428,6 +16471,7 @@ function questReportedState(value) {
     const state = String(value || '').toLowerCase().trim();
     if (/^(?:active|accepted|in.progress|ongoing|reopened)$/.test(state)) return { state, cls: 'active' };
     if (/^(?:done|complete|completed|finished|fulfilled)$/.test(state)) return { state, cls: 'done' };
+    if (/^(?:closed|retired|ended)$/.test(state)) return { state: 'closed', cls: 'closed' };
     if (/^(?:failed|abandoned|cancelled|canceled)$/.test(state)) return { state, cls: 'failed' };
     return null;
 }
@@ -16483,6 +16527,37 @@ function hmsParseWhen(text, now, hud = null) {
     return m;
 }
 
+/** Conservative outcomes for explicit named goals or an explicitly ended final trial. */
+function questSceneContext(m, rows) {
+    const body = stripCompanion(stripLeakedReasoning(textOf(m.content)));
+    const frame = findHud(body), narrative = frame ? body.slice(frame.bodyEnd) : body;
+    const clean = narrative.replace(/```[\s\S]*?```/g, '').replace(/^\s*>.*$/gm, '');
+    const clauses = (clean.match(/[^.!?\n]+[.!?]?/g) || []).filter(line => !/\b(?:if|unless|would|might|could|will|not|never|hasn['’]t|isn['’]t|example|hypothetical|handbook|manual|remember|recall)\b|\?/i.test(line));
+    const namedTargets = new Map();
+    for (const line of clauses) {
+        if (!/\b(?:completed|finished|failed|abandoned|cancelled|canceled)\b/i.test(line)) continue;
+        const matches = rows.filter(q => (!q.cls || q.cls === 'active') && questKey(q.name).split(' ').length > 1 && (' ' + questKey(line) + ' ').includes(' ' + questKey(q.name) + ' '));
+        const longest = Math.max(0, ...matches.map(q => questKey(q.name).length));
+        const specific = matches.filter(q => questKey(q.name).length === longest);
+        if (specific.length === 1) namedTargets.set(specific[0], line);
+    }
+    const failureClauses = (clean.match(/[^.!?\n]+[.!?]?/g) || []).filter(line => !/\b(?:if|unless|would|might|could|will|example|hypothetical|handbook|manual|remember|recall)\b|\?/i.test(line));
+    return { narrative: clean, failureClauses, clauses, namedTargets, location: messageHud(m)?.location?.join(' ') || '' };
+}
+function questSceneLifecycle(q, m, data, context) {
+    if (q.cls && q.cls !== 'active') return null;
+    const { failureClauses, clauses, location, namedTargets } = context;
+    const named = namedTargets.get(q);
+    if (named) return { state: /\b(?:failed|abandoned|cancelled|canceled)\b/i.test(named) ? 'failed' : 'completed', quote: named.trim().slice(0,240), kind: 'named-outcome', msgId: m.id };
+    if (/\b(?:tomorrow|next stage|next week|ongoing|long.term)\b/i.test(q.objective || '')) return null;
+    if (!/\b(?:final exchange|last chance|last attempt|last exchange)\b/i.test(q.objective || '') || !q.giver || !partyMatch(Array.isArray(data.characters) ? data.characters : [], q.giver)) return null;
+    if (q.where && location) { const expected = trackingWords(q.where), actual = trackingWords(location); if ([...expected].filter(w => actual.has(w)).length < Math.min(2, expected.size)) return null; }
+    const ending = clauses.find(line => /\b(?:training|session|lesson|drill|test|sparring)\b.{0,35}\b(?:concluded|ended|finished|over)\b/i.test(line));
+    if (!ending) return null;
+    const footing = /\b(?:footing|feet)\b/i.test(q.objective || '') && failureClauses.some(line => /\byou\s+(?:did not|didn['’]t|failed to)\s+(?:break|shift|move)\s+(?:my|his|her|their|the instructor['’]s)\s+(?:footing|feet)\b/i.test(line));
+    return { state: footing ? 'failed' : 'closed', quote: ending.trim().slice(0,240), kind: footing ? 'final-trial-failed' : 'scene-ended', msgId: m.id };
+}
+
 /** The latest quest details, each with the HUD clock of the reply that gave them: "08:40" said at 08:20 is that morning. */
 function questDetailsLatest(chat) {
     return memoRead(chat, 'quest-details', () => {
@@ -16490,11 +16565,11 @@ function questDetailsLatest(chat) {
         let previousReport = null;
         for (const m of continuityReadIndex(chat).quests) {
             const data = getSwipeData(m, true);
-            if (!Array.isArray(data?.quests) || !data.quests.length) continue;
-            const report = JSON.stringify(data.quests);
-            if (report === previousReport) continue; // exact consecutive confirmations cannot change this fold
-            previousReport = report;
-            for (const q of data.quests) {
+            const reported = Array.isArray(data?.quests) ? data.quests : [];
+            const report = JSON.stringify(reported);
+            const repeated = reported.length && report === previousReport;
+            if (reported.length) previousReport = report;
+            for (const q of repeated ? [] : reported) {
                 if (!q || !q.name || q.accepted === false || reportSpeculative(q)) continue;
                 const exact = rows.filter(x => questKey(x.name) === questKey(q.name) && questMatch(x, q));
                 const candidates = exact.length ? exact : rows.filter(x => questMatch(x, q));
@@ -16508,9 +16583,16 @@ function questDetailsLatest(chat) {
                     if (value !== null && value !== undefined && value !== '') row[key] = value;
                 }
                 const lifecycle = questReportedState(q.state);
-                if (lifecycle) Object.assign(row, lifecycle);
+                if (lifecycle) { Object.assign(row, lifecycle); delete row.lifecycleEvidence; }
                 // A deadline is anchored to the reply that actually supplied it, not a later partial report.
                 if (deadlineChanged || row.readAt === undefined) { const at = chapterMark(m).minutes; row.readAt = Number.isFinite(at) ? at : null; }
+            }
+            if (m._rpgcPurpose !== 'continue' && /\b(?:dismissed|concluded|completed|finished|ended|failed|succeeded)\b/i.test(data?.plot?.now || '')) {
+                const context = questSceneContext(m, rows);
+                for (const row of rows) {
+                    const outcome = questSceneLifecycle(row, m, data, context);
+                    if (outcome) Object.assign(row, questReportedState(outcome.state), { lifecycleEvidence: outcome });
+                }
             }
         }
         return rows;
@@ -16567,7 +16649,7 @@ async function hmsDiagnostics(chatId, includeReply) {
                 const data = saved || statesReading(hudMsg);
                 return { live: status(live), exported: status(exported), nested: status(nested),
                     selected: !!data, source: saved ? 'metadata' : data ? 'inline-current' : null,
-                    assessmentEvidence: abilityEvidenceAudit(hudMsg, data),
+                    assessmentEvidence: abilityEvidenceAudit(hudMsg, data, userNameCache.get(chatId) || ''),
                     continuationSnapshot: hudMsg._rpgcPurpose === 'continue', transactionSelected: !!getSwipeData(hudMsg), minds: Array.isArray(data?.minds) ? data.minds.length : 0,
                     characters: Array.isArray(data?.characters) ? data.characters.length : 0 };
             })() },

@@ -210,6 +210,20 @@ class BrowserUi(unittest.TestCase):
         self.assertIn('Explorers Guild',text)
         self.assertIn('Repair the aqueduct',text)
 
+    def test_ability_alias_evidence_and_closed_scene_quests(self):
+        hms=json.loads(subprocess.check_output(['node',str(ROOT/'tools/test_ability_quest_evidence.cjs'),'--browser-fixture'],text=True))
+        payload=json.loads(json.dumps(FIXTURE['payload']))
+        payload['hms']=hms
+        payload['world']['covers']=[]
+        self.receive(payload)
+        chips=self.page.locator('.rpgc-chip.abil').filter(has_text='Grounding force absorption')
+        self.assertEqual(chips.count(),1)
+        self.assertIn('40%',chips.first.get_attribute('title'))
+        quests=self.page.locator('.rpgc-qcard')
+        self.assertEqual(quests.filter(has_text='Final trial').locator('.qst').inner_text(),'closed')
+        self.assertEqual(quests.filter(has_text='Morning Sword Drill').locator('.qst').inner_text(),'failed')
+        self.assertEqual(quests.filter(has_text='Sword style training').locator('.qst').inner_text(),'active')
+
     def test_durable_people_agenda_secrets_xp_and_carried_render(self):
         hms=json.loads(subprocess.check_output(['node',str(ROOT/'tools/test_six_sided_acceptance.cjs'),'--browser-fixture'],text=True))
         payload=json.loads(json.dumps(FIXTURE['payload']))

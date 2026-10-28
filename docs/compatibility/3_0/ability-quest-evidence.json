@@ -1,0 +1,467 @@
+{
+  "baseCommit": "efdf4419c9bba39f7301d573b5f68cbd7650f5e9",
+  "version": "unreleased changes on 3.0.2",
+  "sourceSha256": {
+    "baselineBackend": "bbd38a2464695d2de9a9776db289a283b4a4f200ac721ff0dbd48c8dad8c5534",
+    "fixedBackend": "b4d905dbe95cca62af26be90557d9767a7f3c6f3edc8319572b7f13718c9131a",
+    "fixedFrontend": "10b06565629aaa4796e892205cbfd53be2e29fc84788fbbdf15ddfac7722c57e"
+  },
+  "exportCounts": {
+    "sha256": "8a581a036d133103f62e5e0ce97877121877acbb714a27e57fe19bf34a832cab",
+    "messages": 15,
+    "reports": 7,
+    "magic": {
+      "canonicalKnown": 16,
+      "knownOther": 0,
+      "mastered": 0,
+      "activeStudy": 0,
+      "reportedStudy": 3
+    },
+    "quests": {
+      "cards": 3,
+      "reportedNumericProgress": 0,
+      "progressWithNoPercentageInSource": 0
+    },
+    "family": {
+      "members": 5
+    },
+    "agenda": {
+      "scheduled": 1
+    },
+    "minds": {
+      "people": 1
+    },
+    "gear": {
+      "items": 2
+    },
+    "money": {
+      "transactions": 0
+    },
+    "factions": {
+      "memberships": 1
+    },
+    "sourceUnchanged": true
+  },
+  "realReplay": {
+    "supplementalMartialChips": {
+      "before": 11,
+      "after": 9
+    },
+    "questStates": {
+      "before": [
+        "active",
+        "active",
+        "active"
+      ],
+      "after": [
+        "failed",
+        "closed",
+        "active"
+      ]
+    }
+  },
+  "verification": {
+    "regressionSuites": 44,
+    "newEvidenceGroups": 18,
+    "uiBrowser": 23,
+    "visibilityBrowser": 5,
+    "liveLumiverse": "not performed"
+  },
+  "methodology": {
+    "node": "22.22.2",
+    "rounds": 5,
+    "order": "alternate baseline/fixed each round",
+    "panels": "Full Six-Sided cache; source-bound 600 or 2000 messages, one cold call, three warmups, median of ten warm calls. Summary is median of five round medians. No simultaneous tests/browser jobs.",
+    "pipeline": "Existing benchmark_tracking_pipeline.cjs with identical fixtures and alternating runtime order. Prompt characters are not tokenizer measurements.",
+    "limitations": "Synthetic cloud measurements with JIT/load noise; not real Android/WebView latency, heap certification or a lifecycle-heavy large-campaign workload."
+  },
+  "summary": [
+    {
+      "kind": "panel600",
+      "revision": "published-3.0.2",
+      "rounds": 5,
+      "coldMs": 348.71,
+      "medianMs": 69.49
+    },
+    {
+      "kind": "panel600",
+      "revision": "fixed",
+      "rounds": 5,
+      "coldMs": 360.03,
+      "medianMs": 70.56
+    },
+    {
+      "kind": "panel2000",
+      "revision": "published-3.0.2",
+      "rounds": 5,
+      "coldMs": 645.39,
+      "medianMs": 198.63
+    },
+    {
+      "kind": "panel2000",
+      "revision": "fixed",
+      "rounds": 5,
+      "coldMs": 662.86,
+      "medianMs": 156.64
+    },
+    {
+      "kind": "pipeline",
+      "revision": "published-3.0.2",
+      "rounds": 5,
+      "processResponseMedianMs": 0.8464,
+      "promptCharacters": 14949,
+      "populatedPromptCharacters": 18839
+    },
+    {
+      "kind": "pipeline",
+      "revision": "fixed",
+      "rounds": 5,
+      "processResponseMedianMs": 0.89,
+      "promptCharacters": 15107,
+      "populatedPromptCharacters": 19029
+    }
+  ],
+  "samples": [
+    {
+      "messages": 600,
+      "coldMs": 464.3,
+      "medianMs": 81.81,
+      "warnings": 0,
+      "round": 1,
+      "kind": "panel600",
+      "revision": "published-3.0.2"
+    },
+    {
+      "messages": 600,
+      "coldMs": 394.7,
+      "medianMs": 82.68,
+      "warnings": 0,
+      "round": 1,
+      "kind": "panel600",
+      "revision": "fixed"
+    },
+    {
+      "messages": 2000,
+      "coldMs": 644.98,
+      "medianMs": 151.65,
+      "warnings": 0,
+      "round": 1,
+      "kind": "panel2000",
+      "revision": "published-3.0.2"
+    },
+    {
+      "messages": 2000,
+      "coldMs": 565.78,
+      "medianMs": 156.64,
+      "warnings": 0,
+      "round": 1,
+      "kind": "panel2000",
+      "revision": "fixed"
+    },
+    {
+      "parseReportMedianMs": 0.6313,
+      "processResponseMedianMs": 0.8464,
+      "promptConstructMedianMs": 0.3852,
+      "promptCharacters": 14949,
+      "populatedPromptCharacters": 18839,
+      "warnings": 0,
+      "round": 1,
+      "kind": "pipeline",
+      "revision": "published-3.0.2"
+    },
+    {
+      "parseReportMedianMs": 0.6033,
+      "processResponseMedianMs": 0.9529,
+      "promptConstructMedianMs": 0.4368,
+      "promptCharacters": 15107,
+      "populatedPromptCharacters": 19029,
+      "warnings": 0,
+      "round": 1,
+      "kind": "pipeline",
+      "revision": "fixed"
+    },
+    {
+      "messages": 600,
+      "coldMs": 351.96,
+      "medianMs": 62.39,
+      "warnings": 0,
+      "round": 2,
+      "kind": "panel600",
+      "revision": "fixed"
+    },
+    {
+      "messages": 600,
+      "coldMs": 278.69,
+      "medianMs": 69.49,
+      "warnings": 0,
+      "round": 2,
+      "kind": "panel600",
+      "revision": "published-3.0.2"
+    },
+    {
+      "messages": 2000,
+      "coldMs": 1306.22,
+      "medianMs": 204.15,
+      "warnings": 0,
+      "round": 2,
+      "kind": "panel2000",
+      "revision": "fixed"
+    },
+    {
+      "messages": 2000,
+      "coldMs": 716.19,
+      "medianMs": 201.48,
+      "warnings": 0,
+      "round": 2,
+      "kind": "panel2000",
+      "revision": "published-3.0.2"
+    },
+    {
+      "parseReportMedianMs": 0.599,
+      "processResponseMedianMs": 0.89,
+      "promptConstructMedianMs": 0.4027,
+      "promptCharacters": 15107,
+      "populatedPromptCharacters": 19029,
+      "warnings": 0,
+      "round": 2,
+      "kind": "pipeline",
+      "revision": "fixed"
+    },
+    {
+      "parseReportMedianMs": 0.5883,
+      "processResponseMedianMs": 0.8591,
+      "promptConstructMedianMs": 0.4442,
+      "promptCharacters": 14949,
+      "populatedPromptCharacters": 18839,
+      "warnings": 0,
+      "round": 2,
+      "kind": "pipeline",
+      "revision": "published-3.0.2"
+    },
+    {
+      "messages": 600,
+      "coldMs": 348.71,
+      "medianMs": 58.73,
+      "warnings": 0,
+      "round": 3,
+      "kind": "panel600",
+      "revision": "published-3.0.2"
+    },
+    {
+      "messages": 600,
+      "coldMs": 310.4,
+      "medianMs": 66.94,
+      "warnings": 0,
+      "round": 3,
+      "kind": "panel600",
+      "revision": "fixed"
+    },
+    {
+      "messages": 2000,
+      "coldMs": 645.39,
+      "medianMs": 146.08,
+      "warnings": 0,
+      "round": 3,
+      "kind": "panel2000",
+      "revision": "published-3.0.2"
+    },
+    {
+      "messages": 2000,
+      "coldMs": 885.39,
+      "medianMs": 150.36,
+      "warnings": 0,
+      "round": 3,
+      "kind": "panel2000",
+      "revision": "fixed"
+    },
+    {
+      "parseReportMedianMs": 0.6011,
+      "processResponseMedianMs": 0.8132,
+      "promptConstructMedianMs": 0.427,
+      "promptCharacters": 14949,
+      "populatedPromptCharacters": 18839,
+      "warnings": 0,
+      "round": 3,
+      "kind": "pipeline",
+      "revision": "published-3.0.2"
+    },
+    {
+      "parseReportMedianMs": 0.5695,
+      "processResponseMedianMs": 0.8131,
+      "promptConstructMedianMs": 0.4366,
+      "promptCharacters": 15107,
+      "populatedPromptCharacters": 19029,
+      "warnings": 0,
+      "round": 3,
+      "kind": "pipeline",
+      "revision": "fixed"
+    },
+    {
+      "messages": 600,
+      "coldMs": 444.09,
+      "medianMs": 70.56,
+      "warnings": 0,
+      "round": 4,
+      "kind": "panel600",
+      "revision": "fixed"
+    },
+    {
+      "messages": 600,
+      "coldMs": 277.55,
+      "medianMs": 61.28,
+      "warnings": 0,
+      "round": 4,
+      "kind": "panel600",
+      "revision": "published-3.0.2"
+    },
+    {
+      "messages": 2000,
+      "coldMs": 626.36,
+      "medianMs": 141.94,
+      "warnings": 0,
+      "round": 4,
+      "kind": "panel2000",
+      "revision": "fixed"
+    },
+    {
+      "messages": 2000,
+      "coldMs": 566.17,
+      "medianMs": 198.63,
+      "warnings": 0,
+      "round": 4,
+      "kind": "panel2000",
+      "revision": "published-3.0.2"
+    },
+    {
+      "parseReportMedianMs": 0.6079,
+      "processResponseMedianMs": 0.8039,
+      "promptConstructMedianMs": 0.3961,
+      "promptCharacters": 15107,
+      "populatedPromptCharacters": 19029,
+      "warnings": 0,
+      "round": 4,
+      "kind": "pipeline",
+      "revision": "fixed"
+    },
+    {
+      "parseReportMedianMs": 0.5866,
+      "processResponseMedianMs": 0.7621,
+      "promptConstructMedianMs": 0.4046,
+      "promptCharacters": 14949,
+      "populatedPromptCharacters": 18839,
+      "warnings": 0,
+      "round": 4,
+      "kind": "pipeline",
+      "revision": "published-3.0.2"
+    },
+    {
+      "messages": 600,
+      "coldMs": 436.06,
+      "medianMs": 81.43,
+      "warnings": 0,
+      "round": 5,
+      "kind": "panel600",
+      "revision": "published-3.0.2"
+    },
+    {
+      "messages": 600,
+      "coldMs": 360.03,
+      "medianMs": 76.95,
+      "warnings": 0,
+      "round": 5,
+      "kind": "panel600",
+      "revision": "fixed"
+    },
+    {
+      "messages": 2000,
+      "coldMs": 820.25,
+      "medianMs": 203.72,
+      "warnings": 0,
+      "round": 5,
+      "kind": "panel2000",
+      "revision": "published-3.0.2"
+    },
+    {
+      "messages": 2000,
+      "coldMs": 662.86,
+      "medianMs": 174.16,
+      "warnings": 0,
+      "round": 5,
+      "kind": "panel2000",
+      "revision": "fixed"
+    },
+    {
+      "parseReportMedianMs": 0.7878,
+      "processResponseMedianMs": 0.9878,
+      "promptConstructMedianMs": 0.5498,
+      "promptCharacters": 14949,
+      "populatedPromptCharacters": 18839,
+      "warnings": 0,
+      "round": 5,
+      "kind": "pipeline",
+      "revision": "published-3.0.2"
+    },
+    {
+      "parseReportMedianMs": 0.7876,
+      "processResponseMedianMs": 0.9961,
+      "promptConstructMedianMs": 0.4775,
+      "promptCharacters": 15107,
+      "populatedPromptCharacters": 19029,
+      "warnings": 0,
+      "round": 5,
+      "kind": "pipeline",
+      "revision": "fixed"
+    }
+  ],
+  "operations": [
+    {
+      "transport": {
+        "model": 1,
+        "getMessages": 6,
+        "metadataWrites": 1,
+        "storageReads": 2,
+        "storageWrites": 4,
+        "historyElementReads": 0,
+        "traversals": {}
+      },
+      "panel": {
+        "messages": 600,
+        "historyElementReads": 6101,
+        "traversals": {
+          "mtEventLedgerUncached": 1,
+          "atlasObserveHistory": 1,
+          "relReadingsUncached": 1,
+          "hmsTimelineUncached": 1,
+          "simReplies": 1,
+          "spellStoryFoldUncached": 1
+        }
+      },
+      "revision": "published-3.0.2"
+    },
+    {
+      "transport": {
+        "model": 1,
+        "getMessages": 6,
+        "metadataWrites": 1,
+        "storageReads": 2,
+        "storageWrites": 4,
+        "historyElementReads": 0,
+        "traversals": {}
+      },
+      "panel": {
+        "messages": 600,
+        "historyElementReads": 6101,
+        "traversals": {
+          "mtEventLedgerUncached": 1,
+          "atlasObserveHistory": 1,
+          "relReadingsUncached": 1,
+          "hmsTimelineUncached": 1,
+          "simReplies": 1,
+          "spellStoryFoldUncached": 1
+        }
+      },
+      "revision": "fixed"
+    }
+  ],
+  "publication": "PR only; no release or merge"
+}

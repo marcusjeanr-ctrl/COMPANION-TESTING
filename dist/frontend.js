@@ -3323,7 +3323,7 @@ export function setup(ctx) {
                     q.key ? h('button', { class: 'rpgc-mini star', 'aria-label': q.key === focus ? 'Unfocus this quest' : 'Focus this quest', title: 'Focus quest', onclick: () => send({ type: 'quest_focus', chatId: state.chatId, name: q.name, key: q.key }) }, q.key === focus ? '\u2605' : '\u2606') : null,
                     h('span', { class: 'name' }, q.name),
                     q.category ? h('span', { class: 'rpgc-chip' }, q.category) : null,
-                    q.state ? h('span', { class: 'qst ' + q.cls }, q.state) : q.fromStory ? h('span', { class: 'qst active' }, 'in the story') : null),
+                    q.state ? h('span', { class: 'qst ' + q.cls, title: q.lifecycleEvidence?.quote || null }, q.state) : q.fromStory ? h('span', { class: 'qst active' }, 'in the story') : null),
                 q.objective ? h('div', { class: 'obj' }, '\u25B8 ' + q.objective) : null,
                 q.progress !== null && q.progress !== undefined ? levelBar(q.progress, 'ok') : null,
                 (q.giver || q.where || q.reward || q.dueIn !== undefined) ? h('div', { class: 'rpgc-chips' },
@@ -3544,7 +3544,7 @@ export function setup(ctx) {
         if (!groups.length && !(sys.attributes || []).length) return null;
         const out = groups.map(g => h('div', { class: 'rpgc-abil' },
             h('h4', null, g.category),
-            h('div', { class: 'rpgc-chips' }, g.items.map(it => h('span', { class: 'rpgc-chip abil', title: [it.label, it.state].filter(Boolean).join(' \u00B7 ') || null },
+            h('div', { class: 'rpgc-chips' }, g.items.map(it => h('span', { class: 'rpgc-chip abil', title: [it.label, it.state, ...(it.observations || []).map(x => [x.state, x.progress !== null && x.progress !== undefined ? x.progress + '%' : null, x.note, x.evidence].filter(Boolean).join(' · '))].filter(Boolean).join(' \u00B7 ') || null },
                 it.label ? h('em', null, it.label + ': ') : null,
                 it.name,
                 it.level ? h('span', { class: 'lv' }, ` Lv ${it.level}`) : null,
