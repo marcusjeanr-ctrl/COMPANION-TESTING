@@ -1,0 +1,736 @@
+{
+  "baseline": "543e88904a01a9d84912080549fc373f180031ef",
+  "versionUnchanged": "3.0.0 RC",
+  "runtime": "Node 22.22.2",
+  "sourceSha256": {
+    "baseline-backend.js": "c55ad8d6215b85eee42bfcdc297fd234abefb9abbccd77dbef17b64d813e9063",
+    "candidate-backend.js": "7d524c080af037ad66bc29d3fbf6ff1af60f71a6c135954f58707cd10095de49",
+    "baseline-frontend.js": "feeff48d24d6ca23d206b9f736988780144c4cb3121e7937c06d32890a7facff"
+  },
+  "frontendUnchanged": true,
+  "exportBefore": {
+    "sha256": "724e3f472814fefd4c5cc05ad704a354be8b9102a4e20aebfbc5ec9ff81bd586",
+    "messages": 13,
+    "validReports": 6,
+    "spellbook": 9,
+    "knownMagic": 9,
+    "magicStudy": 2,
+    "martialItems": 0,
+    "masteredMartial": 0,
+    "touki": "Active",
+    "sourceUnchanged": true,
+    "legitimateMagicPayloadSha256": "e4d6a20fd376b98e5de23242ec51506cc7fba135c37d00054361b7663fc6ca89"
+  },
+  "exportAfter": {
+    "sha256": "724e3f472814fefd4c5cc05ad704a354be8b9102a4e20aebfbc5ec9ff81bd586",
+    "messages": 13,
+    "validReports": 6,
+    "spellbook": 0,
+    "knownMagic": 0,
+    "magicStudy": 0,
+    "martialItems": 11,
+    "masteredMartial": 0,
+    "touki": "Active",
+    "sourceUnchanged": true,
+    "legitimateMagicPayloadSha256": "e4d6a20fd376b98e5de23242ec51506cc7fba135c37d00054361b7663fc6ca89"
+  },
+  "operationsIdentical": true,
+  "method": "Three alternating fresh-process pairs for source-bound 600/2000-message panels, each complete primary card panel, pipeline and Six-Sided GC/catalog memory. Existing warmups/sample counts. One operation-count run each. Final frozen source; no local correctness/browser tests ran concurrently with measurements. Character counts are not tokens.",
+  "summary": [
+    {
+      "benchmark": "panel600",
+      "version": "baseline",
+      "processes": 3,
+      "medians": {
+        "messages": 600,
+        "coldMs": 347.49,
+        "medianMs": 82.78,
+        "warnings": 0
+      }
+    },
+    {
+      "benchmark": "panel2000",
+      "version": "baseline",
+      "processes": 3,
+      "medians": {
+        "messages": 2000,
+        "coldMs": 595.55,
+        "medianMs": 122.29,
+        "warnings": 0
+      }
+    },
+    {
+      "benchmark": "sixPanel",
+      "version": "baseline",
+      "processes": 3,
+      "medians": {
+        "messages": 600,
+        "coldMs": 476.68,
+        "medianMs": 84.99,
+        "warnings": 0
+      }
+    },
+    {
+      "benchmark": "livingPanel",
+      "version": "baseline",
+      "processes": 3,
+      "medians": {
+        "messages": 600,
+        "coldMs": 1246.5,
+        "medianMs": 93.39,
+        "warnings": 0
+      }
+    },
+    {
+      "benchmark": "pipeline",
+      "version": "baseline",
+      "processes": 3,
+      "medians": {
+        "parseReportMedianMs": 0.7586,
+        "processResponseMedianMs": 1.0342,
+        "promptConstructMedianMs": 0.4818,
+        "promptCharacters": 14949,
+        "populatedPromptCharacters": 18819,
+        "warnings": 0
+      }
+    },
+    {
+      "benchmark": "sixMemory",
+      "version": "baseline",
+      "processes": 3,
+      "medians": {
+        "messages": 1000,
+        "enabledEntries": 1273,
+        "vmInitMs": 53.793,
+        "fixturePlusVmHeapBytes": 12266976,
+        "catalogAdditionalHeapBytes": 539216,
+        "catalogColdMs": 49.426,
+        "catalogWarmMedianMs": 0.00111,
+        "spells": 111,
+        "techniques": 23
+      }
+    },
+    {
+      "benchmark": "panel600",
+      "version": "candidate",
+      "processes": 3,
+      "medians": {
+        "messages": 600,
+        "coldMs": 277.11,
+        "medianMs": 73.45,
+        "warnings": 0
+      }
+    },
+    {
+      "benchmark": "panel2000",
+      "version": "candidate",
+      "processes": 3,
+      "medians": {
+        "messages": 2000,
+        "coldMs": 542.39,
+        "medianMs": 119.11,
+        "warnings": 0
+      }
+    },
+    {
+      "benchmark": "sixPanel",
+      "version": "candidate",
+      "processes": 3,
+      "medians": {
+        "messages": 600,
+        "coldMs": 407.69,
+        "medianMs": 74.11,
+        "warnings": 0
+      }
+    },
+    {
+      "benchmark": "livingPanel",
+      "version": "candidate",
+      "processes": 3,
+      "medians": {
+        "messages": 600,
+        "coldMs": 1193.74,
+        "medianMs": 86.29,
+        "warnings": 0
+      }
+    },
+    {
+      "benchmark": "pipeline",
+      "version": "candidate",
+      "processes": 3,
+      "medians": {
+        "parseReportMedianMs": 0.65,
+        "processResponseMedianMs": 0.9698,
+        "promptConstructMedianMs": 0.475,
+        "promptCharacters": 14949,
+        "populatedPromptCharacters": 18839,
+        "warnings": 0
+      }
+    },
+    {
+      "benchmark": "sixMemory",
+      "version": "candidate",
+      "processes": 3,
+      "medians": {
+        "messages": 1000,
+        "enabledEntries": 1273,
+        "vmInitMs": 45.971,
+        "fixturePlusVmHeapBytes": 12275848,
+        "catalogAdditionalHeapBytes": 538864,
+        "catalogColdMs": 35.732,
+        "catalogWarmMedianMs": 0.00125,
+        "spells": 111,
+        "techniques": 23
+      }
+    },
+    {
+      "benchmark": "operations",
+      "version": "baseline",
+      "processes": 1,
+      "medians": {}
+    },
+    {
+      "benchmark": "operations",
+      "version": "candidate",
+      "processes": 1,
+      "medians": {}
+    }
+  ],
+  "raw": [
+    {
+      "benchmark": "panel600",
+      "version": "baseline",
+      "round": 0,
+      "exit": 0,
+      "result": {
+        "messages": 600,
+        "coldMs": 268.41,
+        "medianMs": 82.78,
+        "warnings": 0
+      }
+    },
+    {
+      "benchmark": "panel2000",
+      "version": "baseline",
+      "round": 0,
+      "exit": 0,
+      "result": {
+        "messages": 2000,
+        "coldMs": 595.55,
+        "medianMs": 122.29,
+        "warnings": 0
+      }
+    },
+    {
+      "benchmark": "sixPanel",
+      "version": "baseline",
+      "round": 0,
+      "exit": 0,
+      "result": {
+        "messages": 600,
+        "coldMs": 471.64,
+        "medianMs": 84.99,
+        "warnings": 0
+      }
+    },
+    {
+      "benchmark": "livingPanel",
+      "version": "baseline",
+      "round": 0,
+      "exit": 0,
+      "result": {
+        "messages": 600,
+        "coldMs": 1266.93,
+        "medianMs": 88.88,
+        "warnings": 0
+      }
+    },
+    {
+      "benchmark": "pipeline",
+      "version": "baseline",
+      "round": 0,
+      "exit": 0,
+      "result": {
+        "parseReportMedianMs": 0.7023,
+        "processResponseMedianMs": 1.0342,
+        "promptConstructMedianMs": 0.4573,
+        "promptCharacters": 14949,
+        "populatedPromptCharacters": 18819,
+        "warnings": 0
+      }
+    },
+    {
+      "benchmark": "sixMemory",
+      "version": "baseline",
+      "round": 0,
+      "exit": 0,
+      "result": {
+        "messages": 1000,
+        "enabledEntries": 1273,
+        "vmInitMs": 48.449,
+        "fixturePlusVmHeapBytes": 12266248,
+        "catalogAdditionalHeapBytes": 539216,
+        "catalogColdMs": 49.426,
+        "catalogWarmMedianMs": 0.00121,
+        "spells": 111,
+        "techniques": 23
+      }
+    },
+    {
+      "benchmark": "panel600",
+      "version": "candidate",
+      "round": 0,
+      "exit": 0,
+      "result": {
+        "messages": 600,
+        "coldMs": 262.82,
+        "medianMs": 61.95,
+        "warnings": 0
+      }
+    },
+    {
+      "benchmark": "panel2000",
+      "version": "candidate",
+      "round": 0,
+      "exit": 0,
+      "result": {
+        "messages": 2000,
+        "coldMs": 675.84,
+        "medianMs": 119.11,
+        "warnings": 0
+      }
+    },
+    {
+      "benchmark": "sixPanel",
+      "version": "candidate",
+      "round": 0,
+      "exit": 0,
+      "result": {
+        "messages": 600,
+        "coldMs": 407.69,
+        "medianMs": 74.11,
+        "warnings": 0
+      }
+    },
+    {
+      "benchmark": "livingPanel",
+      "version": "candidate",
+      "round": 0,
+      "exit": 0,
+      "result": {
+        "messages": 600,
+        "coldMs": 1193.74,
+        "medianMs": 95.53,
+        "warnings": 0
+      }
+    },
+    {
+      "benchmark": "pipeline",
+      "version": "candidate",
+      "round": 0,
+      "exit": 0,
+      "result": {
+        "parseReportMedianMs": 0.8425,
+        "processResponseMedianMs": 1.1606,
+        "promptConstructMedianMs": 0.5941,
+        "promptCharacters": 14949,
+        "populatedPromptCharacters": 18839,
+        "warnings": 0
+      }
+    },
+    {
+      "benchmark": "sixMemory",
+      "version": "candidate",
+      "round": 0,
+      "exit": 0,
+      "result": {
+        "messages": 1000,
+        "enabledEntries": 1273,
+        "vmInitMs": 59.067,
+        "fixturePlusVmHeapBytes": 12275848,
+        "catalogAdditionalHeapBytes": 538760,
+        "catalogColdMs": 48.842,
+        "catalogWarmMedianMs": 0.00128,
+        "spells": 111,
+        "techniques": 23
+      }
+    },
+    {
+      "benchmark": "panel600",
+      "version": "candidate",
+      "round": 1,
+      "exit": 0,
+      "result": {
+        "messages": 600,
+        "coldMs": 285.74,
+        "medianMs": 73.45,
+        "warnings": 0
+      }
+    },
+    {
+      "benchmark": "panel2000",
+      "version": "candidate",
+      "round": 1,
+      "exit": 0,
+      "result": {
+        "messages": 2000,
+        "coldMs": 542.39,
+        "medianMs": 130.82,
+        "warnings": 0
+      }
+    },
+    {
+      "benchmark": "sixPanel",
+      "version": "candidate",
+      "round": 1,
+      "exit": 0,
+      "result": {
+        "messages": 600,
+        "coldMs": 386.4,
+        "medianMs": 60.92,
+        "warnings": 0
+      }
+    },
+    {
+      "benchmark": "livingPanel",
+      "version": "candidate",
+      "round": 1,
+      "exit": 0,
+      "result": {
+        "messages": 600,
+        "coldMs": 1251.27,
+        "medianMs": 86.29,
+        "warnings": 0
+      }
+    },
+    {
+      "benchmark": "pipeline",
+      "version": "candidate",
+      "round": 1,
+      "exit": 0,
+      "result": {
+        "parseReportMedianMs": 0.6398,
+        "processResponseMedianMs": 0.9698,
+        "promptConstructMedianMs": 0.4352,
+        "promptCharacters": 14949,
+        "populatedPromptCharacters": 18839,
+        "warnings": 0
+      }
+    },
+    {
+      "benchmark": "sixMemory",
+      "version": "candidate",
+      "round": 1,
+      "exit": 0,
+      "result": {
+        "messages": 1000,
+        "enabledEntries": 1273,
+        "vmInitMs": 42.042,
+        "fixturePlusVmHeapBytes": 12276176,
+        "catalogAdditionalHeapBytes": 538864,
+        "catalogColdMs": 35.732,
+        "catalogWarmMedianMs": 0.00125,
+        "spells": 111,
+        "techniques": 23
+      }
+    },
+    {
+      "benchmark": "panel600",
+      "version": "baseline",
+      "round": 1,
+      "exit": 0,
+      "result": {
+        "messages": 600,
+        "coldMs": 347.49,
+        "medianMs": 104.12,
+        "warnings": 0
+      }
+    },
+    {
+      "benchmark": "panel2000",
+      "version": "baseline",
+      "round": 1,
+      "exit": 0,
+      "result": {
+        "messages": 2000,
+        "coldMs": 603.12,
+        "medianMs": 124.25,
+        "warnings": 0
+      }
+    },
+    {
+      "benchmark": "sixPanel",
+      "version": "baseline",
+      "round": 1,
+      "exit": 0,
+      "result": {
+        "messages": 600,
+        "coldMs": 498.74,
+        "medianMs": 96.55,
+        "warnings": 0
+      }
+    },
+    {
+      "benchmark": "livingPanel",
+      "version": "baseline",
+      "round": 1,
+      "exit": 0,
+      "result": {
+        "messages": 600,
+        "coldMs": 1174.17,
+        "medianMs": 93.39,
+        "warnings": 0
+      }
+    },
+    {
+      "benchmark": "pipeline",
+      "version": "baseline",
+      "round": 1,
+      "exit": 0,
+      "result": {
+        "parseReportMedianMs": 0.7586,
+        "processResponseMedianMs": 1.2512,
+        "promptConstructMedianMs": 0.5635,
+        "promptCharacters": 14949,
+        "populatedPromptCharacters": 18819,
+        "warnings": 0
+      }
+    },
+    {
+      "benchmark": "sixMemory",
+      "version": "baseline",
+      "round": 1,
+      "exit": 0,
+      "result": {
+        "messages": 1000,
+        "enabledEntries": 1273,
+        "vmInitMs": 62.537,
+        "fixturePlusVmHeapBytes": 12268520,
+        "catalogAdditionalHeapBytes": 539216,
+        "catalogColdMs": 47.897,
+        "catalogWarmMedianMs": 0.00111,
+        "spells": 111,
+        "techniques": 23
+      }
+    },
+    {
+      "benchmark": "panel600",
+      "version": "baseline",
+      "round": 2,
+      "exit": 0,
+      "result": {
+        "messages": 600,
+        "coldMs": 383.04,
+        "medianMs": 82.72,
+        "warnings": 0
+      }
+    },
+    {
+      "benchmark": "panel2000",
+      "version": "baseline",
+      "round": 2,
+      "exit": 0,
+      "result": {
+        "messages": 2000,
+        "coldMs": 566.99,
+        "medianMs": 118.65,
+        "warnings": 0
+      }
+    },
+    {
+      "benchmark": "sixPanel",
+      "version": "baseline",
+      "round": 2,
+      "exit": 0,
+      "result": {
+        "messages": 600,
+        "coldMs": 476.68,
+        "medianMs": 80.83,
+        "warnings": 0
+      }
+    },
+    {
+      "benchmark": "livingPanel",
+      "version": "baseline",
+      "round": 2,
+      "exit": 0,
+      "result": {
+        "messages": 600,
+        "coldMs": 1246.5,
+        "medianMs": 93.88,
+        "warnings": 0
+      }
+    },
+    {
+      "benchmark": "pipeline",
+      "version": "baseline",
+      "round": 2,
+      "exit": 0,
+      "result": {
+        "parseReportMedianMs": 0.8175,
+        "processResponseMedianMs": 0.9747,
+        "promptConstructMedianMs": 0.4818,
+        "promptCharacters": 14949,
+        "populatedPromptCharacters": 18819,
+        "warnings": 0
+      }
+    },
+    {
+      "benchmark": "sixMemory",
+      "version": "baseline",
+      "round": 2,
+      "exit": 0,
+      "result": {
+        "messages": 1000,
+        "enabledEntries": 1273,
+        "vmInitMs": 53.793,
+        "fixturePlusVmHeapBytes": 12266976,
+        "catalogAdditionalHeapBytes": 538168,
+        "catalogColdMs": 59.89,
+        "catalogWarmMedianMs": 0.00108,
+        "spells": 111,
+        "techniques": 23
+      }
+    },
+    {
+      "benchmark": "panel600",
+      "version": "candidate",
+      "round": 2,
+      "exit": 0,
+      "result": {
+        "messages": 600,
+        "coldMs": 277.11,
+        "medianMs": 73.62,
+        "warnings": 0
+      }
+    },
+    {
+      "benchmark": "panel2000",
+      "version": "candidate",
+      "round": 2,
+      "exit": 0,
+      "result": {
+        "messages": 2000,
+        "coldMs": 457.7,
+        "medianMs": 99.4,
+        "warnings": 0
+      }
+    },
+    {
+      "benchmark": "sixPanel",
+      "version": "candidate",
+      "round": 2,
+      "exit": 0,
+      "result": {
+        "messages": 600,
+        "coldMs": 445.62,
+        "medianMs": 74.26,
+        "warnings": 0
+      }
+    },
+    {
+      "benchmark": "livingPanel",
+      "version": "candidate",
+      "round": 2,
+      "exit": 0,
+      "result": {
+        "messages": 600,
+        "coldMs": 1001.49,
+        "medianMs": 70.97,
+        "warnings": 0
+      }
+    },
+    {
+      "benchmark": "pipeline",
+      "version": "candidate",
+      "round": 2,
+      "exit": 0,
+      "result": {
+        "parseReportMedianMs": 0.65,
+        "processResponseMedianMs": 0.9563,
+        "promptConstructMedianMs": 0.475,
+        "promptCharacters": 14949,
+        "populatedPromptCharacters": 18839,
+        "warnings": 0
+      }
+    },
+    {
+      "benchmark": "sixMemory",
+      "version": "candidate",
+      "round": 2,
+      "exit": 0,
+      "result": {
+        "messages": 1000,
+        "enabledEntries": 1273,
+        "vmInitMs": 45.971,
+        "fixturePlusVmHeapBytes": 12275536,
+        "catalogAdditionalHeapBytes": 539216,
+        "catalogColdMs": 35.652,
+        "catalogWarmMedianMs": 0.00107,
+        "spells": 111,
+        "techniques": 23
+      }
+    },
+    {
+      "benchmark": "operations",
+      "version": "baseline",
+      "exit": 0,
+      "result": {
+        "transport": {
+          "model": 1,
+          "getMessages": 6,
+          "metadataWrites": 1,
+          "storageReads": 2,
+          "storageWrites": 4,
+          "historyElementReads": 0,
+          "traversals": {}
+        },
+        "panel": {
+          "messages": 600,
+          "historyElementReads": 9101,
+          "traversals": {
+            "mtEventLedgerUncached": 1,
+            "atlasObserveHistory": 1,
+            "relReadingsUncached": 1,
+            "hmsTimelineUncached": 1,
+            "simReplies": 1,
+            "spellStoryFoldUncached": 1
+          }
+        }
+      }
+    },
+    {
+      "benchmark": "operations",
+      "version": "candidate",
+      "exit": 0,
+      "result": {
+        "transport": {
+          "model": 1,
+          "getMessages": 6,
+          "metadataWrites": 1,
+          "storageReads": 2,
+          "storageWrites": 4,
+          "historyElementReads": 0,
+          "traversals": {}
+        },
+        "panel": {
+          "messages": 600,
+          "historyElementReads": 9101,
+          "traversals": {
+            "mtEventLedgerUncached": 1,
+            "atlasObserveHistory": 1,
+            "relReadingsUncached": 1,
+            "hmsTimelineUncached": 1,
+            "simReplies": 1,
+            "spellStoryFoldUncached": 1
+          }
+        }
+      }
+    }
+  ],
+  "limitations": [
+    "Cloud load/JIT/GC variance; no universal speedup or zero-overhead claim.",
+    "Mock host and accepted reports; live Lumiverse/provider/UI latency not certified.",
+    "Ambiguous unknown names retain existing behavior; explicit catalogue and manual Magic records win."
+  ]
+}

@@ -1,4 +1,6 @@
-# RPG Companion HMS Edition 3.0.0 — Release Candidate
+# RPG Companion HMS Edition 3.0.1 — Release Candidate
+
+> Magic classification: [3.0.1 RC fix, validation and limitations](docs/compatibility/3_0/MAGIC_CLASSIFICATION.md).
 
 > Dual primary targets: [Living World + Six-Sided World 3.0 RC integration, checkpoint, evidence and limitations](docs/compatibility/3_0/DUAL_CARD_REPORT.md).
 

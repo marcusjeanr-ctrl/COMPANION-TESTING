@@ -188,6 +188,28 @@ class BrowserUi(unittest.TestCase):
         self.page.evaluate('(html)=>{const a=document.createElement("article");a.id="living-restored";a.innerHTML=html;document.body.append(a)}',html)
         self.assertEqual(self.page.locator('#living-restored .rs').count(),1)
 
+    def test_martial_classification_preserves_magic_counts_search_and_controls(self):
+        hms=json.loads(subprocess.check_output(['node',str(ROOT/'tools/test_magic_classification.cjs'),'--browser-fixture'],text=True))
+        payload=json.loads(json.dumps(FIXTURE['payload']))
+        payload['hms']=hms
+        payload['world']['covers']=[]
+        self.receive(payload)
+        magic=self.page.locator('details[data-open-key="magic"]')
+        abilities=self.page.locator('details[data-open-key="abilities"]')
+        self.assertIn('3 spells',magic.locator(':scope > summary').inner_text())
+        self.assertNotIn('Feint with rhythm-breaking footwork',magic.inner_text())
+        self.assertIn('Feint with rhythm-breaking footwork',abilities.inner_text())
+        self.assertIn('Training',abilities.inner_text())
+        self.assertIn('Touki (Battle Aura):',abilities.inner_text())
+        self.assertIn('Active',abilities.inner_text())
+        self.page.get_by_label('Find a spell',exact=True).fill('stone cannon')
+        row=magic.locator('.rpgc-spell-row.study[data-find^="stone cannon "]')
+        self.assertTrue(row.is_visible())
+        row.get_by_title('Mark it learned',exact=True).click()
+        event=self.page.evaluate("sent.filter(x=>x.type==='spell_known').at(-1)")
+        self.assertEqual(event['name'],'Stone Cannon')
+        self.assertTrue(event['on'])
+
     def test_six_sided_owned_list_and_family_alias_payload_render(self):
         observed=json.loads(subprocess.check_output(['node',str(ROOT/'tools/dual_browser_fixture.cjs')],text=True))
         self.assertEqual(len(observed['hms']['family']['members']),1)
