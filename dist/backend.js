@@ -12095,7 +12095,7 @@ function relGuard(r, pin, rc) {
 
 /** Short carried-forward labels for people the next reply is likely to include. */
 function relPrevious(chat, st, rc) {
-    const msgs = relReadings(chat);
+    const msgs = continuityReadIndex(chat).relations;
     const last = new Map();
     for (const m of msgs) {
         const d = getSwipeData(m, true);
@@ -12104,7 +12104,7 @@ function relPrevious(chat, st, rc) {
     const pins = relPins(st);
     if (!last.size && !Object.keys(pins).length) return [];
     const recent = chat.slice(-2).map(m => textOf(m.content)).join('\n').toLowerCase();
-    const lastMsg = msgs.length ? getSwipeData(msgs[msgs.length - 1], true) : null;
+    const latest = relReadings(chat).at(-1), lastMsg = latest ? getSwipeData(latest, true) : null;
     const justRead = new Set(lastMsg && Array.isArray(lastMsg.relations) ? lastMsg.relations.map(r => r.key) : []);
     const out = [];
     for (const r of last.values()) {
@@ -12231,17 +12231,17 @@ function hmsRelationsPanel(chat, st, cfg, classic = false) {
     if (!rc.on) return null;
     const pins = relPins(st);
     const tl = hmsTimeline(chat);
-    const clockOf = new Map(tl.map(e => [e.msg.id, e.clock]));
+    const hudAt = new Map(tl.map(e => [e.msg.id, e]));
     const now = tl.length ? tl[tl.length - 1].clock : null;
-    const msgs = relReadings(chat);
-    const lastId = msgs.length ? msgs[msgs.length - 1].id : null;
-    const lastData = msgs.length ? getSwipeData(msgs[msgs.length - 1], true) : null;
+    const indexed = continuityReadIndex(chat), msgs = indexed.relations;
+    const latest = relReadings(chat).at(-1), lastId = latest?.id || null;
+    const lastData = latest ? getSwipeData(latest, true) : null;
     const familyPresence = new Map((Array.isArray(lastData?.family) ? lastData.family : []).filter(r => r?.name && r.known).map(r => [lockKey(r.name), r.known === 'seen']));
     const people = new Map();
     for (const m of msgs) {
         const d = getSwipeData(m, true);
         if (!d || !Array.isArray(d.relations)) continue;
-        const at = clockOf.has(m.id) ? clockOf.get(m.id) : null;
+        const at = continuityObservation(m, hudAt, indexed).clock;
         for (const r of d.relations) {
             if (!r || !r.key) continue;
             let p = people.get(r.key);
@@ -12357,12 +12357,15 @@ function famNormalize(list) {
 // Per-read only: edits, swipes, branches and reloads cannot leave stale snapshots.
 function continuityReadIndex(chat) {
     return memoRead(chat, 'continuity-source-index', () => {
-        const order = new Map(), family = [], holdings = [], gear = [], factions = [], money = [], quests = [];
+        const order = new Map(), family = [], holdings = [], gear = [], factions = [], money = [], quests = [], relations = [], agenda = [], secrets = [], contacts = [], you = [];
         for (let i = 0; i < chat.length; i++) {
             const m = chat[i]; order.set(m.id, i);
+            const durable = { msgId: m.id }; you.push(durable); // structural anchors carry no facts
             if (m.role !== 'assistant' || !trackingMessageVisible(m)) continue;
             const d = getSwipeData(m, true);
             if (!d) continue;
+            if (d.relations?.length) relations.push(m);
+            if (d.agenda?.length || d.plot?.now || d.agendas?.length) agenda.push(m);
             if (d.family?.length || Array.isArray(d.relations) && d.relations.some(r => r && famIsBond(r.bond))) family.push(m);
             if (d.quests?.length) quests.push(m);
             if (m._rpgcPurpose !== 'continue') {
@@ -12370,9 +12373,17 @@ function continuityReadIndex(chat) {
                 if (d.gear?.length || d.survival?.got?.length || d.survival?.lost?.length) gear.push(m);
                 if (d.factions?.length) factions.push(m);
                 if (d.money?.length) money.push(m);
+                if (d.secrets?.length) secrets.push(m);
+                if (d.contacts?.length || d.inbox?.length) contacts.push(m);
+                if (isPlainObject(d.survival)) {
+                    const xp = reportNumber(d.survival.xp);
+                    if (Number.isFinite(xp)) { durable.xp = xp; durable.xpWhy = d.survival.xpWhy; }
+                    if (Array.isArray(d.survival.got)) durable.got = d.survival.got;
+                    if (Array.isArray(d.survival.lost)) durable.lost = d.survival.lost;
+                }
             }
         }
-        return { order, family, holdings, gear, factions, money, quests, clocks: new Map() };
+        return { order, family, holdings, gear, factions, money, quests, relations, agenda, secrets, contacts, you, clocks: new Map() };
     });
 }
 function continuityObservation(m, recent, index) {
@@ -12725,12 +12736,17 @@ function gearRead(chat, st, cfg) {
 }
 function gearReadUncached(chat, st, cfg) {
     const g = st && isPlainObject(st.gear) ? st.gear : {};
+    const pk = st && isPlainObject(st.pockets) ? st.pockets : {};
     const tl = hmsTimeline(chat);
     const hudAt = new Map(tl.map(e => [e.msg.id, e]));
     const now = tl.length ? tl[tl.length - 1].clock : null;
     const indexed = continuityReadIndex(chat), msgs = indexed.gear;
     const latest = relReadings(chat).at(-1), lastId = latest?.id || null;
-    const idxOf = indexed.order;
+    const idxOf = indexed.order, reacquiredAfter = new Map();
+    for (const removed of Array.isArray(pk.removed) ? pk.removed : []) {
+        if (removed?.key && removed.after && idxOf.has(removed.after))
+            reacquiredAfter.set(gearCanon(lockKey(gearBare(removed.key))), idxOf.get(removed.after));
+    }
     const items = new Map();
     const find = (name) => {
         const k = lockKey(name);
@@ -12761,7 +12777,7 @@ function gearReadUncached(chat, st, cfg) {
         const at = e ? e.clock : null;
         const idx = idxOf.has(m.id) ? idxOf.get(m.id) : -1;
         const y = isPlainObject(d.survival) ? d.survival : {};
-        for (const n of Array.isArray(y.got) ? y.got : []) { if (pocketIsMessage(n) || pocketAcquisitionPending(n)) continue; const it = ensure(n, 'story'); if (it && (!it.state || it.state === 'gone')) apply(it, 'on body', null, null, at, m.id, idx); }
+        for (const n of Array.isArray(y.got) ? y.got : []) { if (pocketIsMessage(n) || pocketAcquisitionPending(n)) continue; const it = ensure(n, 'story'); if (it && (!it.state || it.state === 'gone' || (reacquiredAfter.has(gearCanon(it.key)) && idx > reacquiredAfter.get(gearCanon(it.key))))) apply(it, 'on body', null, null, at, m.id, idx); }
         for (const n of Array.isArray(y.lost) ? y.lost : []) { const it = find(n); if (it) apply(it, 'gone', null, null, at, m.id, idx); }
         for (const r of Array.isArray(d.gear) ? d.gear : []) {
             if (!isPlainObject(r) || !r.name) continue;
@@ -12773,7 +12789,6 @@ function gearReadUncached(chat, st, cfg) {
         }
     }
     // the old Carried row: what you added there by hand still counts, and what you removed there is gone
-    const pk = st && isPlainObject(st.pockets) ? st.pockets : {};
     for (const n of Array.isArray(pk.added) ? pk.added : []) { const it = ensure(n, 'you'); if (it && !it.state) it.state = 'on body'; }
     for (const x of Array.isArray(pk.removed) ? pk.removed : []) {
         const r = typeof x === 'string' ? { key: x, after: null } : x;
@@ -12971,7 +12986,14 @@ function agendaSame(a, b) {
 
 function agendaActivityState(item, data) {
     const stop = new Set(['the', 'and', 'with', 'for', 'from', 'against', 'this', 'that', 'your', 'you', 'will', 'allowed', 'called', 'breaks', 'begin', 'begins', 'started', 'starting']);
-    const words = text => new Set(lockKey(text || '').split(/[^\p{L}\p{N}]+/u).filter(word => word.length > 2 && !stop.has(word)));
+    const cached = activeReadPass ? memoRead(activeReadPass.chat, 'agenda-activity-words', () => new Map()) : null;
+    const words = text => {
+        const key = text || '';
+        if (cached?.has(key)) return cached.get(key);
+        const value = new Set(lockKey(key).split(/[^\p{L}\p{N}]+/u).filter(word => word.length > 2 && !stop.has(word)));
+        if (cached && cached.size < 512) cached.set(key, value);
+        return value;
+    };
     const title = words(item.what);
     const context = words(`${item.with || ''} ${item.where || ''}`);
     const cues = [data?.plot?.now, ...(Array.isArray(data?.agendas) ? data.agendas.map(row => `${row.name || ''} ${row.doing || ''}`) : [])].filter(Boolean);
@@ -13036,9 +13058,9 @@ function agendaRead(chat, st) {
     const tl = hmsTimeline(chat);
     const hudAt = new Map(tl.map(e => [e.msg.id, e]));
     const now = tl.length ? tl[tl.length - 1].clock : null;
-    const msgs = relReadings(chat);
-    const lastId = msgs.length ? msgs[msgs.length - 1].id : null;
-    const idxOf = new Map(chat.map((m, i) => [m.id, i]));
+    const indexed = continuityReadIndex(chat), msgs = indexed.agenda;
+    const latest = relReadings(chat).at(-1), lastId = latest?.id || null;
+    const idxOf = indexed.order;
     const items = [];
     const compatible = (x, row, dueAt = null) => (!row?.moved || ['open', 'in_progress'].includes(x.state)) &&
         (!row?.with || !x.with || row.moved || lockKey(row.with) === lockKey(x.with)) &&
@@ -13051,7 +13073,7 @@ function agendaRead(chat, st) {
     };
     for (const m of msgs) {
         const d = getSwipeData(m, true) || {};
-        const e = hudAt.get(m.id);
+        const e = continuityObservation(m, hudAt, indexed);
         const at = e ? e.clock : null;
         const idx = idxOf.has(m.id) ? idxOf.get(m.id) : -1;
         for (const r of Array.isArray(d.agenda) ? d.agenda : []) {
@@ -13750,8 +13772,8 @@ function secretRead(chat, st, userName = null) {
     const tl = hmsTimeline(chat);
     const hudAt = new Map(tl.map(e => [e.msg.id, e]));
     const now = tl.length ? tl[tl.length - 1].clock : null;
-    const msgs = relReadings(chat);
-    const lastId = msgs.length ? msgs[msgs.length - 1].id : null;
+    const indexed = continuityReadIndex(chat), msgs = indexed.secrets;
+    const latest = relReadings(chat).at(-1), lastId = latest?.id || null;
     const list = [];
     const same = (a, b) => { if (a === b) return true; const w = (x) => new Set(x.split(/\s+/).filter(t => t.length > 3)); const A = w(a), B = w(b); let n = 0; for (const t of A) if (B.has(t)) n++; return n >= 3 && n >= Math.min(A.size, B.size) * 0.6; };
     const ensure = (text, whose, mine, from) => {
@@ -13768,7 +13790,7 @@ function secretRead(chat, st, userName = null) {
     const isUser = (n) => !!n && (/^(user|you|me|player)$/i.test(n) || (userName && relSameWords(n, userName)));
     for (const m of msgs) {
         const d = getSwipeData(m) || {};
-        const e = hudAt.get(m.id);
+        const e = continuityObservation(m, hudAt, indexed);
         for (const r of Array.isArray(d.secrets) ? d.secrets : []) {
             if (!r || reportSpeculative(r) || /^(?:guess|guessed|gossip|rumou?r|inferred|suspected)$/i.test(String(r.how || ''))) continue;
             const it = ensure(r.text, r.whose, r.mine || isUser(r.whose), 'story');
@@ -14653,7 +14675,7 @@ function simMindView(fold, m) {
     const recent = m.facetLog.slice(-3);
     const stuck = recent.length === 3 && recent.every(x => x.f === recent[0].f) ? recent[0].f : null;
     const atName = (f) => (!f || !f.at ? (f && f.atName) || null : f.at === SIM_YOU ? 'you' : ((fold.minds.get(f.at) || {}).name || f.atName));
-    const feel = (f) => (f ? { p: f.p, s: f.s, t: f.t, text: simFeelText(f), word: simFeelWord(f), level: f.level, at: atName(f), icon: f.p ? SIM_EMO[f.p].icon : '💭', color: f.p ? SIM_EMO[f.p].color : null } : null);
+    const feel = (f) => (f ? { p: f.p, s: f.s, t: f.t, text: simFeelText(f), word: simFeelWord(f), level: f.level, at: atName(f), icon: SIM_EMO[f.p]?.icon || '💭', color: SIM_EMO[f.p]?.color || null } : null);
     const pairs = [...fold.pairs.values()].filter(p => p.from === m.key).sort((a, b) => ((b.to === SIM_YOU) - (a.to === SIM_YOU)) || (b.last - a.last)).map(p => simPairView(fold, p));
     return {
         key: m.key, name: m.name, present: fold.present.has(m.key), ago: fold.turn - m.seen,
@@ -14976,7 +14998,7 @@ function commsDeviceFor(chat, st, cc, hud = undefined) {
 /** Contacts: earned in the story (side-panel reports), anyone who messaged you, plus any the player added by hand. */
 function commsContacts(chat, st) {
     const map = new Map();
-    for (const m of relReadings(chat)) {
+    for (const m of continuityReadIndex(chat).contacts) {
         const d = getSwipeData(m);
         if (d && Array.isArray(d.contacts)) for (const c of d.contacts) if (c && c.name && !map.has(lockKey(c.name))) map.set(lockKey(c.name), { name: c.name, how: c.how || null, from: 'story' });
         // someone who texted you, or a group chat you are in, can be answered
@@ -15184,15 +15206,19 @@ function youReadings(chat) {
     return out;
 }
 
+function youDurableReadings(chat) { return continuityReadIndex(chat).you; }
 function hmsYouPanel(chat, st, cfg, sys) {
+    return withReadPass(chat, () => hmsYouPanelRead(chat, st, cfg, sys));
+}
+function hmsYouPanelRead(chat, st, cfg, sys) {
     const c = cfg || hmsCfg();
     const yc = youCfg(c);
     if (!yc.on) return null;
-    const rs = youReadings(chat);
+    const rs = youReadings(chat), durable = youDurableReadings(chat);
     const lastWith = (k) => { for (let i = rs.length - 1; i >= 0; i--) if (rs[i][k] !== null && rs[i][k] !== undefined) return rs[i][k]; return null; };
     const hx = sys ? hudXp({ lines: (sys._lines || []) }) : null;
-    const tracked = rs.reduce((a, r) => a + (Number(r.xp) || 0), 0) + (Number(st && st.xpAdjust) || 0);
-    const lastGain = [...rs].reverse().find(r => Number(r.xp) > 0) || null;
+    const tracked = durable.reduce((a, r) => a + (Number(r.xp) || 0), 0) + (Number(st && st.xpAdjust) || 0);
+    const lastGain = [...durable].reverse().find(r => Number(r.xp) > 0) || null;
     const xp = { mode: hx && hx.cur !== null ? 'hud' : 'tracked', total: hx && hx.cur !== null ? hx.cur : tracked, max: hx && hx.max ? hx.max : null, level: hx ? hx.level : null, lastGain: lastGain ? { xp: Number(lastGain.xp), why: lastGain.xpWhy || null } : null };
     if (xp.mode === 'tracked') {
         const passed = yc.curve.filter(t => tracked >= t).length;
@@ -15204,10 +15230,12 @@ function hmsYouPanel(chat, st, cfg, sys) {
     } else xp.levelUp = !!(xp.max && xp.total >= xp.max);
     const tl = hmsTimeline(chat);
     const si = worldStandardIssue(tl.length ? tl[tl.length - 1].hud : null);
+    const gone = new Set(gearRead(chat, st, c).items.filter(item => item.state === 'gone').map(item => gearCanon(item.key)));
+    const carried = pocketsNow(durable, st).filter(item => item.from === 'you' || !gone.has(gearCanon(lockKey(gearBare(item.name)))));
     return { mood: lastWith('mood'), stress: lastWith('stress'), sanity: lastWith('sanity'), xp,
         vitals: sys ? sys.vitals.filter(v => /^(hp|mp|health|mana|stamina|sp)$/i.test(v.label)) : [],
         equipment: sys && sys._lines ? (sys._lines.find(l => /^\s*equipment\s*:/i.test(l.text)) || {}).text || null : null,
-        carried: pocketsNow(rs, st), standard: si ? { items: si.items, note: si.note } : null };
+        carried, standard: si ? { items: si.items, note: si.note } : null };
 }
 
 /** A message that reached a phone is not a thing in your pocket ("pairing notification on phone"). */
@@ -17675,10 +17703,10 @@ spindle.onFrontendMessage(async (payload, userId) => {
                 const keyOf = (x) => (typeof x === 'string' ? x : x && x.key);
                 if (payload.op === 'add' && name) { pk.removed = pk.removed.filter(x => keyOf(x) !== key); if (!pk.added.some(n => lockKey(n) === key)) pk.added.push(name); }
                 else if (payload.op === 'remove' && key) {
-                    const rs = youReadings(await chatApi.getMessages(payload.chatId));
+                    const latest = (await chatApi.getMessages(payload.chatId)).at(-1);
                     pk.added = pk.added.filter(n => lockKey(n) !== key);
                     pk.removed = pk.removed.filter(x => keyOf(x) !== key);
-                    pk.removed.push({ key, after: rs.length ? rs[rs.length - 1].msgId : null });
+                    pk.removed.push({ key, after: latest?.id ?? null });
                 }
                 pk.added = pk.added.slice(-40); pk.removed = pk.removed.slice(-200);
                 await saveChatState(payload.chatId, st);

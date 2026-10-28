@@ -1,0 +1,1140 @@
+{
+  "version": "3.0.2 RC",
+  "checkpoint": "4598bf5c4bd6cc7df6baf81a042f09f102bceb5e",
+  "published": "22aabf3c367c95a21f602f2a88fa00802f02f126",
+  "runtimeSha256": {
+    "published-22aabf3": "5fbb5ccb863af37deed66bd065187802f17d9d5c5aae9503c680512ff9291346",
+    "checkpoint-4598bf5": "602a36c67655ea696d68dd382f766a37350df882bfe47a8408baea754a31b342",
+    "candidate": "6c29dcf8c5cfa7ee0a97fe3ff363819c8df0a7236474b8d71a6145efd5793c11"
+  },
+  "methodology": {
+    "node": "22.22.2",
+    "rounds": 5,
+    "order": "rotate three revisions by round, reverse odd rounds",
+    "panel": "One cold call, three warmup calls, ten measured calls per revision; median of five round medians. 600 messages / 300 replies, or 2000 messages / 1000 replies; full respective card cache and source-bound metadata.",
+    "tools": [
+      "benchmark_panel_reads.cjs",
+      "benchmark_tracking_pipeline.cjs",
+      "benchmark_narrator_spell_grounding.cjs",
+      "measure_tracking_operations_2_9_1.cjs"
+    ],
+    "limitations": "Local synthetic timing, OS/JIT noise, cold is first projection in a newly initialized VM, not device/extension startup. No live Lumiverse, heap or Android latency certification."
+  },
+  "summary": [
+    {
+      "kind": "pipeline",
+      "revision": "published-22aabf3",
+      "rounds": 5,
+      "parseReportMedianMs": 0.7062,
+      "processResponseMedianMs": 0.934,
+      "promptConstructMedianMs": 0.4692,
+      "promptCharacters": 14949,
+      "populatedPromptCharacters": 18839
+    },
+    {
+      "kind": "pipeline",
+      "revision": "checkpoint-4598bf5",
+      "rounds": 5,
+      "parseReportMedianMs": 0.7192,
+      "processResponseMedianMs": 0.9795,
+      "promptConstructMedianMs": 0.4799,
+      "promptCharacters": 14949,
+      "populatedPromptCharacters": 18839
+    },
+    {
+      "kind": "pipeline",
+      "revision": "candidate",
+      "rounds": 5,
+      "parseReportMedianMs": 0.7158,
+      "processResponseMedianMs": 1.0886,
+      "promptConstructMedianMs": 0.4721,
+      "promptCharacters": 14949,
+      "populatedPromptCharacters": 18839
+    },
+    {
+      "kind": "panel-six-600",
+      "revision": "published-22aabf3",
+      "rounds": 5,
+      "coldMs": 368.62,
+      "medianMs": 71.81
+    },
+    {
+      "kind": "panel-six-600",
+      "revision": "checkpoint-4598bf5",
+      "rounds": 5,
+      "coldMs": 322.11,
+      "medianMs": 69.35
+    },
+    {
+      "kind": "panel-six-600",
+      "revision": "candidate",
+      "rounds": 5,
+      "coldMs": 370.84,
+      "medianMs": 64.06
+    },
+    {
+      "kind": "panel-six-2000",
+      "revision": "published-22aabf3",
+      "rounds": 5,
+      "coldMs": 618.35,
+      "medianMs": 111.37
+    },
+    {
+      "kind": "panel-six-2000",
+      "revision": "checkpoint-4598bf5",
+      "rounds": 5,
+      "coldMs": 654.59,
+      "medianMs": 134.21
+    },
+    {
+      "kind": "panel-six-2000",
+      "revision": "candidate",
+      "rounds": 5,
+      "coldMs": 749.75,
+      "medianMs": 164.19
+    },
+    {
+      "kind": "panel-living-600",
+      "revision": "published-22aabf3",
+      "rounds": 5,
+      "coldMs": 1025.21,
+      "medianMs": 80.3
+    },
+    {
+      "kind": "panel-living-600",
+      "revision": "checkpoint-4598bf5",
+      "rounds": 5,
+      "coldMs": 1119.64,
+      "medianMs": 79.28
+    },
+    {
+      "kind": "panel-living-600",
+      "revision": "candidate",
+      "rounds": 5,
+      "coldMs": 1095.05,
+      "medianMs": 77.5
+    }
+  ],
+  "panelAndPipelineSamples": [
+    {
+      "parseReportMedianMs": 0.7767,
+      "processResponseMedianMs": 1.1901,
+      "promptConstructMedianMs": 0.4902,
+      "promptCharacters": 14949,
+      "populatedPromptCharacters": 18839,
+      "warnings": 0,
+      "round": 1,
+      "kind": "pipeline",
+      "revision": "published-22aabf3"
+    },
+    {
+      "parseReportMedianMs": 0.7288,
+      "processResponseMedianMs": 0.8693,
+      "promptConstructMedianMs": 0.5141,
+      "promptCharacters": 14949,
+      "populatedPromptCharacters": 18839,
+      "warnings": 0,
+      "round": 1,
+      "kind": "pipeline",
+      "revision": "checkpoint-4598bf5"
+    },
+    {
+      "parseReportMedianMs": 0.7435,
+      "processResponseMedianMs": 1.111,
+      "promptConstructMedianMs": 0.5153,
+      "promptCharacters": 14949,
+      "populatedPromptCharacters": 18839,
+      "warnings": 0,
+      "round": 1,
+      "kind": "pipeline",
+      "revision": "candidate"
+    },
+    {
+      "messages": 600,
+      "coldMs": 404.79,
+      "medianMs": 79.54,
+      "warnings": 0,
+      "round": 1,
+      "kind": "panel-six-600",
+      "revision": "published-22aabf3"
+    },
+    {
+      "messages": 600,
+      "coldMs": 296.41,
+      "medianMs": 68.03,
+      "warnings": 0,
+      "round": 1,
+      "kind": "panel-six-600",
+      "revision": "checkpoint-4598bf5"
+    },
+    {
+      "messages": 600,
+      "coldMs": 305.67,
+      "medianMs": 64.06,
+      "warnings": 0,
+      "round": 1,
+      "kind": "panel-six-600",
+      "revision": "candidate"
+    },
+    {
+      "messages": 2000,
+      "coldMs": 674.75,
+      "medianMs": 110.89,
+      "warnings": 0,
+      "round": 1,
+      "kind": "panel-six-2000",
+      "revision": "published-22aabf3"
+    },
+    {
+      "messages": 2000,
+      "coldMs": 578.46,
+      "medianMs": 141.53,
+      "warnings": 0,
+      "round": 1,
+      "kind": "panel-six-2000",
+      "revision": "checkpoint-4598bf5"
+    },
+    {
+      "messages": 2000,
+      "coldMs": 573.05,
+      "medianMs": 155.59,
+      "warnings": 0,
+      "round": 1,
+      "kind": "panel-six-2000",
+      "revision": "candidate"
+    },
+    {
+      "messages": 600,
+      "coldMs": 996.28,
+      "medianMs": 94.11,
+      "warnings": 0,
+      "round": 1,
+      "kind": "panel-living-600",
+      "revision": "published-22aabf3"
+    },
+    {
+      "messages": 600,
+      "coldMs": 3556.67,
+      "medianMs": 76.59,
+      "warnings": 0,
+      "round": 1,
+      "kind": "panel-living-600",
+      "revision": "checkpoint-4598bf5"
+    },
+    {
+      "messages": 600,
+      "coldMs": 1224.03,
+      "medianMs": 97.66,
+      "warnings": 0,
+      "round": 1,
+      "kind": "panel-living-600",
+      "revision": "candidate"
+    },
+    {
+      "parseReportMedianMs": 0.7632,
+      "processResponseMedianMs": 0.9632,
+      "promptConstructMedianMs": 0.557,
+      "promptCharacters": 14949,
+      "populatedPromptCharacters": 18839,
+      "warnings": 0,
+      "round": 2,
+      "kind": "pipeline",
+      "revision": "published-22aabf3"
+    },
+    {
+      "parseReportMedianMs": 0.7158,
+      "processResponseMedianMs": 1.1546,
+      "promptConstructMedianMs": 0.5501,
+      "promptCharacters": 14949,
+      "populatedPromptCharacters": 18839,
+      "warnings": 0,
+      "round": 2,
+      "kind": "pipeline",
+      "revision": "candidate"
+    },
+    {
+      "parseReportMedianMs": 0.7018,
+      "processResponseMedianMs": 1.0524,
+      "promptConstructMedianMs": 1.0638,
+      "promptCharacters": 14949,
+      "populatedPromptCharacters": 18839,
+      "warnings": 0,
+      "round": 2,
+      "kind": "pipeline",
+      "revision": "checkpoint-4598bf5"
+    },
+    {
+      "messages": 600,
+      "coldMs": 397,
+      "medianMs": 70.28,
+      "warnings": 0,
+      "round": 2,
+      "kind": "panel-six-600",
+      "revision": "published-22aabf3"
+    },
+    {
+      "messages": 600,
+      "coldMs": 334.28,
+      "medianMs": 65.27,
+      "warnings": 0,
+      "round": 2,
+      "kind": "panel-six-600",
+      "revision": "candidate"
+    },
+    {
+      "messages": 600,
+      "coldMs": 321.1,
+      "medianMs": 69.35,
+      "warnings": 0,
+      "round": 2,
+      "kind": "panel-six-600",
+      "revision": "checkpoint-4598bf5"
+    },
+    {
+      "messages": 2000,
+      "coldMs": 971.45,
+      "medianMs": 107.62,
+      "warnings": 0,
+      "round": 2,
+      "kind": "panel-six-2000",
+      "revision": "published-22aabf3"
+    },
+    {
+      "messages": 2000,
+      "coldMs": 1425.97,
+      "medianMs": 165.42,
+      "warnings": 0,
+      "round": 2,
+      "kind": "panel-six-2000",
+      "revision": "candidate"
+    },
+    {
+      "messages": 2000,
+      "coldMs": 654.59,
+      "medianMs": 134.21,
+      "warnings": 0,
+      "round": 2,
+      "kind": "panel-six-2000",
+      "revision": "checkpoint-4598bf5"
+    },
+    {
+      "messages": 600,
+      "coldMs": 1199.01,
+      "medianMs": 78.9,
+      "warnings": 0,
+      "round": 2,
+      "kind": "panel-living-600",
+      "revision": "published-22aabf3"
+    },
+    {
+      "messages": 600,
+      "coldMs": 1095.05,
+      "medianMs": 77.5,
+      "warnings": 0,
+      "round": 2,
+      "kind": "panel-living-600",
+      "revision": "candidate"
+    },
+    {
+      "messages": 600,
+      "coldMs": 1709.64,
+      "medianMs": 86.52,
+      "warnings": 0,
+      "round": 2,
+      "kind": "panel-living-600",
+      "revision": "checkpoint-4598bf5"
+    },
+    {
+      "parseReportMedianMs": 0.7545,
+      "processResponseMedianMs": 1.0886,
+      "promptConstructMedianMs": 0.4721,
+      "promptCharacters": 14949,
+      "populatedPromptCharacters": 18839,
+      "warnings": 0,
+      "round": 3,
+      "kind": "pipeline",
+      "revision": "candidate"
+    },
+    {
+      "parseReportMedianMs": 0.7038,
+      "processResponseMedianMs": 0.934,
+      "promptConstructMedianMs": 0.4692,
+      "promptCharacters": 14949,
+      "populatedPromptCharacters": 18839,
+      "warnings": 0,
+      "round": 3,
+      "kind": "pipeline",
+      "revision": "published-22aabf3"
+    },
+    {
+      "parseReportMedianMs": 0.7163,
+      "processResponseMedianMs": 0.9483,
+      "promptConstructMedianMs": 0.4631,
+      "promptCharacters": 14949,
+      "populatedPromptCharacters": 18839,
+      "warnings": 0,
+      "round": 3,
+      "kind": "pipeline",
+      "revision": "checkpoint-4598bf5"
+    },
+    {
+      "messages": 600,
+      "coldMs": 442.58,
+      "medianMs": 63.29,
+      "warnings": 0,
+      "round": 3,
+      "kind": "panel-six-600",
+      "revision": "candidate"
+    },
+    {
+      "messages": 600,
+      "coldMs": 334.41,
+      "medianMs": 71.81,
+      "warnings": 0,
+      "round": 3,
+      "kind": "panel-six-600",
+      "revision": "published-22aabf3"
+    },
+    {
+      "messages": 600,
+      "coldMs": 322.11,
+      "medianMs": 80.81,
+      "warnings": 0,
+      "round": 3,
+      "kind": "panel-six-600",
+      "revision": "checkpoint-4598bf5"
+    },
+    {
+      "messages": 2000,
+      "coldMs": 749.75,
+      "medianMs": 160.04,
+      "warnings": 0,
+      "round": 3,
+      "kind": "panel-six-2000",
+      "revision": "candidate"
+    },
+    {
+      "messages": 2000,
+      "coldMs": 594.78,
+      "medianMs": 111.43,
+      "warnings": 0,
+      "round": 3,
+      "kind": "panel-six-2000",
+      "revision": "published-22aabf3"
+    },
+    {
+      "messages": 2000,
+      "coldMs": 574.71,
+      "medianMs": 131.97,
+      "warnings": 0,
+      "round": 3,
+      "kind": "panel-six-2000",
+      "revision": "checkpoint-4598bf5"
+    },
+    {
+      "messages": 600,
+      "coldMs": 1052.31,
+      "medianMs": 71.42,
+      "warnings": 0,
+      "round": 3,
+      "kind": "panel-living-600",
+      "revision": "candidate"
+    },
+    {
+      "messages": 600,
+      "coldMs": 1002.74,
+      "medianMs": 75.39,
+      "warnings": 0,
+      "round": 3,
+      "kind": "panel-living-600",
+      "revision": "published-22aabf3"
+    },
+    {
+      "messages": 600,
+      "coldMs": 986.4,
+      "medianMs": 72.88,
+      "warnings": 0,
+      "round": 3,
+      "kind": "panel-living-600",
+      "revision": "checkpoint-4598bf5"
+    },
+    {
+      "parseReportMedianMs": 0.6937,
+      "processResponseMedianMs": 0.9642,
+      "promptConstructMedianMs": 0.4237,
+      "promptCharacters": 14949,
+      "populatedPromptCharacters": 18839,
+      "warnings": 0,
+      "round": 4,
+      "kind": "pipeline",
+      "revision": "candidate"
+    },
+    {
+      "parseReportMedianMs": 0.7579,
+      "processResponseMedianMs": 2.0924,
+      "promptConstructMedianMs": 0.4799,
+      "promptCharacters": 14949,
+      "populatedPromptCharacters": 18839,
+      "warnings": 0,
+      "round": 4,
+      "kind": "pipeline",
+      "revision": "checkpoint-4598bf5"
+    },
+    {
+      "parseReportMedianMs": 0.7062,
+      "processResponseMedianMs": 0.8408,
+      "promptConstructMedianMs": 0.3811,
+      "promptCharacters": 14949,
+      "populatedPromptCharacters": 18839,
+      "warnings": 0,
+      "round": 4,
+      "kind": "pipeline",
+      "revision": "published-22aabf3"
+    },
+    {
+      "messages": 600,
+      "coldMs": 405.38,
+      "medianMs": 62.36,
+      "warnings": 0,
+      "round": 4,
+      "kind": "panel-six-600",
+      "revision": "candidate"
+    },
+    {
+      "messages": 600,
+      "coldMs": 327.72,
+      "medianMs": 66.7,
+      "warnings": 0,
+      "round": 4,
+      "kind": "panel-six-600",
+      "revision": "checkpoint-4598bf5"
+    },
+    {
+      "messages": 600,
+      "coldMs": 368.62,
+      "medianMs": 66.03,
+      "warnings": 0,
+      "round": 4,
+      "kind": "panel-six-600",
+      "revision": "published-22aabf3"
+    },
+    {
+      "messages": 2000,
+      "coldMs": 812.24,
+      "medianMs": 175.35,
+      "warnings": 0,
+      "round": 4,
+      "kind": "panel-six-2000",
+      "revision": "candidate"
+    },
+    {
+      "messages": 2000,
+      "coldMs": 659.52,
+      "medianMs": 139.94,
+      "warnings": 0,
+      "round": 4,
+      "kind": "panel-six-2000",
+      "revision": "checkpoint-4598bf5"
+    },
+    {
+      "messages": 2000,
+      "coldMs": 618.35,
+      "medianMs": 118.39,
+      "warnings": 0,
+      "round": 4,
+      "kind": "panel-six-2000",
+      "revision": "published-22aabf3"
+    },
+    {
+      "messages": 600,
+      "coldMs": 1090.69,
+      "medianMs": 85.88,
+      "warnings": 0,
+      "round": 4,
+      "kind": "panel-living-600",
+      "revision": "candidate"
+    },
+    {
+      "messages": 600,
+      "coldMs": 1016.1,
+      "medianMs": 88.43,
+      "warnings": 0,
+      "round": 4,
+      "kind": "panel-living-600",
+      "revision": "checkpoint-4598bf5"
+    },
+    {
+      "messages": 600,
+      "coldMs": 1061.9,
+      "medianMs": 90.91,
+      "warnings": 0,
+      "round": 4,
+      "kind": "panel-living-600",
+      "revision": "published-22aabf3"
+    },
+    {
+      "parseReportMedianMs": 0.7192,
+      "processResponseMedianMs": 0.9795,
+      "promptConstructMedianMs": 0.4485,
+      "promptCharacters": 14949,
+      "populatedPromptCharacters": 18839,
+      "warnings": 0,
+      "round": 5,
+      "kind": "pipeline",
+      "revision": "checkpoint-4598bf5"
+    },
+    {
+      "parseReportMedianMs": 0.634,
+      "processResponseMedianMs": 0.9461,
+      "promptConstructMedianMs": 0.4111,
+      "promptCharacters": 14949,
+      "populatedPromptCharacters": 18839,
+      "warnings": 0,
+      "round": 5,
+      "kind": "pipeline",
+      "revision": "candidate"
+    },
+    {
+      "parseReportMedianMs": 0.6208,
+      "processResponseMedianMs": 0.8869,
+      "promptConstructMedianMs": 0.4433,
+      "promptCharacters": 14949,
+      "populatedPromptCharacters": 18839,
+      "warnings": 0,
+      "round": 5,
+      "kind": "pipeline",
+      "revision": "published-22aabf3"
+    },
+    {
+      "messages": 600,
+      "coldMs": 414.05,
+      "medianMs": 71.19,
+      "warnings": 0,
+      "round": 5,
+      "kind": "panel-six-600",
+      "revision": "checkpoint-4598bf5"
+    },
+    {
+      "messages": 600,
+      "coldMs": 370.84,
+      "medianMs": 74.74,
+      "warnings": 0,
+      "round": 5,
+      "kind": "panel-six-600",
+      "revision": "candidate"
+    },
+    {
+      "messages": 600,
+      "coldMs": 345.54,
+      "medianMs": 83.18,
+      "warnings": 0,
+      "round": 5,
+      "kind": "panel-six-600",
+      "revision": "published-22aabf3"
+    },
+    {
+      "messages": 2000,
+      "coldMs": 682.35,
+      "medianMs": 124.65,
+      "warnings": 0,
+      "round": 5,
+      "kind": "panel-six-2000",
+      "revision": "checkpoint-4598bf5"
+    },
+    {
+      "messages": 2000,
+      "coldMs": 687.18,
+      "medianMs": 164.19,
+      "warnings": 0,
+      "round": 5,
+      "kind": "panel-six-2000",
+      "revision": "candidate"
+    },
+    {
+      "messages": 2000,
+      "coldMs": 572.17,
+      "medianMs": 111.37,
+      "warnings": 0,
+      "round": 5,
+      "kind": "panel-six-2000",
+      "revision": "published-22aabf3"
+    },
+    {
+      "messages": 600,
+      "coldMs": 1119.64,
+      "medianMs": 79.28,
+      "warnings": 0,
+      "round": 5,
+      "kind": "panel-living-600",
+      "revision": "checkpoint-4598bf5"
+    },
+    {
+      "messages": 600,
+      "coldMs": 1252.46,
+      "medianMs": 70.93,
+      "warnings": 0,
+      "round": 5,
+      "kind": "panel-living-600",
+      "revision": "candidate"
+    },
+    {
+      "messages": 600,
+      "coldMs": 1025.21,
+      "medianMs": 80.3,
+      "warnings": 0,
+      "round": 5,
+      "kind": "panel-living-600",
+      "revision": "published-22aabf3"
+    }
+  ],
+  "operations": [
+    {
+      "transport": {
+        "model": 1,
+        "getMessages": 6,
+        "metadataWrites": 1,
+        "storageReads": 2,
+        "storageWrites": 4,
+        "historyElementReads": 0,
+        "traversals": {}
+      },
+      "panel": {
+        "messages": 600,
+        "historyElementReads": 6701,
+        "traversals": {
+          "mtEventLedgerUncached": 1,
+          "atlasObserveHistory": 1,
+          "relReadingsUncached": 1,
+          "hmsTimelineUncached": 1,
+          "simReplies": 1,
+          "spellStoryFoldUncached": 1
+        }
+      },
+      "revision": "checkpoint-4598bf5"
+    },
+    {
+      "transport": {
+        "model": 1,
+        "getMessages": 6,
+        "metadataWrites": 1,
+        "storageReads": 2,
+        "storageWrites": 4,
+        "historyElementReads": 0,
+        "traversals": {}
+      },
+      "panel": {
+        "messages": 600,
+        "historyElementReads": 6101,
+        "traversals": {
+          "mtEventLedgerUncached": 1,
+          "atlasObserveHistory": 1,
+          "relReadingsUncached": 1,
+          "hmsTimelineUncached": 1,
+          "simReplies": 1,
+          "spellStoryFoldUncached": 1
+        }
+      },
+      "revision": "candidate"
+    }
+  ],
+  "privateExport": {
+    "messages": 13,
+    "replies": 7,
+    "readableReports": 6,
+    "minds": 1,
+    "pairs": 1,
+    "agenda": 1,
+    "quests": 2,
+    "internalStates": true,
+    "editedSourceRejected": true,
+    "inputUnchanged": true
+  },
+  "privateTrackingCounts": {
+    "sha256": "24530488965c36a0f9b707e1b26c6b7ecfb6337376236c0fa4174cc0d9dba332",
+    "messages": 13,
+    "reports": 6,
+    "magic": {
+      "canonicalKnown": 0,
+      "knownOther": 0,
+      "mastered": 0,
+      "activeStudy": 0,
+      "reportedStudy": 3
+    },
+    "quests": {
+      "cards": 2,
+      "reportedNumericProgress": 0,
+      "progressWithNoPercentageInSource": 0
+    },
+    "family": {
+      "members": 5
+    },
+    "agenda": {
+      "scheduled": 1
+    },
+    "minds": {
+      "people": 1
+    },
+    "gear": {
+      "items": 2
+    },
+    "money": {
+      "transactions": 0
+    },
+    "factions": {
+      "memberships": 1
+    },
+    "sourceUnchanged": true
+  },
+  "checks": {
+    "regressionSuites": 43,
+    "newAcceptanceGroups": 17,
+    "uiBrowser": 22,
+    "visibilityBrowser": 5,
+    "liveLumiverse": "not performed",
+    "sameAcceptanceAtCheckpoint": "5/17",
+    "sameAcceptanceAfter": "17/17"
+  },
+  "publication": "not merged or released; candidate PR only",
+  "performanceCaveat": "Dense 2000-message panel warm median +29.98ms / 22.3% vs 4598bf5. No zero-overhead or live latency acceptance claim.",
+  "finalImplementationSha256": "bbd38a2464695d2de9a9776db289a283b4a4f200ac721ff0dbd48c8dad8c5534",
+  "timingSnapshotNote": "Final runtime differs from the timed snapshot only in the pocket-remove action: select the already-fetched last message directly, avoiding a history-index scan for a manual ordering anchor. Measured panel/pipeline entrypoints are unchanged. Final implementation has its own hash and full regression run.",
+  "previousNarratorSummary": [
+    {
+      "kind": "narrator",
+      "revision": "published-22aabf3",
+      "rounds": 5,
+      "card": "six_sided_world",
+      "scenario": "ordinary",
+      "coldMs": 54.15,
+      "warmMedianMs": 5.584,
+      "spellCharacters": 0,
+      "systemCharacters": 23,
+      "callsPerPass": {
+        "chat.getMessages": 1
+      }
+    },
+    {
+      "kind": "narrator",
+      "revision": "published-22aabf3",
+      "rounds": 5,
+      "card": "six_sided_world",
+      "scenario": "named",
+      "coldMs": 27.868,
+      "warmMedianMs": 5.397,
+      "spellCharacters": 0,
+      "systemCharacters": 23,
+      "callsPerPass": {
+        "chat.getMessages": 1
+      }
+    },
+    {
+      "kind": "narrator",
+      "revision": "published-22aabf3",
+      "rounds": 5,
+      "card": "six_sided_world",
+      "scenario": "inventory",
+      "coldMs": 33.34,
+      "warmMedianMs": 5.043,
+      "spellCharacters": 0,
+      "systemCharacters": 23,
+      "callsPerPass": {
+        "chat.getMessages": 1
+      }
+    },
+    {
+      "kind": "narrator",
+      "revision": "published-22aabf3",
+      "rounds": 5,
+      "card": "six_sided_world",
+      "scenario": "host-provided",
+      "coldMs": 30.301,
+      "warmMedianMs": 5.415,
+      "spellCharacters": 0,
+      "systemCharacters": 3301,
+      "callsPerPass": {
+        "chat.getMessages": 1
+      }
+    },
+    {
+      "kind": "narrator",
+      "revision": "published-22aabf3",
+      "rounds": 5,
+      "card": "living_world",
+      "scenario": "ordinary",
+      "coldMs": 87.068,
+      "warmMedianMs": 3.969,
+      "spellCharacters": 0,
+      "systemCharacters": 23,
+      "callsPerPass": {
+        "chat.getMessages": 1
+      }
+    },
+    {
+      "kind": "narrator",
+      "revision": "published-22aabf3",
+      "rounds": 5,
+      "card": "living_world",
+      "scenario": "named",
+      "coldMs": 79.644,
+      "warmMedianMs": 3.798,
+      "spellCharacters": 0,
+      "systemCharacters": 23,
+      "callsPerPass": {
+        "chat.getMessages": 1
+      }
+    },
+    {
+      "kind": "narrator",
+      "revision": "published-22aabf3",
+      "rounds": 5,
+      "card": "living_world",
+      "scenario": "inventory",
+      "coldMs": 83.105,
+      "warmMedianMs": 3.714,
+      "spellCharacters": 0,
+      "systemCharacters": 23,
+      "callsPerPass": {
+        "chat.getMessages": 1
+      }
+    },
+    {
+      "kind": "narrator",
+      "revision": "published-22aabf3",
+      "rounds": 5,
+      "card": "living_world",
+      "scenario": "host-provided",
+      "coldMs": 83.599,
+      "warmMedianMs": 3.828,
+      "spellCharacters": 0,
+      "systemCharacters": 6228,
+      "callsPerPass": {
+        "chat.getMessages": 1
+      }
+    },
+    {
+      "kind": "narrator",
+      "revision": "checkpoint-4598bf5",
+      "rounds": 5,
+      "card": "six_sided_world",
+      "scenario": "ordinary",
+      "coldMs": 53.196,
+      "warmMedianMs": 5.941,
+      "spellCharacters": 0,
+      "systemCharacters": 23,
+      "callsPerPass": {
+        "chat.getMessages": 1
+      }
+    },
+    {
+      "kind": "narrator",
+      "revision": "checkpoint-4598bf5",
+      "rounds": 5,
+      "card": "six_sided_world",
+      "scenario": "named",
+      "coldMs": 34.91,
+      "warmMedianMs": 7.673,
+      "spellCharacters": 535,
+      "systemCharacters": 558,
+      "callsPerPass": {
+        "chat.getMessages": 1
+      }
+    },
+    {
+      "kind": "narrator",
+      "revision": "checkpoint-4598bf5",
+      "rounds": 5,
+      "card": "six_sided_world",
+      "scenario": "inventory",
+      "coldMs": 38.17,
+      "warmMedianMs": 8.238,
+      "spellCharacters": 1866,
+      "systemCharacters": 1889,
+      "callsPerPass": {
+        "chat.getMessages": 1
+      }
+    },
+    {
+      "kind": "narrator",
+      "revision": "checkpoint-4598bf5",
+      "rounds": 5,
+      "card": "six_sided_world",
+      "scenario": "host-provided",
+      "coldMs": 40.715,
+      "warmMedianMs": 9.341,
+      "spellCharacters": 447,
+      "systemCharacters": 3748,
+      "callsPerPass": {
+        "chat.getMessages": 1
+      }
+    },
+    {
+      "kind": "narrator",
+      "revision": "checkpoint-4598bf5",
+      "rounds": 5,
+      "card": "living_world",
+      "scenario": "ordinary",
+      "coldMs": 93.96,
+      "warmMedianMs": 4.875,
+      "spellCharacters": 0,
+      "systemCharacters": 23,
+      "callsPerPass": {
+        "chat.getMessages": 1
+      }
+    },
+    {
+      "kind": "narrator",
+      "revision": "checkpoint-4598bf5",
+      "rounds": 5,
+      "card": "living_world",
+      "scenario": "named",
+      "coldMs": 109.89,
+      "warmMedianMs": 6.813,
+      "spellCharacters": 546,
+      "systemCharacters": 569,
+      "callsPerPass": {
+        "chat.getMessages": 1
+      }
+    },
+    {
+      "kind": "narrator",
+      "revision": "checkpoint-4598bf5",
+      "rounds": 5,
+      "card": "living_world",
+      "scenario": "inventory",
+      "coldMs": 91.082,
+      "warmMedianMs": 6.625,
+      "spellCharacters": 1809,
+      "systemCharacters": 1832,
+      "callsPerPass": {
+        "chat.getMessages": 1
+      }
+    },
+    {
+      "kind": "narrator",
+      "revision": "checkpoint-4598bf5",
+      "rounds": 5,
+      "card": "living_world",
+      "scenario": "host-provided",
+      "coldMs": 81.157,
+      "warmMedianMs": 7.272,
+      "spellCharacters": 447,
+      "systemCharacters": 6675,
+      "callsPerPass": {
+        "chat.getMessages": 1
+      }
+    },
+    {
+      "kind": "narrator",
+      "revision": "candidate",
+      "rounds": 5,
+      "card": "six_sided_world",
+      "scenario": "ordinary",
+      "coldMs": 59.228,
+      "warmMedianMs": 6.092,
+      "spellCharacters": 0,
+      "systemCharacters": 23,
+      "callsPerPass": {
+        "chat.getMessages": 1
+      }
+    },
+    {
+      "kind": "narrator",
+      "revision": "candidate",
+      "rounds": 5,
+      "card": "six_sided_world",
+      "scenario": "named",
+      "coldMs": 33.571,
+      "warmMedianMs": 8.756,
+      "spellCharacters": 535,
+      "systemCharacters": 558,
+      "callsPerPass": {
+        "chat.getMessages": 1
+      }
+    },
+    {
+      "kind": "narrator",
+      "revision": "candidate",
+      "rounds": 5,
+      "card": "six_sided_world",
+      "scenario": "inventory",
+      "coldMs": 40.336,
+      "warmMedianMs": 8.928,
+      "spellCharacters": 1866,
+      "systemCharacters": 1889,
+      "callsPerPass": {
+        "chat.getMessages": 1
+      }
+    },
+    {
+      "kind": "narrator",
+      "revision": "candidate",
+      "rounds": 5,
+      "card": "six_sided_world",
+      "scenario": "host-provided",
+      "coldMs": 37.541,
+      "warmMedianMs": 9.121,
+      "spellCharacters": 447,
+      "systemCharacters": 3748,
+      "callsPerPass": {
+        "chat.getMessages": 1
+      }
+    },
+    {
+      "kind": "narrator",
+      "revision": "candidate",
+      "rounds": 5,
+      "card": "living_world",
+      "scenario": "ordinary",
+      "coldMs": 90.267,
+      "warmMedianMs": 4.782,
+      "spellCharacters": 0,
+      "systemCharacters": 23,
+      "callsPerPass": {
+        "chat.getMessages": 1
+      }
+    },
+    {
+      "kind": "narrator",
+      "revision": "candidate",
+      "rounds": 5,
+      "card": "living_world",
+      "scenario": "named",
+      "coldMs": 89.329,
+      "warmMedianMs": 6.925,
+      "spellCharacters": 546,
+      "systemCharacters": 569,
+      "callsPerPass": {
+        "chat.getMessages": 1
+      }
+    },
+    {
+      "kind": "narrator",
+      "revision": "candidate",
+      "rounds": 5,
+      "card": "living_world",
+      "scenario": "inventory",
+      "coldMs": 93.48,
+      "warmMedianMs": 7.088,
+      "spellCharacters": 1809,
+      "systemCharacters": 1832,
+      "callsPerPass": {
+        "chat.getMessages": 1
+      }
+    },
+    {
+      "kind": "narrator",
+      "revision": "candidate",
+      "rounds": 5,
+      "card": "living_world",
+      "scenario": "host-provided",
+      "coldMs": 89.997,
+      "warmMedianMs": 7.552,
+      "spellCharacters": 447,
+      "systemCharacters": 6675,
+      "callsPerPass": {
+        "chat.getMessages": 1
+      }
+    }
+  ],
+  "previousNarratorRuntimeSha256": "501537a466e35e7ae7e529073997f36970e3943ca9ced4663d4c2a90438c214c"
+}

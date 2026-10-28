@@ -210,6 +210,27 @@ class BrowserUi(unittest.TestCase):
         self.assertIn('Explorers Guild',text)
         self.assertIn('Repair the aqueduct',text)
 
+    def test_durable_people_agenda_secrets_xp_and_carried_render(self):
+        hms=json.loads(subprocess.check_output(['node',str(ROOT/'tools/test_six_sided_acceptance.cjs'),'--browser-fixture'],text=True))
+        payload=json.loads(json.dumps(FIXTURE['payload']))
+        payload['hms']=hms
+        payload['world']['covers']=[]
+        self.receive(payload)
+        text=self.page.locator('.rpgc').inner_text()
+        for value in ['Alden Vale','Review the training folio','The signal is blue','Survey compass']:
+            self.assertIn(value,text)
+        self.assertEqual(hms['you']['xp']['total'],20)
+        self.assertFalse(hms['relations']['people'][0]['present'])
+        self.assertIn('20 / 100 XP',text)
+        payload['hms']['gear']=None
+        self.receive(payload)
+        remove=self.page.get_by_label('Remove Survey compass',exact=True)
+        self.assertTrue(remove.is_visible())
+        remove.click()
+        event=self.page.evaluate("sent.filter(x=>x.type==='pocket').at(-1)")
+        self.assertEqual(event['op'],'remove')
+        self.assertEqual(event['key'],'survey compass')
+
     def test_long_history_family_property_and_unverified_mastery_render(self):
         hms=json.loads(subprocess.check_output(['node',str(ROOT/'tools/test_six_sided_release_integrity.cjs'),'--browser-fixture'],text=True))
         payload=json.loads(json.dumps(FIXTURE['payload']))

@@ -1,5 +1,9 @@
 # Six-Sided World: release-readiness investigation
 
+**Current follow-up:** [Six-Sided acceptance](SIX_SIDED_ACCEPTANCE.md) covers
+the additional People/Agenda/Secrets/XP/contact/carried retention repairs. The
+findings and failing gates below describe the original investigation checkpoint.
+
 **Historical snapshot at `9b31453`:** the four remaining retention failures below
 have since been fixed in the same patch. See [Durable history completion](DURABLE_HISTORY_COMPLETION.md)
 for current results, stable money corrections and performance. The initial failures

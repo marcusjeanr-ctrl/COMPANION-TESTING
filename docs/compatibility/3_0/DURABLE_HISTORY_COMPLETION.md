@@ -1,5 +1,9 @@
 # 3.0.2 RC follow-up: complete durable tracking history
 
+**Checkpoint report:** a later acceptance pass extends the same index to People,
+Agenda, Secrets, contacts, earned XP and carried items. See
+[Six-Sided acceptance](SIX_SIDED_ACCEPTANCE.md) for current verification.
+
 The four retention failures reported in the initial readiness investigation are
 fixed in the same `fix/six-sided-release-verification` branch / PR #14. Candidate
 version remains **3.0.2 RC**, building on checkpoint

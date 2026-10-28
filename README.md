@@ -1,5 +1,7 @@
 # RPG Companion HMS Edition 3.0.2 — Release Candidate
 
+> Six-Sided acceptance: [additional persistence fixes and verification](docs/compatibility/3_0/SIX_SIDED_ACCEPTANCE.md).
+
 > Durable history: [completed retention fixes, saved-money compatibility and verification](docs/compatibility/3_0/DURABLE_HISTORY_COMPLETION.md). Live Lumiverse acceptance remains pending.
 
 > Narrator grounding: [3.0.2 RC candidate, validation and limitations](docs/compatibility/3_0/NARRATOR_GROUNDING.md).

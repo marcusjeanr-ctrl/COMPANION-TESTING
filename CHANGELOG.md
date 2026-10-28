@@ -2,6 +2,15 @@
 
 ## 3.0.2 RC candidate — Spell grounding and durable tracking
 
+- Retain established People, scheduled Agenda, owner-isolated Secrets, contacts,
+  cumulative earned XP and carried acquisitions beyond the recent-report window.
+- Preserve activity-start cues, rescheduling, completed history and off-scene status;
+  keep scheduled appointments separate from NPC daily routines.
+- Anchor manual carried-item removal to chat order and allow explicit later
+  reacquisition; reconcile automatic carried rows with confirmed Gear losses.
+- Render unknown legacy emotion labels safely instead of blanking Minds.
+- Reuse bounded activity-word sets within a read pass for repeated Agenda cues.
+
 - Preserve family, property, equipment, guild membership, quest details and debts
   beyond the 300-report window using one shared source-bound history index.
 - Give financial controls stable source IDs; preserve identifiable legacy hide/settle
