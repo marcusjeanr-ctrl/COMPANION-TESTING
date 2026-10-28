@@ -188,6 +188,19 @@ class BrowserUi(unittest.TestCase):
         self.page.evaluate('(html)=>{const a=document.createElement("article");a.id="living-restored";a.innerHTML=html;document.body.append(a)}',html)
         self.assertEqual(self.page.locator('#living-restored .rs').count(),1)
 
+    def test_renamed_quest_focus_uses_stable_key_and_renders_failed_state(self):
+        payload=json.loads(json.dumps(FIXTURE['payload']))
+        payload['hms']['systems']['quests']=[{'key':'original assignment','name':'Revised assignment','state':'failed','cls':'failed','objective':'Diagnose the aqueduct <img src=x onerror="window.bad=true">','progress':None}]
+        payload['hms']['systems']['questFocus']='original assignment'
+        self.receive(payload)
+        row=self.page.locator('.rpgc-qcard.failed')
+        self.assertIn('Revised assignment',row.inner_text())
+        self.assertIn('failed',row.inner_text())
+        self.page.get_by_label('Unfocus this quest',exact=True).click()
+        sent=self.page.evaluate("sent.filter(x=>x.type==='quest_focus').at(-1)")
+        self.assertEqual(sent['key'],'original assignment')
+        self.assertFalse(self.page.evaluate('!!window.bad'))
+
     def test_grouped_spell_audit_shows_individual_known_catalogue_rows(self):
         payload=json.loads(subprocess.check_output(['node',str(ROOT/'tools/magic_browser_fixture.cjs')],text=True))
         self.receive(payload)

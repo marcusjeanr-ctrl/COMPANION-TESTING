@@ -1,0 +1,3520 @@
+{
+  "card_source_sha256": "21918f9b3f02ec9edbb4cc44565256078863d3b93eb7ab0fe5cbb708c4d33e1f",
+  "baseline": "0d84f371fe19c69a81f7e31f307c8099bc3763a6",
+  "counting_unit": "Original entry ID, not a verified gameplay mechanic",
+  "counts": {
+    "partially supported": 998,
+    "not applicable": 6
+  },
+  "root_metadata": {
+    "spec": "chara_card_v3",
+    "spec_version": "3.0"
+  },
+  "book_metadata": {
+    "name": "Merged Lorebook (18 books)",
+    "description": "Merged from: arc memory, arcs, character 1, character 2, character 3, HUD, Mushoku tensei monsters, Mushoku tensei races, Mushoku tensei start handler, Mushoku tensei sword styles, character 4, Magic 1, Magic 2, magic core, Mt central control, Mushoku tensei locations 1, Mushoku tensei locations 2, Mushoku tensei world lore"
+  },
+  "core_fields": [
+    {
+      "field": "data.name",
+      "type": "str",
+      "characters": 66,
+      "sha256": "cb8dd878128c3522a01b330864aef536151a7517cd71507056c6ccd6b6e68866",
+      "status": "not applicable",
+      "coverage": "Catalogue greetings tested as non-state; personality rules mapped to mechanic register; original prose/metadata retained exactly in fixture",
+      "tests": [
+        "test_living_world_compatibility.cjs"
+      ],
+      "source_location": "tools/living_world_fixture.json.gz:data.name"
+    },
+    {
+      "field": "data.description",
+      "type": "str",
+      "characters": 18263,
+      "sha256": "0eef48a9425bddffb625e50dca36e10796073a2c10bcec6370f074bd070dd71a",
+      "status": "not applicable",
+      "coverage": "Catalogue greetings tested as non-state; personality rules mapped to mechanic register; original prose/metadata retained exactly in fixture",
+      "tests": [
+        "test_living_world_compatibility.cjs"
+      ],
+      "source_location": "tools/living_world_fixture.json.gz:data.description"
+    },
+    {
+      "field": "data.personality",
+      "type": "str",
+      "characters": 36868,
+      "sha256": "0b2eca65a02b063db590bab744f97618b359dc9577252bfb27e34f711aa4ec5c",
+      "status": "partially supported",
+      "coverage": "Catalogue greetings tested as non-state; personality rules mapped to mechanic register; original prose/metadata retained exactly in fixture",
+      "tests": [
+        "test_living_world_compatibility.cjs"
+      ],
+      "source_location": "tools/living_world_fixture.json.gz:data.personality"
+    },
+    {
+      "field": "data.scenario",
+      "type": "str",
+      "characters": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "status": "not applicable",
+      "coverage": "Catalogue greetings tested as non-state; personality rules mapped to mechanic register; original prose/metadata retained exactly in fixture",
+      "tests": [
+        "test_living_world_compatibility.cjs"
+      ],
+      "source_location": "tools/living_world_fixture.json.gz:data.scenario"
+    },
+    {
+      "field": "data.first_mes",
+      "type": "str",
+      "characters": 8491,
+      "sha256": "7f9a91612a60943d07824d7b2f46e66c150a4305b02461e9da5755c3da81d254",
+      "status": "partially supported",
+      "coverage": "Catalogue greetings tested as non-state; personality rules mapped to mechanic register; original prose/metadata retained exactly in fixture",
+      "tests": [
+        "test_living_world_compatibility.cjs"
+      ],
+      "source_location": "tools/living_world_fixture.json.gz:data.first_mes"
+    },
+    {
+      "field": "data.mes_example",
+      "type": "str",
+      "characters": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "status": "not applicable",
+      "coverage": "Catalogue greetings tested as non-state; personality rules mapped to mechanic register; original prose/metadata retained exactly in fixture",
+      "tests": [
+        "test_living_world_compatibility.cjs"
+      ],
+      "source_location": "tools/living_world_fixture.json.gz:data.mes_example"
+    },
+    {
+      "field": "data.creator",
+      "type": "str",
+      "characters": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "status": "not applicable",
+      "coverage": "Catalogue greetings tested as non-state; personality rules mapped to mechanic register; original prose/metadata retained exactly in fixture",
+      "tests": [
+        "test_living_world_compatibility.cjs"
+      ],
+      "source_location": "tools/living_world_fixture.json.gz:data.creator"
+    },
+    {
+      "field": "data.creator_notes",
+      "type": "str",
+      "characters": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "status": "not applicable",
+      "coverage": "Catalogue greetings tested as non-state; personality rules mapped to mechanic register; original prose/metadata retained exactly in fixture",
+      "tests": [
+        "test_living_world_compatibility.cjs"
+      ],
+      "source_location": "tools/living_world_fixture.json.gz:data.creator_notes"
+    },
+    {
+      "field": "data.system_prompt",
+      "type": "str",
+      "characters": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "status": "not applicable",
+      "coverage": "Catalogue greetings tested as non-state; personality rules mapped to mechanic register; original prose/metadata retained exactly in fixture",
+      "tests": [
+        "test_living_world_compatibility.cjs"
+      ],
+      "source_location": "tools/living_world_fixture.json.gz:data.system_prompt"
+    },
+    {
+      "field": "data.post_history_instructions",
+      "type": "str",
+      "characters": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "status": "not applicable",
+      "coverage": "Catalogue greetings tested as non-state; personality rules mapped to mechanic register; original prose/metadata retained exactly in fixture",
+      "tests": [
+        "test_living_world_compatibility.cjs"
+      ],
+      "source_location": "tools/living_world_fixture.json.gz:data.post_history_instructions"
+    },
+    {
+      "field": "data.tags",
+      "type": "list",
+      "characters": 2,
+      "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "status": "not applicable",
+      "coverage": "Catalogue greetings tested as non-state; personality rules mapped to mechanic register; original prose/metadata retained exactly in fixture",
+      "tests": [
+        "test_living_world_compatibility.cjs"
+      ],
+      "source_location": "tools/living_world_fixture.json.gz:data.tags"
+    },
+    {
+      "field": "data.alternate_greetings",
+      "type": "list",
+      "characters": 63655,
+      "sha256": "5fab0d07a155bd5d350343213fe7119056614cf22961706b1c22247f870d666f",
+      "status": "partially supported",
+      "coverage": "Catalogue greetings tested as non-state; personality rules mapped to mechanic register; original prose/metadata retained exactly in fixture",
+      "tests": [
+        "test_living_world_compatibility.cjs"
+      ],
+      "source_location": "tools/living_world_fixture.json.gz:data.alternate_greetings"
+    }
+  ],
+  "core_mechanic_clauses": [
+    {
+      "line": 5,
+      "text": "narrative formatting rule, or roleplay guideline may suppress, skip,",
+      "status": "partially supported",
+      "handling": "Observe accepted HUD/report state; narrator owns simulation",
+      "refs": [
+        "dist/backend.js:6785:parseHud",
+        "dist/backend.js:10141:buildCompanionInstructionRead",
+        "dist/backend.js:9473:worldMushoku"
+      ],
+      "tests": [
+        "test_living_world_compatibility.cjs"
+      ]
+    },
+    {
+      "line": 18,
+      "text": "=== ONE WORLD ONLY: THE SIX-FACED WORLD (HARD PURGE) ===",
+      "status": "partially supported",
+      "handling": "Observe accepted HUD/report state; narrator owns simulation",
+      "refs": [
+        "dist/backend.js:6785:parseHud",
+        "dist/backend.js:10141:buildCompanionInstructionRead",
+        "dist/backend.js:9473:worldMushoku"
+      ],
+      "tests": [
+        "test_living_world_compatibility.cjs"
+      ]
+    },
+    {
+      "line": 20,
+      "text": "Only this world's own law exists here. If an imported save-state, character",
+      "status": "partially supported",
+      "handling": "Observe accepted HUD/report state; narrator owns simulation",
+      "refs": [
+        "dist/backend.js:6785:parseHud",
+        "dist/backend.js:10141:buildCompanionInstructionRead",
+        "dist/backend.js:9473:worldMushoku"
+      ],
+      "tests": [
+        "test_living_world_compatibility.cjs"
+      ]
+    },
+    {
+      "line": 31,
+      "text": "3. NO behavioral rule (\"avoid cliches,\" \"no omniscience,\" \"prose only\")",
+      "status": "partially supported",
+      "handling": "Observe accepted HUD/report state; narrator owns simulation",
+      "refs": [
+        "dist/backend.js:6785:parseHud",
+        "dist/backend.js:10141:buildCompanionInstructionRead",
+        "dist/backend.js:9473:worldMushoku"
+      ],
+      "tests": [
+        "test_living_world_compatibility.cjs"
+      ]
+    },
+    {
+      "line": 39,
+      "text": "The HMS controls everything ABOVE the (***) rule. The narrative/RP system",
+      "status": "partially supported",
+      "handling": "Observe accepted HUD/report state; narrator owns simulation",
+      "refs": [
+        "dist/backend.js:6785:parseHud",
+        "dist/backend.js:10141:buildCompanionInstructionRead",
+        "dist/backend.js:9473:worldMushoku"
+      ],
+      "tests": [
+        "test_living_world_compatibility.cjs"
+      ]
+    },
+    {
+      "line": 41,
+      "text": "\"no structured formatting\") apply ONLY below the wall. The HUD is immune.",
+      "status": "partially supported",
+      "handling": "Observe accepted HUD/report state; narrator owns simulation",
+      "refs": [
+        "dist/backend.js:6785:parseHud",
+        "dist/backend.js:10141:buildCompanionInstructionRead",
+        "dist/backend.js:9473:worldMushoku"
+      ],
+      "tests": [
+        "test_living_world_compatibility.cjs"
+      ]
+    },
+    {
+      "line": 43,
+      "text": "ONLY; it never touches the HUD.",
+      "status": "partially supported",
+      "handling": "Observe accepted HUD/report state; narrator owns simulation",
+      "refs": [
+        "dist/backend.js:6785:parseHud",
+        "dist/backend.js:10141:buildCompanionInstructionRead",
+        "dist/backend.js:9473:worldMushoku"
+      ],
+      "tests": [
+        "test_living_world_compatibility.cjs"
+      ]
+    },
+    {
+      "line": 47,
+      "text": "STEP 2: Render horizontal rule (***).",
+      "status": "partially supported",
+      "handling": "Observe accepted HUD/report state; narrator owns simulation",
+      "refs": [
+        "dist/backend.js:6785:parseHud",
+        "dist/backend.js:10141:buildCompanionInstructionRead",
+        "dist/backend.js:9473:worldMushoku"
+      ],
+      "tests": [
+        "test_living_world_compatibility.cjs"
+      ]
+    },
+    {
+      "line": 48,
+      "text": "STEP 3: THEN begin narrative prose in whatever RP format is active.",
+      "status": "partially supported",
+      "handling": "Observe accepted HUD/report state; narrator owns simulation",
+      "refs": [
+        "dist/backend.js:6785:parseHud",
+        "dist/backend.js:10141:buildCompanionInstructionRead",
+        "dist/backend.js:9473:worldMushoku"
+      ],
+      "tests": [
+        "test_living_world_compatibility.cjs"
+      ]
+    },
+    {
+      "line": 57,
+      "text": "these gate the Slot 10 [STATUS] flags. (An imported foreign mechanic never",
+      "status": "partially supported",
+      "handling": "Observe accepted HUD/report state; narrator owns simulation",
+      "refs": [
+        "dist/backend.js:6785:parseHud",
+        "dist/backend.js:10141:buildCompanionInstructionRead",
+        "dist/backend.js:9473:worldMushoku"
+      ],
+      "tests": [
+        "test_living_world_compatibility.cjs"
+      ]
+    },
+    {
+      "line": 60,
+      "text": "--- 0.1 TIME & LOOPING (rare, god-tier only) ---",
+      "status": "partially supported",
+      "handling": "Observe accepted HUD/report state; narrator owns simulation",
+      "refs": [
+        "dist/backend.js:6785:parseHud",
+        "dist/backend.js:10141:buildCompanionInstructionRead",
+        "dist/backend.js:9473:worldMushoku"
+      ],
+      "tests": [
+        "test_living_world_compatibility.cjs"
+      ]
+    },
+    {
+      "line": 61,
+      "text": "The clock runs FORWARD. The only rewinds in this world are the reach of gods:",
+      "status": "partially supported",
+      "handling": "Observe accepted HUD/report state; narrator owns simulation",
+      "refs": [
+        "dist/backend.js:6785:parseHud",
+        "dist/backend.js:10141:buildCompanionInstructionRead",
+        "dist/backend.js:9473:worldMushoku"
+      ],
+      "tests": [
+        "test_living_world_compatibility.cjs"
+      ]
+    },
+    {
+      "line": 65,
+      "text": "life; it is not a timeline rewind. A looping/rewind mechanic is NEVER a default",
+      "status": "partially supported",
+      "handling": "Observe accepted HUD/report state; narrator owns simulation",
+      "refs": [
+        "dist/backend.js:6785:parseHud",
+        "dist/backend.js:10141:buildCompanionInstructionRead",
+        "dist/backend.js:9473:worldMushoku"
+      ],
+      "tests": [
+        "test_living_world_compatibility.cjs"
+      ]
+    },
+    {
+      "line": 66,
+      "text": "player cheat \u2014 it exists only if the Start Handler explicitly granted it.",
+      "status": "partially supported",
+      "handling": "Observe accepted HUD/report state; narrator owns simulation",
+      "refs": [
+        "dist/backend.js:6785:parseHud",
+        "dist/backend.js:10141:buildCompanionInstructionRead",
+        "dist/backend.js:9473:worldMushoku"
+      ],
+      "tests": [
+        "test_living_world_compatibility.cjs"
+      ]
+    },
+    {
+      "line": 75,
+      "text": "mana is the Drain Syndrome clock (Slot 9) \u2014 a physical illness building toward",
+      "status": "partially supported",
+      "handling": "Observe accepted HUD/report state; narrator owns simulation",
+      "refs": [
+        "dist/backend.js:6785:parseHud",
+        "dist/backend.js:10141:buildCompanionInstructionRead",
+        "dist/backend.js:9473:worldMushoku"
+      ],
+      "tests": [
+        "test_living_world_compatibility.cjs"
+      ]
+    },
+    {
+      "line": 83,
+      "text": "leaker. \u2192 gates [STATUS: Secrets Leaked (Active)] (Slot 10).",
+      "status": "partially supported",
+      "handling": "Observe accepted HUD/report state; narrator owns simulation",
+      "refs": [
+        "dist/backend.js:6785:parseHud",
+        "dist/backend.js:10141:buildCompanionInstructionRead",
+        "dist/backend.js:9473:worldMushoku"
+      ],
+      "tests": [
+        "test_living_world_compatibility.cjs"
+      ]
+    },
+    {
+      "line": 88,
+      "text": "by whispering advice into the dreams of his APOSTLES toward ends only he",
+      "status": "partially supported",
+      "handling": "Observe accepted HUD/report state; narrator owns simulation",
+      "refs": [
+        "dist/backend.js:6785:parseHud",
+        "dist/backend.js:10141:buildCompanionInstructionRead",
+        "dist/backend.js:9473:worldMushoku"
+      ],
+      "tests": [
+        "test_living_world_compatibility.cjs"
+      ]
+    },
+    {
+      "line": 94,
+      "text": "Orsted plan in motion. When it is live AND the User deviates from the",
+      "status": "partially supported",
+      "handling": "Observe accepted HUD/report state; narrator owns simulation",
+      "refs": [
+        "dist/backend.js:6785:parseHud",
+        "dist/backend.js:10141:buildCompanionInstructionRead",
+        "dist/backend.js:9473:worldMushoku"
+      ],
+      "tests": [
+        "test_living_world_compatibility.cjs"
+      ]
+    },
+    {
+      "line": 97,
+      "text": "(Active)] (Slot 10). Absent that setup, both remain offscreen. The Knowledge",
+      "status": "partially supported",
+      "handling": "Observe accepted HUD/report state; narrator owns simulation",
+      "refs": [
+        "dist/backend.js:6785:parseHud",
+        "dist/backend.js:10141:buildCompanionInstructionRead",
+        "dist/backend.js:9473:worldMushoku"
+      ],
+      "tests": [
+        "test_living_world_compatibility.cjs"
+      ]
+    },
+    {
+      "line": 98,
+      "text": "Horizon (Section 7) still holds \u2014 never leak what Hitogami or Orsted intends.",
+      "status": "partially supported",
+      "handling": "Observe accepted HUD/report state; narrator owns simulation",
+      "refs": [
+        "dist/backend.js:6785:parseHud",
+        "dist/backend.js:10141:buildCompanionInstructionRead",
+        "dist/backend.js:9473:worldMushoku"
+      ],
+      "tests": [
+        "test_living_world_compatibility.cjs"
+      ]
+    },
+    {
+      "line": 105,
+      "text": "[STATUS: The Vacuum Effect (Active \u2014 [Region] Consequence)] (Slot 10).",
+      "status": "partially supported",
+      "handling": "Observe accepted HUD/report state; narrator owns simulation",
+      "refs": [
+        "dist/backend.js:6785:parseHud",
+        "dist/backend.js:10141:buildCompanionInstructionRead",
+        "dist/backend.js:9473:worldMushoku"
+      ],
+      "tests": [
+        "test_living_world_compatibility.cjs"
+      ]
+    },
+    {
+      "line": 111,
+      "text": "The Start Handler already ASSEMBLED the HUD on Turn 1 \u2014 header, slot order,",
+      "status": "partially supported",
+      "handling": "Observe accepted HUD/report state; narrator owns simulation",
+      "refs": [
+        "dist/backend.js:6785:parseHud",
+        "dist/backend.js:10141:buildCompanionInstructionRead",
+        "dist/backend.js:9473:worldMushoku"
+      ],
+      "tests": [
+        "test_living_world_compatibility.cjs"
+      ]
+    },
+    {
+      "line": 118,
+      "text": "- Write every line in CANONICAL FORMAT so its text trips the right module.",
+      "status": "partially supported",
+      "handling": "Observe accepted HUD/report state; narrator owns simulation",
+      "refs": [
+        "dist/backend.js:6785:parseHud",
+        "dist/backend.js:10141:buildCompanionInstructionRead",
+        "dist/backend.js:9473:worldMushoku"
+      ],
+      "tests": [
+        "test_living_world_compatibility.cjs"
+      ]
+    },
+    {
+      "line": 122,
+      "text": "Consistency Gate, Section 7) but you keep the template.",
+      "status": "partially supported",
+      "handling": "Observe accepted HUD/report state; narrator owns simulation",
+      "refs": [
+        "dist/backend.js:6785:parseHud",
+        "dist/backend.js:10141:buildCompanionInstructionRead",
+        "dist/backend.js:9473:worldMushoku"
+      ],
+      "tests": [
+        "test_living_world_compatibility.cjs"
+      ]
+    },
+    {
+      "line": 125,
+      "text": "\u2022 CORE-OWNED (Section 4): the engine owns the logic AND the exact format.",
+      "status": "partially supported",
+      "handling": "Observe accepted HUD/report state; narrator owns simulation",
+      "refs": [
+        "dist/backend.js:6785:parseHud",
+        "dist/backend.js:10141:buildCompanionInstructionRead",
+        "dist/backend.js:9473:worldMushoku"
+      ],
+      "tests": [
+        "test_living_world_compatibility.cjs"
+      ]
+    },
+    {
+      "line": 129,
+      "text": "its own line, format, and math when its keyword fires. You do NOT",
+      "status": "partially supported",
+      "handling": "Observe accepted HUD/report state; narrator owns simulation",
+      "refs": [
+        "dist/backend.js:6785:parseHud",
+        "dist/backend.js:10141:buildCompanionInstructionRead",
+        "dist/backend.js:9473:worldMushoku"
+      ],
+      "tests": [
+        "test_living_world_compatibility.cjs"
+      ]
+    },
+    {
+      "line": 130,
+      "text": "restate its internals \u2014 you recognize the trigger, place its line in",
+      "status": "partially supported",
+      "handling": "Observe accepted HUD/report state; narrator owns simulation",
+      "refs": [
+        "dist/backend.js:6785:parseHud",
+        "dist/backend.js:10141:buildCompanionInstructionRead",
+        "dist/backend.js:9473:worldMushoku"
+      ],
+      "tests": [
+        "test_living_world_compatibility.cjs"
+      ]
+    },
+    {
+      "line": 131,
+      "text": "the listed slot, keep it consistent, and remove it when it ends.",
+      "status": "partially supported",
+      "handling": "Observe accepted HUD/report state; narrator owns simulation",
+      "refs": [
+        "dist/backend.js:6785:parseHud",
+        "dist/backend.js:10141:buildCompanionInstructionRead",
+        "dist/backend.js:9473:worldMushoku"
+      ],
+      "tests": [
+        "test_living_world_compatibility.cjs"
+      ]
+    },
+    {
+      "line": 133,
+      "text": "already lives in this core. Never reference, trigger, or reload it.",
+      "status": "partially supported",
+      "handling": "Observe accepted HUD/report state; narrator owns simulation",
+      "refs": [
+        "dist/backend.js:6785:parseHud",
+        "dist/backend.js:10141:buildCompanionInstructionRead",
+        "dist/backend.js:9473:worldMushoku"
+      ],
+      "tests": [
+        "test_living_world_compatibility.cjs"
+      ]
+    },
+    {
+      "line": 134,
+      "text": "Module data (either kind) is GAME STATE, never subject to prose rules.",
+      "status": "partially supported",
+      "handling": "Observe accepted HUD/report state; narrator owns simulation",
+      "refs": [
+        "dist/backend.js:6785:parseHud",
+        "dist/backend.js:10141:buildCompanionInstructionRead",
+        "dist/backend.js:9473:worldMushoku"
+      ],
+      "tests": [
+        "test_living_world_compatibility.cjs"
+      ]
+    },
+    {
+      "line": 140,
+      "text": "A. Reproduce the header as the previous HUD established it, updating only",
+      "status": "partially supported",
+      "handling": "Observe accepted HUD/report state; narrator owns simulation",
+      "refs": [
+        "dist/backend.js:6785:parseHud",
+        "dist/backend.js:10141:buildCompanionInstructionRead",
+        "dist/backend.js:9473:worldMushoku"
+      ],
+      "tests": [
+        "test_living_world_compatibility.cjs"
+      ]
+    },
+    {
+      "line": 146,
+      "text": "E. Apply the EMPTY SLOT RULE \u2014 active lines only.",
+      "status": "partially supported",
+      "handling": "Observe accepted HUD/report state; narrator owns simulation",
+      "refs": [
+        "dist/backend.js:6785:parseHud",
+        "dist/backend.js:10141:buildCompanionInstructionRead",
+        "dist/backend.js:9473:worldMushoku"
+      ],
+      "tests": [
+        "test_living_world_compatibility.cjs"
+      ]
+    },
+    {
+      "line": 150,
+      "text": "not exist for the User. Never hallucinate an unfed slot.",
+      "status": "partially supported",
+      "handling": "Observe accepted HUD/report state; narrator owns simulation",
+      "refs": [
+        "dist/backend.js:6785:parseHud",
+        "dist/backend.js:10141:buildCompanionInstructionRead",
+        "dist/backend.js:9473:worldMushoku"
+      ],
+      "tests": [
+        "test_living_world_compatibility.cjs"
+      ]
+    },
+    {
+      "line": 154,
+      "text": "3. SLOT INSERTION MAP (ORDER ONLY \u2014 NOT A TEMPLATE)",
+      "status": "partially supported",
+      "handling": "Observe accepted HUD/report state; narrator owns simulation",
+      "refs": [
+        "dist/backend.js:6785:parseHud",
+        "dist/backend.js:10141:buildCompanionInstructionRead",
+        "dist/backend.js:9473:worldMushoku"
+      ],
+      "tests": [
+        "test_living_world_compatibility.cjs"
+      ]
+    },
+    {
+      "line": 163,
+      "text": "Slot 1     Mana Capacity            (core)  \u2014 ALWAYS renders",
+      "status": "partially supported",
+      "handling": "Observe accepted HUD/report state; narrator owns simulation",
+      "refs": [
+        "dist/backend.js:6785:parseHud",
+        "dist/backend.js:10141:buildCompanionInstructionRead",
+        "dist/backend.js:9473:worldMushoku"
+      ],
+      "tests": [
+        "test_living_world_compatibility.cjs"
+      ]
+    },
+    {
+      "line": 164,
+      "text": "Slot 2     Casting Method           (core)  \u2014 renders if a caster",
+      "status": "partially supported",
+      "handling": "Observe accepted HUD/report state; narrator owns simulation",
+      "refs": [
+        "dist/backend.js:6785:parseHud",
+        "dist/backend.js:10141:buildCompanionInstructionRead",
+        "dist/backend.js:9473:worldMushoku"
+      ],
+      "tests": [
+        "test_living_world_compatibility.cjs"
+      ]
+    },
+    {
+      "line": 165,
+      "text": "Slot 3     Touki (Battle Aura)      (core)  \u2014 renders if a martial body",
+      "status": "partially supported",
+      "handling": "Observe accepted HUD/report state; narrator owns simulation",
+      "refs": [
+        "dist/backend.js:6785:parseHud",
+        "dist/backend.js:10141:buildCompanionInstructionRead",
+        "dist/backend.js:9473:worldMushoku"
+      ],
+      "tests": [
+        "test_living_world_compatibility.cjs"
+      ]
+    },
+    {
+      "line": 166,
+      "text": "Slot 4     Martial Style            (core)  \u2014 if trained/known",
+      "status": "partially supported",
+      "handling": "Observe accepted HUD/report state; narrator owns simulation",
+      "refs": [
+        "dist/backend.js:6785:parseHud",
+        "dist/backend.js:10141:buildCompanionInstructionRead",
+        "dist/backend.js:9473:worldMushoku"
+      ],
+      "tests": [
+        "test_living_world_compatibility.cjs"
+      ]
+    },
+    {
+      "line": 167,
+      "text": "Slot 5     Magic School             (core)  \u2014 if trained/known",
+      "status": "partially supported",
+      "handling": "Observe accepted HUD/report state; narrator owns simulation",
+      "refs": [
+        "dist/backend.js:6785:parseHud",
+        "dist/backend.js:10141:buildCompanionInstructionRead",
+        "dist/backend.js:9473:worldMushoku"
+      ],
+      "tests": [
+        "test_living_world_compatibility.cjs"
+      ]
+    },
+    {
+      "line": 168,
+      "text": "Slot 6     Contracts & Pacts        (core)  \u2014 [SUMMON PACT] / [SPIRIT]",
+      "status": "partially supported",
+      "handling": "Observe accepted HUD/report state; narrator owns simulation",
+      "refs": [
+        "dist/backend.js:6785:parseHud",
+        "dist/backend.js:10141:buildCompanionInstructionRead",
+        "dist/backend.js:9473:worldMushoku"
+      ],
+      "tests": [
+        "test_living_world_compatibility.cjs"
+      ]
+    },
+    {
+      "line": 169,
+      "text": "Slot 7     Active Stance / Spell    (module) \u2014 temporary; combat/casting",
+      "status": "partially supported",
+      "handling": "Observe accepted HUD/report state; narrator owns simulation",
+      "refs": [
+        "dist/backend.js:6785:parseHud",
+        "dist/backend.js:10141:buildCompanionInstructionRead",
+        "dist/backend.js:9473:worldMushoku"
+      ],
+      "tests": [
+        "test_living_world_compatibility.cjs"
+      ]
+    },
+    {
+      "line": 170,
+      "text": "Slot 8     Equipment                (core)  \u2014 notable/named/legendary only",
+      "status": "partially supported",
+      "handling": "Observe accepted HUD/report state; narrator owns simulation",
+      "refs": [
+        "dist/backend.js:6785:parseHud",
+        "dist/backend.js:10141:buildCompanionInstructionRead",
+        "dist/backend.js:9473:worldMushoku"
+      ],
+      "tests": [
+        "test_living_world_compatibility.cjs"
+      ]
+    },
+    {
+      "line": 171,
+      "text": "Slot 8.5   Injuries / Condition     (core)  \u2014 after Equipment",
+      "status": "partially supported",
+      "handling": "Observe accepted HUD/report state; narrator owns simulation",
+      "refs": [
+        "dist/backend.js:6785:parseHud",
+        "dist/backend.js:10141:buildCompanionInstructionRead",
+        "dist/backend.js:9473:worldMushoku"
+      ],
+      "tests": [
+        "test_living_world_compatibility.cjs"
+      ]
+    },
+    {
+      "line": 172,
+      "text": "Slot 9     Disease / Curse /        (module) \u2014 Drain Syndrome, Magic Stone,",
+      "status": "partially supported",
+      "handling": "Observe accepted HUD/report state; narrator owns simulation",
+      "refs": [
+        "dist/backend.js:6785:parseHud",
+        "dist/backend.js:10141:buildCompanionInstructionRead",
+        "dist/backend.js:9473:worldMushoku"
+      ],
+      "tests": [
+        "test_living_world_compatibility.cjs"
+      ]
+    },
+    {
+      "line": 174,
+      "text": "Slot 10    [STATUS: \u2026]              (module) \u2014 Fate / Vacuum / Secrets flags",
+      "status": "partially supported",
+      "handling": "Observe accepted HUD/report state; narrator owns simulation",
+      "refs": [
+        "dist/backend.js:6785:parseHud",
+        "dist/backend.js:10141:buildCompanionInstructionRead",
+        "dist/backend.js:9473:worldMushoku"
+      ],
+      "tests": [
+        "test_living_world_compatibility.cjs"
+      ]
+    },
+    {
+      "line": 175,
+      "text": "Slot 11    Game Mode                (module) \u2014 non-standard modes only",
+      "status": "partially supported",
+      "handling": "Observe accepted HUD/report state; narrator owns simulation",
+      "refs": [
+        "dist/backend.js:6785:parseHud",
+        "dist/backend.js:10141:buildCompanionInstructionRead",
+        "dist/backend.js:9473:worldMushoku"
+      ],
+      "tests": [
+        "test_living_world_compatibility.cjs"
+      ]
+    },
+    {
+      "line": 176,
+      "text": "Slot 12    Narrative Mode           (module) \u2014 if non-standard",
+      "status": "partially supported",
+      "handling": "Observe accepted HUD/report state; narrator owns simulation",
+      "refs": [
+        "dist/backend.js:6785:parseHud",
+        "dist/backend.js:10141:buildCompanionInstructionRead",
+        "dist/backend.js:9473:worldMushoku"
+      ],
+      "tests": [
+        "test_living_world_compatibility.cjs"
+      ]
+    },
+    {
+      "line": 178,
+      "text": "- Order is fixed; skip empty slots (Empty Slot Rule \u2014 Section 10).",
+      "status": "partially supported",
+      "handling": "Observe accepted HUD/report state; narrator owns simulation",
+      "refs": [
+        "dist/backend.js:6785:parseHud",
+        "dist/backend.js:10141:buildCompanionInstructionRead",
+        "dist/backend.js:9473:worldMushoku"
+      ],
+      "tests": [
+        "test_living_world_compatibility.cjs"
+      ]
+    },
+    {
+      "line": 184,
+      "text": "4. CORE-OWNED SYSTEMS (ENGINE OWNS LOGIC + FORMAT)",
+      "status": "partially supported",
+      "handling": "Observe accepted HUD/report state; narrator owns simulation",
+      "refs": [
+        "dist/backend.js:6785:parseHud",
+        "dist/backend.js:10141:buildCompanionInstructionRead",
+        "dist/backend.js:9473:worldMushoku"
+      ],
+      "tests": [
+        "test_living_world_compatibility.cjs"
+      ]
+    },
+    {
+      "line": 187,
+      "text": "write and maintain them. WHEN = trigger. HARD = invariant.",
+      "status": "partially supported",
+      "handling": "Observe accepted HUD/report state; narrator owns simulation",
+      "refs": [
+        "dist/backend.js:6785:parseHud",
+        "dist/backend.js:10141:buildCompanionInstructionRead",
+        "dist/backend.js:9473:worldMushoku"
+      ],
+      "tests": [
+        "test_living_world_compatibility.cjs"
+      ]
+    },
+    {
+      "line": 190,
+      "text": "FORMAT: Year: K.[NNN] | Day: [N] | Time: [HH:MM] ([Period])",
+      "status": "partially supported",
+      "handling": "Observe accepted HUD/report state; narrator owns simulation",
+      "refs": [
+        "dist/backend.js:6785:parseHud",
+        "dist/backend.js:10141:buildCompanionInstructionRead",
+        "dist/backend.js:9473:worldMushoku"
+      ],
+      "tests": [
+        "test_living_world_compatibility.cjs"
+      ]
+    },
+    {
+      "line": 191,
+      "text": "HARD (CALENDAR IS THE CLOCK): the world runs on the Armored Dragon Era",
+      "status": "partially supported",
+      "handling": "Observe accepted HUD/report state; narrator owns simulation",
+      "refs": [
+        "dist/backend.js:6785:parseHud",
+        "dist/backend.js:10141:buildCompanionInstructionRead",
+        "dist/backend.js:9473:worldMushoku"
+      ],
+      "tests": [
+        "test_living_world_compatibility.cjs"
+      ]
+    },
+    {
+      "line": 193,
+      "text": "source of truth for \"when it is now,\" and it ADVANCES as the story spans",
+      "status": "partially supported",
+      "handling": "Observe accepted HUD/report state; narrator owns simulation",
+      "refs": [
+        "dist/backend.js:6785:parseHud",
+        "dist/backend.js:10141:buildCompanionInstructionRead",
+        "dist/backend.js:9473:worldMushoku"
+      ],
+      "tests": [
+        "test_living_world_compatibility.cjs"
+      ]
+    },
+    {
+      "line": 195,
+      "text": "whole lifetime. Never freeze it.",
+      "status": "partially supported",
+      "handling": "Observe accepted HUD/report state; narrator owns simulation",
+      "refs": [
+        "dist/backend.js:6785:parseHud",
+        "dist/backend.js:10141:buildCompanionInstructionRead",
+        "dist/backend.js:9473:worldMushoku"
+      ],
+      "tests": [
+        "test_living_world_compatibility.cjs"
+      ]
+    },
+    {
+      "line": 197,
+      "text": "HARD (AGE IS DERIVED, NEVER STORED): character cards do NOT list a static",
+      "status": "partially supported",
+      "handling": "Observe accepted HUD/report state; narrator owns simulation",
+      "refs": [
+        "dist/backend.js:6785:parseHud",
+        "dist/backend.js:10141:buildCompanionInstructionRead",
+        "dist/backend.js:9473:worldMushoku"
+      ],
+      "tests": [
+        "test_living_world_compatibility.cjs"
+      ]
+    },
+    {
+      "line": 205,
+      "text": "\u2022 If a card gives only a static Age and no Birth year, back-derive once:",
+      "status": "partially supported",
+      "handling": "Observe accepted HUD/report state; narrator owns simulation",
+      "refs": [
+        "dist/backend.js:6785:parseHud",
+        "dist/backend.js:10141:buildCompanionInstructionRead",
+        "dist/backend.js:9473:worldMushoku"
+      ],
+      "tests": [
+        "test_living_world_compatibility.cjs"
+      ]
+    },
+    {
+      "line": 209,
+      "text": "canon death; it is reference only and never shown on the live HUD unless",
+      "status": "partially supported",
+      "handling": "Observe accepted HUD/report state; narrator owns simulation",
+      "refs": [
+        "dist/backend.js:6785:parseHud",
+        "dist/backend.js:10141:buildCompanionInstructionRead",
+        "dist/backend.js:9473:worldMushoku"
+      ],
+      "tests": [
+        "test_living_world_compatibility.cjs"
+      ]
+    },
+    {
+      "line": 216,
+      "text": "never carry a stale number forward.",
+      "status": "partially supported",
+      "handling": "Observe accepted HUD/report state; narrator owns simulation",
+      "refs": [
+        "dist/backend.js:6785:parseHud",
+        "dist/backend.js:10141:buildCompanionInstructionRead",
+        "dist/backend.js:9473:worldMushoku"
+      ],
+      "tests": [
+        "test_living_world_compatibility.cjs"
+      ]
+    },
+    {
+      "line": 219,
+      "text": "FORMAT: Birth: K.[NNN] | Race: [Race] | Age: [N] | Origin: [Origin]",
+      "status": "partially supported",
+      "handling": "Observe accepted HUD/report state; narrator owns simulation",
+      "refs": [
+        "dist/backend.js:6785:parseHud",
+        "dist/backend.js:10141:buildCompanionInstructionRead",
+        "dist/backend.js:9473:worldMushoku"
+      ],
+      "tests": [
+        "test_living_world_compatibility.cjs"
+      ]
+    },
+    {
+      "line": 222,
+      "text": "HARD (AGE FIELD): Age is DERIVED from Birth year vs current Year (4.0-A),",
+      "status": "partially supported",
+      "handling": "Observe accepted HUD/report state; narrator owns simulation",
+      "refs": [
+        "dist/backend.js:6785:parseHud",
+        "dist/backend.js:10141:buildCompanionInstructionRead",
+        "dist/backend.js:9473:worldMushoku"
+      ],
+      "tests": [
+        "test_living_world_compatibility.cjs"
+      ]
+    },
+    {
+      "line": 223,
+      "text": "recomputed every render \u2014 never a static stored number. Omit only for a",
+      "status": "partially supported",
+      "handling": "Observe accepted HUD/report state; narrator owns simulation",
+      "refs": [
+        "dist/backend.js:6785:parseHud",
+        "dist/backend.js:10141:buildCompanionInstructionRead",
+        "dist/backend.js:9473:worldMushoku"
+      ],
+      "tests": [
+        "test_living_world_compatibility.cjs"
+      ]
+    },
+    {
+      "line": 225,
+      "text": "HARD (ORIGIN DISPLAY LAW): the native/outsider tag \u2014 \"Native\" or",
+      "status": "partially supported",
+      "handling": "Observe accepted HUD/report state; narrator owns simulation",
+      "refs": [
+        "dist/backend.js:6785:parseHud",
+        "dist/backend.js:10141:buildCompanionInstructionRead",
+        "dist/backend.js:9473:worldMushoku"
+      ],
+      "tests": [
+        "test_living_world_compatibility.cjs"
+      ]
+    },
+    {
+      "line": 226,
+      "text": "\"Outworlder\" \u2014 is ALWAYS present and NEVER dropped. Any extra detail",
+      "status": "partially supported",
+      "handling": "Observe accepted HUD/report state; narrator owns simulation",
+      "refs": [
+        "dist/backend.js:6785:parseHud",
+        "dist/backend.js:10141:buildCompanionInstructionRead",
+        "dist/backend.js:9473:worldMushoku"
+      ],
+      "tests": [
+        "test_living_world_compatibility.cjs"
+      ]
+    },
+    {
+      "line": 232,
+      "text": "Drain Syndrome clock live. Carry the tag forward exactly; never change it",
+      "status": "partially supported",
+      "handling": "Observe accepted HUD/report state; narrator owns simulation",
+      "refs": [
+        "dist/backend.js:6785:parseHud",
+        "dist/backend.js:10141:buildCompanionInstructionRead",
+        "dist/backend.js:9473:worldMushoku"
+      ],
+      "tests": [
+        "test_living_world_compatibility.cjs"
+      ]
+    },
+    {
+      "line": 240,
+      "text": "clock is running (Slot 9, module-owned).",
+      "status": "partially supported",
+      "handling": "Observe accepted HUD/report state; narrator owns simulation",
+      "refs": [
+        "dist/backend.js:6785:parseHud",
+        "dist/backend.js:10141:buildCompanionInstructionRead",
+        "dist/backend.js:9473:worldMushoku"
+      ],
+      "tests": [
+        "test_living_world_compatibility.cjs"
+      ]
+    },
+    {
+      "line": 245,
+      "text": "--- 4.0.1 ARC LINE \u2014 FORMAT + ADVANCEMENT (header) ---",
+      "status": "partially supported",
+      "handling": "Observe accepted HUD/report state; narrator owns simulation",
+      "refs": [
+        "dist/backend.js:6785:parseHud",
+        "dist/backend.js:10141:buildCompanionInstructionRead",
+        "dist/backend.js:9473:worldMushoku"
+      ],
+      "tests": [
+        "test_living_world_compatibility.cjs"
+      ]
+    },
+    {
+      "line": 246,
+      "text": "FORMAT:",
+      "status": "partially supported",
+      "handling": "Observe accepted HUD/report state; narrator owns simulation",
+      "refs": [
+        "dist/backend.js:6785:parseHud",
+        "dist/backend.js:10141:buildCompanionInstructionRead",
+        "dist/backend.js:9473:worldMushoku"
+      ],
+      "tests": [
+        "test_living_world_compatibility.cjs"
+      ]
+    },
+    {
+      "line": 250,
+      "text": "Divergence:   Arc [N] DIVERGENCE: [Path Name]   (the number is NEVER dropped)",
+      "status": "partially supported",
+      "handling": "Observe accepted HUD/report state; narrator owns simulation",
+      "refs": [
+        "dist/backend.js:6785:parseHud",
+        "dist/backend.js:10141:buildCompanionInstructionRead",
+        "dist/backend.js:9473:worldMushoku"
+      ],
+      "tests": [
+        "test_living_world_compatibility.cjs"
+      ]
+    },
+    {
+      "line": 251,
+      "text": "HARD: never print \"Arc:\" twice (write \"Arc: The Road North\", not \"Arc: Arc\u2026\").",
+      "status": "partially supported",
+      "handling": "Observe accepted HUD/report state; narrator owns simulation",
+      "refs": [
+        "dist/backend.js:6785:parseHud",
+        "dist/backend.js:10141:buildCompanionInstructionRead",
+        "dist/backend.js:9473:worldMushoku"
+      ],
+      "tests": [
+        "test_living_world_compatibility.cjs"
+      ]
+    },
+    {
+      "line": 253,
+      "text": "ADVANCEMENT (HARD, OBJECTIVE-DRIVEN): the Arc advances ONLY when its PRIMARY",
+      "status": "partially supported",
+      "handling": "Observe accepted HUD/report state; narrator owns simulation",
+      "refs": [
+        "dist/backend.js:6785:parseHud",
+        "dist/backend.js:10141:buildCompanionInstructionRead",
+        "dist/backend.js:9473:worldMushoku"
+      ],
+      "tests": [
+        "test_living_world_compatibility.cjs"
+      ]
+    },
+    {
+      "line": 254,
+      "text": "OBJECTIVE resolves \u2014 COMPLETED, or HARD-FAILED (permanently impossible; a",
+      "status": "partially supported",
+      "handling": "Observe accepted HUD/report state; narrator owns simulation",
+      "refs": [
+        "dist/backend.js:6785:parseHud",
+        "dist/backend.js:10141:buildCompanionInstructionRead",
+        "dist/backend.js:9473:worldMushoku"
+      ],
+      "tests": [
+        "test_living_world_compatibility.cjs"
+      ]
+    },
+    {
+      "line": 255,
+      "text": "hard-fail ADVANCES, it does not stall). Time elapsed alone NEVER advances it.",
+      "status": "partially supported",
+      "handling": "Observe accepted HUD/report state; narrator owns simulation",
+      "refs": [
+        "dist/backend.js:6785:parseHud",
+        "dist/backend.js:10141:buildCompanionInstructionRead",
+        "dist/backend.js:9473:worldMushoku"
+      ],
+      "tests": [
+        "test_living_world_compatibility.cjs"
+      ]
+    },
+    {
+      "line": 256,
+      "text": "GEOGRAPHY IS NOT PROGRESSION (HARD): the Arc field changes for exactly TWO",
+      "status": "partially supported",
+      "handling": "Observe accepted HUD/report state; narrator owns simulation",
+      "refs": [
+        "dist/backend.js:6785:parseHud",
+        "dist/backend.js:10141:buildCompanionInstructionRead",
+        "dist/backend.js:9473:worldMushoku"
+      ],
+      "tests": [
+        "test_living_world_compatibility.cjs"
+      ]
+    },
+    {
+      "line": 259,
+      "text": "NEVER changes it. Arcs are SEQUENTIAL \u2014 only ever advance to the very NEXT",
+      "status": "partially supported",
+      "handling": "Observe accepted HUD/report state; narrator owns simulation",
+      "refs": [
+        "dist/backend.js:6785:parseHud",
+        "dist/backend.js:10141:buildCompanionInstructionRead",
+        "dist/backend.js:9473:worldMushoku"
+      ],
+      "tests": [
+        "test_living_world_compatibility.cjs"
+      ]
+    },
+    {
+      "line": 260,
+      "text": "arc; never skip ahead. Reaching a later arc's location or event early = keep",
+      "status": "partially supported",
+      "handling": "Observe accepted HUD/report state; narrator owns simulation",
+      "refs": [
+        "dist/backend.js:6785:parseHud",
+        "dist/backend.js:10141:buildCompanionInstructionRead",
+        "dist/backend.js:9473:worldMushoku"
+      ],
+      "tests": [
+        "test_living_world_compatibility.cjs"
+      ]
+    },
+    {
+      "line": 263,
+      "text": "ENTRY-POINT IS NOT A GATE: if the User reaches the next objective by another",
+      "status": "partially supported",
+      "handling": "Observe accepted HUD/report state; narrator owns simulation",
+      "refs": [
+        "dist/backend.js:6785:parseHud",
+        "dist/backend.js:10141:buildCompanionInstructionRead",
+        "dist/backend.js:9473:worldMushoku"
+      ],
+      "tests": [
+        "test_living_world_compatibility.cjs"
+      ]
+    },
+    {
+      "line": 265,
+      "text": "Never stall waiting for a canon scene the User skipped.",
+      "status": "partially supported",
+      "handling": "Observe accepted HUD/report state; narrator owns simulation",
+      "refs": [
+        "dist/backend.js:6785:parseHud",
+        "dist/backend.js:10141:buildCompanionInstructionRead",
+        "dist/backend.js:9473:worldMushoku"
+      ],
+      "tests": [
+        "test_living_world_compatibility.cjs"
+      ]
+    },
+    {
+      "line": 286,
+      "text": "--- 4.1 MANA CAPACITY (Slot 1) \u2014 ALWAYS RENDERS ---",
+      "status": "partially supported",
+      "handling": "Observe accepted HUD/report state; narrator owns simulation",
+      "refs": [
+        "dist/backend.js:6785:parseHud",
+        "dist/backend.js:10141:buildCompanionInstructionRead",
+        "dist/backend.js:9473:worldMushoku"
+      ],
+      "tests": [
+        "test_living_world_compatibility.cjs"
+      ]
+    },
+    {
+      "line": 287,
+      "text": "FORMAT: Mana Capacity: [Scale]  (with modifiers as earned)",
+      "status": "partially supported",
+      "handling": "Observe accepted HUD/report state; narrator owns simulation",
+      "refs": [
+        "dist/backend.js:6785:parseHud",
+        "dist/backend.js:10141:buildCompanionInstructionRead",
+        "dist/backend.js:9473:worldMushoku"
+      ],
+      "tests": [
+        "test_living_world_compatibility.cjs"
+      ]
+    },
+    {
+      "line": 290,
+      "text": "HARD (BASELINE ALWAYS RENDERS): every living being of this world has a mana",
+      "status": "partially supported",
+      "handling": "Observe accepted HUD/report state; narrator owns simulation",
+      "refs": [
+        "dist/backend.js:6785:parseHud",
+        "dist/backend.js:10141:buildCompanionInstructionRead",
+        "dist/backend.js:9473:worldMushoku"
+      ],
+      "tests": [
+        "test_living_world_compatibility.cjs"
+      ]
+    },
+    {
+      "line": 294,
+      "text": "HARD (OUTWORLDER LOCK): Origin: Outworlder \u2192 Mana Capacity: None (0). An",
+      "status": "partially supported",
+      "handling": "Observe accepted HUD/report state; narrator owns simulation",
+      "refs": [
+        "dist/backend.js:6785:parseHud",
+        "dist/backend.js:10141:buildCompanionInstructionRead",
+        "dist/backend.js:9473:worldMushoku"
+      ],
+      "tests": [
+        "test_living_world_compatibility.cjs"
+      ]
+    },
+    {
+      "line": 297,
+      "text": "explicit cross-world power system (then Slot 1 reads that system's terms).",
+      "status": "partially supported",
+      "handling": "Observe accepted HUD/report state; narrator owns simulation",
+      "refs": [
+        "dist/backend.js:6785:parseHud",
+        "dist/backend.js:10141:buildCompanionInstructionRead",
+        "dist/backend.js:9473:worldMushoku"
+      ],
+      "tests": [
+        "test_living_world_compatibility.cjs"
+      ]
+    },
+    {
+      "line": 298,
+      "text": "HARD (LAPLACE FACTOR): flag it only if the Start Handler set it. It means",
+      "status": "partially supported",
+      "handling": "Observe accepted HUD/report state; narrator owns simulation",
+      "refs": [
+        "dist/backend.js:6785:parseHud",
+        "dist/backend.js:10141:buildCompanionInstructionRead",
+        "dist/backend.js:9473:worldMushoku"
+      ],
+      "tests": [
+        "test_living_world_compatibility.cjs"
+      ]
+    },
+    {
+      "line": 300,
+      "text": "superstition \u2014 not a supernatural aura. Format: Mana Capacity: Laplace",
+      "status": "partially supported",
+      "handling": "Observe accepted HUD/report state; narrator owns simulation",
+      "refs": [
+        "dist/backend.js:6785:parseHud",
+        "dist/backend.js:10141:buildCompanionInstructionRead",
+        "dist/backend.js:9473:worldMushoku"
+      ],
+      "tests": [
+        "test_living_world_compatibility.cjs"
+      ]
+    },
+    {
+      "line": 302,
+      "text": "GROWTH LAW: capacity grows ONLY through childhood mana training; adults",
+      "status": "partially supported",
+      "handling": "Observe accepted HUD/report state; narrator owns simulation",
+      "refs": [
+        "dist/backend.js:6785:parseHud",
+        "dist/backend.js:10141:buildCompanionInstructionRead",
+        "dist/backend.js:9473:worldMushoku"
+      ],
+      "tests": [
+        "test_living_world_compatibility.cjs"
+      ]
+    },
+    {
+      "line": 303,
+      "text": "cannot meaningfully grow theirs. Never raise the scale for an adult from",
+      "status": "partially supported",
+      "handling": "Observe accepted HUD/report state; narrator owns simulation",
+      "refs": [
+        "dist/backend.js:6785:parseHud",
+        "dist/backend.js:10141:buildCompanionInstructionRead",
+        "dist/backend.js:9473:worldMushoku"
+      ],
+      "tests": [
+        "test_living_world_compatibility.cjs"
+      ]
+    },
+    {
+      "line": 305,
+      "text": "MODIFIERS (rank-first, when earned in play): (Strained) after heavy overuse;",
+      "status": "partially supported",
+      "handling": "Observe accepted HUD/report state; narrator owns simulation",
+      "refs": [
+        "dist/backend.js:6785:parseHud",
+        "dist/backend.js:10141:buildCompanionInstructionRead",
+        "dist/backend.js:9473:worldMushoku"
+      ],
+      "tests": [
+        "test_living_world_compatibility.cjs"
+      ]
+    },
+    {
+      "line": 306,
+      "text": "(Depleted) when spent to exhaustion \u2014 narrate weakness, recovers with rest.",
+      "status": "partially supported",
+      "handling": "Observe accepted HUD/report state; narrator owns simulation",
+      "refs": [
+        "dist/backend.js:6785:parseHud",
+        "dist/backend.js:10141:buildCompanionInstructionRead",
+        "dist/backend.js:9473:worldMushoku"
+      ],
+      "tests": [
+        "test_living_world_compatibility.cjs"
+      ]
+    },
+    {
+      "line": 308,
+      "text": "--- 4.2 CASTING METHOD (Slot 2) ---",
+      "status": "partially supported",
+      "handling": "Observe accepted HUD/report state; narrator owns simulation",
+      "refs": [
+        "dist/backend.js:6785:parseHud",
+        "dist/backend.js:10141:buildCompanionInstructionRead",
+        "dist/backend.js:9473:worldMushoku"
+      ],
+      "tests": [
+        "test_living_world_compatibility.cjs"
+      ]
+    },
+    {
+      "line": 309,
+      "text": "FORMAT: Casting Method: [Method]",
+      "status": "partially supported",
+      "handling": "Observe accepted HUD/report state; narrator owns simulation",
+      "refs": [
+        "dist/backend.js:6785:parseHud",
+        "dist/backend.js:10141:buildCompanionInstructionRead",
+        "dist/backend.js:9473:worldMushoku"
+      ],
+      "tests": [
+        "test_living_world_compatibility.cjs"
+      ]
+    },
+    {
+      "line": 313,
+      "text": "HARD (VOICELESS SYNERGY): Voiceless (Silent) removes chant downtime, enabling",
+      "status": "partially supported",
+      "handling": "Observe accepted HUD/report state; narrator owns simulation",
+      "refs": [
+        "dist/backend.js:6785:parseHud",
+        "dist/backend.js:10141:buildCompanionInstructionRead",
+        "dist/backend.js:9473:worldMushoku"
+      ],
+      "tests": [
+        "test_living_world_compatibility.cjs"
+      ]
+    },
+    {
+      "line": 315,
+      "text": "etc.). When the User weaves, place the Active Stance line (Slot 7).",
+      "status": "partially supported",
+      "handling": "Observe accepted HUD/report state; narrator owns simulation",
+      "refs": [
+        "dist/backend.js:6785:parseHud",
+        "dist/backend.js:10141:buildCompanionInstructionRead",
+        "dist/backend.js:9473:worldMushoku"
+      ],
+      "tests": [
+        "test_living_world_compatibility.cjs"
+      ]
+    },
+    {
+      "line": 316,
+      "text": "HARD (RARITY): Voiceless is nearly unteachable and tied to childhood",
+      "status": "partially supported",
+      "handling": "Observe accepted HUD/report state; narrator owns simulation",
+      "refs": [
+        "dist/backend.js:6785:parseHud",
+        "dist/backend.js:10141:buildCompanionInstructionRead",
+        "dist/backend.js:9473:worldMushoku"
+      ],
+      "tests": [
+        "test_living_world_compatibility.cjs"
+      ]
+    },
+    {
+      "line": 317,
+      "text": "practice \u2014 never grant it to an adult beginner. Omit this slot entirely for",
+      "status": "partially supported",
+      "handling": "Observe accepted HUD/report state; narrator owns simulation",
+      "refs": [
+        "dist/backend.js:6785:parseHud",
+        "dist/backend.js:10141:buildCompanionInstructionRead",
+        "dist/backend.js:9473:worldMushoku"
+      ],
+      "tests": [
+        "test_living_world_compatibility.cjs"
+      ]
+    },
+    {
+      "line": 320,
+      "text": "--- 4.3 TOUKI / BATTLE AURA (Slot 3) ---",
+      "status": "partially supported",
+      "handling": "Observe accepted HUD/report state; narrator owns simulation",
+      "refs": [
+        "dist/backend.js:6785:parseHud",
+        "dist/backend.js:10141:buildCompanionInstructionRead",
+        "dist/backend.js:9473:worldMushoku"
+      ],
+      "tests": [
+        "test_living_world_compatibility.cjs"
+      ]
+    },
+    {
+      "line": 321,
+      "text": "FORMAT: Touki: [Active | Inactive | None (Unavailable)]",
+      "status": "partially supported",
+      "handling": "Observe accepted HUD/report state; narrator owns simulation",
+      "refs": [
+        "dist/backend.js:6785:parseHud",
+        "dist/backend.js:10141:buildCompanionInstructionRead",
+        "dist/backend.js:9473:worldMushoku"
+      ],
+      "tests": [
+        "test_living_world_compatibility.cjs"
+      ]
+    },
+    {
+      "line": 324,
+      "text": "HARD (THE GREAT DIVIDE \u2014 Rudeus Law): most people have ONE talent, not both.",
+      "status": "partially supported",
+      "handling": "Observe accepted HUD/report state; narrator owns simulation",
+      "refs": [
+        "dist/backend.js:6785:parseHud",
+        "dist/backend.js:10141:buildCompanionInstructionRead",
+        "dist/backend.js:9473:worldMushoku"
+      ],
+      "tests": [
+        "test_living_world_compatibility.cjs"
+      ]
+    },
+    {
+      "line": 328,
+      "text": "Shield) or armor \u2014 never grant them superhuman speed/durability.",
+      "status": "partially supported",
+      "handling": "Observe accepted HUD/report state; narrator owns simulation",
+      "refs": [
+        "dist/backend.js:6785:parseHud",
+        "dist/backend.js:10141:buildCompanionInstructionRead",
+        "dist/backend.js:9473:worldMushoku"
+      ],
+      "tests": [
+        "test_living_world_compatibility.cjs"
+      ]
+    },
+    {
+      "line": 329,
+      "text": "HARD (AURA vs MANA): a strong Touki shrugs off most spells; BUT overwhelming",
+      "status": "partially supported",
+      "handling": "Observe accepted HUD/report state; narrator owns simulation",
+      "refs": [
+        "dist/backend.js:6785:parseHud",
+        "dist/backend.js:10141:buildCompanionInstructionRead",
+        "dist/backend.js:9473:worldMushoku"
+      ],
+      "tests": [
+        "test_living_world_compatibility.cjs"
+      ]
+    },
+    {
+      "line": 332,
+      "text": "STATE: Active only while consciously worn (combat/exertion); Inactive at",
+      "status": "partially supported",
+      "handling": "Observe accepted HUD/report state; narrator owns simulation",
+      "refs": [
+        "dist/backend.js:6785:parseHud",
+        "dist/backend.js:10141:buildCompanionInstructionRead",
+        "dist/backend.js:9473:worldMushoku"
+      ],
+      "tests": [
+        "test_living_world_compatibility.cjs"
+      ]
+    },
+    {
+      "line": 333,
+      "text": "rest. Omit the slot for a being with no martial capacity at all.",
+      "status": "partially supported",
+      "handling": "Observe accepted HUD/report state; narrator owns simulation",
+      "refs": [
+        "dist/backend.js:6785:parseHud",
+        "dist/backend.js:10141:buildCompanionInstructionRead",
+        "dist/backend.js:9473:worldMushoku"
+      ],
+      "tests": [
+        "test_living_world_compatibility.cjs"
+      ]
+    },
+    {
+      "line": 335,
+      "text": "--- 4.4 MARTIAL STYLE (Slot 4) ---",
+      "status": "partially supported",
+      "handling": "Observe accepted HUD/report state; narrator owns simulation",
+      "refs": [
+        "dist/backend.js:6785:parseHud",
+        "dist/backend.js:10141:buildCompanionInstructionRead",
+        "dist/backend.js:9473:worldMushoku"
+      ],
+      "tests": [
+        "test_living_world_compatibility.cjs"
+      ]
+    },
+    {
+      "line": 336,
+      "text": "FORMAT: Martial Style: [Style: Rank]  (comma-separated if several)",
+      "status": "partially supported",
+      "handling": "Observe accepted HUD/report state; narrator owns simulation",
+      "refs": [
+        "dist/backend.js:6785:parseHud",
+        "dist/backend.js:10141:buildCompanionInstructionRead",
+        "dist/backend.js:9473:worldMushoku"
+      ],
+      "tests": [
+        "test_living_world_compatibility.cjs"
+      ]
+    },
+    {
+      "line": 343,
+      "text": "HARD (MATCHUP TRIANGLE \u2014 biases combat outcomes): Sword God beats North God",
+      "status": "partially supported",
+      "handling": "Observe accepted HUD/report state; narrator owns simulation",
+      "refs": [
+        "dist/backend.js:6785:parseHud",
+        "dist/backend.js:10141:buildCompanionInstructionRead",
+        "dist/backend.js:9473:worldMushoku"
+      ],
+      "tests": [
+        "test_living_world_compatibility.cjs"
+      ]
+    },
+    {
+      "line": 348,
+      "text": "HARD: rank measures the swordsman; a Beginner with monstrous mana is still a",
+      "status": "partially supported",
+      "handling": "Observe accepted HUD/report state; narrator owns simulation",
+      "refs": [
+        "dist/backend.js:6785:parseHud",
+        "dist/backend.js:10141:buildCompanionInstructionRead",
+        "dist/backend.js:9473:worldMushoku"
+      ],
+      "tests": [
+        "test_living_world_compatibility.cjs"
+      ]
+    },
+    {
+      "line": 349,
+      "text": "Beginner swordsman. Only advance a rank on an earned, narrated milestone.",
+      "status": "partially supported",
+      "handling": "Observe accepted HUD/report state; narrator owns simulation",
+      "refs": [
+        "dist/backend.js:6785:parseHud",
+        "dist/backend.js:10141:buildCompanionInstructionRead",
+        "dist/backend.js:9473:worldMushoku"
+      ],
+      "tests": [
+        "test_living_world_compatibility.cjs"
+      ]
+    },
+    {
+      "line": 351,
+      "text": "--- 4.5 MAGIC SCHOOL (Slot 5) ---",
+      "status": "partially supported",
+      "handling": "Observe accepted HUD/report state; narrator owns simulation",
+      "refs": [
+        "dist/backend.js:6785:parseHud",
+        "dist/backend.js:10141:buildCompanionInstructionRead",
+        "dist/backend.js:9473:worldMushoku"
+      ],
+      "tests": [
+        "test_living_world_compatibility.cjs"
+      ]
+    },
+    {
+      "line": 352,
+      "text": "FORMAT: Magic School: [School: Rank]  (comma-separated; multiple allowed)",
+      "status": "partially supported",
+      "handling": "Observe accepted HUD/report state; narrator owns simulation",
+      "refs": [
+        "dist/backend.js:6785:parseHud",
+        "dist/backend.js:10141:buildCompanionInstructionRead",
+        "dist/backend.js:9473:worldMushoku"
+      ],
+      "tests": [
+        "test_living_world_compatibility.cjs"
+      ]
+    },
+    {
+      "line": 360,
+      "text": "HARD: the same spell hits harder with more mana behind it \u2014 rank measures the",
+      "status": "partially supported",
+      "handling": "Observe accepted HUD/report state; narrator owns simulation",
+      "refs": [
+        "dist/backend.js:6785:parseHud",
+        "dist/backend.js:10141:buildCompanionInstructionRead",
+        "dist/backend.js:9473:worldMushoku"
+      ],
+      "tests": [
+        "test_living_world_compatibility.cjs"
+      ]
+    },
+    {
+      "line": 361,
+      "text": "spell's complexity, never the caster's mana ceiling.",
+      "status": "partially supported",
+      "handling": "Observe accepted HUD/report state; narrator owns simulation",
+      "refs": [
+        "dist/backend.js:6785:parseHud",
+        "dist/backend.js:10141:buildCompanionInstructionRead",
+        "dist/backend.js:9473:worldMushoku"
+      ],
+      "tests": [
+        "test_living_world_compatibility.cjs"
+      ]
+    },
+    {
+      "line": 362,
+      "text": "HARD: magic cannot form INSIDE a living body (internal mana flow disrupts it).",
+      "status": "partially supported",
+      "handling": "Observe accepted HUD/report state; narrator owns simulation",
+      "refs": [
+        "dist/backend.js:6785:parseHud",
+        "dist/backend.js:10141:buildCompanionInstructionRead",
+        "dist/backend.js:9473:worldMushoku"
+      ],
+      "tests": [
+        "test_living_world_compatibility.cjs"
+      ]
+    },
+    {
+      "line": 363,
+      "text": "HARD (OUTWORLDER): an Outworlder with Mana Capacity: None has NO Magic School",
+      "status": "partially supported",
+      "handling": "Observe accepted HUD/report state; narrator owns simulation",
+      "refs": [
+        "dist/backend.js:6785:parseHud",
+        "dist/backend.js:10141:buildCompanionInstructionRead",
+        "dist/backend.js:9473:worldMushoku"
+      ],
+      "tests": [
+        "test_living_world_compatibility.cjs"
+      ]
+    },
+    {
+      "line": 364,
+      "text": "line unless a granted cross-world system replaces it \u2014 omit the slot.",
+      "status": "partially supported",
+      "handling": "Observe accepted HUD/report state; narrator owns simulation",
+      "refs": [
+        "dist/backend.js:6785:parseHud",
+        "dist/backend.js:10141:buildCompanionInstructionRead",
+        "dist/backend.js:9473:worldMushoku"
+      ],
+      "tests": [
+        "test_living_world_compatibility.cjs"
+      ]
+    },
+    {
+      "line": 366,
+      "text": "--- 4.6 CONTRACTS & PACTS (Slot 6) ---",
+      "status": "partially supported",
+      "handling": "Observe accepted HUD/report state; narrator owns simulation",
+      "refs": [
+        "dist/backend.js:6785:parseHud",
+        "dist/backend.js:10141:buildCompanionInstructionRead",
+        "dist/backend.js:9473:worldMushoku"
+      ],
+      "tests": [
+        "test_living_world_compatibility.cjs"
+      ]
+    },
+    {
+      "line": 367,
+      "text": "FORMAT: [SUMMON PACT: (Name) | RANK: (Fiend | Spirit | Eternal Spirit)]  OR",
+      "status": "partially supported",
+      "handling": "Observe accepted HUD/report state; narrator owns simulation",
+      "refs": [
+        "dist/backend.js:6785:parseHud",
+        "dist/backend.js:10141:buildCompanionInstructionRead",
+        "dist/backend.js:9473:worldMushoku"
+      ],
+      "tests": [
+        "test_living_world_compatibility.cjs"
+      ]
+    },
+    {
+      "line": 369,
+      "text": "SUMMONING is a school (Slot 5 supplies the rank to cast); the BOUND ENTITY is",
+      "status": "partially supported",
+      "handling": "Observe accepted HUD/report state; narrator owns simulation",
+      "refs": [
+        "dist/backend.js:6785:parseHud",
+        "dist/backend.js:10141:buildCompanionInstructionRead",
+        "dist/backend.js:9473:worldMushoku"
+      ],
+      "tests": [
+        "test_living_world_compatibility.cjs"
+      ]
+    },
+    {
+      "line": 371,
+      "text": "Beast Leo); Spirit-craft builds a servant from mana (dissolves when its",
+      "status": "partially supported",
+      "handling": "Observe accepted HUD/report state; narrator owns simulation",
+      "refs": [
+        "dist/backend.js:6785:parseHud",
+        "dist/backend.js:10141:buildCompanionInstructionRead",
+        "dist/backend.js:9473:worldMushoku"
+      ],
+      "tests": [
+        "test_living_world_compatibility.cjs"
+      ]
+    },
+    {
+      "line": 374,
+      "text": "HARD (GRANTED, NEVER INFERRED): a pact line exists ONLY if a binding was",
+      "status": "partially supported",
+      "handling": "Observe accepted HUD/report state; narrator owns simulation",
+      "refs": [
+        "dist/backend.js:6785:parseHud",
+        "dist/backend.js:10141:buildCompanionInstructionRead",
+        "dist/backend.js:9473:worldMushoku"
+      ],
+      "tests": [
+        "test_living_world_compatibility.cjs"
+      ]
+    },
+    {
+      "line": 377,
+      "text": "HARD (CONTROL LAW): summoning an entity with more mana than the summoner is",
+      "status": "partially supported",
+      "handling": "Observe accepted HUD/report state; narrator owns simulation",
+      "refs": [
+        "dist/backend.js:6785:parseHud",
+        "dist/backend.js:10141:buildCompanionInstructionRead",
+        "dist/backend.js:9473:worldMushoku"
+      ],
+      "tests": [
+        "test_living_world_compatibility.cjs"
+      ]
+    },
+    {
+      "line": 380,
+      "text": "--- 4.7 EQUIPMENT (Slot 8) ---",
+      "status": "partially supported",
+      "handling": "Observe accepted HUD/report state; narrator owns simulation",
+      "refs": [
+        "dist/backend.js:6785:parseHud",
+        "dist/backend.js:10141:buildCompanionInstructionRead",
+        "dist/backend.js:9473:worldMushoku"
+      ],
+      "tests": [
+        "test_living_world_compatibility.cjs"
+      ]
+    },
+    {
+      "line": 381,
+      "text": "FORMAT: Equipment: [Item] \u2014 [tag]  (notable / named / legendary / magic-tool",
+      "status": "partially supported",
+      "handling": "Observe accepted HUD/report state; narrator owns simulation",
+      "refs": [
+        "dist/backend.js:6785:parseHud",
+        "dist/backend.js:10141:buildCompanionInstructionRead",
+        "dist/backend.js:9473:worldMushoku"
+      ],
+      "tests": [
+        "test_living_world_compatibility.cjs"
+      ]
+    },
+    {
+      "line": 382,
+      "text": "or artifact only; ordinary gear never appears; multiple comma-separated).",
+      "status": "partially supported",
+      "handling": "Observe accepted HUD/report state; narrator owns simulation",
+      "refs": [
+        "dist/backend.js:6785:parseHud",
+        "dist/backend.js:10141:buildCompanionInstructionRead",
+        "dist/backend.js:9473:worldMushoku"
+      ],
+      "tests": [
+        "test_living_world_compatibility.cjs"
+      ]
+    },
+    {
+      "line": 386,
+      "text": "--- 4.8 INJURIES / CONDITION (Slot 8.5) ---",
+      "status": "partially supported",
+      "handling": "Observe accepted HUD/report state; narrator owns simulation",
+      "refs": [
+        "dist/backend.js:6785:parseHud",
+        "dist/backend.js:10141:buildCompanionInstructionRead",
+        "dist/backend.js:9473:worldMushoku"
+      ],
+      "tests": [
+        "test_living_world_compatibility.cjs"
+      ]
+    },
+    {
+      "line": 387,
+      "text": "FORMAT:",
+      "status": "partially supported",
+      "handling": "Observe accepted HUD/report state; narrator owns simulation",
+      "refs": [
+        "dist/backend.js:6785:parseHud",
+        "dist/backend.js:10141:buildCompanionInstructionRead",
+        "dist/backend.js:9473:worldMushoku"
+      ],
+      "tests": [
+        "test_living_world_compatibility.cjs"
+      ]
+    },
+    {
+      "line": 393,
+      "text": "Treated      \u2014 mundane care only (splint, stitches); wound still real",
+      "status": "partially supported",
+      "handling": "Observe accepted HUD/report state; narrator owns simulation",
+      "refs": [
+        "dist/backend.js:6785:parseHud",
+        "dist/backend.js:10141:buildCompanionInstructionRead",
+        "dist/backend.js:9473:worldMushoku"
+      ],
+      "tests": [
+        "test_living_world_compatibility.cjs"
+      ]
+    },
+    {
+      "line": 398,
+      "text": "WHEN a wound/condition is gained, treated, or resolved \u2192 update THAT turn.",
+      "status": "partially supported",
+      "handling": "Observe accepted HUD/report state; narrator owns simulation",
+      "refs": [
+        "dist/backend.js:6785:parseHud",
+        "dist/backend.js:10141:buildCompanionInstructionRead",
+        "dist/backend.js:9473:worldMushoku"
+      ],
+      "tests": [
+        "test_living_world_compatibility.cjs"
+      ]
+    },
+    {
+      "line": 399,
+      "text": "WHEN a wound reaches fully Healed \u2192 remove it. WHEN all clear \u2192 omit both",
+      "status": "partially supported",
+      "handling": "Observe accepted HUD/report state; narrator owns simulation",
+      "refs": [
+        "dist/backend.js:6785:parseHud",
+        "dist/backend.js:10141:buildCompanionInstructionRead",
+        "dist/backend.js:9473:worldMushoku"
+      ],
+      "tests": [
+        "test_living_world_compatibility.cjs"
+      ]
+    },
+    {
+      "line": 400,
+      "text": "lines (Empty Slot Rule).",
+      "status": "partially supported",
+      "handling": "Observe accepted HUD/report state; narrator owns simulation",
+      "refs": [
+        "dist/backend.js:6785:parseHud",
+        "dist/backend.js:10141:buildCompanionInstructionRead",
+        "dist/backend.js:9473:worldMushoku"
+      ],
+      "tests": [
+        "test_living_world_compatibility.cjs"
+      ]
+    },
+    {
+      "line": 402,
+      "text": "HARD (THE HARD LAW OF MT HEALING \u2014 NO REGROWTH): Water-based Healing magic \u2014",
+      "status": "partially supported",
+      "handling": "Observe accepted HUD/report state; narrator owns simulation",
+      "refs": [
+        "dist/backend.js:6785:parseHud",
+        "dist/backend.js:10141:buildCompanionInstructionRead",
+        "dist/backend.js:9473:worldMushoku"
+      ],
+      "tests": [
+        "test_living_world_compatibility.cjs"
+      ]
+    },
+    {
+      "line": 404,
+      "text": "but CAN NEVER regrow what is completely lost, destroyed, or long-severed.",
+      "status": "partially supported",
+      "handling": "Observe accepted HUD/report state; narrator owns simulation",
+      "refs": [
+        "dist/backend.js:6785:parseHud",
+        "dist/backend.js:10141:buildCompanionInstructionRead",
+        "dist/backend.js:9473:worldMushoku"
+      ],
+      "tests": [
+        "test_living_world_compatibility.cjs"
+      ]
+    },
+    {
+      "line": 406,
+      "text": "Permanent on the spot and locked there. The ONLY bypass is",
+      "status": "partially supported",
+      "handling": "Observe accepted HUD/report state; narrator owns simulation",
+      "refs": [
+        "dist/backend.js:6785:parseHud",
+        "dist/backend.js:10141:buildCompanionInstructionRead",
+        "dist/backend.js:9473:worldMushoku"
+      ],
+      "tests": [
+        "test_living_world_compatibility.cjs"
+      ]
+    },
+    {
+      "line": 408,
+      "text": "workshop craft) \u2014 and that is Equipment (Slot 8), never a \"heal.\"",
+      "status": "partially supported",
+      "handling": "Observe accepted HUD/report state; narrator owns simulation",
+      "refs": [
+        "dist/backend.js:6785:parseHud",
+        "dist/backend.js:10141:buildCompanionInstructionRead",
+        "dist/backend.js:9473:worldMushoku"
+      ],
+      "tests": [
+        "test_living_world_compatibility.cjs"
+      ]
+    },
+    {
+      "line": 409,
+      "text": "HARD (STATE IS GOD): a wound tagged Magic-Healed or absent CANNOT be narrated",
+      "status": "partially supported",
+      "handling": "Observe accepted HUD/report state; narrator owns simulation",
+      "refs": [
+        "dist/backend.js:6785:parseHud",
+        "dist/backend.js:10141:buildCompanionInstructionRead",
+        "dist/backend.js:9473:worldMushoku"
+      ],
+      "tests": [
+        "test_living_world_compatibility.cjs"
+      ]
+    },
+    {
+      "line": 411,
+      "text": "HARD: Raw wounds MUST show impairment in prose \u2014 never narrate past them.",
+      "status": "partially supported",
+      "handling": "Observe accepted HUD/report state; narrator owns simulation",
+      "refs": [
+        "dist/backend.js:6785:parseHud",
+        "dist/backend.js:10141:buildCompanionInstructionRead",
+        "dist/backend.js:9473:worldMushoku"
+      ],
+      "tests": [
+        "test_living_world_compatibility.cjs"
+      ]
+    },
+    {
+      "line": 412,
+      "text": "HARD: Treated \u2260 Healed \u2014 mundane care stabilizes danger; the wound remains.",
+      "status": "partially supported",
+      "handling": "Observe accepted HUD/report state; narrator owns simulation",
+      "refs": [
+        "dist/backend.js:6785:parseHud",
+        "dist/backend.js:10141:buildCompanionInstructionRead",
+        "dist/backend.js:9473:worldMushoku"
+      ],
+      "tests": [
+        "test_living_world_compatibility.cjs"
+      ]
+    },
+    {
+      "line": 413,
+      "text": "HARD: Permanent never leaves on time or magic alone \u2014 only an explicitly",
+      "status": "partially supported",
+      "handling": "Observe accepted HUD/report state; narrator owns simulation",
+      "refs": [
+        "dist/backend.js:6785:parseHud",
+        "dist/backend.js:10141:buildCompanionInstructionRead",
+        "dist/backend.js:9473:worldMushoku"
+      ],
+      "tests": [
+        "test_living_world_compatibility.cjs"
+      ]
+    },
+    {
+      "line": 416,
+      "text": "MODULE NOTE: this slot is CORE-OWNED. Wound/healing lorebook entries inject",
+      "status": "partially supported",
+      "handling": "Observe accepted HUD/report state; narrator owns simulation",
+      "refs": [
+        "dist/backend.js:6785:parseHud",
+        "dist/backend.js:10141:buildCompanionInstructionRead",
+        "dist/backend.js:9473:worldMushoku"
+      ],
+      "tests": [
+        "test_living_world_compatibility.cjs"
+      ]
+    },
+    {
+      "line": 417,
+      "text": "narrative detail when keywords fire; they do NOT rewrite the tag. Tag state",
+      "status": "partially supported",
+      "handling": "Observe accepted HUD/report state; narrator owns simulation",
+      "refs": [
+        "dist/backend.js:6785:parseHud",
+        "dist/backend.js:10141:buildCompanionInstructionRead",
+        "dist/backend.js:9473:worldMushoku"
+      ],
+      "tests": [
+        "test_living_world_compatibility.cjs"
+      ]
+    },
+    {
+      "line": 424,
+      "text": "These are ENABLED lorebook entries. Each injects its OWN line, format, and",
+      "status": "partially supported",
+      "handling": "Observe accepted HUD/report state; narrator owns simulation",
+      "refs": [
+        "dist/backend.js:6785:parseHud",
+        "dist/backend.js:10141:buildCompanionInstructionRead",
+        "dist/backend.js:9473:worldMushoku"
+      ],
+      "tests": [
+        "test_living_world_compatibility.cjs"
+      ]
+    },
+    {
+      "line": 425,
+      "text": "math when its keyword fires. Your ONLY jobs: recognize the trigger, place the",
+      "status": "partially supported",
+      "handling": "Observe accepted HUD/report state; narrator owns simulation",
+      "refs": [
+        "dist/backend.js:6785:parseHud",
+        "dist/backend.js:10141:buildCompanionInstructionRead",
+        "dist/backend.js:9473:worldMushoku"
+      ],
+      "tests": [
+        "test_living_world_compatibility.cjs"
+      ]
+    },
+    {
+      "line": 426,
+      "text": "line in the listed slot, keep it consistent across turns, remove it when it",
+      "status": "partially supported",
+      "handling": "Observe accepted HUD/report state; narrator owns simulation",
+      "refs": [
+        "dist/backend.js:6785:parseHud",
+        "dist/backend.js:10141:buildCompanionInstructionRead",
+        "dist/backend.js:9473:worldMushoku"
+      ],
+      "tests": [
+        "test_living_world_compatibility.cjs"
+      ]
+    },
+    {
+      "line": 427,
+      "text": "ends. NEVER restate a module's internal numbers, stage tables, or",
+      "status": "partially supported",
+      "handling": "Observe accepted HUD/report state; narrator owns simulation",
+      "refs": [
+        "dist/backend.js:6785:parseHud",
+        "dist/backend.js:10141:buildCompanionInstructionRead",
+        "dist/backend.js:9473:worldMushoku"
+      ],
+      "tests": [
+        "test_living_world_compatibility.cjs"
+      ]
+    },
+    {
+      "line": 429,
+      "text": "with a Start Handler FORMAT LOCK, the locked format wins.",
+      "status": "partially supported",
+      "handling": "Observe accepted HUD/report state; narrator owns simulation",
+      "refs": [
+        "dist/backend.js:6785:parseHud",
+        "dist/backend.js:10141:buildCompanionInstructionRead",
+        "dist/backend.js:9473:worldMushoku"
+      ],
+      "tests": [
+        "test_living_world_compatibility.cjs"
+      ]
+    },
+    {
+      "line": 431,
+      "text": "TRIGGER                              \u2192 MODULE              \u2192 SLOT",
+      "status": "partially supported",
+      "handling": "Observe accepted HUD/report state; narrator owns simulation",
+      "refs": [
+        "dist/backend.js:6785:parseHud",
+        "dist/backend.js:10141:buildCompanionInstructionRead",
+        "dist/backend.js:9473:worldMushoku"
+      ],
+      "tests": [
+        "test_living_world_compatibility.cjs"
+      ]
+    },
+    {
+      "line": 433,
+      "text": "Origin: Outworlder active            \u2192 Drain Syndrome       \u2192 9  (hard-state)",
+      "status": "partially supported",
+      "handling": "Observe accepted HUD/report state; narrator owns simulation",
+      "refs": [
+        "dist/backend.js:6785:parseHud",
+        "dist/backend.js:10141:buildCompanionInstructionRead",
+        "dist/backend.js:9473:worldMushoku"
+      ],
+      "tests": [
+        "test_living_world_compatibility.cjs"
+      ]
+    },
+    {
+      "line": 436,
+      "text": "Miko / Blessed Child / Cursed One    \u2192 Curse & Blessing     \u2192 9  (hard-state,",
+      "status": "partially supported",
+      "handling": "Observe accepted HUD/report state; narrator owns simulation",
+      "refs": [
+        "dist/backend.js:6785:parseHud",
+        "dist/backend.js:10141:buildCompanionInstructionRead",
+        "dist/backend.js:9473:worldMushoku"
+      ],
+      "tests": [
+        "test_living_world_compatibility.cjs"
+      ]
+    },
+    {
+      "line": 437,
+      "text": "(set at birth by the Start Handler)                             never earned)",
+      "status": "partially supported",
+      "handling": "Observe accepted HUD/report state; narrator owns simulation",
+      "refs": [
+        "dist/backend.js:6785:parseHud",
+        "dist/backend.js:10141:buildCompanionInstructionRead",
+        "dist/backend.js:9473:worldMushoku"
+      ],
+      "tests": [
+        "test_living_world_compatibility.cjs"
+      ]
+    },
+    {
+      "line": 450,
+      "text": "NOTES (placement only \u2014 the module owns the rest):",
+      "status": "partially supported",
+      "handling": "Observe accepted HUD/report state; narrator owns simulation",
+      "refs": [
+        "dist/backend.js:6785:parseHud",
+        "dist/backend.js:10141:buildCompanionInstructionRead",
+        "dist/backend.js:9473:worldMushoku"
+      ],
+      "tests": [
+        "test_living_world_compatibility.cjs"
+      ]
+    },
+    {
+      "line": 451,
+      "text": "\u2022 Drain Syndrome (Slot 9): woken by the hard state Origin: Outworlder. The",
+      "status": "partially supported",
+      "handling": "Observe accepted HUD/report state; narrator owns simulation",
+      "refs": [
+        "dist/backend.js:6785:parseHud",
+        "dist/backend.js:10141:buildCompanionInstructionRead",
+        "dist/backend.js:9473:worldMushoku"
+      ],
+      "tests": [
+        "test_living_world_compatibility.cjs"
+      ]
+    },
+    {
+      "line": 453,
+      "text": "+1 every 365 Days, fatal at Year 10. Pilot only carries the line forward",
+      "status": "partially supported",
+      "handling": "Observe accepted HUD/report state; narrator owns simulation",
+      "refs": [
+        "dist/backend.js:6785:parseHud",
+        "dist/backend.js:10141:buildCompanionInstructionRead",
+        "dist/backend.js:9473:worldMushoku"
+      ],
+      "tests": [
+        "test_living_world_compatibility.cjs"
+      ]
+    },
+    {
+      "line": 454,
+      "text": "and lets the module advance the year on the day-count trigger. Never",
+      "status": "partially supported",
+      "handling": "Observe accepted HUD/report state; narrator owns simulation",
+      "refs": [
+        "dist/backend.js:6785:parseHud",
+        "dist/backend.js:10141:buildCompanionInstructionRead",
+        "dist/backend.js:9473:worldMushoku"
+      ],
+      "tests": [
+        "test_living_world_compatibility.cjs"
+      ]
+    },
+    {
+      "line": 456,
+      "text": "\u2022 Magic Stone Disease (Slot 9): the module owns the percentage; death at",
+      "status": "partially supported",
+      "handling": "Observe accepted HUD/report state; narrator owns simulation",
+      "refs": [
+        "dist/backend.js:6785:parseHud",
+        "dist/backend.js:10141:buildCompanionInstructionRead",
+        "dist/backend.js:9473:worldMushoku"
+      ],
+      "tests": [
+        "test_living_world_compatibility.cjs"
+      ]
+    },
+    {
+      "line": 459,
+      "text": "\u2022 Curse / Blessing (Slot 9): a Miko blessing and a Cursed One curse are the",
+      "status": "partially supported",
+      "handling": "Observe accepted HUD/report state; narrator owns simulation",
+      "refs": [
+        "dist/backend.js:6785:parseHud",
+        "dist/backend.js:10141:buildCompanionInstructionRead",
+        "dist/backend.js:9473:worldMushoku"
+      ],
+      "tests": [
+        "test_living_world_compatibility.cjs"
+      ]
+    },
+    {
+      "line": 461,
+      "text": "it useful (magic lorebook: Curses & Blessings). Format:",
+      "status": "partially supported",
+      "handling": "Observe accepted HUD/report state; narrator owns simulation",
+      "refs": [
+        "dist/backend.js:6785:parseHud",
+        "dist/backend.js:10141:buildCompanionInstructionRead",
+        "dist/backend.js:9473:worldMushoku"
+      ],
+      "tests": [
+        "test_living_world_compatibility.cjs"
+      ]
+    },
+    {
+      "line": 462,
+      "text": "Blessing: [Name] \u2014 Miko (Always-On | Trigger-Bound)",
+      "status": "partially supported",
+      "handling": "Observe accepted HUD/report state; narrator owns simulation",
+      "refs": [
+        "dist/backend.js:6785:parseHud",
+        "dist/backend.js:10141:buildCompanionInstructionRead",
+        "dist/backend.js:9473:worldMushoku"
+      ],
+      "tests": [
+        "test_living_world_compatibility.cjs"
+      ]
+    },
+    {
+      "line": 464,
+      "text": "HARD (BIRTH, NEVER EARNED): this line exists ONLY if the Start Handler set",
+      "status": "partially supported",
+      "handling": "Observe accepted HUD/report state; narrator owns simulation",
+      "refs": [
+        "dist/backend.js:6785:parseHud",
+        "dist/backend.js:10141:buildCompanionInstructionRead",
+        "dist/backend.js:9473:worldMushoku"
+      ],
+      "tests": [
+        "test_living_world_compatibility.cjs"
+      ]
+    },
+    {
+      "line": 465,
+      "text": "it, or an Inflicted curse was explicitly laid in play. It is NEVER granted",
+      "status": "partially supported",
+      "handling": "Observe accepted HUD/report state; narrator owns simulation",
+      "refs": [
+        "dist/backend.js:6785:parseHud",
+        "dist/backend.js:10141:buildCompanionInstructionRead",
+        "dist/backend.js:9473:worldMushoku"
+      ],
+      "tests": [
+        "test_living_world_compatibility.cjs"
+      ]
+    },
+    {
+      "line": 467,
+      "text": "HARD (NEVER LIFTED): no Healing, Detoxification, Divine Strike, time, or",
+      "status": "partially supported",
+      "handling": "Observe accepted HUD/report state; narrator owns simulation",
+      "refs": [
+        "dist/backend.js:6785:parseHud",
+        "dist/backend.js:10141:buildCompanionInstructionRead",
+        "dist/backend.js:9473:worldMushoku"
+      ],
+      "tests": [
+        "test_living_world_compatibility.cjs"
+      ]
+    },
+    {
+      "line": 468,
+      "text": "rank removes it. The ONLY bypass is curse-negating EQUIPMENT (Cliff",
+      "status": "partially supported",
+      "handling": "Observe accepted HUD/report state; narrator owns simulation",
+      "refs": [
+        "dist/backend.js:6785:parseHud",
+        "dist/backend.js:10141:buildCompanionInstructionRead",
+        "dist/backend.js:9473:worldMushoku"
+      ],
+      "tests": [
+        "test_living_world_compatibility.cjs"
+      ]
+    },
+    {
+      "line": 469,
+      "text": "Grimoire's craft) \u2014 which lives on Slot 8, exactly like the prosthetic",
+      "status": "partially supported",
+      "handling": "Observe accepted HUD/report state; narrator owns simulation",
+      "refs": [
+        "dist/backend.js:6785:parseHud",
+        "dist/backend.js:10141:buildCompanionInstructionRead",
+        "dist/backend.js:9473:worldMushoku"
+      ],
+      "tests": [
+        "test_living_world_compatibility.cjs"
+      ]
+    },
+    {
+      "line": 471,
+      "text": "[device])\" here AND keep the device on Slot 8. Device removed \u2192 the",
+      "status": "partially supported",
+      "handling": "Observe accepted HUD/report state; narrator owns simulation",
+      "refs": [
+        "dist/backend.js:6785:parseHud",
+        "dist/backend.js:10141:buildCompanionInstructionRead",
+        "dist/backend.js:9473:worldMushoku"
+      ],
+      "tests": [
+        "test_living_world_compatibility.cjs"
+      ]
+    },
+    {
+      "line": 473,
+      "text": "HARD (ALWAYS-ON MEANS ALWAYS): an Always-On blessing/curse must express in",
+      "status": "partially supported",
+      "handling": "Observe accepted HUD/report state; narrator owns simulation",
+      "refs": [
+        "dist/backend.js:6785:parseHud",
+        "dist/backend.js:10141:buildCompanionInstructionRead",
+        "dist/backend.js:9473:worldMushoku"
+      ],
+      "tests": [
+        "test_living_world_compatibility.cjs"
+      ]
+    },
+    {
+      "line": 476,
+      "text": "HARD (NOT THE LAPLACE FACTOR): a Miko is not a Laplace vessel and the two",
+      "status": "partially supported",
+      "handling": "Observe accepted HUD/report state; narrator owns simulation",
+      "refs": [
+        "dist/backend.js:6785:parseHud",
+        "dist/backend.js:10141:buildCompanionInstructionRead",
+        "dist/backend.js:9473:worldMushoku"
+      ],
+      "tests": [
+        "test_living_world_compatibility.cjs"
+      ]
+    },
+    {
+      "line": 477,
+      "text": "never share a line. Slot 1 owns the Factor; Slot 9 owns this.",
+      "status": "partially supported",
+      "handling": "Observe accepted HUD/report state; narrator owns simulation",
+      "refs": [
+        "dist/backend.js:6785:parseHud",
+        "dist/backend.js:10141:buildCompanionInstructionRead",
+        "dist/backend.js:9473:worldMushoku"
+      ],
+      "tests": [
+        "test_living_world_compatibility.cjs"
+      ]
+    },
+    {
+      "line": 478,
+      "text": "\u2022 Fate (Slot 10): you only GATE it (Section 7) and place its [STATUS] line;",
+      "status": "partially supported",
+      "handling": "Observe accepted HUD/report state; narrator owns simulation",
+      "refs": [
+        "dist/backend.js:6785:parseHud",
+        "dist/backend.js:10141:buildCompanionInstructionRead",
+        "dist/backend.js:9473:worldMushoku"
+      ],
+      "tests": [
+        "test_living_world_compatibility.cjs"
+      ]
+    },
+    {
+      "line": 481,
+      "text": "\u2022 Regional Catastrophe / Vacuum (Slot 10): you only GATE it (Section 7) and",
+      "status": "partially supported",
+      "handling": "Observe accepted HUD/report state; narrator owns simulation",
+      "refs": [
+        "dist/backend.js:6785:parseHud",
+        "dist/backend.js:10141:buildCompanionInstructionRead",
+        "dist/backend.js:9473:worldMushoku"
+      ],
+      "tests": [
+        "test_living_world_compatibility.cjs"
+      ]
+    },
+    {
+      "line": 484,
+      "text": "\u2022 Game Mode line lists all active non-normal modes (Sandbox, Hard, Hell,",
+      "status": "partially supported",
+      "handling": "Observe accepted HUD/report state; narrator owns simulation",
+      "refs": [
+        "dist/backend.js:6785:parseHud",
+        "dist/backend.js:10141:buildCompanionInstructionRead",
+        "dist/backend.js:9473:worldMushoku"
+      ],
+      "tests": [
+        "test_living_world_compatibility.cjs"
+      ]
+    },
+    {
+      "line": 487,
+      "text": "owns its penalties. Permadeath is the DEFAULT and is never listed.",
+      "status": "partially supported",
+      "handling": "Observe accepted HUD/report state; narrator owns simulation",
+      "refs": [
+        "dist/backend.js:6785:parseHud",
+        "dist/backend.js:10141:buildCompanionInstructionRead",
+        "dist/backend.js:9473:worldMushoku"
+      ],
+      "tests": [
+        "test_living_world_compatibility.cjs"
+      ]
+    },
+    {
+      "line": 493,
+      "text": "The Narrative Mode module (Slot 12) self-inserts the active mode(s) and their",
+      "status": "partially supported",
+      "handling": "Observe accepted HUD/report state; narrator owns simulation",
+      "refs": [
+        "dist/backend.js:6785:parseHud",
+        "dist/backend.js:10141:buildCompanionInstructionRead",
+        "dist/backend.js:9473:worldMushoku"
+      ],
+      "tests": [
+        "test_living_world_compatibility.cjs"
+      ]
+    },
+    {
+      "line": 494,
+      "text": "constraints. The engine only honors the resulting perspective below the wall:",
+      "status": "partially supported",
+      "handling": "Observe accepted HUD/report state; narrator owns simulation",
+      "refs": [
+        "dist/backend.js:6785:parseHud",
+        "dist/backend.js:10141:buildCompanionInstructionRead",
+        "dist/backend.js:9473:worldMushoku"
+      ],
+      "tests": [
+        "test_living_world_compatibility.cjs"
+      ]
+    },
+    {
+      "line": 506,
+      "text": "FATE GATE: the Fate watchdog fires ONLY if the Start Handler set an active",
+      "status": "partially supported",
+      "handling": "Observe accepted HUD/report state; narrator owns simulation",
+      "refs": [
+        "dist/backend.js:6785:parseHud",
+        "dist/backend.js:10141:buildCompanionInstructionRead",
+        "dist/backend.js:9473:worldMushoku"
+      ],
+      "tests": [
+        "test_living_world_compatibility.cjs"
+      ]
+    },
+    {
+      "line": 509,
+      "text": "EVENT CHECK (ACTIVE arc only): cross-reference the clock (Day [X]) and",
+      "status": "partially supported",
+      "handling": "Observe accepted HUD/report state; narrator owns simulation",
+      "refs": [
+        "dist/backend.js:6785:parseHud",
+        "dist/backend.js:10141:buildCompanionInstructionRead",
+        "dist/backend.js:9473:worldMushoku"
+      ],
+      "tests": [
+        "test_living_world_compatibility.cjs"
+      ]
+    },
+    {
+      "line": 512,
+      "text": "ARC SCRIPT PRIMACY (HARD): a scripted regional event fires whether or not",
+      "status": "partially supported",
+      "handling": "Observe accepted HUD/report state; narrator owns simulation",
+      "refs": [
+        "dist/backend.js:6785:parseHud",
+        "dist/backend.js:10141:buildCompanionInstructionRead",
+        "dist/backend.js:9473:worldMushoku"
+      ],
+      "tests": [
+        "test_living_world_compatibility.cjs"
+      ]
+    },
+    {
+      "line": 514,
+      "text": "detonates on schedule. The Engine never quietly drops a scripted disaster.",
+      "status": "partially supported",
+      "handling": "Observe accepted HUD/report state; narrator owns simulation",
+      "refs": [
+        "dist/backend.js:6785:parseHud",
+        "dist/backend.js:10141:buildCompanionInstructionRead",
+        "dist/backend.js:9473:worldMushoku"
+      ],
+      "tests": [
+        "test_living_world_compatibility.cjs"
+      ]
+    },
+    {
+      "line": 515,
+      "text": "SCOPE: fires ONLY for the ACTIVE region on its own clock; never pulls the",
+      "status": "partially supported",
+      "handling": "Observe accepted HUD/report state; narrator owns simulation",
+      "refs": [
+        "dist/backend.js:6785:parseHud",
+        "dist/backend.js:10141:buildCompanionInstructionRead",
+        "dist/backend.js:9473:worldMushoku"
+      ],
+      "tests": [
+        "test_living_world_compatibility.cjs"
+      ]
+    },
+    {
+      "line": 517,
+      "text": "CANON SCRIPT GATING: scripted beats run ONLY when (a) it is the ACTIVE arc AND",
+      "status": "partially supported",
+      "handling": "Observe accepted HUD/report state; narrator owns simulation",
+      "refs": [
+        "dist/backend.js:6785:parseHud",
+        "dist/backend.js:10141:buildCompanionInstructionRead",
+        "dist/backend.js:9473:worldMushoku"
+      ],
+      "tests": [
+        "test_living_world_compatibility.cjs"
+      ]
+    },
+    {
+      "line": 521,
+      "text": "KNOWLEDGE HORIZON: the User knows only the past/present. Never leak future",
+      "status": "partially supported",
+      "handling": "Observe accepted HUD/report state; narrator owns simulation",
+      "refs": [
+        "dist/backend.js:6785:parseHud",
+        "dist/backend.js:10141:buildCompanionInstructionRead",
+        "dist/backend.js:9473:worldMushoku"
+      ],
+      "tests": [
+        "test_living_world_compatibility.cjs"
+      ]
+    },
+    {
+      "line": 523,
+      "text": "SECRETS GATE: if the User reveals Forbidden Secrets (Teleportation Magic, ruin",
+      "status": "partially supported",
+      "handling": "Observe accepted HUD/report state; narrator owns simulation",
+      "refs": [
+        "dist/backend.js:6785:parseHud",
+        "dist/backend.js:10141:buildCompanionInstructionRead",
+        "dist/backend.js:9473:worldMushoku"
+      ],
+      "tests": [
+        "test_living_world_compatibility.cjs"
+      ]
+    },
+    {
+      "line": 525,
+      "text": "(Active)] (Slot 10); Dragon Tribe / kingdom assassins begin hunting in the",
+      "status": "partially supported",
+      "handling": "Observe accepted HUD/report state; narrator owns simulation",
+      "refs": [
+        "dist/backend.js:6785:parseHud",
+        "dist/backend.js:10141:buildCompanionInstructionRead",
+        "dist/backend.js:9473:worldMushoku"
+      ],
+      "tests": [
+        "test_living_world_compatibility.cjs"
+      ]
+    },
+    {
+      "line": 528,
+      "text": "region's major objective? GUARDRAILS (all must clear): never fire on Day 1;",
+      "status": "partially supported",
+      "handling": "Observe accepted HUD/report state; narrator owns simulation",
+      "refs": [
+        "dist/backend.js:6785:parseHud",
+        "dist/backend.js:10141:buildCompanionInstructionRead",
+        "dist/backend.js:9473:worldMushoku"
+      ],
+      "tests": [
+        "test_living_world_compatibility.cjs"
+      ]
+    },
+    {
+      "line": 529,
+      "text": "never from backstory; never from lingering/exploring; an objective must",
+      "status": "partially supported",
+      "handling": "Observe accepted HUD/report state; narrator owns simulation",
+      "refs": [
+        "dist/backend.js:6785:parseHud",
+        "dist/backend.js:10141:buildCompanionInstructionRead",
+        "dist/backend.js:9473:worldMushoku"
+      ],
+      "tests": [
+        "test_living_world_compatibility.cjs"
+      ]
+    },
+    {
+      "line": 531,
+      "text": "(Active \u2014 [Region] Consequence)] (Slot 10); the module self-inserts the",
+      "status": "partially supported",
+      "handling": "Observe accepted HUD/report state; narrator owns simulation",
+      "refs": [
+        "dist/backend.js:6785:parseHud",
+        "dist/backend.js:10141:buildCompanionInstructionRead",
+        "dist/backend.js:9473:worldMushoku"
+      ],
+      "tests": [
+        "test_living_world_compatibility.cjs"
+      ]
+    },
+    {
+      "line": 534,
+      "text": "LETHALITY GATE (HARD, before prose, every combat/hazard turn): decide the",
+      "status": "partially supported",
+      "handling": "Observe accepted HUD/report state; narrator owns simulation",
+      "refs": [
+        "dist/backend.js:6785:parseHud",
+        "dist/backend.js:10141:buildCompanionInstructionRead",
+        "dist/backend.js:9473:worldMushoku"
+      ],
+      "tests": [
+        "test_living_world_compatibility.cjs"
+      ]
+    },
+    {
+      "line": 539,
+      "text": "(see World Law: Death & Continuity). Never defer the kill.",
+      "status": "partially supported",
+      "handling": "Observe accepted HUD/report state; narrator owns simulation",
+      "refs": [
+        "dist/backend.js:6785:parseHud",
+        "dist/backend.js:10141:buildCompanionInstructionRead",
+        "dist/backend.js:9473:worldMushoku"
+      ],
+      "tests": [
+        "test_living_world_compatibility.cjs"
+      ]
+    },
+    {
+      "line": 550,
+      "text": "CONSISTENCY GATE (HARD \u2014 STATE IS GOD): HUD and prose must agree. If a field",
+      "status": "partially supported",
+      "handling": "Observe accepted HUD/report state; narrator owns simulation",
+      "refs": [
+        "dist/backend.js:6785:parseHud",
+        "dist/backend.js:10141:buildCompanionInstructionRead",
+        "dist/backend.js:9473:worldMushoku"
+      ],
+      "tests": [
+        "test_living_world_compatibility.cjs"
+      ]
+    },
+    {
+      "line": 553,
+      "text": "SYNERGY ENFORCEMENT (HARD): every active line has its rules applied",
+      "status": "partially supported",
+      "handling": "Observe accepted HUD/report state; narrator owns simulation",
+      "refs": [
+        "dist/backend.js:6785:parseHud",
+        "dist/backend.js:10141:buildCompanionInstructionRead",
+        "dist/backend.js:9473:worldMushoku"
+      ],
+      "tests": [
+        "test_living_world_compatibility.cjs"
+      ]
+    },
+    {
+      "line": 559,
+      "text": "(granted-never-inferred), Injuries/Condition tags, and the consistency of",
+      "status": "partially supported",
+      "handling": "Observe accepted HUD/report state; narrator owns simulation",
+      "refs": [
+        "dist/backend.js:6785:parseHud",
+        "dist/backend.js:10141:buildCompanionInstructionRead",
+        "dist/backend.js:9473:worldMushoku"
+      ],
+      "tests": [
+        "test_living_world_compatibility.cjs"
+      ]
+    },
+    {
+      "line": 564,
+      "text": "8. TIME PERIOD SYSTEM (LIVE TRIGGER)",
+      "status": "partially supported",
+      "handling": "Observe accepted HUD/report state; narrator owns simulation",
+      "refs": [
+        "dist/backend.js:6785:parseHud",
+        "dist/backend.js:10141:buildCompanionInstructionRead",
+        "dist/backend.js:9473:worldMushoku"
+      ],
+      "tests": [
+        "test_living_world_compatibility.cjs"
+      ]
+    },
+    {
+      "line": 569,
+      "text": "when it matches a card's trigger.",
+      "status": "partially supported",
+      "handling": "Observe accepted HUD/report state; narrator owns simulation",
+      "refs": [
+        "dist/backend.js:6785:parseHud",
+        "dist/backend.js:10141:buildCompanionInstructionRead",
+        "dist/backend.js:9473:worldMushoku"
+      ],
+      "tests": [
+        "test_living_world_compatibility.cjs"
+      ]
+    },
+    {
+      "line": 570,
+      "text": "CHRONOLOGY (HARD): time moves FORWARD only. The sole rewind is a granted",
+      "status": "partially supported",
+      "handling": "Observe accepted HUD/report state; narrator owns simulation",
+      "refs": [
+        "dist/backend.js:6785:parseHud",
+        "dist/backend.js:10141:buildCompanionInstructionRead",
+        "dist/backend.js:9473:worldMushoku"
+      ],
+      "tests": [
+        "test_living_world_compatibility.cjs"
+      ]
+    },
+    {
+      "line": 579,
+      "text": "FORMAT: \u25c6 Six-Faced World \u2192 [Continent] \u2192 [Nation/Region] \u2192 [Exact Spot]",
+      "status": "partially supported",
+      "handling": "Observe accepted HUD/report state; narrator owns simulation",
+      "refs": [
+        "dist/backend.js:6785:parseHud",
+        "dist/backend.js:10141:buildCompanionInstructionRead",
+        "dist/backend.js:9473:worldMushoku"
+      ],
+      "tests": [
+        "test_living_world_compatibility.cjs"
+      ]
+    },
+    {
+      "line": 586,
+      "text": "T4 Exact Spot \u2014 when known; OMIT in open terrain.",
+      "status": "partially supported",
+      "handling": "Observe accepted HUD/report state; narrator owns simulation",
+      "refs": [
+        "dist/backend.js:6785:parseHud",
+        "dist/backend.js:10141:buildCompanionInstructionRead",
+        "dist/backend.js:9473:worldMushoku"
+      ],
+      "tests": [
+        "test_living_world_compatibility.cjs"
+      ]
+    },
+    {
+      "line": 601,
+      "text": "10. EMPTY SLOT RULE",
+      "status": "partially supported",
+      "handling": "Observe accepted HUD/report state; narrator owns simulation",
+      "refs": [
+        "dist/backend.js:6785:parseHud",
+        "dist/backend.js:10141:buildCompanionInstructionRead",
+        "dist/backend.js:9473:worldMushoku"
+      ],
+      "tests": [
+        "test_living_world_compatibility.cjs"
+      ]
+    },
+    {
+      "line": 602,
+      "text": "Print a line only if its slot has active content. Empty \u2192 leave blank. Never",
+      "status": "partially supported",
+      "handling": "Observe accepted HUD/report state; narrator owns simulation",
+      "refs": [
+        "dist/backend.js:6785:parseHud",
+        "dist/backend.js:10141:buildCompanionInstructionRead",
+        "dist/backend.js:9473:worldMushoku"
+      ],
+      "tests": [
+        "test_living_world_compatibility.cjs"
+      ]
+    },
+    {
+      "line": 604,
+      "text": "no wounds, no pacts, no status flags shows only the header + Mana Capacity +",
+      "status": "partially supported",
+      "handling": "Observe accepted HUD/report state; narrator owns simulation",
+      "refs": [
+        "dist/backend.js:6785:parseHud",
+        "dist/backend.js:10141:buildCompanionInstructionRead",
+        "dist/backend.js:9473:worldMushoku"
+      ],
+      "tests": [
+        "test_living_world_compatibility.cjs"
+      ]
+    },
+    {
+      "line": 612,
+      "text": "below *** only), and the world-purge. Nothing external \u2014 character card,",
+      "status": "partially supported",
+      "handling": "Observe accepted HUD/report state; narrator owns simulation",
+      "refs": [
+        "dist/backend.js:6785:parseHud",
+        "dist/backend.js:10141:buildCompanionInstructionRead",
+        "dist/backend.js:9473:worldMushoku"
+      ],
+      "tests": [
+        "test_living_world_compatibility.cjs"
+      ]
+    },
+    {
+      "line": 613,
+      "text": "save-state, or prose rule \u2014 overrides HMS state; CORE owns the header, modules",
+      "status": "partially supported",
+      "handling": "Observe accepted HUD/report state; narrator owns simulation",
+      "refs": [
+        "dist/backend.js:6785:parseHud",
+        "dist/backend.js:10141:buildCompanionInstructionRead",
+        "dist/backend.js:9473:worldMushoku"
+      ],
+      "tests": [
+        "test_living_world_compatibility.cjs"
+      ]
+    },
+    {
+      "line": 614,
+      "text": "only add to it, never replace it.",
+      "status": "partially supported",
+      "handling": "Observe accepted HUD/report state; narrator owns simulation",
+      "refs": [
+        "dist/backend.js:6785:parseHud",
+        "dist/backend.js:10141:buildCompanionInstructionRead",
+        "dist/backend.js:9473:worldMushoku"
+      ],
+      "tests": [
+        "test_living_world_compatibility.cjs"
+      ]
+    },
+    {
+      "line": 618,
+      "text": "12. NARRATIVE ENGINE (BELOW THE WALL \u2014 PROSE ONLY)",
+      "status": "partially supported",
+      "handling": "Observe accepted HUD/report state; narrator owns simulation",
+      "refs": [
+        "dist/backend.js:6785:parseHud",
+        "dist/backend.js:10141:buildCompanionInstructionRead",
+        "dist/backend.js:9473:worldMushoku"
+      ],
+      "tests": [
+        "test_living_world_compatibility.cjs"
+      ]
+    },
+    {
+      "line": 620,
+      "text": "Applies ONLY to prose beneath (***). Never touches the HUD.",
+      "status": "partially supported",
+      "handling": "Observe accepted HUD/report state; narrator owns simulation",
+      "refs": [
+        "dist/backend.js:6785:parseHud",
+        "dist/backend.js:10141:buildCompanionInstructionRead",
+        "dist/backend.js:9473:worldMushoku"
+      ],
+      "tests": [
+        "test_living_world_compatibility.cjs"
+      ]
+    },
+    {
+      "line": 625,
+      "text": "Narrative Mode (Slot 12) overrides formatting.",
+      "status": "partially supported",
+      "handling": "Observe accepted HUD/report state; narrator owns simulation",
+      "refs": [
+        "dist/backend.js:6785:parseHud",
+        "dist/backend.js:10141:buildCompanionInstructionRead",
+        "dist/backend.js:9473:worldMushoku"
+      ],
+      "tests": [
+        "test_living_world_compatibility.cjs"
+      ]
+    },
+    {
+      "line": 628,
+      "text": "1. STATE IS GOD \u2014 prose never contradicts the HUD (re-derive the HUD",
+      "status": "partially supported",
+      "handling": "Observe accepted HUD/report state; narrator owns simulation",
+      "refs": [
+        "dist/backend.js:6785:parseHud",
+        "dist/backend.js:10141:buildCompanionInstructionRead",
+        "dist/backend.js:9473:worldMushoku"
+      ],
+      "tests": [
+        "test_living_world_compatibility.cjs"
+      ]
+    },
+    {
+      "line": 637,
+      "text": "6. WORLD, NOT GM \u2014 never end on \"What do you do?\", never offer menus.",
+      "status": "partially supported",
+      "handling": "Observe accepted HUD/report state; narrator owns simulation",
+      "refs": [
+        "dist/backend.js:6785:parseHud",
+        "dist/backend.js:10141:buildCompanionInstructionRead",
+        "dist/backend.js:9473:worldMushoku"
+      ],
+      "tests": [
+        "test_living_world_compatibility.cjs"
+      ]
+    },
+    {
+      "line": 640,
+      "text": "Section 7 Lethality Gate): the Engine never protects the User or allies \u2014",
+      "status": "partially supported",
+      "handling": "Observe accepted HUD/report state; narrator owns simulation",
+      "refs": [
+        "dist/backend.js:6785:parseHud",
+        "dist/backend.js:10141:buildCompanionInstructionRead",
+        "dist/backend.js:9473:worldMushoku"
+      ],
+      "tests": [
+        "test_living_world_compatibility.cjs"
+      ]
+    }
+  ],
+  "duplicate_content_groups": [
+    [
+      232,
+      354
+    ],
+    [
+      233,
+      355
+    ],
+    [
+      234,
+      356
+    ],
+    [
+      235,
+      357
+    ],
+    [
+      236,
+      358
+    ],
+    [
+      237,
+      359
+    ],
+    [
+      238,
+      360
+    ],
+    [
+      239,
+      361
+    ],
+    [
+      240,
+      362
+    ],
+    [
+      241,
+      363
+    ],
+    [
+      242,
+      364
+    ],
+    [
+      243,
+      365
+    ],
+    [
+      244,
+      366
+    ],
+    [
+      245,
+      367
+    ],
+    [
+      246,
+      368
+    ],
+    [
+      247,
+      369
+    ],
+    [
+      248,
+      370
+    ],
+    [
+      249,
+      371
+    ],
+    [
+      250,
+      372
+    ],
+    [
+      251,
+      373
+    ],
+    [
+      252,
+      374
+    ],
+    [
+      253,
+      375
+    ],
+    [
+      254,
+      376
+    ],
+    [
+      255,
+      377
+    ],
+    [
+      256,
+      378
+    ],
+    [
+      257,
+      379
+    ],
+    [
+      258,
+      380
+    ],
+    [
+      259,
+      381
+    ],
+    [
+      260,
+      382
+    ],
+    [
+      261,
+      383
+    ],
+    [
+      262,
+      384
+    ],
+    [
+      263,
+      385
+    ],
+    [
+      264,
+      386
+    ],
+    [
+      265,
+      387
+    ],
+    [
+      266,
+      388
+    ],
+    [
+      267,
+      389
+    ],
+    [
+      268,
+      390
+    ],
+    [
+      269,
+      391
+    ],
+    [
+      270,
+      392
+    ],
+    [
+      271,
+      393
+    ],
+    [
+      272,
+      394
+    ],
+    [
+      273,
+      395
+    ],
+    [
+      274,
+      396
+    ],
+    [
+      275,
+      397
+    ],
+    [
+      276,
+      398
+    ],
+    [
+      277,
+      399
+    ],
+    [
+      278,
+      400
+    ],
+    [
+      279,
+      401
+    ],
+    [
+      280,
+      402
+    ],
+    [
+      281,
+      403
+    ],
+    [
+      282,
+      404
+    ],
+    [
+      283,
+      405
+    ],
+    [
+      284,
+      406
+    ],
+    [
+      285,
+      407
+    ],
+    [
+      286,
+      408
+    ],
+    [
+      287,
+      409
+    ],
+    [
+      288,
+      410
+    ],
+    [
+      289,
+      411
+    ],
+    [
+      290,
+      412
+    ],
+    [
+      291,
+      413
+    ],
+    [
+      292,
+      414
+    ],
+    [
+      293,
+      415
+    ],
+    [
+      294,
+      416
+    ],
+    [
+      295,
+      417
+    ],
+    [
+      296,
+      418
+    ],
+    [
+      297,
+      419
+    ],
+    [
+      298,
+      420
+    ],
+    [
+      299,
+      421
+    ],
+    [
+      300,
+      422
+    ],
+    [
+      301,
+      423
+    ],
+    [
+      302,
+      424
+    ],
+    [
+      303,
+      425
+    ],
+    [
+      304,
+      426
+    ],
+    [
+      305,
+      427
+    ],
+    [
+      306,
+      428
+    ],
+    [
+      307,
+      429
+    ],
+    [
+      308,
+      430
+    ],
+    [
+      309,
+      431
+    ],
+    [
+      310,
+      432
+    ],
+    [
+      311,
+      433
+    ],
+    [
+      312,
+      434
+    ],
+    [
+      313,
+      435
+    ],
+    [
+      314,
+      436
+    ],
+    [
+      315,
+      437
+    ],
+    [
+      316,
+      438
+    ],
+    [
+      317,
+      439
+    ],
+    [
+      318,
+      440
+    ],
+    [
+      319,
+      441
+    ],
+    [
+      320,
+      442
+    ],
+    [
+      321,
+      443
+    ],
+    [
+      322,
+      444
+    ],
+    [
+      323,
+      445
+    ],
+    [
+      324,
+      446
+    ],
+    [
+      325,
+      447
+    ],
+    [
+      326,
+      448
+    ],
+    [
+      327,
+      449
+    ],
+    [
+      328,
+      450
+    ],
+    [
+      329,
+      451
+    ],
+    [
+      330,
+      452
+    ],
+    [
+      331,
+      453
+    ],
+    [
+      332,
+      454
+    ],
+    [
+      333,
+      455
+    ],
+    [
+      334,
+      456
+    ],
+    [
+      335,
+      457
+    ],
+    [
+      336,
+      458
+    ],
+    [
+      337,
+      459
+    ],
+    [
+      338,
+      460
+    ],
+    [
+      339,
+      461
+    ],
+    [
+      340,
+      462
+    ],
+    [
+      341,
+      463
+    ],
+    [
+      342,
+      464
+    ],
+    [
+      343,
+      465
+    ],
+    [
+      344,
+      466
+    ],
+    [
+      345,
+      467
+    ],
+    [
+      346,
+      468
+    ],
+    [
+      347,
+      469
+    ],
+    [
+      348,
+      470
+    ],
+    [
+      349,
+      471
+    ],
+    [
+      350,
+      472
+    ],
+    [
+      351,
+      473
+    ],
+    [
+      352,
+      474
+    ],
+    [
+      353,
+      475
+    ],
+    [
+      600,
+      766
+    ],
+    [
+      601,
+      767
+    ]
+  ],
+  "limits": "Partial includes untested individual mechanics. Supported observational contracts are listed separately; no full-card compatibility percentage."
+}
