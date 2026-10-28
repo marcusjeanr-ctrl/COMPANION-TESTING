@@ -16549,7 +16549,7 @@ function questSceneLifecycle(q, m, data, context) {
     const { failureClauses, clauses, location, namedTargets } = context;
     const named = namedTargets.get(q);
     if (named) return { state: /\b(?:failed|abandoned|cancelled|canceled)\b/i.test(named) ? 'failed' : 'completed', quote: named.trim().slice(0,240), kind: 'named-outcome', msgId: m.id };
-    if (/\b(?:tomorrow|next stage|next week|ongoing|long.term)\b/i.test(q.objective || '')) return null;
+    if (q.category === 'main' || /\b(?:tomorrow|next stage|next week|ongoing|long.term)\b/i.test(q.objective || '')) return null;
     if (!/\b(?:final exchange|last chance|last attempt|last exchange)\b/i.test(q.objective || '') || !q.giver || !partyMatch(Array.isArray(data.characters) ? data.characters : [], q.giver)) return null;
     if (q.where && location) { const expected = trackingWords(q.where), actual = trackingWords(location); if ([...expected].filter(w => actual.has(w)).length < Math.min(2, expected.size)) return null; }
     const ending = clauses.find(line => /\b(?:training|session|lesson|drill|test|sparring)\b.{0,35}\b(?:concluded|ended|finished|over)\b/i.test(line));

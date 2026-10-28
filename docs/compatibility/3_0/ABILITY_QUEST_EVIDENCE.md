@@ -29,7 +29,9 @@ covers this follow-up; older reports describe their own checkpoints.
    ending can retire a final-exchange/last-chance goal with the same giver and
    compatible location. A confirmed failed footing objective becomes failed;
    an ended trial without a confirmed result becomes **closed**, not completed.
-   Future/umbrella goals remain active. No percentages, rewards or financial
+   Main quests require their own explicit outcome; a finished scene cannot close
+   their current stage as if it completed the whole quest. Future/umbrella goals
+   remain active. No percentages, rewards or financial
    transactions are invented. Same-reply stale HUD state cannot override a verified
    scene outcome; later explicit HUD reopening keeps existing precedence. Explicit
    report reopening/new stages remain supported. Questioned, conditional, negated,
@@ -82,7 +84,7 @@ Results and exact runtime hashes are recorded in `ability-quest-evidence.json`.
 Node 22, full existing-card regressions and Chromium/mock-host tests are used.
 Five paired rounds alternate published/fixed order with full Six-Sided references,
 source-bound 600- and 2,000-message histories and the existing pipeline benchmark.
-The final focused suite has 18 cases, included in all 44 regression suites;
+The final focused suite has 19 cases, included in all 44 regression suites;
 23 UI and five visibility browser tests include the alias tooltip and quest badges.
 Timing is measured without concurrent regression/browser workloads. The private
 export and credentials are not committed. Live Lumiverse/Android acceptance and
@@ -98,13 +100,13 @@ No release, version increment or merge is performed as part of this branch.
 
 | Median of five paired rounds | Published | Fixed |
 |---|---:|---:|
-| Six-Sided, 600 messages, warm panel | 69.49 ms | 70.56 ms |
-| Six-Sided, 2,000 messages, warm panel | 198.63 ms | 156.64 ms |
-| Pipeline response processing | 0.8464 ms | 0.8900 ms |
+| Six-Sided, 600 messages, warm panel | 69.30 ms | 66.32 ms |
+| Six-Sided, 2,000 messages, warm panel | 197.78 ms | 172.84 ms |
+| Pipeline response processing | 1.0312 ms | 1.0767 ms |
 
 These are local observations with substantial cloud/JIT variation, not evidence
 that this patch solves the previously reported long-campaign performance issue.
-The normal fixture changes by about 1 ms; real WebView responsiveness remains
+The normal fixture changes by about 3 ms; real WebView responsiveness remains
 unverified. The 2,000-message result must not be advertised as a guaranteed speedup.
 Raw round samples and source hashes are included in the evidence JSON. These
 fixtures do not exercise thousands of unique goals ending at once.

@@ -219,6 +219,7 @@ class BrowserUi(unittest.TestCase):
         chips=self.page.locator('.rpgc-chip.abil').filter(has_text='Grounding force absorption')
         self.assertEqual(chips.count(),1)
         self.assertIn('40%',chips.first.get_attribute('title'))
+        self.assertIn('first teacher sign-off',chips.first.get_attribute('title'))
         quests=self.page.locator('.rpgc-qcard')
         self.assertEqual(quests.filter(has_text='Final trial').locator('.qst').inner_text(),'closed')
         self.assertEqual(quests.filter(has_text='Morning Sword Drill').locator('.qst').inner_text(),'failed')

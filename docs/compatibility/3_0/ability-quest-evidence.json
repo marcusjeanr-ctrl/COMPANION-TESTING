@@ -3,8 +3,8 @@
   "version": "unreleased changes on 3.0.2",
   "sourceSha256": {
     "baselineBackend": "bbd38a2464695d2de9a9776db289a283b4a4f200ac721ff0dbd48c8dad8c5534",
-    "fixedBackend": "b4d905dbe95cca62af26be90557d9767a7f3c6f3edc8319572b7f13718c9131a",
-    "fixedFrontend": "10b06565629aaa4796e892205cbfd53be2e29fc84788fbbdf15ddfac7722c57e"
+    "fixedBackend": "6ee4e5c9c9eaed749d733b3651412da0f02cc2b3a293ffd090150c0539dd8867",
+    "fixedFrontend": "85a5675514d4711015d3a71e4250dff97534d5f606714e41c6e7275f1999740b"
   },
   "exportCounts": {
     "sha256": "8a581a036d133103f62e5e0ce97877121877acbb714a27e57fe19bf34a832cab",
@@ -62,7 +62,7 @@
   },
   "verification": {
     "regressionSuites": 44,
-    "newEvidenceGroups": 18,
+    "newEvidenceGroups": 19,
     "uiBrowser": 23,
     "visibilityBrowser": 5,
     "liveLumiverse": "not performed"
@@ -80,35 +80,35 @@
       "kind": "panel600",
       "revision": "published-3.0.2",
       "rounds": 5,
-      "coldMs": 348.71,
-      "medianMs": 69.49
+      "coldMs": 348.36,
+      "medianMs": 69.3
     },
     {
       "kind": "panel600",
       "revision": "fixed",
       "rounds": 5,
-      "coldMs": 360.03,
-      "medianMs": 70.56
+      "coldMs": 361.25,
+      "medianMs": 66.32
     },
     {
       "kind": "panel2000",
       "revision": "published-3.0.2",
       "rounds": 5,
-      "coldMs": 645.39,
-      "medianMs": 198.63
+      "coldMs": 700.26,
+      "medianMs": 197.78
     },
     {
       "kind": "panel2000",
       "revision": "fixed",
       "rounds": 5,
-      "coldMs": 662.86,
-      "medianMs": 156.64
+      "coldMs": 743.33,
+      "medianMs": 172.84
     },
     {
       "kind": "pipeline",
       "revision": "published-3.0.2",
       "rounds": 5,
-      "processResponseMedianMs": 0.8464,
+      "processResponseMedianMs": 1.0312,
       "promptCharacters": 14949,
       "populatedPromptCharacters": 18839
     },
@@ -116,7 +116,7 @@
       "kind": "pipeline",
       "revision": "fixed",
       "rounds": 5,
-      "processResponseMedianMs": 0.89,
+      "processResponseMedianMs": 1.0767,
       "promptCharacters": 15107,
       "populatedPromptCharacters": 19029
     }
@@ -124,8 +124,8 @@
   "samples": [
     {
       "messages": 600,
-      "coldMs": 464.3,
-      "medianMs": 81.81,
+      "coldMs": 418.32,
+      "medianMs": 77.51,
       "warnings": 0,
       "round": 1,
       "kind": "panel600",
@@ -133,8 +133,8 @@
     },
     {
       "messages": 600,
-      "coldMs": 394.7,
-      "medianMs": 82.68,
+      "coldMs": 361.25,
+      "medianMs": 63.69,
       "warnings": 0,
       "round": 1,
       "kind": "panel600",
@@ -142,8 +142,8 @@
     },
     {
       "messages": 2000,
-      "coldMs": 644.98,
-      "medianMs": 151.65,
+      "coldMs": 803.9,
+      "medianMs": 202.5,
       "warnings": 0,
       "round": 1,
       "kind": "panel2000",
@@ -151,17 +151,17 @@
     },
     {
       "messages": 2000,
-      "coldMs": 565.78,
-      "medianMs": 156.64,
+      "coldMs": 744.81,
+      "medianMs": 176.56,
       "warnings": 0,
       "round": 1,
       "kind": "panel2000",
       "revision": "fixed"
     },
     {
-      "parseReportMedianMs": 0.6313,
-      "processResponseMedianMs": 0.8464,
-      "promptConstructMedianMs": 0.3852,
+      "parseReportMedianMs": 0.713,
+      "processResponseMedianMs": 1.0312,
+      "promptConstructMedianMs": 0.4638,
       "promptCharacters": 14949,
       "populatedPromptCharacters": 18839,
       "warnings": 0,
@@ -170,9 +170,9 @@
       "revision": "published-3.0.2"
     },
     {
-      "parseReportMedianMs": 0.6033,
-      "processResponseMedianMs": 0.9529,
-      "promptConstructMedianMs": 0.4368,
+      "parseReportMedianMs": 0.738,
+      "processResponseMedianMs": 1.0767,
+      "promptConstructMedianMs": 0.442,
       "promptCharacters": 15107,
       "populatedPromptCharacters": 19029,
       "warnings": 0,
@@ -182,8 +182,8 @@
     },
     {
       "messages": 600,
-      "coldMs": 351.96,
-      "medianMs": 62.39,
+      "coldMs": 417,
+      "medianMs": 74.11,
       "warnings": 0,
       "round": 2,
       "kind": "panel600",
@@ -191,8 +191,8 @@
     },
     {
       "messages": 600,
-      "coldMs": 278.69,
-      "medianMs": 69.49,
+      "coldMs": 331.98,
+      "medianMs": 73.32,
       "warnings": 0,
       "round": 2,
       "kind": "panel600",
@@ -200,8 +200,8 @@
     },
     {
       "messages": 2000,
-      "coldMs": 1306.22,
-      "medianMs": 204.15,
+      "coldMs": 765.36,
+      "medianMs": 172.84,
       "warnings": 0,
       "round": 2,
       "kind": "panel2000",
@@ -209,17 +209,17 @@
     },
     {
       "messages": 2000,
-      "coldMs": 716.19,
-      "medianMs": 201.48,
+      "coldMs": 575.69,
+      "medianMs": 144.76,
       "warnings": 0,
       "round": 2,
       "kind": "panel2000",
       "revision": "published-3.0.2"
     },
     {
-      "parseReportMedianMs": 0.599,
-      "processResponseMedianMs": 0.89,
-      "promptConstructMedianMs": 0.4027,
+      "parseReportMedianMs": 0.6056,
+      "processResponseMedianMs": 0.9057,
+      "promptConstructMedianMs": 0.384,
       "promptCharacters": 15107,
       "populatedPromptCharacters": 19029,
       "warnings": 0,
@@ -228,9 +228,9 @@
       "revision": "fixed"
     },
     {
-      "parseReportMedianMs": 0.5883,
-      "processResponseMedianMs": 0.8591,
-      "promptConstructMedianMs": 0.4442,
+      "parseReportMedianMs": 0.5954,
+      "processResponseMedianMs": 0.9394,
+      "promptConstructMedianMs": 0.3926,
       "promptCharacters": 14949,
       "populatedPromptCharacters": 18839,
       "warnings": 0,
@@ -240,8 +240,8 @@
     },
     {
       "messages": 600,
-      "coldMs": 348.71,
-      "medianMs": 58.73,
+      "coldMs": 355.9,
+      "medianMs": 59.17,
       "warnings": 0,
       "round": 3,
       "kind": "panel600",
@@ -249,8 +249,8 @@
     },
     {
       "messages": 600,
-      "coldMs": 310.4,
-      "medianMs": 66.94,
+      "coldMs": 307.76,
+      "medianMs": 59.61,
       "warnings": 0,
       "round": 3,
       "kind": "panel600",
@@ -258,8 +258,8 @@
     },
     {
       "messages": 2000,
-      "coldMs": 645.39,
-      "medianMs": 146.08,
+      "coldMs": 714.16,
+      "medianMs": 154.13,
       "warnings": 0,
       "round": 3,
       "kind": "panel2000",
@@ -267,17 +267,17 @@
     },
     {
       "messages": 2000,
-      "coldMs": 885.39,
-      "medianMs": 150.36,
+      "coldMs": 640.92,
+      "medianMs": 153.03,
       "warnings": 0,
       "round": 3,
       "kind": "panel2000",
       "revision": "fixed"
     },
     {
-      "parseReportMedianMs": 0.6011,
-      "processResponseMedianMs": 0.8132,
-      "promptConstructMedianMs": 0.427,
+      "parseReportMedianMs": 0.7075,
+      "processResponseMedianMs": 1.1001,
+      "promptConstructMedianMs": 0.4514,
       "promptCharacters": 14949,
       "populatedPromptCharacters": 18839,
       "warnings": 0,
@@ -286,9 +286,9 @@
       "revision": "published-3.0.2"
     },
     {
-      "parseReportMedianMs": 0.5695,
-      "processResponseMedianMs": 0.8131,
-      "promptConstructMedianMs": 0.4366,
+      "parseReportMedianMs": 0.6875,
+      "processResponseMedianMs": 0.8915,
+      "promptConstructMedianMs": 0.4117,
       "promptCharacters": 15107,
       "populatedPromptCharacters": 19029,
       "warnings": 0,
@@ -298,8 +298,8 @@
     },
     {
       "messages": 600,
-      "coldMs": 444.09,
-      "medianMs": 70.56,
+      "coldMs": 370.64,
+      "medianMs": 67.92,
       "warnings": 0,
       "round": 4,
       "kind": "panel600",
@@ -307,8 +307,8 @@
     },
     {
       "messages": 600,
-      "coldMs": 277.55,
-      "medianMs": 61.28,
+      "coldMs": 309.72,
+      "medianMs": 69.3,
       "warnings": 0,
       "round": 4,
       "kind": "panel600",
@@ -316,8 +316,8 @@
     },
     {
       "messages": 2000,
-      "coldMs": 626.36,
-      "medianMs": 141.94,
+      "coldMs": 743.33,
+      "medianMs": 182.14,
       "warnings": 0,
       "round": 4,
       "kind": "panel2000",
@@ -325,17 +325,17 @@
     },
     {
       "messages": 2000,
-      "coldMs": 566.17,
-      "medianMs": 198.63,
+      "coldMs": 700.26,
+      "medianMs": 197.78,
       "warnings": 0,
       "round": 4,
       "kind": "panel2000",
       "revision": "published-3.0.2"
     },
     {
-      "parseReportMedianMs": 0.6079,
-      "processResponseMedianMs": 0.8039,
-      "promptConstructMedianMs": 0.3961,
+      "parseReportMedianMs": 0.7787,
+      "processResponseMedianMs": 1.1049,
+      "promptConstructMedianMs": 0.4754,
       "promptCharacters": 15107,
       "populatedPromptCharacters": 19029,
       "warnings": 0,
@@ -344,9 +344,9 @@
       "revision": "fixed"
     },
     {
-      "parseReportMedianMs": 0.5866,
-      "processResponseMedianMs": 0.7621,
-      "promptConstructMedianMs": 0.4046,
+      "parseReportMedianMs": 0.7083,
+      "processResponseMedianMs": 0.9675,
+      "promptConstructMedianMs": 0.4771,
       "promptCharacters": 14949,
       "populatedPromptCharacters": 18839,
       "warnings": 0,
@@ -356,8 +356,8 @@
     },
     {
       "messages": 600,
-      "coldMs": 436.06,
-      "medianMs": 81.43,
+      "coldMs": 348.36,
+      "medianMs": 67.01,
       "warnings": 0,
       "round": 5,
       "kind": "panel600",
@@ -365,8 +365,8 @@
     },
     {
       "messages": 600,
-      "coldMs": 360.03,
-      "medianMs": 76.95,
+      "coldMs": 325.27,
+      "medianMs": 66.32,
       "warnings": 0,
       "round": 5,
       "kind": "panel600",
@@ -374,8 +374,8 @@
     },
     {
       "messages": 2000,
-      "coldMs": 820.25,
-      "medianMs": 203.72,
+      "coldMs": 651.36,
+      "medianMs": 219.92,
       "warnings": 0,
       "round": 5,
       "kind": "panel2000",
@@ -383,17 +383,17 @@
     },
     {
       "messages": 2000,
-      "coldMs": 662.86,
-      "medianMs": 174.16,
+      "coldMs": 600.2,
+      "medianMs": 158.71,
       "warnings": 0,
       "round": 5,
       "kind": "panel2000",
       "revision": "fixed"
     },
     {
-      "parseReportMedianMs": 0.7878,
-      "processResponseMedianMs": 0.9878,
-      "promptConstructMedianMs": 0.5498,
+      "parseReportMedianMs": 0.7723,
+      "processResponseMedianMs": 1.1204,
+      "promptConstructMedianMs": 0.7745,
       "promptCharacters": 14949,
       "populatedPromptCharacters": 18839,
       "warnings": 0,
@@ -402,9 +402,9 @@
       "revision": "published-3.0.2"
     },
     {
-      "parseReportMedianMs": 0.7876,
-      "processResponseMedianMs": 0.9961,
-      "promptConstructMedianMs": 0.4775,
+      "parseReportMedianMs": 1.0792,
+      "processResponseMedianMs": 1.0925,
+      "promptConstructMedianMs": 0.4229,
       "promptCharacters": 15107,
       "populatedPromptCharacters": 19029,
       "warnings": 0,

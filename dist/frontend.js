@@ -3544,7 +3544,7 @@ export function setup(ctx) {
         if (!groups.length && !(sys.attributes || []).length) return null;
         const out = groups.map(g => h('div', { class: 'rpgc-abil' },
             h('h4', null, g.category),
-            h('div', { class: 'rpgc-chips' }, g.items.map(it => h('span', { class: 'rpgc-chip abil', title: [it.label, it.state, ...(it.observations || []).map(x => [x.state, x.progress !== null && x.progress !== undefined ? x.progress + '%' : null, x.note, x.evidence].filter(Boolean).join(' · '))].filter(Boolean).join(' \u00B7 ') || null },
+            h('div', { class: 'rpgc-chips' }, g.items.map(it => h('span', { class: 'rpgc-chip abil', title: [it.label, it.state, ...(it.observations || []).map(x => [x.name, x.state, x.progress !== null && x.progress !== undefined ? x.progress + '%' : null, x.note, x.evidence].filter(Boolean).join(' · '))].filter(Boolean).join(' \u00B7 ') || null },
                 it.label ? h('em', null, it.label + ': ') : null,
                 it.name,
                 it.level ? h('span', { class: 'lv' }, ` Lv ${it.level}`) : null,
