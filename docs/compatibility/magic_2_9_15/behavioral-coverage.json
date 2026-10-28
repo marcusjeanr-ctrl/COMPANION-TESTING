@@ -1,0 +1,331 @@
+{
+  "count": 18,
+  "contracts": [
+    {
+      "contract": "Grouped known reports reconcile each catalogue spell and exclude reported rank/casting labels",
+      "test": "tools/test_magic_identity_progression.cjs:13",
+      "assertions": [
+        {
+          "line": 17,
+          "text": "assert.equal(known.length,10);for(const name of expected){const a=known.filter(x=>x.name===name);assert.equal(a.length,1,name);assert(a[0].school!=='Other');}"
+        },
+        {
+          "line": 18,
+          "text": "assert.equal(c.hmsMagicPanel(chat,{},null,c.hmsReadSystems(c.parseHud(view())),'magic').spellbook.length,10);"
+        },
+        {
+          "line": 19,
+          "text": "assert(!spells(p).some(x=>/Magic \\(|Casting|Style:/.test(x.name)));assert.match(known.find(x=>x.name==='Ground Sense').note,/weak/);"
+        },
+        {
+          "line": 20,
+          "text": "assert.equal(p.studying.length,0,'A weak skill was misread as current practice');assert.equal(JSON.stringify(chat),before);"
+        }
+      ],
+      "scope": "Deterministic accepted reports and runtime behavior; not live provider extraction"
+    },
+    {
+      "contract": "Grouped names, aliases, qualifications and unknown spells never use substring matching",
+      "test": "tools/test_magic_identity_progression.cjs:22",
+      "assertions": [
+        {
+          "line": 24,
+          "text": "assert(names.has('waterball'));assert(names.has('ground sense'));assert(names.has('uncatalogued beacon'));assert(names.has('water ball storm'));"
+        },
+        {
+          "line": 25,
+          "text": "assert.equal([...names.keys()].filter(x=>x==='ground sense').length,1);"
+        },
+        {
+          "line": 26,
+          "text": "assert(!names.has('waterball ground sense'));"
+        },
+        {
+          "line": 27,
+          "text": "const negative=c.spellKnown([message('b',{spells:['The instructor knows Squall','You might learn Squall','Water Magic (Advanced): not Squall, Blizzard Storm']})],{},null,'magic');assert.equal(negative.size,0);"
+        }
+      ],
+      "scope": "Deterministic accepted reports and runtime behavior; not live provider extraction"
+    },
+    {
+      "contract": "Source-backed grouped confirmations retain ownership and never treat a school assessment as spell mastery",
+      "test": "tools/test_magic_identity_progression.cjs:29",
+      "assertions": [
+        {
+          "line": 32,
+          "text": "const known=c.spellKnown(chat,{},null,'magic');assert.equal(known.size,2);assert(known.has('squall'));assert(!known.get('squall').mastered);"
+        },
+        {
+          "line": 34,
+          "text": "const m=message('bad',{abilities:[{name:'Squall',owner:'you',state:'known',historical:false,evidence:quote,...bad}]},quote);assert.equal(c.spellKnown([m],{},null,'magic').size,0);"
+        }
+      ],
+      "scope": "Deterministic accepted reports and runtime behavior; not live provider extraction"
+    },
+    {
+      "contract": "All named spells in grouped rank sources retain their independent identity and never become owned by rank",
+      "test": "tools/test_magic_identity_progression.cjs:37",
+      "assertions": [
+        {
+          "line": 38,
+          "text": "const cat=c.spellCatalog('magic');assert.equal(cat.length,348);"
+        },
+        {
+          "line": 40,
+          "text": "const rows=c.rankedLoreBullets(n);for(const row of rows){const found=cat.find(x=>x.key===c.spellKey(row.name));assert(found,'Missing '+entry.id+':'+row.name);assert(found.effect);assert(found.school===row.school || found.alsoSchools?.includes(row.school),'Lost source school '+row.name);}"
+        },
+        {
+          "line": 42,
+          "text": "const chat=[message('ranks',{})];assert.equal(c.spellKnown(chat,{},null,'magic').size,0);"
+        },
+        {
+          "line": 45,
+          "text": "const stand=c.spellStanding(c.parseHud(view().replace(/Magic School:[^\\n]+/,'Magic School: '+school+': '+rank)).lines);assert.equal(stand.schools.size,1);assert(stand.schools.get(c.spellSchoolKey(school)));"
+        }
+      ],
+      "scope": "Deterministic accepted reports and runtime behavior; not live provider extraction"
+    },
+    {
+      "contract": "Melded references preserve explicit component requirements and do not invent rank access",
+      "test": "tools/test_magic_identity_progression.cjs:48",
+      "assertions": [
+        {
+          "line": 49,
+          "text": "const cat=c.spellCatalog('magic'),r=cat.find(x=>x.name==='Riptide Fang');assert(r.needs.includes('Water')&&r.needs.includes('Wind'));"
+        },
+        {
+          "line": 50,
+          "text": "let p=panel([message('a',{})]);assert.equal(spells(p).find(x=>x.name==='Riptide Fang').status,'locked');"
+        },
+        {
+          "line": 51,
+          "text": "const gated=message('ranks',{});gated.content=gated.content.replace(/Magic School:[^\\n]+/,'Magic School: Water: Advanced, Wind: Intermediate, Melded: Elementary');gated.metadata.rpg_companion.sources[0]=c.readingSource(gated.content);assert.equal(spells(panel([gated])).find(x=>x.name==='Riptide Fang').status,'locked');"
+        },
+        {
+          "line": 52,
+          "text": "p=panel([message('known',{spells:['Riptide Fang']})]);assert.equal(spells(p).find(x=>x.name==='Riptide Fang').status,'known');"
+        }
+      ],
+      "scope": "Deterministic accepted reports and runtime behavior; not live provider extraction"
+    },
+    {
+      "contract": "Known abilities can retain active deliberate practice and weaknesses without downgrading knowledge",
+      "test": "tools/test_magic_identity_progression.cjs:54",
+      "assertions": [
+        {
+          "line": 56,
+          "text": "let p=panel(chat);assert.equal(spells(p).find(x=>x.name==='Ground Sense').status,'known');assert.equal(p.studying.length,1);assert.equal(p.studying[0].done,false);assert.match(spells(p).find(x=>x.name==='Ground Sense').note,/distance/);assert.equal(p.studying[0].progress,null);"
+        },
+        {
+          "line": 57,
+          "text": "chat.push(message('mastery',{mastered:['Ground Sense']}));p=panel(chat);assert.equal(spells(p).find(x=>x.name==='Ground Sense').status,'mastered');assert.equal(p.studying[0].done,true);assert.equal(spells(p).find(x=>x.name==='Ground Sense').note,null);"
+        }
+      ],
+      "scope": "Deterministic accepted reports and runtime behavior; not live provider extraction"
+    },
+    {
+      "contract": "Retractions, swipes, edits, repeated reports and manual negatives work after grouped normalization",
+      "test": "tools/test_magic_identity_progression.cjs:59",
+      "assertions": [
+        {
+          "line": 61,
+          "text": "let known=c.spellKnown(chat,{},null,'magic');assert(!known.has('squall'));assert(known.has('blizzard storm'));"
+        },
+        {
+          "line": 62,
+          "text": "const manual={spellForget:{'blizzard storm':'b'}};assert.equal(c.spellKnown(chat,manual,null,'magic').size,0);"
+        },
+        {
+          "line": 63,
+          "text": "const clone=JSON.parse(JSON.stringify(chat));clone[1].swipe_id=1;assert.equal(c.spellKnown(clone,{},null,'magic').size,2);clone[0].content+=' Source edit.';assert.equal(c.spellKnown(clone,{},null,'magic').size,0);"
+        },
+        {
+          "line": 64,
+          "text": "chat.push(message('c',{learned:['Squall']}));known=c.spellKnown(chat,{},null,'magic');assert.equal(known.size,2);"
+        }
+      ],
+      "scope": "Deterministic accepted reports and runtime behavior; not live provider extraction"
+    },
+    {
+      "contract": "Accepted user actions/NPC reports/narration survive real refresh and JSON restart with one existing call",
+      "test": "tools/test_magic_identity_progression.cjs:66",
+      "assertions": [
+        {
+          "line": 70,
+          "text": "assert.equal(rt.ctx.spellKnown(rt.messages,{},null,'test').size,3);await rt.ctx.runSeparateUpdate('test');assert.equal(calls,2);"
+        },
+        {
+          "line": 71,
+          "text": "const restarted=runtime();restarted.ctx.setLorePool('test',card.character_book.entries);restarted.messages.push(...JSON.parse(JSON.stringify(rt.messages)));assert.equal(restarted.ctx.spellKnown(restarted.messages,{},null,'test').size,3);"
+        }
+      ],
+      "scope": "Deterministic accepted reports and runtime behavior; not live provider extraction"
+    },
+    {
+      "contract": "Every canonical reference can be individually Known without duplication or inferred mastery",
+      "test": "tools/test_magic_identity_progression.cjs:73",
+      "assertions": [
+        {
+          "line": 75,
+          "text": "const p=panel(chat),rows=spells(p);assert.equal(rows.filter(x=>x.status==='known').length,cat.length);assert.equal(rows.filter(x=>x.status==='mastered').length,0);assert.equal(new Set(rows.map(x=>x.key)).size,rows.length);"
+        }
+      ],
+      "scope": "Deterministic accepted reports and runtime behavior; not live provider extraction"
+    },
+    {
+      "contract": "Attempts, NPC demonstrations, raw player intentions and school ranks do not grant individual spells",
+      "test": "tools/test_magic_identity_progression.cjs:77",
+      "assertions": [
+        {
+          "line": 80,
+          "text": "assert.equal(c.spellKnown(chat,{},null,'magic').size,0);"
+        },
+        {
+          "line": 81,
+          "text": "chat.push(message('npc',{},'Your tutor demonstrates Blizzard Storm. You watch.'));assert.equal(c.spellKnown(chat,{},null,'magic').size,0);"
+        }
+      ],
+      "scope": "Deterministic accepted reports and runtime behavior; not live provider extraction"
+    },
+    {
+      "contract": "Hidden, OOC and continuation reference lists cannot become current owned spells",
+      "test": "tools/test_magic_identity_progression.cjs:83",
+      "assertions": [
+        {
+          "line": 86,
+          "text": "assert.equal(c.spellKnown([m],{},null,'magic').size,0,flag);"
+        },
+        {
+          "line": 88,
+          "text": "const accepted=message('start',{},'Your Known Spells:\\n- Squall; Blizzard Storm');assert.equal(c.spellKnown([accepted],{},null,'magic').size,2);"
+        }
+      ],
+      "scope": "Deterministic accepted reports and runtime behavior; not live provider extraction"
+    },
+    {
+      "contract": "Old grouped manual negatives remain respected and fresh independent learning restores only its spell",
+      "test": "tools/test_magic_identity_progression.cjs:90",
+      "assertions": [
+        {
+          "line": 92,
+          "text": "const st={spellForget:{[c.spellKey(group)]:'a'}};assert.equal(c.spellKnown(chat,st,null,'magic').size,0);"
+        },
+        {
+          "line": 93,
+          "text": "chat.push(message('b',{learned:['Squall']}));const k=c.spellKnown(chat,st,null,'magic');assert.equal(k.size,1);assert(k.has('squall'));"
+        },
+        {
+          "line": 94,
+          "text": "const custom={spellbook:[{name:'Precision Working (custom)',from:'you'}]};assert(c.spellKnown([],custom,null,'magic').has(c.spellKey('Precision Working (custom)')));"
+        }
+      ],
+      "scope": "Deterministic accepted reports and runtime behavior; not live provider extraction"
+    },
+    {
+      "contract": "Explicit progress resets are retained during known-spell practice without numerical invention",
+      "test": "tools/test_magic_identity_progression.cjs:96",
+      "assertions": [
+        {
+          "line": 98,
+          "text": "const p=panel(chat);assert.equal(p.studying[0].progress,0);assert.equal(p.studying[0].done,false);assert.equal(spells(p).find(x=>x.name==='Ground Sense').status,'known');"
+        }
+      ],
+      "scope": "Deterministic accepted reports and runtime behavior; not live provider extraction"
+    },
+    {
+      "contract": "Catalogue reload invalidates identity caches and preserves distinct longer ability names",
+      "test": "tools/test_magic_identity_progression.cjs:100",
+      "assertions": [
+        {
+          "line": 104,
+          "text": "assert(c.spellKnown([message('alias',{spells:['Star Beacon']})],{},null,'magic').has('astral beacon'));"
+        },
+        {
+          "line": 105,
+          "text": "c.setLorePool('magic',original);const k=c.spellKnown([message('without',{spells:['Star Beacon','Astral Beacon Storm']})],{},null,'magic');assert(k.has('star beacon'));assert(k.has('astral beacon storm'));assert(!k.has('astral beacon'));"
+        }
+      ],
+      "scope": "Deterministic accepted reports and runtime behavior; not live provider extraction"
+    },
+    {
+      "contract": "Weaknesses persist through sparse confirmations and unknown qualified spells remain usable offline",
+      "test": "tools/test_magic_identity_progression.cjs:108",
+      "assertions": [
+        {
+          "line": 109,
+          "text": "const chat=[message('a',{spells:['Ground Sense (weak over distance)']}),message('b',{spells:['Ground Sense']})];assert.match(spells(panel(chat)).find(x=>x.name==='Ground Sense').note,/distance/);"
+        },
+        {
+          "line": 110,
+          "text": "const off=runtime();const m=message('unknown',{spells:['Uncatalogued Beacon (weak at range)','Void','Never Ending Flame','Unknown Beacon']});const k=off.ctx.spellKnown([m],{});assert(k.has('uncatalogued beacon'));assert(k.has('void'));assert(k.has('never ending flame'));assert(k.has('unknown beacon'));assert.match(k.get('uncatalogued beacon').note,/range/);"
+        },
+        {
+          "line": 111,
+          "text": "const names=c.spellKnown([message('mixed',{spells:['Squall, Uncatalogued Beacon','Water (Advanced)','Water (Advanced): Ice Fortress']})],{},null,'magic');assert(names.has('squall'));assert(names.has('uncatalogued beacon'));assert(names.has('ice fortress'));assert(!names.has('water advanced'));"
+        },
+        {
+          "line": 112,
+          "text": "const unknown=spells(panel([message('uncatalogued',{spells:['Uncatalogued Beacon (weak at range)']})])).find(x=>x.name==='Uncatalogued Beacon');assert.equal(unknown.school,'Other');assert.match(unknown.note,/range/);"
+        }
+      ],
+      "scope": "Deterministic accepted reports and runtime behavior; not live provider extraction"
+    },
+    {
+      "contract": "Manual Known finishes old practice while genuinely later practice remains active",
+      "test": "tools/test_magic_identity_progression.cjs:114",
+      "assertions": [
+        {
+          "line": 116,
+          "text": "await rt.frontendHandlers[0]({type:'spell_known',chatId:'test',name:'Ground Sense',on:true});let st=await rt.ctx.getChatState('test');assert.equal(rt.ctx.spellStudyActive(rt.messages,st,null,'test').length,0);"
+        },
+        {
+          "line": 117,
+          "text": "rt.messages.push({id:'u2',role:'user',content:'I refine its range.'},{id:'a2',role:'assistant',swipe_id:0,content:view()+'\\nYou deliberately practice finer control.'});rt.response({you:{study:[{spell:'Ground Sense',progress:null,note:'Refining an already known skill'}]}});await rt.ctx.runSeparateUpdate('test');st=await rt.ctx.getChatState('test');assert.equal(rt.ctx.spellStudyActive(rt.messages,st,null,'test').length,1);"
+        },
+        {
+          "line": 118,
+          "text": "const p=rt.ctx.spellListPanel('test',rt.messages,st,rt.ctx.hmsReadSystems(rt.ctx.parseHud(view())));assert.equal(spells(p).find(x=>x.name==='Ground Sense').status,'known');assert.equal(p.studying[0].done,false);"
+        },
+        {
+          "line": 119,
+          "text": "const fresh=message('first',{study:[{spell:'Ground Sense',note:'First refinement'}]});assert.equal(panel([fresh],{spellbook:[{name:'Ground Sense',from:'you'}],spellStudyStopped:{'ground sense':null}}).studying[0].done,false);"
+        }
+      ],
+      "scope": "Deterministic accepted reports and runtime behavior; not live provider extraction"
+    },
+    {
+      "contract": "An individual ten-spell confirmation survives parsing and storage without the old eight-name loss",
+      "test": "tools/test_magic_identity_progression.cjs:121",
+      "assertions": [
+        {
+          "line": 123,
+          "text": "const parsed=c.parseCompanion('<rpg_companion>'+JSON.stringify({you:{spells:names,learned:names,mastered:names}})+'</rpg_companion>');for(const field of ['spells','learned','mastered'])assert.equal(parsed.you[field].length,10,field);"
+        },
+        {
+          "line": 124,
+          "text": "const rt=runtime();seed(rt,true);rt.ctx.setLorePool('test',card.character_book.entries);rt.response({you:{spells:names}});await rt.ctx.runSeparateUpdate('test');assert.equal(rt.ctx.getSwipeData(rt.messages[1]).survival.spells.length,10);assert.equal(rt.ctx.spellKnown(rt.messages,{},null,'test').size,10);"
+        }
+      ],
+      "scope": "Deterministic accepted reports and runtime behavior; not live provider extraction"
+    },
+    {
+      "contract": "Legacy object observations retain names while honoring explicit uncertainty and NPC ownership",
+      "test": "tools/test_magic_identity_progression.cjs:126",
+      "assertions": [
+        {
+          "line": 128,
+          "text": "const parsed=c.parseCompanion('<rpg_companion>'+JSON.stringify(raw)+'</rpg_companion>');assert.equal(parsed.you.learned.length,1);assert.equal(parsed.you.learned[0],'Ice Fortress');assert.equal(parsed.you.study.length,0);"
+        },
+        {
+          "line": 129,
+          "text": "const k=c.spellKnown([message('old',{learned:raw.you.learned})],{},null,'magic');assert.equal(k.size,1);assert(k.has('ice fortress'));"
+        },
+        {
+          "line": 130,
+          "text": "assert.equal(c.spellStoryFold([message('old-study',{study:raw.you.study})],'magic').progress.size,0);"
+        }
+      ],
+      "scope": "Deterministic accepted reports and runtime behavior; not live provider extraction"
+    }
+  ]
+}

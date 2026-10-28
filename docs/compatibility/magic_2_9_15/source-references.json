@@ -1,0 +1,13 @@
+{
+  "buildCompanionInstructionRead": "dist/backend.js:10141",
+  "spellResolver": "dist/backend.js:15361",
+  "spellResolveState": "dist/backend.js:15441",
+  "spellStoryFoldUncached": "dist/backend.js:15499",
+  "spellKnown": "dist/backend.js:15547",
+  "spellOngoingPractice": "dist/backend.js:15577",
+  "spellStudyActive": "dist/backend.js:15588",
+  "spellListPanel": "dist/backend.js:15609",
+  "hmsMagicPanel": "dist/backend.js:15035",
+  "rankedLoreBullets": "dist/backend.js:15128",
+  "spellsFromEntry": "dist/backend.js:15146"
+}

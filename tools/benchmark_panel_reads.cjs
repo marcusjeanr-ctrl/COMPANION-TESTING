@@ -9,7 +9,9 @@ for (const filename of files) {
     const rt = runtime(filename);
     const samples = [];
     const assessmentCount = Math.max(0, Math.min(8, Number(process.env.COMPANION_BENCH_ASSESSMENTS) || 0));
-    const fixture = assessmentCount ? structuredClone(reading) : reading;
+    const grouped = process.env.COMPANION_BENCH_GROUPED === '1';
+    const fixture = assessmentCount || grouped ? structuredClone(reading) : reading;
+    if (grouped) fixture.you.spells = ['Water Magic (Advanced): Squall, Blizzard Storm, Ice Fortress', 'Earth Magic (Intermediate): Stone Cannon, Earth Pillar, Earth Lance, Sinkhole', 'Fire Magic (Elementary): Fireball, Heat Hand', 'Ground Sense (weak at range)', 'Voiceless Casting', 'Sword God Style: Advanced'];
     if (assessmentCount) {
         fixture.you.abilities = Array.from({length:assessmentCount}, (_, i) => ({name:`Navigation Skill ${i}`, owner:'you', historical:true, state:'known', evidence:`Your signed record confirms Navigation Skill ${i}.`}));
         // Equal known-ability counts in both versions; only the candidate retains provenance.
@@ -47,7 +49,7 @@ for (const filename of files) {
     }
     samples.sort((a, b) => a - b);
     console.log(JSON.stringify({ file: filename, messages: rt.messages.length, coldMs: +coldMs.toFixed(2),
-        medianMs: +((samples[4] + samples[5]) / 2).toFixed(2), warnings: rt.warnings.length,
+        medianMs: +((samples[4] + samples[5]) / 2).toFixed(2), warnings: rt.warnings.length, ...(grouped ? {groupedAudit:true} : {}),
         ...(assessmentCount ? {assessmentsPerReply:assessmentCount,knownAbilities:rt.ctx.spellKnown(rt.messages,rt.run('benchmarkState')).size} : {}) }));
 }
 

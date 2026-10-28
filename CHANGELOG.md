@@ -1,5 +1,21 @@
 # Changelog — RPG Companion HMS Edition
 
+## 2.9.15 RC candidate — Magic identity and progression
+
+- Reconcile grouped confirmed spell lists into individual catalogue identities;
+  filter automatic school/style/casting labels without rewriting saved reports.
+- Preserve recognized weakness notes and known-spell practice without downgrading
+  knowledge, inventing mastery or assigning numerical progress.
+- Preserve manual corrections, saved study boundaries, active swipes, source edits,
+  retractions and newer accepted evidence. Keep reference/control lists unowned.
+- Retain explicit Melded components/ranks and avoid claiming unsupported access.
+- Retain up to 32 individual knowledge/learning/mastery names per report; ten-name
+  confirmations no longer hit the former eight/six-name parser limits.
+- Inventory all 345 Living World magic entries and 348 canonical references; add
+  realistic export, multi-turn, cross-card, full-reference and browser coverage.
+- Keep the existing UI layout, storage formats, model-call count and refresh cadence.
+  See the Magic rework report for measured costs and live-acceptance limitations.
+
 ## 2.9.14 RC — Living World compatibility
 
 - Read explicit field-based and Markdown spell/technique references without granting

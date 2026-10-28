@@ -1,0 +1,25 @@
+{
+  "baseline": "415392cd3decefbae260ff898c0a94792656695f",
+  "cardSha256": "21918f9b3f02ec9edbb4cc44565256078863d3b93eb7ab0fe5cbb708c4d33e1f",
+  "countingUnit": "Original magic entry ID plus distinct canonical spell; not a live spell-effect certification",
+  "counts": {
+    "magicEntries": 345,
+    "typedIndividualEntries": 244,
+    "rankedListEntries": 68,
+    "canonicalSpells": 348,
+    "schools": [
+      "Detoxification",
+      "Divine Strike",
+      "Barrier",
+      "Summoning",
+      "Unique",
+      "Water",
+      "Fire",
+      "Wind",
+      "Earth",
+      "Melded",
+      "Healing"
+    ],
+    "emptyHistoryKnown": 0
+  }
+}
