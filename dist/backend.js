@@ -17075,7 +17075,7 @@ spindle.onFrontendMessage(async (payload, userId) => {
             }
 
             case 'money': {
-                if (!payload.chatId || !['add', 'remove', 'settle'].includes(payload.op)) return;
+                if (!payload.chatId || !['add', 'remove', 'settle', 'review_legacy'].includes(payload.op)) return;
                 await hmsMoneyEdit(payload.chatId, payload);
                 await pushState(payload.chatId);
                 break;

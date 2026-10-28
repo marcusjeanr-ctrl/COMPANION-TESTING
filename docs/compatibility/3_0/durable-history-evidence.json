@@ -13,7 +13,7 @@
   "method": "Five sequential rounds, three revision orders rotated/reversed, same complete card caches and source-bound fixtures. No test processes concurrent. Existing panel/pipeline/interceptor runners. GC probe is one separate process per revision; no production memory guarantee.",
   "tests": {
     "suites": 42,
-    "durableGroups": 20,
+    "durableGroups": 21,
     "browserUi": 21,
     "browserVisibility": 5,
     "retentionFixture": {
@@ -2435,5 +2435,9 @@
       "kind": "panel-living-600",
       "revision": "published"
     }
-  ]
+  ],
+  "timingSnapshotCommit": "57853a9861f14bc5edbf29d0929ca23362f80133",
+  "finalBackendSha256": "602a36c67655ea696d68dd382f766a37350df882bfe47a8408baea754a31b342",
+  "finalFrontendSha256": "6baee544d1940b010481da75aa9852559437cafea55749998d8003e3b41e0ac4",
+  "finalDelta": "Allow the explicit review_legacy command through the real frontend dispatcher; normal benchmark processing paths unchanged."
 }

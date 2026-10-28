@@ -91,7 +91,7 @@ explicit retention audit exited 2 with debts/factions/quests/gear lost. New
 regressions were added before implementation. Final checks:
 
 - Node 22: **42 suites**, both bundle syntax checks and release identity pass.
-- **20 durable-history groups** cover 340 sparse turns, JSON restore, later updates,
+- **21 durable-history groups** cover 340 sparse turns, JSON restore, later updates,
   partial payment, containers, completion, manual precedence, hidden/deleted/edited
   source, swipes, continuation boundaries, stable IDs, duplicate transactions,
   rejected/malformed rows, actual edit/save/restart behavior and ambiguous aliases.
@@ -165,3 +165,5 @@ Tracker prompt sizes remain **14,949 empty / 18,839 populated characters** in th
 The separate GC probe retains a 1,000-reply runtime and loaded legacy correction. After one warm pass / 30 further passes, retained heap (bytes) is: published 11,539,808 / 12,337,520; prior 11,570,048 / 12,330,304; candidate 11,675,480 / 12,540,928. This is one local probe, affected by JIT/GC; it is not a leak proof or an infinite-history memory guarantee. Per-pass indexes/signatures expire after the read; correction bindings are weakly keyed to loaded state and the recent alias map remains window-bounded.
 
 Raw source hashes, all 180 measurements, operations, GC samples and replay counts: [durable-history-evidence.json](durable-history-evidence.json).
+
+Timing snapshot: `57853a9861f14bc5edbf29d0929ca23362f80133`. Final validation additionally fixes the frontend dispatcher allowlist for the explicit legacy-review command and tests the complete dispatcher→save→panel-refresh path. The timing data describes the snapshot, whose normal processing paths are unchanged by this route fix; final source hashes are recorded separately.
