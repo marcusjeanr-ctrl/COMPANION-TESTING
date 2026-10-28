@@ -10170,7 +10170,7 @@ function buildCompanionInstructionRead(committed, userName, locks, st = null, ch
         const yf = [];
         if (wantSurvival) yf.push('"slept": false, "ate": false, "drank": false, "rested": false', `"mind": "${HMS_MIND_SCALE.join('|')}"`);
         if (yc.on) { yf.push(wantSurvival ? '"mood": "1-3 words", "sanity": 0..100' : '"mood": "1-3 words", "stress": "L", "sanity": 0..100'); if (askXp) yf.push('"xp": 0, "xpWhy": "or null"'); yf.push('"got": [], "lost": []'); }
-        if (magicSeen) yf.push('"spells": ["one individual player spell/technique name per entry; include confirmed prior knowledge; no grouped lists, school/style ranks, casting methods, NPC, hypothetical or failed-only mentions"]');
+        if (magicSeen) yf.push('"spells": ["one individual magical spell name per entry; no physical/Touki maneuvers; include confirmed prior knowledge; no grouped lists, school/style ranks, casting methods, NPC, hypothetical or failed-only mentions"]');
         if (abilitiesSeen) yf.push('"abilities": [{"name":"individual ability", "owner":"you", "state":"known|practiced|attempted|reliable|mastered|forgotten", "historical":false, "evidence":"short exact quote from this reply, <=160 chars"}]');
         const studying = magicSeen ? spellStudyActive(chat, st).map(x => x.name).slice(0, 8) : [];
         if (abilitiesSeen || studying.length) yf.push(`"learned": ["new player learning: first clean execution or teacher sign-off this turn; not historical knowledge"], "study": [{"spell": "${abilitiesSeen ? 'ability deliberately practiced/taught now' : `one of: ${studying.join(', ')}`}", "progress": "explicit measured percentage or null", "note": "practice evidence or null"}]`);
@@ -10617,6 +10617,16 @@ function hmsPanelStateRead(chatId, chat, st) {
                 you = hmsYouPanel(chat, st, null, sysNow); magic = hmsMagicPanel(chat, st, null, sysNow, chatId);
                 if (magicCfg().on && sysNow) { try { techniques = techListPanel(chatId, chat, st, sysNow); } catch (e) { logW(`[RPG Companion HMS] Technique list failed: ${e?.message || e}`); } }
                 if (you && comms && comms.balance) you.balance = comms.balance;
+                if (systems && hmsCfg().abilities.enabled !== false) {
+                    const category = hmsParseVocab(hmsCfg().abilities.vocabulary).find(g => /martial/i.test(g.name));
+                    const items = category ? martialAbilityItems(chatId, chat, st) : [];
+                    if (items.length) {
+                        systems.abilities = systems.abilities.map(g => ({ ...g, items: [...g.items] }));
+                        let group = systems.abilities.find(g => g.category === category.name);
+                        if (!group) { group = { category: category.name, items: [] }; systems.abilities.push(group); }
+                        for (const item of items) if (!group.items.some(x => spellKey(x.name) === spellKey(item.name))) group.items.push(item);
+                    }
+                }
                 if (systems) {
                     // quest details from the story, joined to the quests the HUD lists
                     const det = questDetailsLatest(chat), now = systems.clock;
@@ -15059,7 +15069,7 @@ function hmsMagicPanel(chat, st, cfg, sys, chatId = null) {
     const resolve = spellResolver(chatId);
     const saved = new Map(spellResolveState(chatId, st, spellStoryFold(chat, chatId)).st.spellbook.map(x => { const target = resolve(x.name); return [target.key, { ...x, name: target.name }]; }));
     const techKeys = techKeySet(chatId);
-    const book = [...spellKnown(chat, st, null, chatId)].filter(([key]) => !techKeys.has(key)).map(([key, value]) => saved.get(key) || { name: value.name, from: value.from, ...(value.note ? { note: value.note } : {}) }).slice(-60);
+    const book = [...spellKnown(chat, st, null, chatId)].filter(([key, value]) => !techKeys.has(key) && (value.from === 'you' || resolve.domain(value.name) !== 'martial')).map(([key, value]) => saved.get(key) || { name: value.name, from: value.from, ...(value.note ? { note: value.note } : {}) }).slice(-60);
     if (!pools.length && !meters.length && !arts.length && !cooldowns.length && !book.length && !list && !ranked) return null;
     return { pools, meters, arts, cooldowns, spellbook: book, list };
 }
@@ -15416,6 +15426,15 @@ function spellResolver(chatId) {
     };
     let cache = spellRecordIndexes.get(index);
     if (!cache) { cache = { values: new Map(), groups: new Map(), schools: new Set(catalog.map(row => spellSchoolKey(row.school))) }; spellRecordIndexes.set(index, cache); }
+    resolve.domain = name => {
+        const key = resolve(name).key;
+        if (index.has(key)) return 'magic'; // explicit spell references outrank heuristic wording
+        if (!cache.techKeys) cache.techKeys = techKeySet(chatId);
+        if (cache.techKeys.has(key)) return 'martial';
+        // Unknown magical names remain usable; only explicit physical descriptions are rerouted.
+        if (/\b(?:spell|magic|magical|casting)\b/i.test(name)) return 'magic';
+        return /\b(?:touki|swordsmanship|swordplay)\b|\b(?:shoulder|physical|sword|blade)\s+feint\b|\bfeint\b.{0,60}\bfootwork\b|\brhythm.breaking footwork\b|\bsword (?:god )?style\b|\b(?:diagonal|hip.driven|compact|sword|blade)\b.{0,60}\b(?:cuts?|slashes?)\b|\bflank (?:advance|step|movement)\b|\b(?:grounding|lowered.center|center recovery)\b.{0,60}\b(?:force|absorption|pressure)\b|\babsorb(?:ing)?\b.{0,100}\b(?:counter.pressure|lowered center)\b|\bbreak(?:ing)?\b.{0,60}\bopponent['’]s footing\b/i.test(name) ? 'martial' : 'magic';
+    };
     // Normalize report names once per catalog, not by matching spell names inside prose.
     // Canonical names win before delimiters, so a named spell containing commas stays whole.
     resolve.records = value => {
@@ -15652,7 +15671,8 @@ function spellListPanel(chatId, chat, st, sys) {
     const knownKeys = [...known.keys()];
     const isKnown = (k) => known.has(k) || knownKeys.some(x => spellSame(x, k));
     const techKeys = techKeySet(chatId);
-    const study = spellStudyActive(chat, st, fold, chatId, known).filter(s => !techKeys.has(spellKey(s.name)));
+    const classify = spellResolver(chatId);
+    const study = spellStudyActive(chat, st, fold, chatId, known).filter(s => !techKeys.has(spellKey(s.name)) && (s.from !== 'story' || classify.domain(s.name) !== 'martial'));
     const studyKeys = new Set(study.map(s => spellKey(s.name)));
     const ladderOf = (r) => SPELL_LADDER[r.ladder] || SPELL_LADDER.mt;
     const needs = (r) => (r.ladder === 'rz' ? `Needs ${SPELL_LADDER.rz[r.step]} tier (Gate ${['F', 'D', 'C', 'B', 'S'][r.step]} or better)` : `Needs ${ladderOf(r)[r.step]}`);
@@ -15687,8 +15707,8 @@ function spellListPanel(chatId, chat, st, sys) {
     });
     // a known spell the lorebook does not have still shows, under its own heading
     const catKeys = cat.map(r => r.key);
-    for (const [k, v] of known) if (!techKeys.has(k) && !catKeys.some(c => spellSame(c, k))) spells.push({ name: v.name, key: k, school: 'Other', rank: null, step: null, status: v.mastered ? 'mastered' : 'known', why: v.from === 'you' ? 'Marked by you' : 'From the story', who: null, effect: null, chant: null, fan: false, progress: null, note: v.note || null, ...(v.evidence ? { evidence: v.evidence } : {}) });
-    for (const [key, evidence] of fold.abilityEvidence || []) if (!known.has(key) && !techKeys.has(key) && !catKeys.includes(key))
+    for (const [k, v] of known) if (!techKeys.has(k) && (v.from === 'you' || classify.domain(v.name) !== 'martial') && !catKeys.some(c => spellSame(c, k))) spells.push({ name: v.name, key: k, school: 'Other', rank: null, step: null, status: v.mastered ? 'mastered' : 'known', why: v.from === 'you' ? 'Marked by you' : 'From the story', who: null, effect: null, chant: null, fan: false, progress: null, note: v.note || null, ...(v.evidence ? { evidence: v.evidence } : {}) });
+    for (const [key, evidence] of fold.abilityEvidence || []) if (!known.has(key) && !techKeys.has(key) && classify.domain(evidence.name) !== 'martial' && !catKeys.includes(key))
         spells.push({ name:evidence.name, key, school:'Other', rank:null, step:null, status:'unranked', why:'No confirmed current knowledge', evidence, effect:null, chant:null, fan:false, progress:null, note:null });
     const bySchool = new Map();
     for (const s of spells) { const k = spellSchoolKey(s.school); if (!bySchool.has(k)) bySchool.set(k, { key: k, name: s.school, spells: [] }); bySchool.get(k).spells.push(s); }
@@ -15724,13 +15744,37 @@ function spellListPanel(chatId, chat, st, sys) {
         mine: [...stand.schools.values()], schools, studying, news };
 }
 
+/** Read-only projection of non-catalogue martial observations into the existing Abilities group. */
+function martialAbilityItems(chatId, chat, st) {
+    const classify = spellResolver(chatId), fold = spellStoryFold(chat, chatId);
+    const known = spellKnown(chat, st, fold, chatId), techs = techKeySet(chatId), out = [];
+    const manualStudy = new Set((Array.isArray(st?.spellStudy) ? st.spellStudy : []).filter(x => x && x.from !== 'story').map(x => spellKey(x.name)));
+    const keys = new Set([...known.keys(), ...fold.abilityEvidence.keys(), ...fold.progress.keys()]);
+    for (const key of keys) {
+        const saved = known.get(key), assessment = fold.abilityEvidence.get(key), practice = fold.progress.get(key);
+        const event = saved || assessment || practice;
+        if (!event || saved?.from === 'you' || manualStudy.has(key) || techs.has(key) || classify.domain(event.name) !== 'martial') continue;
+        if (/^touki(?: battle aura)?$/.test(key)) continue; // current Active status already belongs to the HUD
+        if ((fold.withdrawn.get(key)?.at ?? -1) >= Math.max(fold.learned.get(key)?.at ?? -1, practice?.at ?? -1, assessment?.at ?? -1)) continue;
+        const latestKnowledge = Math.max(fold.learned.get(key)?.at ?? -1, fold.mastered.get(key)?.at ?? -1);
+        const verified = assessment && assessment.at >= latestKnowledge ? assessment : null;
+        const states = { known: 'Known', reliable: 'Reliable', mastered: 'Mastered', practiced: 'Practicing', attempted: 'Attempted' };
+        const masteryConfirmed = verified?.state !== 'mastered' || /\b(?:mastered|mastery|perfected)\b/i.test(verified.evidence) && !/\b(?:no|not|never|without|yet to|far from)\b.{0,40}\bmaster(?:ed|y)\b/i.test(verified.evidence);
+        const state = verified ? masteryConfirmed ? states[verified.state] : 'Reported assessment' : practice && practice.at >= latestKnowledge ? 'Training' :
+            fold.mastered.has(key) ? 'Mastery reported' : fold.learned.get(key)?.newlyLearned ? 'Learning reported' : 'Reported maneuver';
+        if (state) out.push({ name: event.name, state, level: null, label: null, src: null });
+    }
+    return out.slice(-40);
+}
+
 /** The spells being studied, as the reminder the model sees before it writes. Null when there are none. */
 function spellStudyReminder(chatId, chat, st, userName) {
     const resolved = spellResolveState(chatId, st, spellStoryFold(chat, chatId));
     const fold = resolved.fold; st = resolved.st;
     if (!fold.progress.size && !(Array.isArray(st.spellStudy) && st.spellStudy.length)) return null;
     const known = spellKnown(chat, st, fold, chatId, true);
-    const study = spellStudyActive(chat, st, fold, chatId, known);
+    const classify = spellResolver(chatId);
+    const study = spellStudyActive(chat, st, fold, chatId, known).filter(s => s.from !== 'story' || classify.domain(s.name) !== 'martial');
     if (!study.length) return null;
     const kk = [...known.keys()];
     const cat = spellCatalog(chatId);
