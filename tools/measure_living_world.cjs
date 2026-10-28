@@ -3,7 +3,9 @@
 const fs=require('node:fs'),zlib=require('node:zlib'),{performance}=require('node:perf_hooks');
 const {runtime,hud,reading}=require('./test_panel_tracking.cjs');
 if(!global.gc)throw new Error('Run with --expose-gc');
-const fixture=JSON.parse(zlib.gunzipSync(fs.readFileSync(__dirname+'/living_world_fixture.json.gz')));
+const cardPath=process.env.COMPANION_CARD || __dirname+'/living_world_fixture.json.gz';
+const cardBytes=fs.readFileSync(cardPath);
+const fixture=JSON.parse(cardPath.endsWith('.gz') ? zlib.gunzipSync(cardBytes) : cardBytes);
 global.gc();const startHeap=process.memoryUsage().heapUsed,start=performance.now(),r=runtime(process.argv[2]);
 const vmInitMs=performance.now()-start;
 for(let i=0;i<1000;i++){

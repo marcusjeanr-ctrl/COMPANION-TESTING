@@ -1,0 +1,488 @@
+[
+  {
+    "system": "HUD, pins and guards",
+    "source": [
+      "dist/backend.js:6785:parseHud",
+      "dist/backend.js:11257:hmsReadSystems",
+      "dist/backend.js:11292:messageHud"
+    ],
+    "tests": [
+      "tools/test_universal_card_matrix.cjs",
+      "tools/test_living_world_compatibility.cjs"
+    ],
+    "processing": "Existing accepted HUD/report \u2192 active-swipe metadata \u2192 chronological read pass \u2192 panel; original stores retained",
+    "status": "Deterministic contracts covered; narrative/provider/live behavior partial",
+    "measurement": "Export counts where observations exist; synthetic regressions otherwise, no invented accuracy rate"
+  },
+  {
+    "system": "Classic user stats and RPG attributes",
+    "source": [
+      "dist/backend.js:870:parseResponse",
+      "dist/backend.js:1981:collectCommitted"
+    ],
+    "tests": [
+      "tools/test_panel_tracking.cjs",
+      "tools/test_universal_card_matrix.cjs"
+    ],
+    "processing": "Existing accepted HUD/report \u2192 active-swipe metadata \u2192 chronological read pass \u2192 panel; original stores retained",
+    "status": "Deterministic contracts covered; narrative/provider/live behavior partial",
+    "measurement": "Export counts where observations exist; synthetic regressions otherwise, no invented accuracy rate"
+  },
+  {
+    "system": "Info, date, weather and location",
+    "source": [
+      "dist/backend.js:6785:parseHud",
+      "dist/backend.js:11309:hmsTimeline"
+    ],
+    "tests": [
+      "tools/test_panel_tracking.cjs",
+      "tools/test_six_sided_repairs.cjs"
+    ],
+    "processing": "Existing accepted HUD/report \u2192 active-swipe metadata \u2192 chronological read pass \u2192 panel; original stores retained",
+    "status": "Deterministic contracts covered; narrative/provider/live behavior partial",
+    "measurement": "Export counts where observations exist; synthetic regressions otherwise, no invented accuracy rate"
+  },
+  {
+    "system": "Body, conditions, vitals and danger",
+    "source": [
+      "dist/backend.js:10813:hmsReadVitals",
+      "dist/backend.js:10866:hmsReadWounds",
+      "dist/backend.js:10918:hmsReadConditions"
+    ],
+    "tests": [
+      "tools/test_living_world_compatibility.cjs",
+      "tools/test_visual_rank_integrity.cjs"
+    ],
+    "processing": "Existing accepted HUD/report \u2192 active-swipe metadata \u2192 chronological read pass \u2192 panel; original stores retained",
+    "status": "Deterministic contracts covered; narrative/provider/live behavior partial",
+    "measurement": "Export counts where observations exist; synthetic regressions otherwise, no invented accuracy rate"
+  },
+  {
+    "system": "Persistent injuries and recovery",
+    "source": [
+      "dist/backend.js:9694:injNormalize",
+      "dist/backend.js:9760:injuryReadState",
+      "dist/backend.js:9797:injPanel"
+    ],
+    "tests": [
+      "tools/test_tracking_cross_system_2_9_13.cjs",
+      "tools/test_tracking_2_9_3.cjs"
+    ],
+    "processing": "Existing accepted HUD/report \u2192 active-swipe metadata \u2192 chronological read pass \u2192 panel; original stores retained",
+    "status": "Deterministic contracts covered; narrative/provider/live behavior partial",
+    "measurement": "Export counts where observations exist; synthetic regressions otherwise, no invented accuracy rate"
+  },
+  {
+    "system": "Player XP, mood and survival",
+    "source": [
+      "dist/backend.js:14978:hmsYouPanel",
+      "dist/backend.js:11387:hmsSurvival"
+    ],
+    "tests": [
+      "tools/test_panel_tracking.cjs",
+      "tools/test_tracking_cross_system_2_9_13.cjs"
+    ],
+    "processing": "Existing accepted HUD/report \u2192 active-swipe metadata \u2192 chronological read pass \u2192 panel; original stores retained",
+    "status": "Deterministic contracts covered; narrative/provider/live behavior partial",
+    "measurement": "Export counts where observations exist; synthetic regressions otherwise, no invented accuracy rate"
+  },
+  {
+    "system": "Magic reference, ownership and progression",
+    "source": [
+      "dist/backend.js:15390:spellResolver",
+      "dist/backend.js:15528:spellStoryFoldUncached",
+      "dist/backend.js:15638:spellListPanel"
+    ],
+    "tests": [
+      "tools/test_magic_identity_progression.cjs",
+      "tools/test_reading_and_magic.cjs"
+    ],
+    "processing": "Existing accepted HUD/report \u2192 active-swipe metadata \u2192 chronological read pass \u2192 panel; original stores retained",
+    "status": "Deterministic contracts covered; narrative/provider/live behavior partial",
+    "measurement": "Export counts where observations exist; synthetic regressions otherwise, no invented accuracy rate"
+  },
+  {
+    "system": "Sword techniques, ranks and Touki",
+    "source": [
+      "dist/backend.js:15861:techCatalog",
+      "dist/backend.js:15888:techStanding",
+      "dist/backend.js:15903:techListPanel"
+    ],
+    "tests": [
+      "tools/test_living_world_compatibility.cjs",
+      "tools/test_visual_rank_integrity.cjs"
+    ],
+    "processing": "Existing accepted HUD/report \u2192 active-swipe metadata \u2192 chronological read pass \u2192 panel; original stores retained",
+    "status": "Deterministic contracts covered; narrative/provider/live behavior partial",
+    "measurement": "Export counts where observations exist; synthetic regressions otherwise, no invented accuracy rate"
+  },
+  {
+    "system": "Quest identity, objectives and lifecycle",
+    "source": [
+      "dist/backend.js:16051:questMatch",
+      "dist/backend.js:16194:questDetailsLatest",
+      "dist/backend.js:16134:questReportedState"
+    ],
+    "tests": [
+      "tools/test_tracking_engine_3.cjs",
+      "tools/test_quest_identity_2_9_2.cjs"
+    ],
+    "processing": "Existing accepted HUD/report \u2192 active-swipe metadata \u2192 chronological read pass \u2192 panel; original stores retained",
+    "status": "Deterministic contracts covered; narrative/provider/live behavior partial",
+    "measurement": "Export counts where observations exist; synthetic regressions otherwise, no invented accuracy rate"
+  },
+  {
+    "system": "Agenda appointments and rescheduling",
+    "source": [
+      "dist/backend.js:12900:agendaRead",
+      "dist/backend.js:12799:agendaNormalize"
+    ],
+    "tests": [
+      "tools/test_agenda_occurrence_2_9_11.cjs",
+      "tools/test_tracking_evidence_2_9_13.cjs"
+    ],
+    "processing": "Existing accepted HUD/report \u2192 active-swipe metadata \u2192 chronological read pass \u2192 panel; original stores retained",
+    "status": "Deterministic contracts covered; narrative/provider/live behavior partial",
+    "measurement": "Export counts where observations exist; synthetic regressions otherwise, no invented accuracy rate"
+  },
+  {
+    "system": "Plot threads and personal objectives",
+    "source": [
+      "dist/backend.js:10036:plotPanel",
+      "dist/backend.js:10021:objectivesNormalize"
+    ],
+    "tests": [
+      "tools/test_tracking_cross_system_2_9_13.cjs",
+      "tools/test_tracking_engine_3.cjs"
+    ],
+    "processing": "Existing accepted HUD/report \u2192 active-swipe metadata \u2192 chronological read pass \u2192 panel; original stores retained",
+    "status": "Deterministic contracts covered; narrative/provider/live behavior partial",
+    "measurement": "Export counts where observations exist; synthetic regressions otherwise, no invented accuracy rate"
+  },
+  {
+    "system": "Canon events, Sandbox and branching",
+    "source": [
+      "dist/backend.js:10006:mtEventLedger",
+      "dist/backend.js:9444:mtSaga",
+      "dist/backend.js:9473:worldMushoku"
+    ],
+    "tests": [
+      "tools/test_living_world_compatibility.cjs",
+      "tools/test_universal_six_sided_matrix.cjs"
+    ],
+    "processing": "Existing accepted HUD/report \u2192 active-swipe metadata \u2192 chronological read pass \u2192 panel; original stores retained",
+    "status": "Deterministic contracts covered; narrative/provider/live behavior partial",
+    "measurement": "Export counts where observations exist; synthetic regressions otherwise, no invented accuracy rate"
+  },
+  {
+    "system": "Characters, identity, party and relationships",
+    "source": [
+      "dist/backend.js:11693:partyMatch",
+      "dist/backend.js:12059:relReconcile",
+      "dist/backend.js:12132:hmsRelationsPanel"
+    ],
+    "tests": [
+      "tools/test_reconciliation_integrity.cjs",
+      "tools/test_tracking_continuation_accuracy.cjs"
+    ],
+    "processing": "Existing accepted HUD/report \u2192 active-swipe metadata \u2192 chronological read pass \u2192 panel; original stores retained",
+    "status": "Deterministic contracts covered; narrative/provider/live behavior partial",
+    "measurement": "Export counts where observations exist; synthetic regressions otherwise, no invented accuracy rate"
+  },
+  {
+    "system": "Family location, status and history",
+    "source": [
+      "dist/backend.js:12261:famRead",
+      "dist/backend.js:12239:famNormalize"
+    ],
+    "tests": [
+      "tools/test_stabilization_continuity.cjs",
+      "tools/test_living_world_compatibility.cjs"
+    ],
+    "processing": "Existing accepted HUD/report \u2192 active-swipe metadata \u2192 chronological read pass \u2192 panel; original stores retained",
+    "status": "Deterministic contracts covered; narrative/provider/live behavior partial",
+    "measurement": "Export counts where observations exist; synthetic regressions otherwise, no invented accuracy rate"
+  },
+  {
+    "system": "NPC feelings, bonds and routines",
+    "source": [
+      "dist/backend.js:14342:simFold",
+      "dist/backend.js:14481:simPanel"
+    ],
+    "tests": [
+      "tools/test_reconciliation_integrity.cjs",
+      "tools/test_universal_integrity.cjs"
+    ],
+    "processing": "Existing accepted HUD/report \u2192 active-swipe metadata \u2192 chronological read pass \u2192 panel; original stores retained",
+    "status": "Deterministic contracts covered; narrative/provider/live behavior partial",
+    "measurement": "Export counts where observations exist; synthetic regressions otherwise, no invented accuracy rate"
+  },
+  {
+    "system": "Owner-specific knowledge and secrets",
+    "source": [
+      "dist/backend.js:13991:simLearnedNormalize",
+      "dist/backend.js:13539:secretRead",
+      "dist/backend.js:11693:partyMatch"
+    ],
+    "tests": [
+      "tools/test_tracking_engine_3.cjs",
+      "tools/test_tracking_cross_system_2_9_13.cjs"
+    ],
+    "processing": "Existing accepted HUD/report \u2192 active-swipe metadata \u2192 chronological read pass \u2192 panel; original stores retained",
+    "status": "Deterministic contracts covered; narrative/provider/live behavior partial",
+    "measurement": "Export counts where observations exist; synthetic regressions otherwise, no invented accuracy rate"
+  },
+  {
+    "system": "Internal States under replies",
+    "source": [
+      "dist/backend.js:3518:statesFill",
+      "dist/backend.js:3612:statesPanelHtml"
+    ],
+    "tests": [
+      "tools/test_internal_states_export_2_9_5.cjs",
+      "tools/test_tracking_continuation_accuracy.cjs"
+    ],
+    "processing": "Existing accepted HUD/report \u2192 active-swipe metadata \u2192 chronological read pass \u2192 panel; original stores retained",
+    "status": "Deterministic contracts covered; narrative/provider/live behavior partial",
+    "measurement": "Export counts where observations exist; synthetic regressions otherwise, no invented accuracy rate"
+  },
+  {
+    "system": "Chekhov promises and unresolved clues",
+    "source": [
+      "dist/backend.js:14012:simChekhovNormalize",
+      "dist/backend.js:14342:simFold"
+    ],
+    "tests": [
+      "tools/test_panel_tracking.cjs",
+      "tools/test_reconciliation_integrity.cjs"
+    ],
+    "processing": "Existing accepted HUD/report \u2192 active-swipe metadata \u2192 chronological read pass \u2192 panel; original stores retained",
+    "status": "Deterministic contracts covered; narrative/provider/live behavior partial",
+    "measurement": "Export counts where observations exist; synthetic regressions otherwise, no invented accuracy rate"
+  },
+  {
+    "system": "Inventory, equipment and carried items",
+    "source": [
+      "dist/backend.js:12593:gearRead",
+      "dist/backend.js:12522:gearNormalize"
+    ],
+    "tests": [
+      "tools/test_tracking_source_integrity.cjs",
+      "tools/test_additional_tracking_2_9_11.cjs"
+    ],
+    "processing": "Existing accepted HUD/report \u2192 active-swipe metadata \u2192 chronological read pass \u2192 panel; original stores retained",
+    "status": "Deterministic contracts covered; narrative/provider/live behavior partial",
+    "measurement": "Export counts where observations exist; synthetic regressions otherwise, no invented accuracy rate"
+  },
+  {
+    "system": "Property and holdings",
+    "source": [
+      "dist/backend.js:13107:holdRead",
+      "dist/backend.js:13070:holdNormalize"
+    ],
+    "tests": [
+      "tools/test_living_world_compatibility.cjs",
+      "tools/test_panel_tracking.cjs"
+    ],
+    "processing": "Existing accepted HUD/report \u2192 active-swipe metadata \u2192 chronological read pass \u2192 panel; original stores retained",
+    "status": "Deterministic contracts covered; narrative/provider/live behavior partial",
+    "measurement": "Export counts where observations exist; synthetic regressions otherwise, no invented accuracy rate"
+  },
+  {
+    "system": "Currency, debts and transactions",
+    "source": [
+      "dist/backend.js:13254:moneyRead",
+      "dist/backend.js:13235:moneyNormalize"
+    ],
+    "tests": [
+      "tools/test_tracking_engine_3.cjs",
+      "tools/test_tracking_cross_system_2_9_13.cjs"
+    ],
+    "processing": "Existing accepted HUD/report \u2192 active-swipe metadata \u2192 chronological read pass \u2192 panel; original stores retained",
+    "status": "Deterministic contracts covered; narrative/provider/live behavior partial",
+    "measurement": "Export counts where observations exist; synthetic regressions otherwise, no invented accuracy rate"
+  },
+  {
+    "system": "Organizations and affiliations",
+    "source": [
+      "dist/backend.js:13404:factionRead",
+      "dist/backend.js:13366:factionNormalize"
+    ],
+    "tests": [
+      "tools/test_living_world_compatibility.cjs",
+      "tools/test_panel_tracking.cjs"
+    ],
+    "processing": "Existing accepted HUD/report \u2192 active-swipe metadata \u2192 chronological read pass \u2192 panel; original stores retained",
+    "status": "Deterministic contracts covered; narrative/provider/live behavior partial",
+    "measurement": "Export counts where observations exist; synthetic regressions otherwise, no invented accuracy rate"
+  },
+  {
+    "system": "World references, systems and contracts",
+    "source": [
+      "dist/backend.js:9530:worldPanel",
+      "dist/backend.js:9473:worldMushoku"
+    ],
+    "tests": [
+      "tools/test_universal_card_matrix.cjs",
+      "tools/test_living_world_compatibility.cjs"
+    ],
+    "processing": "Existing accepted HUD/report \u2192 active-swipe metadata \u2192 chronological read pass \u2192 panel; original stores retained",
+    "status": "Deterministic contracts covered; narrative/provider/live behavior partial",
+    "measurement": "Export counts where observations exist; synthetic regressions otherwise, no invented accuracy rate"
+  },
+  {
+    "system": "Atlas, travel and geographic references",
+    "source": [
+      "dist/backend.js:4146:atlasFor",
+      "dist/backend.js:11309:hmsTimeline"
+    ],
+    "tests": [
+      "tools/test_atlas_references.cjs",
+      "tools/test_six_sided_repairs.cjs"
+    ],
+    "processing": "Existing accepted HUD/report \u2192 active-swipe metadata \u2192 chronological read pass \u2192 panel; original stores retained",
+    "status": "Deterministic contracts covered; narrative/provider/live behavior partial",
+    "measurement": "Export counts where observations exist; synthetic regressions otherwise, no invented accuracy rate"
+  },
+  {
+    "system": "Scene maps, saved rooms and buildings",
+    "source": [
+      "dist/backend.js:4547:hmsMapPanel",
+      "dist/backend.js:4782:hmsBuildingsPanel",
+      "dist/backend.js:4389:posNormalize"
+    ],
+    "tests": [
+      "tools/test_panel_tracking.cjs",
+      "tools/test_reconciliation_integrity.cjs"
+    ],
+    "processing": "Existing accepted HUD/report \u2192 active-swipe metadata \u2192 chronological read pass \u2192 panel; original stores retained",
+    "status": "Deterministic contracts covered; narrative/provider/live behavior partial",
+    "measurement": "Export counts where observations exist; synthetic regressions otherwise, no invented accuracy rate"
+  },
+  {
+    "system": "Communications, contacts and devices",
+    "source": [
+      "dist/backend.js:14874:hmsCommsPanel"
+    ],
+    "tests": [
+      "tools/test_panel_tracking.cjs",
+      "tools/test_universal_integrity.cjs"
+    ],
+    "processing": "Existing accepted HUD/report \u2192 active-swipe metadata \u2192 chronological read pass \u2192 panel; original stores retained",
+    "status": "Deterministic contracts covered; narrative/provider/live behavior partial",
+    "measurement": "Export counts where observations exist; synthetic regressions otherwise, no invented accuracy rate"
+  },
+  {
+    "system": "Chapters, summaries and Chronicle",
+    "source": [
+      "dist/backend.js:8033:chaptersPanel",
+      "dist/backend.js:8142:chronicleBuild"
+    ],
+    "tests": [
+      "tools/test_universal_integrity.cjs",
+      "tools/test_long_chat_stability.cjs"
+    ],
+    "processing": "Existing accepted HUD/report \u2192 active-swipe metadata \u2192 chronological read pass \u2192 panel; original stores retained",
+    "status": "Deterministic contracts covered; narrative/provider/live behavior partial",
+    "measurement": "Export counts where observations exist; synthetic regressions otherwise, no invented accuracy rate"
+  },
+  {
+    "system": "Engine fights, encounters and DND",
+    "source": [
+      "dist/backend.js:7500:immPanel",
+      "dist/backend.js:5985:dndRound"
+    ],
+    "tests": [
+      "tools/test_startup_and_render.cjs",
+      "tools/test_universal_integrity.cjs"
+    ],
+    "processing": "Existing accepted HUD/report \u2192 active-swipe metadata \u2192 chronological read pass \u2192 panel; original stores retained",
+    "status": "Deterministic contracts covered; narrative/provider/live behavior partial",
+    "measurement": "Export counts where observations exist; synthetic regressions otherwise, no invented accuracy rate"
+  },
+  {
+    "system": "Save, continuation and restore",
+    "source": [
+      "dist/backend.js:2402:companionTurnPurpose",
+      "dist/backend.js:1908:getSwipeData"
+    ],
+    "tests": [
+      "tools/test_save_continue_boundary.cjs",
+      "tools/test_living_world_compatibility.cjs"
+    ],
+    "processing": "Existing accepted HUD/report \u2192 active-swipe metadata \u2192 chronological read pass \u2192 panel; original stores retained",
+    "status": "Deterministic contracts covered; narrative/provider/live behavior partial",
+    "measurement": "Export counts where observations exist; synthetic regressions otherwise, no invented accuracy rate"
+  },
+  {
+    "system": "Metadata, swipes, edits and refresh",
+    "source": [
+      "dist/backend.js:1929:setSwipeData",
+      "dist/backend.js:1908:getSwipeData",
+      "dist/backend.js:4904:runSeparateUpdate"
+    ],
+    "tests": [
+      "tools/test_metadata_read_cost.cjs",
+      "tools/test_recovery_reliability.cjs",
+      "tools/test_tracking_engine_3.cjs"
+    ],
+    "processing": "Existing accepted HUD/report \u2192 active-swipe metadata \u2192 chronological read pass \u2192 panel; original stores retained",
+    "status": "Deterministic contracts covered; narrative/provider/live behavior partial",
+    "measurement": "Export counts where observations exist; synthetic regressions otherwise, no invented accuracy rate"
+  },
+  {
+    "system": "Lore, memories and context injection",
+    "source": [
+      "dist/backend.js:1264:buildLoreBlock",
+      "dist/backend.js:1476:buildMemoryBlock",
+      "dist/backend.js:10141:buildCompanionInstructionRead"
+    ],
+    "tests": [
+      "tools/test_reading_and_magic.cjs",
+      "tools/test_universal_integrity.cjs"
+    ],
+    "processing": "Existing accepted HUD/report \u2192 active-swipe metadata \u2192 chronological read pass \u2192 panel; original stores retained",
+    "status": "Deterministic contracts covered; narrative/provider/live behavior partial",
+    "measurement": "Export counts where observations exist; synthetic regressions otherwise, no invented accuracy rate"
+  },
+  {
+    "system": "Presets, settings, guards and recovery",
+    "source": [
+      "dist/backend.js:5071:emptyChatState",
+      "dist/backend.js:10653:hmsCfg"
+    ],
+    "tests": [
+      "tools/test_startup_and_render.cjs",
+      "tools/test_recovery_reliability.cjs"
+    ],
+    "processing": "Existing accepted HUD/report \u2192 active-swipe metadata \u2192 chronological read pass \u2192 panel; original stores retained",
+    "status": "Deterministic contracts covered; narrative/provider/live behavior partial",
+    "measurement": "Export counts where observations exist; synthetic regressions otherwise, no invented accuracy rate"
+  },
+  {
+    "system": "UI, popout, float, localization and controls",
+    "source": [
+      "dist/backend.js:2286:pushState"
+    ],
+    "tests": [
+      "tools/test_frontend_chat_isolation.cjs",
+      "tools/test_startup_and_render.cjs"
+    ],
+    "processing": "Existing accepted HUD/report \u2192 active-swipe metadata \u2192 chronological read pass \u2192 panel; original stores retained",
+    "status": "Deterministic contracts covered; narrative/provider/live behavior partial",
+    "measurement": "Export counts where observations exist; synthetic regressions otherwise, no invented accuracy rate"
+  },
+  {
+    "system": "Release, packaging and retired rebuild safeguards",
+    "source": [
+      "dist/backend.js:16244:hmsDiagnostics"
+    ],
+    "tests": [
+      "tools/test_publish_rc.cjs",
+      "tools/test_rebuild_safety.cjs"
+    ],
+    "processing": "Existing accepted HUD/report \u2192 active-swipe metadata \u2192 chronological read pass \u2192 panel; original stores retained",
+    "status": "Deterministic contracts covered; narrative/provider/live behavior partial",
+    "measurement": "Export counts where observations exist; synthetic regressions otherwise, no invented accuracy rate"
+  }
+]

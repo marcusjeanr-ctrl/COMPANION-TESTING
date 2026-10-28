@@ -1,6 +1,10 @@
-# RPG Companion HMS Edition 2.9.15 — Release Candidate
+# RPG Companion HMS Edition 3.0.0 — Release Candidate
 
-> Magic tracking: [2.9.15 RC rework, evidence and limitations](docs/compatibility/magic_2_9_15/REPORT.md).
+> Dual primary targets: [Living World + Six-Sided World 3.0 RC integration, checkpoint, evidence and limitations](docs/compatibility/3_0/DUAL_CARD_REPORT.md).
+
+> Task 1 tracking rework: [3.0 RC audit, implementation, verification and limitations](docs/compatibility/3_0/REPORT.md).
+
+> Previous Magic tracking: [2.9.15 RC rework, evidence and limitations](docs/compatibility/magic_2_9_15/REPORT.md).
 
 > Previous Living World: [2.9.14 RC compatibility report and limitations](docs/compatibility/living_world_2_9_14/REPORT.md).
 

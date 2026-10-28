@@ -1,5 +1,29 @@
 # Changelog — RPG Companion HMS Edition
 
+## 3.0.0 RC candidate — Tracking contracts and compatibility
+
+- Preserve all 2.9.15 Magic identity/progression improvements.
+- Reconcile conservatively anchored assignment label refinements; preserve original
+  keys, aliases, separate objectives, rewards and legitimate stage resets.
+- Preserve explicit quest completion/failure/abandonment/reopening, current HUD
+  lifecycle, long objective conditions and stable focus after renames.
+- Honor explicit uncertainty consistently; reject unaccepted/uncertain transactions
+  without renumbering saved ledger corrections.
+- Resolve secret knowers by canonical or unique identity, preventing ambiguous
+  first names from receiving another character's private knowledge.
+- Inventory all systems and Living World entry IDs, with before/after export counts,
+  defect regressions, browser verification, measured costs and open provider limits.
+- Integrate Six-Sided's explicitly owned spell-list format, rank/cost annotations
+  and Known-not-Mastered evidence without granting theoretical/NPC abilities.
+- Reconcile unique full/short family identities and Agenda place abbreviations only
+  when both HUD observations establish the same parent location.
+- Reject pending/uncertain property and inheritance grants; add dual-card lifetime,
+  chronology, continuation and full-source regression coverage.
+- Preserve Task 1 checkpoint `31e44da`; see the dual-card report for inherited
+  history-window and live-provider limits. Neither card is claimed fully certified.
+- No visual redesign, new dependency, model call, polling or saved-data migration.
+  See [3.0 RC report](docs/compatibility/3_0/REPORT.md); live acceptance is outstanding.
+
 ## 2.9.15 RC candidate — Magic identity and progression
 
 - Reconcile grouped confirmed spell lists into individual catalogue identities;

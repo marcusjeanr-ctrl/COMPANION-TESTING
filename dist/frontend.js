@@ -1125,7 +1125,7 @@ export function setup(ctx) {
         id: 'rpg-companion-hms',
         title: 'RPG Companion (HMS)',
         shortName: 'RPG',
-        headerTitle: 'RPG Companion HMS Edition 2.9.15',
+        headerTitle: 'RPG Companion HMS Edition 3.0.0',
         description: 'The side panel for HMS bots: the HUD as cards, people, quests, the map, fights, the Chronicle, and a guide',
         keywords: ['rpg', 'hms', 'tracker', 'hud', 'quests', 'dice', 'guide'],
         iconSvg: ICON_SVG
@@ -3320,7 +3320,7 @@ export function setup(ctx) {
             const sorted = quests.slice().sort((a, b) => ((b.key === focus) - (a.key === focus)) || ((a.category === 'main' ? 0 : 1) - (b.category === 'main' ? 0 : 1)));
             items.push(h('div', { class: 'rpgc-cards' }, sorted.map(q => h('div', { class: 'rpgc-qcard ' + q.cls + (q.key && q.key === focus ? ' focus' : '') },
                 h('div', { class: 'qhead' },
-                    q.key ? h('button', { class: 'rpgc-mini star', 'aria-label': q.key === focus ? 'Unfocus this quest' : 'Focus this quest', title: 'Focus quest', onclick: () => send({ type: 'quest_focus', chatId: state.chatId, name: q.name }) }, q.key === focus ? '\u2605' : '\u2606') : null,
+                    q.key ? h('button', { class: 'rpgc-mini star', 'aria-label': q.key === focus ? 'Unfocus this quest' : 'Focus this quest', title: 'Focus quest', onclick: () => send({ type: 'quest_focus', chatId: state.chatId, name: q.name, key: q.key }) }, q.key === focus ? '\u2605' : '\u2606') : null,
                     h('span', { class: 'name' }, q.name),
                     q.category ? h('span', { class: 'rpgc-chip' }, q.category) : null,
                     q.state ? h('span', { class: 'qst ' + q.cls }, q.state) : q.fromStory ? h('span', { class: 'qst active' }, 'in the story') : null),
@@ -6307,7 +6307,7 @@ body{background:${bs ? bs.backgroundColor : '#111'};color:${bs ? bs.color : '#dd
             if (!popWin || popWin.closed) {
                 popWin = window.open('', 'rpgc_popout', 'width=460,height=860');
                 if (!popWin) { state.status = { kind: 'warning', text: 'The browser blocked the pop-out window. Allow pop-ups for Lumiverse and try again.' }; const s = S(); s.uiPanelMode = 'drawer'; return applyPanelMode(); }
-                popWin.document.title = 'RPG Companion HMS Edition 2.9.15 RC';
+                popWin.document.title = 'RPG Companion HMS Edition 3.0.0 RC';
                 syncPopoutLook(popWin);
                 try { if (!popLookObs) { popLookObs = new MutationObserver(() => syncPopoutLook(popWin)); popLookObs.observe(document.documentElement, { attributes: true }); if (document.body) popLookObs.observe(document.body, { attributes: true, attributeFilter: ['class'] }); } } catch { /* optional */ }
                 popWin.addEventListener('beforeunload', () => { popWin = null; if (panelMode() === 'popout') { const s = S(); s.uiPanelMode = 'drawer'; saveSettings(false); applyPanelMode(); render(); } });

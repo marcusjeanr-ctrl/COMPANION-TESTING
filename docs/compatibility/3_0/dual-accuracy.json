@@ -1,0 +1,152 @@
+{
+  "checkpoint": "31e44daef9966cce9b4f05eecd31c259aa8db6e5",
+  "living": {
+    "checkpoint": {
+      "sha256": "dee31032b8e651afd64fb7c6bbbac49264441747860a625bba8f414a5167ec97",
+      "messages": 5,
+      "reports": 2,
+      "magic": {
+        "canonicalKnown": 10,
+        "knownOther": 0,
+        "mastered": 0,
+        "activeStudy": 0,
+        "reportedStudy": 1
+      },
+      "quests": {
+        "cards": 1,
+        "reportedNumericProgress": 1,
+        "progressWithNoPercentageInSource": 1
+      },
+      "family": {
+        "members": 5
+      },
+      "agenda": {
+        "scheduled": 2
+      },
+      "minds": {
+        "people": 3
+      },
+      "gear": {
+        "items": 0
+      },
+      "money": {
+        "transactions": 0
+      },
+      "factions": {
+        "memberships": 0
+      },
+      "sourceUnchanged": true
+    },
+    "final": {
+      "sha256": "dee31032b8e651afd64fb7c6bbbac49264441747860a625bba8f414a5167ec97",
+      "messages": 5,
+      "reports": 2,
+      "magic": {
+        "canonicalKnown": 10,
+        "knownOther": 0,
+        "mastered": 0,
+        "activeStudy": 0,
+        "reportedStudy": 1
+      },
+      "quests": {
+        "cards": 1,
+        "reportedNumericProgress": 1,
+        "progressWithNoPercentageInSource": 1
+      },
+      "family": {
+        "members": 5
+      },
+      "agenda": {
+        "scheduled": 2
+      },
+      "minds": {
+        "people": 3
+      },
+      "gear": {
+        "items": 0
+      },
+      "money": {
+        "transactions": 0
+      },
+      "factions": {
+        "memberships": 0
+      },
+      "sourceUnchanged": true
+    }
+  },
+  "six": {
+    "checkpoint": {
+      "sha256": "d811bf7216cc4a82121c084f89eefddc13c04af54d08421e3a5c75f12e304a34",
+      "messages": 5,
+      "reports": 2,
+      "magic": {
+        "canonicalKnown": 8,
+        "knownOther": 0,
+        "mastered": 0,
+        "activeStudy": 0,
+        "reportedStudy": 0
+      },
+      "quests": {
+        "cards": 0,
+        "reportedNumericProgress": 0,
+        "progressWithNoPercentageInSource": 0
+      },
+      "family": {
+        "members": 8
+      },
+      "agenda": {
+        "scheduled": 4
+      },
+      "minds": {
+        "people": 5
+      },
+      "gear": {
+        "items": 2
+      },
+      "money": {
+        "transactions": 0
+      },
+      "factions": {
+        "memberships": 1
+      },
+      "sourceUnchanged": true
+    },
+    "final": {
+      "sha256": "d811bf7216cc4a82121c084f89eefddc13c04af54d08421e3a5c75f12e304a34",
+      "messages": 5,
+      "reports": 2,
+      "magic": {
+        "canonicalKnown": 16,
+        "knownOther": 0,
+        "mastered": 0,
+        "activeStudy": 0,
+        "reportedStudy": 0
+      },
+      "quests": {
+        "cards": 0,
+        "reportedNumericProgress": 0,
+        "progressWithNoPercentageInSource": 0
+      },
+      "family": {
+        "members": 5
+      },
+      "agenda": {
+        "scheduled": 2
+      },
+      "minds": {
+        "people": 5
+      },
+      "gear": {
+        "items": 2
+      },
+      "money": {
+        "transactions": 0
+      },
+      "factions": {
+        "memberships": 1
+      },
+      "sourceUnchanged": true
+    }
+  },
+  "criteria": "Same export bytes, complete respective card and configured actual player name. No provider call; counts only. Provenance preserved, no raw report rewrite. These counts do not establish broad recall percentages."
+}
