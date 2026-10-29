@@ -1,6 +1,6 @@
-# RPG Companion HMS Edition 3.0.3 — Release Candidate
+# RPG Companion HMS Edition 3.0.4 — Release Candidate
 
-> 3.0.3 RC: [ability identity, scene objectives and progression evidence](docs/compatibility/3_0/ABILITY_QUEST_EVIDENCE.md).
+> 3.0.4 RC: [cached narrator references across lore categories](docs/compatibility/3_0/NARRATOR_LORE_GROUNDING.md).
 
 > Six-Sided acceptance: [additional persistence fixes and verification](docs/compatibility/3_0/SIX_SIDED_ACCEPTANCE.md).
 
