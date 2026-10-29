@@ -1,5 +1,10 @@
 # Cached narrator references across lore categories
 
+**Release preparation:** included in 3.0.4 RC under PR #17. The investigation
+below records implementation checkpoint `2a43789`, before the release version
+change. Its hashes and measurements remain historical evidence; published package
+checksums identify the release artifact.
+
 Issue: [#16](https://github.com/marcusjeanr-ctrl/COMPANION-TESTING/issues/16).
 Baseline: published 3.0.3 RC, `f15a942e7945c527d87227ee7115f48bb14e18d6`.
 Candidate backend SHA-256:

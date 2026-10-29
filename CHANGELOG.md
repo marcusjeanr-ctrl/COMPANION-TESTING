@@ -1,6 +1,6 @@
 # Changelog — RPG Companion HMS Edition
 
-## Unreleased — Cached narrator lore references
+## 3.0.4 RC — Cached narrator lore references
 
 - Extend bounded narrator reference grounding to matching lore of any category,
   including techniques, NPCs, places, items, economics and gameplay rules.
