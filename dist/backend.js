@@ -13035,6 +13035,9 @@ function agendaWhen(due, when, at, hud = null, source = null) {
     if (day && at < 300 * 360 * 1440 && !/\b(?:Year|Month|K\.?\d)/i.test(text)) return (Number(day[1]) - 1) * 1440 + clock;
     const clockText = `${Math.floor(clock / 60)}:${String(clock % 60).padStart(2, '0')}`;
     const explicit = text.replace(/\b\d{1,2}:\d{2}\s*(?:am|pm)?\b|\b\d{1,2}\s*(?:am|pm|o'clock|h)\b|\b(?:half past|quarter past|quarter to)\s+\w+\b/i, clockText);
+    // An observed appointment does not move to tomorrow merely because its
+    // bare clock is now past. Keep the shared future-deadline parser unchanged.
+    if (!day && !hmsClock({ lines: [{ text: explicit.replace(/,/, ' |') }] })?.dated) return dayStart + clock;
     const parsed = hmsParseWhen(explicit, at, hud);
     return parsed !== null && Number.isFinite(parsed) ? parsed : dayStart + clock;
 }
@@ -13078,7 +13081,9 @@ function agendaSame(a, b) {
     return n >= 2 && n === Math.min(A.size, B.size);
 }
 
-function agendaActivityState(item, data) {
+function agendaActivityState(item, data, at = null) {
+    if (at !== null && item.scheduleDay != null && item.scheduleDay > Math.floor(at / 1440)) return null;
+    if (at !== null && item.dueAt != null && item.dueAt > at && !/\b(?:before|by|until)\b/i.test(item.when || '')) return null;
     const stop = new Set(['the', 'and', 'with', 'for', 'from', 'against', 'this', 'that', 'your', 'you', 'will', 'allowed', 'called', 'breaks', 'begin', 'begins', 'started', 'starting']);
     const cached = activeReadPass ? memoRead(activeReadPass.chat, 'agenda-activity-words', () => new Map()) : null;
     const words = text => {
@@ -13103,6 +13108,7 @@ function agendaActivityState(item, data) {
 }
 
 function agendaReportedState(row, data, at, dueAt, previous = 'open') {
+    if (row.state === 'in_progress' && at !== null && row.scheduleDay != null && row.scheduleDay > Math.floor(at / 1440)) return previous;
     // Repeated pending reports are not evidence that the same occurrence restarted.
     // Explicit moves and manual edits retain their existing correction paths.
     if (!row.moved && ['open', 'in_progress'].includes(row.state) &&
@@ -13122,8 +13128,33 @@ function agendaPlaceCompatible(a, b, refine = false, context = null) {
     if (room(A) === room(B)) return true;
     const norm = text => lockKey(text || '').replace(/[^\p{L}\p{N}]+/gu, ' ').trim();
     const x = norm(a), y = norm(b), short = x.length < y.length ? x : y, long = x.length < y.length ? y : x;
-    return short.split(' ').length >= 2 && long.endsWith(' ' + short) && !!context?.before && !!context?.after &&
+    const contained = long.endsWith(' ' + short) || long.startsWith(short + ' ') && !/\b(?:annex|wing|extension)\b/.test(long.slice(short.length));
+    return short.split(' ').length >= 2 && contained && !!context?.before && !!context?.after &&
         norm(context.before).endsWith(long) && norm(context.after).endsWith(long);
+}
+
+/** Identity evidence is local to an accepted source, never a copied continuation
+ * snapshot, private tracker block, quoted example or proposed future action. */
+function trackingContinuityLines(message) {
+    if (message?.role !== 'assistant' || message._rpgcPurpose === 'continue' || !trackingMessageVisible(message)) return [];
+    const body = stripCompanion(stripLeakedReasoning(textOf(message.content).slice(0, 24000)));
+    const frame = findHud(body), scene = frame ? body.slice(frame.bodyEnd) : body;
+    return scene.replace(/```[\s\S]*?```/g, '').replace(/^\s*>.*$/gm, '').split(/\n+/).map(s => s.trim()).filter(Boolean);
+}
+
+function trackingContinuityAsserted(line) {
+    return !/\?|\b(?:if|unless|might|could|would|maybe|not|never|perhaps|hypothetical|example|no longer)\b/i.test(line);
+}
+
+function agendaContinuationCue(row, lines) {
+    const separate = /\b(?:another|second|separate|additional|new)\s+(?:\w+\s+){0,2}(?:session|practice|meeting|appointment|lesson|event)\b/i;
+    if (lines.some(line => separate.test(line))) return false;
+    const words = [...trackingWords(row.what)].filter(w => !/^(?:father|mother|session[s]?|meeting[s]?|appointment[s]?|event[s]?|same|ongoing)$/.test(w));
+    return lines.some(line => {
+        if (!trackingContinuityAsserted(line) || !/\b(?:continues?|continuing|ongoing|uninterrupted|still)\b/i.test(line)) return false;
+        const observed = trackingWords(line);
+        return words.some(word => observed.has(word));
+    });
 }
 
 /** Legacy reports sometimes called a postponed occurrence merely "open". Require
@@ -13170,17 +13201,21 @@ function agendaRead(chat, st) {
         const e = continuityObservation(m, hudAt, indexed);
         const at = e ? e.clock : null;
         const idx = idxOf.has(m.id) ? idxOf.get(m.id) : -1;
+        let continuityLines = null;
         for (const r of Array.isArray(d.agenda) ? d.agenda : []) {
             if (!r || typeof r.key !== 'string' || typeof r.what !== 'string') continue;
-            const dueAt = r.when || r.due ? agendaWhen(r.due, r.when, at, e && e.hud, stripThink(textOf(m.content)).replace(COMPANION_RE, '')) : null;
+            let dueAt = r.when || r.due ? agendaWhen(r.due, r.when, at, e && e.hud, stripThink(textOf(m.content)).replace(COMPANION_RE, '')) : null;
             const scheduleDay = dueAt !== null ? Math.floor(dueAt / 1440) : agendaScheduleDay(r.due, r.when, at, e && e.hud);
             const scenePlace = e?.hud?.location?.join(' ') || null;
-            let it = find(r.key, { ...r, scheduleDay, reportedIn: m.id, scenePlace }, dueAt);
+            const immediate = /^(?:now|right now|immediately)$/i.test(String(r.when || r.due || '').trim());
+            const continuing = immediate && r.state === 'in_progress' && agendaContinuationCue(r, continuityLines ??= trackingContinuityLines(m));
+            let it = find(r.key, { ...r, scheduleDay, reportedIn: m.id, scenePlace, continuing }, dueAt);
             const moved = !it && it !== undefined && !r.moved &&
                 (d.agenda || []).filter(x => x && lockKey(x.what || '') === lockKey(r.what)).length === 1 &&
                 agendaNarratedMove(r, items, m.content, m.id);
             if (moved) it = find(r.key, { ...r, moved: true, scheduleDay, reportedIn: m.id }, dueAt);
             if (it === undefined) continue; // An ambiguous update cannot choose or invent an occurrence.
+            if (it && continuing && it.state === 'in_progress' && it.scheduleDay === scheduleDay && !r.moved && !moved) dueAt = it.dueAt;
             if (!it) {
                 if (!r.with && !r.where && !r.when && !r.due && items.some(x => agendaSame(lockKey(x.what), r.key))) continue;
                 const key = agendaItemKey(items, r);
@@ -13196,12 +13231,12 @@ function agendaRead(chat, st) {
             if (r.where) it.where = r.where;
             if (r.when || r.due) { if (r.when) it.when = r.when; if (dueAt !== null || r.moved || moved) it.dueAt = dueAt; if (dueAt === null && r.due) it.when = r.when || r.due; }
             if (r.kind) it.kind = r.kind;
-            const state = agendaReportedState(moved ? { ...r, moved: true } : r, d, at, it.dueAt, it.state);
+            const state = agendaReportedState({ ...r, scheduleDay, ...(moved ? { moved: true } : {}) }, d, at, it.dueAt, it.state);
             if (state !== it.state) it.history.push({ from: it.state, to: state, at });
             it.state = state; it.idx = idx; it.changedIn = m.id;
         }
         for (const it of items) if (it.state === 'open' || it.state === 'in_progress') {
-            const state = agendaActivityState(it, d);
+            const state = agendaActivityState(it, d, at);
             if (state && state !== it.state) { it.history.push({ from: it.state, to: state, at }); it.state = state; it.idx = idx; it.changedIn = m.id; }
         }
     }
@@ -16531,6 +16566,7 @@ function agendaVaguePeriod(text) {
 function agendaScheduleCompatible(a, b, dueAt, refine = false) {
     if (b.moved) return true;
     if (a.scheduleDay !== null && a.scheduleDay !== undefined && b.scheduleDay !== null && b.scheduleDay !== undefined && a.scheduleDay !== b.scheduleDay) return false;
+    if (refine && b.continuing && a.state === 'in_progress' && b.state === 'in_progress' && a.scheduleDay != null && a.scheduleDay === b.scheduleDay) return true;
     if (a.dueAt !== null && dueAt !== null) {
         if (a.dueAt === dueAt) return true;
         // "now" refines an earlier before/by deadline on the same day; it is
@@ -16652,10 +16688,35 @@ function questSceneLifecycle(q, m, data, context) {
     return { state: footing ? 'failed' : 'closed', quote: ending.trim().slice(0,240), kind: footing ? 'final-trial-failed' : 'scene-ended', msgId: m.id };
 }
 
+/** Link a renamed stage only with a unique existing active assignment and explicit
+ * local continuation evidence. Related names or shared destinations alone fail. */
+function questStageContinuation(rows, q, reported, getLines) {
+    if (!q.giver || !q.where) return null;
+    const core = name => questKey(name).replace(/^the\s+/, '').replace(/\s+with\s+.+$/, '').trim();
+    const title = core(q.name);
+    const words = [...trackingWords(title)].filter(w => !/^(?:quest|assign|mission|task|session[s]?|training|practice)$/.test(w));
+    if (words.length < 2) return null;
+    const candidates = rows.filter(row => core(row.name) === title && questKey(row.name) !== questKey(q.name) &&
+        (questReportedState(row.state)?.cls || row.cls || 'active') === 'active' && row.giver && relSameWords(row.giver, q.giver) &&
+        (!row.category || !q.category || row.category === q.category) &&
+        row.where && questPlaceCompatible(row.where, q.where) &&
+        !reported.some(other => other !== q && questKey(other.name) === questKey(row.name)));
+    if (candidates.length !== 1) return null;
+    const lines = getLines();
+    if (lines.some(line => /\b(?:another|second|separate|additional|new)\s+(?:\w+\s+){0,2}(?:quest|assignment|task|mission|objective)\b/i.test(line))) return null;
+    const quote = lines.find(line => {
+        if (!trackingContinuityAsserted(line) || !/\b(?:continues?|continuing)\b/i.test(line) || !/\b(?:stage|step|phase)\b/i.test(line)) return false;
+        const observed = trackingWords(line);
+        return words.every(word => observed.has(word));
+    });
+    return quote ? { row: candidates[0], quote } : null;
+}
+
 /** The latest quest details, each with the HUD clock of the reply that gave them: "08:40" said at 08:20 is that morning. */
 function questDetailsLatest(chat) {
     return memoRead(chat, 'quest-details', () => {
         const rows = [];
+        const stageSources = new Map();
         let previousReport = null;
         for (const m of continuityReadIndex(chat).quests) {
             const data = getSwipeData(m, true);
@@ -16663,11 +16724,21 @@ function questDetailsLatest(chat) {
             const report = JSON.stringify(reported);
             const repeated = reported.length && report === previousReport;
             if (reported.length) previousReport = report;
+            let continuityLines = null;
             for (const q of repeated ? [] : reported) {
                 if (!q || !q.name || q.accepted === false || reportSpeculative(q)) continue;
                 const exact = rows.filter(x => questKey(x.name) === questKey(q.name) && questMatch(x, q));
                 const candidates = exact.length ? exact : rows.filter(x => questMatch(x, q));
                 let row = candidates.length === 1 ? candidates[0] : null;
+                if (!candidates.length && rows.length) {
+                    const stage = questStageContinuation(rows, q, reported, () => continuityLines ??= trackingContinuityLines(m));
+                    if (stage) {
+                        row = stage.row;
+                        row.stageHistory = [...(row.stageHistory || []), { name: row.name, objective: row.objective, progress: row.progress,
+                            state: row.state, reward: row.reward, msgId: stageSources.get(row) || null }].slice(-40);
+                        row.continuationEvidence = { msgId: m.id, quote: stage.quote.slice(0, 240), kind: 'quest-stage' };
+                    }
+                }
                 const deadlineChanged = !row || (q.deadline && q.deadline !== row.deadline);
                 if (!row) { row = { ...q, key: q.key || questKey(q.name) }; rows.push(row); }
                 if (row.name !== q.name) row.questAliases = [...new Set([...(row.questAliases || []), row.name, q.name])].slice(-40);
@@ -16678,6 +16749,7 @@ function questDetailsLatest(chat) {
                 }
                 const lifecycle = questReportedState(q.state);
                 if (lifecycle) { Object.assign(row, lifecycle); delete row.lifecycleEvidence; }
+                stageSources.set(row, m.id);
                 // A deadline is anchored to the reply that actually supplied it, not a later partial report.
                 if (deadlineChanged || row.readAt === undefined) { const at = chapterMark(m).minutes; row.readAt = Number.isFinite(at) ? at : null; }
             }

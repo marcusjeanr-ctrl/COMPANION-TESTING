@@ -225,6 +225,22 @@ class BrowserUi(unittest.TestCase):
         self.assertEqual(quests.filter(has_text='Morning Sword Drill').locator('.qst').inner_text(),'failed')
         self.assertEqual(quests.filter(has_text='Sword style training').locator('.qst').inner_text(),'active')
 
+    def test_continuing_agenda_and_quest_stage_render_once(self):
+        hms=json.loads(subprocess.check_output(['node',str(ROOT/'tools/test_agenda_quest_continuity.cjs'),'--browser-fixture'],text=True))
+        payload=json.loads(json.dumps(FIXTURE['payload']))
+        payload['hms']=hms
+        payload['world']['covers']=[]
+        self.receive(payload)
+        agenda=self.page.locator('.rpgc-agenda-item').filter(has_text='Doubled sparring sessions with Father')
+        self.assertEqual(agenda.count(),1)
+        quests=self.page.locator('.rpgc-qcard').filter(has_text='Doubled sparring sessions')
+        self.assertEqual(quests.count(),1)
+        self.assertIn('Report ten minutes before the first bell',quests.inner_text())
+        agenda.get_by_role('button',name='✓: Doubled sparring sessions with Father',exact=True).click()
+        event=self.page.evaluate("sent.filter(x=>x.type==='agenda').at(-1)")
+        self.assertEqual(event['key'],hms['agenda']['items'][0]['key'])
+        self.assertEqual(event['state'],'kept')
+
     def test_durable_people_agenda_secrets_xp_and_carried_render(self):
         hms=json.loads(subprocess.check_output(['node',str(ROOT/'tools/test_six_sided_acceptance.cjs'),'--browser-fixture'],text=True))
         payload=json.loads(json.dumps(FIXTURE['payload']))
