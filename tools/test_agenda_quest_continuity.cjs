@@ -18,6 +18,26 @@ test('Repeated fixed clocks stay on the stated day after their time passes on bo
 test('A continuing now session retains its first start, key and one active row',()=>{
  const c=setup().ctx,chat=[0,1,2].map(i=>msg(c,'r'+i,{agenda:[{...event,when:'now',state:'in_progress'}]},'The same sparring session continues without a break.',{time:'08:'+String(i*10).padStart(2,'0')}));const before=JSON.stringify(chat),first=c.agendaRead(chat.slice(0,1),{}).items[0],rows=c.agendaRead(chat,{}).items;assert.equal(rows.length,1);assert.equal(rows[0].dueAt,first.dueAt);assert.equal(rows[0].key,first.key);assert.equal(rows[0].state,'in_progress');assert.equal(JSON.stringify(chat),before);
 });
+test('The same session can finish without leaving an active duplicate or drifting its start',()=>{
+ const c=setup().ctx,a={...event,when:'now',state:'in_progress'},chat=[msg(c,'a',{agenda:[a]}),msg(c,'b',{agenda:[{...a,state:'kept'}]},'The same sparring session has finished.',{time:'08:10'}),msg(c,'c',{agenda:[{...a,state:'kept'}]},'The same earlier sparring session remains completed.',{time:'08:20'})];const first=c.agendaRead(chat.slice(0,1),{}).items[0],rows=c.agendaRead(chat,{}).items;assert.equal(rows.length,1);assert.equal(rows[0].state,'kept');assert.equal(rows[0].dueAt,first.dueAt);assert(rows[0].history.some(x=>x.to==='kept'));
+});
+test('A second completed session does not overwrite earlier completed history',()=>{
+ const c=setup().ctx,a={...event,when:'now',state:'kept'},chat=[msg(c,'a',{agenda:[a]},'The first sparring session is completed.'),msg(c,'b',{agenda:[a]},'A second, separate sparring session is completed.',{time:'09:00'})];assert.equal(c.agendaRead(chat,{}).items.length,2);
+});
+test('An accepted appointment can finish without an intermediate active report',()=>{
+ const c=setup().ctx,chat=[msg(c,'a',{agenda:[event]}),msg(c,'b',{agenda:[{...event,when:'now',state:'kept'}]},'The same sparring session is completed.',{time:'08:10'})];const rows=c.agendaRead(chat,{}).items;assert.equal(rows.length,1);assert.equal(rows[0].state,'kept');
+});
+test('Generic open reports of the same occurrence preserve active and terminal states',()=>{
+ for(const [state,body] of [['in_progress','The same sparring session continues.'],['kept','The same earlier sparring session remains completed.'],['missed','The same earlier sparring session was missed.'],['cancelled','The same earlier sparring session was cancelled.']]){
+  const c=setup().ctx,a={...event,when:'now',state},chat=[msg(c,'a',{agenda:[a]}),msg(c,'b',{agenda:[{...a,state:'open'}]},body,{time:'08:10'})];const rows=c.agendaRead(chat,{}).items;assert.equal(rows.length,1,state);assert.equal(rows[0].state,state);
+ }
+});
+test('A still-pending same occurrence does not drift its due time on repeated now reports',()=>{
+ const c=setup().ctx,a={...event,when:'now'},chat=[msg(c,'a',{agenda:[a]}),msg(c,'b',{agenda:[a]},'The same sparring appointment is still pending.',{time:'08:10'})];const rows=c.agendaRead(chat,{}).items;assert.equal(rows.length,1);assert.equal(rows[0].dueAt,c.agendaRead(chat.slice(0,1),{}).items[0].dueAt);
+});
+test('Many repeated observations and JSON reloads do not accumulate active duplicates',()=>{
+ const c=setup().ctx,a={...event,when:'now',state:'in_progress'},chat=Array.from({length:120},(_,i)=>{const minutes=480+i;return msg(c,'r'+i,{agenda:[a]},'The same sparring session continues.',{time:Math.floor(minutes/60)+':'+String(minutes%60).padStart(2,'0')});});const rows=c.agendaRead(JSON.parse(JSON.stringify(chat)),{}).items;assert.equal(rows.length,1);assert.equal(rows[0].key,c.agendaRead(chat.slice(0,1),{}).items[0].key);
+});
 test('A declared new session, terminal history and another day remain distinct',()=>{
  for(const options of [{body:'A second, separate sparring session begins.'},{state:'kept',body:'The next sparring session begins.'},{day:9,body:'The same sparring session continues.'}]){
   const c=setup().ctx,a={...event,when:'now',state:options.state||'in_progress'},b={...event,when:'now',state:'in_progress'};const rows=c.agendaRead([msg(c,'a',{agenda:[a]}),msg(c,'b',{agenda:[b]},options.body,{time:'08:10',day:options.day||8})],{}).items;assert.equal(rows.length,2,JSON.stringify(options));if(options.state)assert(rows.some(x=>x.state==='kept'));
@@ -57,6 +77,12 @@ test('Explicit dates, tomorrow, reschedules and overdue times remain functional'
  assert.equal(Math.floor(c.agendaWhen(null,'Day 9, 08:00',at,c.parseHud(first.content))/1440),day+1);
  const moved=c.agendaRead([first,msg(c,'b',{agenda:[{...event,state:'moved',when:'tomorrow at 09:00'}]},'The appointment is postponed.',{time:'08:10'})],{}).items;assert.equal(moved.length,1);assert.equal(moved[0].state,'open');assert.equal(Math.floor(moved[0].dueAt/1440),day+1);
  assert(c.hmsAgendaPanel([first,msg(c,'later',{},'',{time:'10:00'})],{},c.hmsCfg()).items[0].dueIn<0);
+});
+test('A new undated future clock and a genuinely second next-day appointment retain old date semantics',()=>{
+ const c=setup().ctx,first=msg(c,'a',{agenda:[event]}),at=c.hmsTimeline([first])[0].clock,day=Math.floor(at/1440);
+ assert.equal(Math.floor(c.agendaWhen(null,'07:00',at)/1440),day+1);
+ const chat=[first,msg(c,'b',{agenda:[event]},'A second sparring appointment is set for tomorrow.',{time:'08:10'})];const rows=c.agendaRead(chat,{}).items;assert.equal(rows.length,2);assert.equal(Math.floor(rows[1].dueAt/1440),day+1);
+ const repeated=[first,msg(c,'b',{agenda:[event]},'The same appointment remains at 08:00 today.',{time:'08:10'}),msg(c,'c',{agenda:[event]},'The same appointment remains at 08:00 today.',{time:'08:20'})];assert.equal(c.agendaRead(repeated,{}).items.length,1);
 });
 test('Explicit quest stage continuation preserves key, reset, rewards and earlier stage evidence',()=>{
  const c=setup().ctx,chat=campaign(c),before=JSON.stringify(chat),rows=c.questDetailsLatest(chat);assert.equal(rows.length,1);assert.equal(rows[0].key,c.questDetailsLatest(chat.slice(0,1))[0].key);assert.equal(rows[0].objective,next.objective);assert.equal(rows[0].progress,0);assert.equal(rows[0].reward,quest.reward);assert(rows[0].questAliases.includes(quest.name));assert(rows[0].stageHistory.some(x=>x.objective===quest.objective&&x.progress===20&&x.msgId==='start'));assert.equal(JSON.stringify(chat),before);

@@ -1,0 +1,209 @@
+{
+  "version": "3.0.5",
+  "baselineCommit": "9a06fec02651bcd897f9a6d1af0a18d6e0dc5fd9",
+  "candidateBackendSHA256": "0580be9a0120dc4e9a489bc6b98f4114d9b20a325657832641e3ab2029a9a5ba",
+  "regressionSuites": 46,
+  "newContinuityGroups": 26,
+  "baselineGroupsPassed": 10,
+  "browserUI": 24,
+  "browserVisibility": 5,
+  "performanceRounds": 2,
+  "performance": [
+    {
+      "messages": 2000,
+      "coldMs": 907.74,
+      "medianMs": 169.92,
+      "warnings": 0,
+      "round": 1,
+      "card": "six_sided_world",
+      "kind": "panel",
+      "variant": "baseline"
+    },
+    {
+      "messages": 2000,
+      "coldMs": 725.26,
+      "medianMs": 192.01,
+      "warnings": 0,
+      "round": 1,
+      "card": "six_sided_world",
+      "kind": "panel",
+      "variant": "candidate"
+    },
+    {
+      "messages": 2000,
+      "coldMs": 1653.58,
+      "medianMs": 209.13,
+      "warnings": 0,
+      "round": 1,
+      "card": "living_world",
+      "kind": "panel",
+      "variant": "baseline"
+    },
+    {
+      "messages": 2000,
+      "coldMs": 1728.88,
+      "medianMs": 205.07,
+      "warnings": 0,
+      "round": 1,
+      "card": "living_world",
+      "kind": "panel",
+      "variant": "candidate"
+    },
+    {
+      "parseReportMedianMs": 0.9485,
+      "processResponseMedianMs": 1.5042,
+      "promptConstructMedianMs": 0.6643,
+      "promptCharacters": 15107,
+      "populatedPromptCharacters": 19029,
+      "warnings": 0,
+      "round": 1,
+      "kind": "pipeline",
+      "variant": "baseline"
+    },
+    {
+      "parseReportMedianMs": 0.8056,
+      "processResponseMedianMs": 0.9895,
+      "promptConstructMedianMs": 0.4908,
+      "promptCharacters": 15107,
+      "populatedPromptCharacters": 19029,
+      "warnings": 0,
+      "round": 1,
+      "kind": "pipeline",
+      "variant": "candidate"
+    },
+    {
+      "messages": 2000,
+      "coldMs": 748.41,
+      "medianMs": 168.2,
+      "warnings": 0,
+      "round": 2,
+      "card": "six_sided_world",
+      "kind": "panel",
+      "variant": "candidate"
+    },
+    {
+      "messages": 2000,
+      "coldMs": 688.21,
+      "medianMs": 168.95,
+      "warnings": 0,
+      "round": 2,
+      "card": "six_sided_world",
+      "kind": "panel",
+      "variant": "baseline"
+    },
+    {
+      "messages": 2000,
+      "coldMs": 1527.03,
+      "medianMs": 185.16,
+      "warnings": 0,
+      "round": 2,
+      "card": "living_world",
+      "kind": "panel",
+      "variant": "candidate"
+    },
+    {
+      "messages": 2000,
+      "coldMs": 1381.06,
+      "medianMs": 183.88,
+      "warnings": 0,
+      "round": 2,
+      "card": "living_world",
+      "kind": "panel",
+      "variant": "baseline"
+    },
+    {
+      "parseReportMedianMs": 0.7957,
+      "processResponseMedianMs": 1.0224,
+      "promptConstructMedianMs": 0.4159,
+      "promptCharacters": 15107,
+      "populatedPromptCharacters": 19029,
+      "warnings": 0,
+      "round": 2,
+      "kind": "pipeline",
+      "variant": "candidate"
+    },
+    {
+      "parseReportMedianMs": 0.6836,
+      "processResponseMedianMs": 1.0084,
+      "promptConstructMedianMs": 0.5033,
+      "promptCharacters": 15107,
+      "populatedPromptCharacters": 19029,
+      "warnings": 0,
+      "round": 2,
+      "kind": "pipeline",
+      "variant": "baseline"
+    }
+  ],
+  "callAndReplayEvidence": [
+    {
+      "kind": "pipeline-calls",
+      "calls": {
+        "chat.getMessages": 6,
+        "world_books.getActivated": 1,
+        "storage.getJson": 2,
+        "generate.quiet": 1,
+        "chat.updateMessage": 1,
+        "storage.setJson": 4
+      },
+      "variant": "baseline"
+    },
+    {
+      "kind": "existing-private-export-replay",
+      "messages": 13,
+      "counts": {
+        "agenda": 1,
+        "quests": 2,
+        "family": 5
+      },
+      "inputUnchanged": true,
+      "variant": "baseline"
+    },
+    {
+      "kind": "existing-private-export-replay",
+      "messages": 15,
+      "counts": {
+        "agenda": 1,
+        "quests": 3,
+        "family": 5
+      },
+      "inputUnchanged": true,
+      "variant": "baseline"
+    },
+    {
+      "kind": "pipeline-calls",
+      "calls": {
+        "chat.getMessages": 6,
+        "world_books.getActivated": 1,
+        "storage.getJson": 2,
+        "generate.quiet": 1,
+        "chat.updateMessage": 1,
+        "storage.setJson": 4
+      },
+      "variant": "candidate"
+    },
+    {
+      "kind": "existing-private-export-replay",
+      "messages": 13,
+      "counts": {
+        "agenda": 1,
+        "quests": 2,
+        "family": 5
+      },
+      "inputUnchanged": true,
+      "variant": "candidate"
+    },
+    {
+      "kind": "existing-private-export-replay",
+      "messages": 15,
+      "counts": {
+        "agenda": 1,
+        "quests": 3,
+        "family": 5
+      },
+      "inputUnchanged": true,
+      "variant": "candidate"
+    }
+  ],
+  "liveLumiverseAcceptance": "not performed",
+  "exactScreenshotExport": "unavailable"
+}

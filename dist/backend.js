@@ -2530,7 +2530,7 @@ async function pushState(chatId, snapshot = null) {
 // Demo mode plays scripted turns (no tokens); Live mode asks the model, with a small
 // world narrator standing in for a bot card.
 
-const RPGC_VERSION = '3.0.4';
+const RPGC_VERSION = '3.0.5';
 const diagLog = [];
 function diagPush(kind, m) { diagLog.push({ at: new Date().toISOString(), kind, text: String(m).slice(0, 400) }); if (diagLog.length > 60) diagLog.shift(); }
 function logW(m) { diagPush('warn', m); return spindle.log.warn(m); }
@@ -13035,9 +13035,6 @@ function agendaWhen(due, when, at, hud = null, source = null) {
     if (day && at < 300 * 360 * 1440 && !/\b(?:Year|Month|K\.?\d)/i.test(text)) return (Number(day[1]) - 1) * 1440 + clock;
     const clockText = `${Math.floor(clock / 60)}:${String(clock % 60).padStart(2, '0')}`;
     const explicit = text.replace(/\b\d{1,2}:\d{2}\s*(?:am|pm)?\b|\b\d{1,2}\s*(?:am|pm|o'clock|h)\b|\b(?:half past|quarter past|quarter to)\s+\w+\b/i, clockText);
-    // An observed appointment does not move to tomorrow merely because its
-    // bare clock is now past. Keep the shared future-deadline parser unchanged.
-    if (!day && !hmsClock({ lines: [{ text: explicit.replace(/,/, ' |') }] })?.dated) return dayStart + clock;
     const parsed = hmsParseWhen(explicit, at, hud);
     return parsed !== null && Number.isFinite(parsed) ? parsed : dayStart + clock;
 }
@@ -13146,15 +13143,33 @@ function trackingContinuityAsserted(line) {
     return !/\?|\b(?:if|unless|might|could|would|maybe|not|never|perhaps|hypothetical|example|no longer)\b/i.test(line);
 }
 
+function agendaNewOccurrence(lines) {
+    const separate = /\b(?:another|second|separate|additional|new)\s+(?:\w+\s+){0,2}(?:session|practice|meeting|appointment|lesson|event|bout|round|shift|visit|trip|journey|departure|ceremony|errand|run)\b/i;
+    return lines.some(line => separate.test(line));
+}
+
 function agendaContinuationCue(row, lines) {
-    const separate = /\b(?:another|second|separate|additional|new)\s+(?:\w+\s+){0,2}(?:session|practice|meeting|appointment|lesson|event)\b/i;
-    if (lines.some(line => separate.test(line))) return false;
+    if (agendaNewOccurrence(lines)) return false;
     const words = [...trackingWords(row.what)].filter(w => !/^(?:father|mother|session[s]?|meeting[s]?|appointment[s]?|event[s]?|same|ongoing)$/.test(w));
-    return lines.some(line => {
-        if (!trackingContinuityAsserted(line) || !/\b(?:continues?|continuing|ongoing|uninterrupted|still)\b/i.test(line)) return false;
+    for (const line of lines) {
+        if (!trackingContinuityAsserted(line)) continue;
         const observed = trackingWords(line);
-        return words.some(word => observed.has(word));
-    });
+        if (!words.some(word => observed.has(word))) continue;
+        if (/\b(?:same|earlier|previous|ongoing)\b/i.test(line) &&
+            /\b(?:finished|completed|concluded|ended|kept|missed|cancelled|canceled|called off)\b/i.test(line)) return 'terminal';
+        if (/\b(?:continues?|continuing|ongoing|uninterrupted|still)\b/i.test(line)) return 'active';
+    }
+    return false;
+}
+
+function agendaBareClock(text) {
+    return /^(?:at\s+)?(?:\d{1,2}:\d{2}\s*(?:am|pm)?|\d{1,2}\s*(?:am|pm|o'clock|h)|(?:half past|quarter past|quarter to)\s+\w+)\s*(?:\([^)]*\))?$/i.test(String(text || '').trim());
+}
+
+function agendaRepeatedClock(a, b, refine) {
+    return refine && a.clockOnly && b.clockOnly && a.clockMinute === b.clockMinute &&
+        a.scheduleDay != null && a.scheduleDay === b.observedDay && b.scheduleDay === a.scheduleDay + 1 &&
+        typeof b.allowClockRepeat === 'function' && b.allowClockRepeat();
 }
 
 /** Legacy reports sometimes called a postponed occurrence merely "open". Require
@@ -13205,17 +13220,24 @@ function agendaRead(chat, st) {
         for (const r of Array.isArray(d.agenda) ? d.agenda : []) {
             if (!r || typeof r.key !== 'string' || typeof r.what !== 'string') continue;
             let dueAt = r.when || r.due ? agendaWhen(r.due, r.when, at, e && e.hud, stripThink(textOf(m.content)).replace(COMPANION_RE, '')) : null;
-            const scheduleDay = dueAt !== null ? Math.floor(dueAt / 1440) : agendaScheduleDay(r.due, r.when, at, e && e.hud);
+            let scheduleDay = dueAt !== null ? Math.floor(dueAt / 1440) : agendaScheduleDay(r.due, r.when, at, e && e.hud);
             const scenePlace = e?.hud?.location?.join(' ') || null;
             const immediate = /^(?:now|right now|immediately)$/i.test(String(r.when || r.due || '').trim());
-            const continuing = immediate && r.state === 'in_progress' && agendaContinuationCue(r, continuityLines ??= trackingContinuityLines(m));
-            let it = find(r.key, { ...r, scheduleDay, reportedIn: m.id, scenePlace, continuing }, dueAt);
+            const continuing = immediate && agendaContinuationCue(r, continuityLines ??= trackingContinuityLines(m));
+            const clockOnly = agendaBareClock(r.when || r.due) && (!r.due || agendaBareClock(r.due));
+            const observation = { ...r, scheduleDay, reportedIn: m.id, scenePlace, continuing, clockOnly,
+                clockMinute: clockOnly ? agendaClockPart(r.when || r.due) : null, observedDay: at === null ? null : Math.floor(at / 1440),
+                allowClockRepeat: clockOnly ? () => { const lines = continuityLines ??= trackingContinuityLines(m); return m._rpgcPurpose !== 'continue' &&
+                    !agendaNewOccurrence(lines) && !lines.some(line => /\b(?:tomorrow|next day|next week|day after tomorrow)\b/i.test(line)); } : null };
+            let it = find(r.key, observation, dueAt);
             const moved = !it && it !== undefined && !r.moved &&
                 (d.agenda || []).filter(x => x && lockKey(x.what || '') === lockKey(r.what)).length === 1 &&
                 agendaNarratedMove(r, items, m.content, m.id);
             if (moved) it = find(r.key, { ...r, moved: true, scheduleDay, reportedIn: m.id }, dueAt);
             if (it === undefined) continue; // An ambiguous update cannot choose or invent an occurrence.
-            if (it && continuing && it.state === 'in_progress' && it.scheduleDay === scheduleDay && !r.moved && !moved) dueAt = it.dueAt;
+            if (it && !r.moved && !moved && (continuing && it.scheduleDay === scheduleDay || agendaRepeatedClock(it, observation, true))) {
+                dueAt = it.dueAt; scheduleDay = it.scheduleDay;
+            }
             if (!it) {
                 if (!r.with && !r.where && !r.when && !r.due && items.some(x => agendaSame(lockKey(x.what), r.key))) continue;
                 const key = agendaItemKey(items, r);
@@ -13230,6 +13252,7 @@ function agendaRead(chat, st) {
             if (r.with) it.with = r.with;
             if (r.where) it.where = r.where;
             if (r.when || r.due) { if (r.when) it.when = r.when; if (dueAt !== null || r.moved || moved) it.dueAt = dueAt; if (dueAt === null && r.due) it.when = r.when || r.due; }
+            if (r.when || r.due) { it.clockOnly = clockOnly; it.clockMinute = observation.clockMinute; }
             if (r.kind) it.kind = r.kind;
             const state = agendaReportedState({ ...r, scheduleDay, ...(moved ? { moved: true } : {}) }, d, at, it.dueAt, it.state);
             if (state !== it.state) it.history.push({ from: it.state, to: state, at });
@@ -16565,8 +16588,13 @@ function agendaVaguePeriod(text) {
 
 function agendaScheduleCompatible(a, b, dueAt, refine = false) {
     if (b.moved) return true;
+    if (agendaRepeatedClock(a, b, refine)) return true;
     if (a.scheduleDay !== null && a.scheduleDay !== undefined && b.scheduleDay !== null && b.scheduleDay !== undefined && a.scheduleDay !== b.scheduleDay) return false;
-    if (refine && b.continuing && a.state === 'in_progress' && b.state === 'in_progress' && a.scheduleDay != null && a.scheduleDay === b.scheduleDay) return true;
+    if (refine && b.continuing && a.scheduleDay != null && a.scheduleDay === b.scheduleDay) {
+        const validState = ['open', 'in_progress', 'kept', 'missed', 'cancelled'].includes(b.state);
+        const linked = ['open', 'in_progress'].includes(a.state) || b.continuing === 'terminal' && ['kept', 'missed', 'cancelled'].includes(a.state);
+        if (validState && linked && (a.state === 'in_progress' || a.dueAt == null || dueAt == null || a.dueAt <= dueAt)) return true;
+    }
     if (a.dueAt !== null && dueAt !== null) {
         if (a.dueAt === dueAt) return true;
         // "now" refines an earlier before/by deadline on the same day; it is
