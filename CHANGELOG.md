@@ -1,5 +1,21 @@
 # Changelog — RPG Companion HMS Edition
 
+## 3.0.5 RC — Agenda occurrence and quest stage continuity
+
+- Keep repeated bare clock times on their stated day instead of silently moving
+  a past appointment to tomorrow; preserve explicit dates and rescheduling.
+- Preserve one start/key for source-confirmed continuing sessions reported as
+  "now", and link their confirmed completion without leaving an active duplicate.
+- Refine a parent location to its room when both source HUDs establish the same
+  place; retain distinct rooms, wings, annexes and separately listed appointments.
+- Prevent generic current-activity cues from starting later scheduled events.
+- Link explicitly continued, renamed quest stages to their established identity;
+  retain prior stage evidence, rewards and legitimate progress resets.
+- Preserve broader quests, separate objectives, completed history, manual controls,
+  source/swipe validation and saved data. Add no model calls, polling or settings.
+- Ambiguous identities remain conservative; the latest screenshot export and live
+  Lumiverse verification are unavailable, so these fixes do not certify every duplicate.
+
 ## 3.0.4 RC — Cached narrator lore references
 
 - Extend bounded narrator reference grounding to matching lore of any category,

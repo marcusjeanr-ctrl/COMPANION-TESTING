@@ -1,6 +1,6 @@
-# RPG Companion HMS Edition 3.0.4 — Release Candidate
+# RPG Companion HMS Edition 3.0.5 — Release Candidate
 
-> 3.0.4 RC: [cached narrator references across lore categories](docs/compatibility/3_0/NARRATOR_LORE_GROUNDING.md).
+> 3.0.5 RC: [Agenda occurrence and quest stage continuity](docs/compatibility/3_0/AGENDA_QUEST_OCCURRENCE_FIX.md).
 
 > Six-Sided acceptance: [additional persistence fixes and verification](docs/compatibility/3_0/SIX_SIDED_ACCEPTANCE.md).
 
