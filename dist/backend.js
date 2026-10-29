@@ -1046,8 +1046,27 @@ function loreNormEntry(e) {
         order: Number.isFinite(Number(e.order_value ?? e.insertion_order)) ? Number(e.order_value ?? e.insertion_order) : 100,
         priority: Number.isFinite(Number(e.priority ?? e.extensions?.priority)) ? Number(e.priority ?? e.extensions?.priority) : 10,
         book: String(e.world_book_id || e.bookId || ''),
-        scope: e.book_source || e.bookSource || null
+        scope: e.book_source || e.bookSource || null,
+        // General narrator supplements cannot reproduce host stateful activation.
+        // Preserve this flag if a normalized entry is passed through the pool again.
+        narratorHostOnly: !!e.narratorHostOnly || loreNarratorHostOnly(e)
     };
+}
+
+function loreNarratorHostOnly(e) {
+    const ext = e.extensions || {}, value = key => e[key] ?? ext[key];
+    const filter = value('characterFilter') || value('character_filter');
+    const role = value('role');
+    return value('use_probability') !== false && value('probability') != null && Number(value('probability')) < 100
+        || ['sticky', 'cooldown', 'delay'].some(key => Number(value(key)) > 0)
+        || !!value('delay_until_recursion') || !!value('vectorized') || !!value('automation_id')
+        || !!value('group') || !!value('group_name') || !!value('exclusion_group') || !!value('useGroupScoring')
+        || !!value('exclude_greeting') || value('placement') != null
+        || !!value('outlet_name') || !!value('wi_marker') || Number(value('position')) === 7
+        || value('scan_depth') != null
+        || Array.isArray(value('triggers')) && value('triggers').length > 0
+        || !!filter && ((filter.names?.length || 0) > 0 || (filter.tags?.length || 0) > 0)
+        || !!role && role !== 'system';
 }
 
 function setLorePool(chatId, entries) {
@@ -1073,7 +1092,7 @@ function getLorePool(chatId) {
  * \b whole-word boundaries and its four selective_logic branches, so a supplement match
  * agrees with what the host would have done on the same text.
  */
-function loreEntryHits(entry, hay) {
+function loreEntryHits(entry, hay, primaryKeys = null) {
     if (!entry || !hay) return false;
     const flags = entry.caseSensitive ? '' : 'i';
     const test = (k) => {
@@ -1090,7 +1109,7 @@ function loreEntryHits(entry, hay) {
             return new RegExp(pattern, flags).test(hay);
         } catch { return false; }
     };
-    if (!entry.key.some(test)) return false;
+    if (!(primaryKeys || entry.key).some(test)) return false;
     if (!entry.selective || !entry.keysecondary.length) return true;
     const hits = entry.keysecondary.filter(test).length;
     const total = entry.keysecondary.length;
@@ -1391,6 +1410,72 @@ function narratorSpellGrounding(chatId, messages, chat, generationType = 'normal
     report.status = report.omitted ? 'partial' : report.added.length ? 'added' : report.hostProvided.length ? 'host-provided' : 'no-matching-references';
     const footer = `Subset: ${represented}/${catalog.length} cached definitions represented; do not invent missing details.`;
     return done([policy, ...lines, footer].join('\n'));
+}
+
+// All lore categories share the existing matcher. No activation RPC, new book
+// hydration, recursive activation or history traversal belongs on this path.
+const NARRATOR_LORE_HEAD = '[RPG Companion: lore references]';
+const narratorLoreSelections = new Map();
+function narratorLoreGrounding(chatId, messages, chat, generationType = 'normal', { maxChars = null, spellSources = [] } = {}) {
+    const cfg = loreCfg(), report = { scope: 'normal narrator', status: 'not-needed', added: [], hostProvided: [], omitted: 0, characters: 0 };
+    const done = text => { report.characters = text.length; return { text, report }; };
+    if (!cfg.enabled || ['quiet', 'impersonate', 'continue'].includes(generationType)) { report.status = 'disabled-or-skipped'; return done(''); }
+    const configured = Number(cfg.maxChars), supplied = maxChars == null ? 6000 : Number(maxChars);
+    const budget = Math.max(0, Math.min(6000, Number.isFinite(configured) ? configured : 6000, Number.isFinite(supplied) ? supplied : 0));
+    const count = Number(cfg.maxEntries), maxEntries = Math.max(0, Math.min(20, Number.isFinite(count) ? Math.floor(count) : 20));
+    const policy = `${NARRATOR_LORE_HEAD}\nCached reference definitions, not character knowledge, ownership, learned abilities or proof that an event occurred. Follow the card's conditions, chronology and exact terminology. Keep NPC private information and secrets out of player-visible narration unless legitimately revealed. Preserve player agency; distinguish facts, claims and inference. Missing or omitted references are unverified, not nonexistent.`;
+    const footer = 'Selected references only; host activation still governs gated entries.';
+    report.budget = budget;
+    if (!maxEntries || budget <= policy.length + footer.length + 4) { report.status = 'budget-unavailable'; return done(''); }
+    const entries = getLorePool(chatId);
+    if (!entries.length) { report.status = 'cache-unavailable'; return done(''); }
+    const recent = (chat || []).slice(-3).filter(trackingMessageVisible);
+    const user = recent.slice().reverse().find(m => m.role === 'user');
+    if (!user) return done('');
+    const request = textOf(user.content).slice(0, 6000);
+    const previous = recent.slice().reverse().find(m => m.role === 'assistant');
+    const text = cfg.matchSceneTerms && previous ? stripCompanion(stripThink(textOf(previous.content).slice(0, 12000))) : '';
+    const frame = text ? findHud(text) : null;
+    const scene = (frame ? text.slice(frame.bodyEnd) : text).slice(0, 4000);
+    const hosts = (messages || []).filter(m => m.role === 'system' && !m.__isChatHistory).map(m => textOf(m.content));
+    if (hosts.some(t => t.includes(NARRATOR_LORE_HEAD))) { report.status = 'already-provided'; return done(''); }
+    const key = request + '\u0000' + scene;
+    let selected = narratorLoreSelections.get(chatId);
+    if (!selected || selected.entries !== entries || selected.key !== key) {
+        const hay = request + '\n' + scene;
+        const matches = [];
+        for (const entry of entries) {
+            if (entry.narratorHostOnly) continue;
+            const direct = loreEntryHits(entry, request);
+            if (direct || scene && loreEntryHits(entry, hay)) {
+                // A named technique or coin should outrank a broad key such as
+                // "Light" or "Gold" before either can consume the shared budget.
+                const surface = direct ? request : hay;
+                const specificity = entry.useRegex ? 0 : entry.key.reduce((best, key) =>
+                    key.length > best && loreEntryHits(entry, surface, [key]) ? key.length : best, 0);
+                matches.push({ entry, direct, specificity });
+            }
+        }
+        matches.sort((a, b) => Number(b.direct) - Number(a.direct) || b.specificity - a.specificity || a.entry.order - b.entry.order || b.entry.priority - a.entry.priority);
+        selected = { entries, key, matches };
+        narratorLoreSelections.set(chatId, selected);
+        while (narratorLoreSelections.size > LORE_POOL_MAX_CHATS) narratorLoreSelections.delete(narratorLoreSelections.keys().next().value);
+    }
+    if (!selected.matches.length) return done('');
+    const skip = new Set(spellSources.map(String)), seen = new Set(), parts = [];
+    let used = policy.length + footer.length + 4;
+    for (const { entry } of selected.matches) {
+        if (skip.has(entry.id) || seen.has(entry.content)) continue;
+        seen.add(entry.content);
+        const name = entry.comment || entry.key.slice(0, 3).join(', ') || 'Lore';
+        const descriptor = { source: entry.id, book: entry.book, name };
+        if (hosts.some(t => t.includes(entry.content))) { report.hostProvided.push(descriptor); continue; }
+        const piece = `[${name}]\n${entry.content}`;
+        if (parts.length >= maxEntries || used + piece.length + 2 > budget) { report.omitted++; continue; }
+        parts.push(piece); used += piece.length + 2; report.added.push(descriptor);
+    }
+    report.status = report.omitted ? (parts.length ? 'partial' : 'budget-unavailable') : parts.length ? 'added' : report.hostProvided.length ? 'host-provided' : 'not-needed';
+    return done(parts.length ? [policy, ...parts, footer].join('\n\n') : '');
 }
 
 /**
@@ -2992,10 +3077,19 @@ registerInterceptorKeep(async (messages, context) => {
         }
         if (!hmsOn) trailing.push(...extraFeaturePrompts(false, userName));      // HMS: part of hmsRequestParts
         const grounding = narratorSpellGrounding(chatId, messages, chat, gt);
+        const loreGrounding = narratorLoreGrounding(chatId, messages, chat, gt, {
+            maxChars: Math.max(0, Math.min(6000, Number(loreCfg().maxChars) || 0) - grounding.text.length - (grounding.text ? 2 : 0)),
+            spellSources: [...grounding.report.added, ...grounding.report.hostProvided].map(row => row.source)
+        });
         if (grounding.text) {
             if (contextMsg) contextMsg.content += '\n\n' + grounding.text;
             else contextMsg = { role: 'system', content: grounding.text };
             contextName += ' + spell references';
+        }
+        if (loreGrounding.text) {
+            if (contextMsg) contextMsg.content += '\n\n' + loreGrounding.text;
+            else contextMsg = { role: 'system', content: loreGrounding.text };
+            contextName += ' + lore references';
         }
 
         if (gt !== 'continue' && chapCfg().inPrompt) {
@@ -3094,15 +3188,15 @@ registerInterceptorKeep(async (messages, context) => {
             const sl = out.find(m => !m.__isChatHistory && textOf(m.content).includes(RPGC_SLOT_HEAD));
             const tok = sl ? Math.round(textOf(sl.content).slice(textOf(sl.content).indexOf(RPGC_SLOT_HEAD)).length / 4) : 0;
             spindle.log.info(`[RPG Companion HMS] Side-panel request: in the preset's slot (~${tok} tokens), not added again.`);
-            if (!injected.length) { lastInjection.set(chatId, { at: new Date().toISOString(), parts: [`side-panel request (~${tok} tokens, in the preset)`], spellReferences: grounding.report }); return messages; }
+            if (!injected.length) { lastInjection.set(chatId, { at: new Date().toISOString(), parts: [`side-panel request (~${tok} tokens, in the preset)`], spellReferences: grounding.report, loreReferences: loreGrounding.report }); return messages; }
         }
-        if (!injected.length) { lastInjection.set(chatId, { at: new Date().toISOString(), parts: [], spellReferences: grounding.report }); return messages; }
+        if (!injected.length) { lastInjection.set(chatId, { at: new Date().toISOString(), parts: [], spellReferences: grounding.report, loreReferences: loreGrounding.report }); return messages; }
         spindle.log.info(`[RPG Companion HMS] Injected (${hmsOn ? 'HMS, ' : ''}${settings.generationMode}, ${gt}): ${injected.map(i => i.name.replace('RPG Companion: ', '')).join(', ')}`);
 
         const breakdown = injected
             .map(({ msg, name }) => ({ messageIndex: out.indexOf(msg), name }))
             .filter(b => b.messageIndex >= 0);
-        if (context && context.chatId) lastInjection.set(context.chatId, { at: new Date().toISOString(), parts: (breakdown || []).map(b => b.name).concat(slotted ? ['side-panel request (in the preset)'] : []), spellReferences: grounding.report });
+        if (context && context.chatId) lastInjection.set(context.chatId, { at: new Date().toISOString(), parts: (breakdown || []).map(b => b.name).concat(slotted ? ['side-panel request (in the preset)'] : []), spellReferences: grounding.report, loreReferences: loreGrounding.report });
         injectedPromptPasses.add(out);
         return { messages: out, breakdown };
     } catch (e) {

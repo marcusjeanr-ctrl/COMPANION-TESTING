@@ -1,5 +1,19 @@
 # Changelog — RPG Companion HMS Edition
 
+## Unreleased — Cached narrator lore references
+
+- Extend bounded narrator reference grounding to matching lore of any category,
+  including techniques, NPCs, places, items, economics and gameplay rules.
+- Prioritize specifically named references, reuse exact host-provided definitions,
+  preserve existing spell grounding and share its maximum 6,000-character cap.
+- Leave probabilistic, timed, grouped, filtered and custom-placement entries to
+  host activation; keep private information and reference definitions distinct
+  from character knowledge, ownership, learned abilities and actual events.
+- Use only existing per-chat lore caches and bounded recent visible prose; add
+  no model/API calls, polling, full-chat scans, saved-data changes or new settings.
+- Whole entries that cannot fit are omitted, not truncated. Unloaded references
+  and live narrator obedience remain limitations; this is not universal enforcement.
+
 ## 3.0.3 RC — Ability identity and scene outcomes
 
 - Consolidate equivalent absorption-drill descriptions while retaining aliases,
