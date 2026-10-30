@@ -1,4 +1,6 @@
-# RPG Companion HMS Edition 3.0.7 — Release Candidate
+# RPG Companion HMS Edition 3.0.8 — Release Candidate
+
+> 3.0.8 RC: [Display-cache stability and lifecycle cleanup](docs/compatibility/3_0/STABILITY_CLEANUP.md).
 
 > 3.0.7 RC: [Exact bell/clock and courtyard follow-up](docs/compatibility/3_0/AGENDA_BELL_REFINEMENT.md).
 

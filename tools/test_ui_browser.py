@@ -161,6 +161,49 @@ class BrowserUi(unittest.TestCase):
         window.get_by_label('Where the panel lives').select_option('drawer')
         self.assertEqual(self.page.locator('#drawer > .rpgc').count(),1)
 
+    def test_popout_observer_is_disconnected_on_disposal(self):
+        self.page.evaluate("""() => {
+            const Native=window.MutationObserver; window.liveLookObservers=new Set();
+            window.MutationObserver=class extends Native {
+                observe(target,options){super.observe(target,options);liveLookObservers.add(this)}
+                disconnect(){super.disconnect();liveLookObservers.delete(this)}
+            };
+        }""")
+        with self.page.expect_popup() as popup:
+            self.page.get_by_label('Where the panel lives').select_option('popout')
+        self.assertEqual(self.page.evaluate('liveLookObservers.size'),1)
+        self.page.evaluate('dispose()')
+        self.assertEqual(self.page.evaluate('liveLookObservers.size'),0)
+        self.assertTrue(popup.value.is_closed())
+
+    def test_catalogue_debounces_are_cancelled_on_disposal(self):
+        payload=json.loads(json.dumps(FIXTURE['payload']))
+        payload['newGame']={'pages':1}
+        payload['settings']['showNewGame']=True
+        self.receive(payload)
+        self.page.evaluate("""() => receive({type:'catalog',chatId:'test',catalog:{handler:'Start',pages:[{
+            index:0,title:'Starts',items:Array.from({length:13},(_,i)=>({kind:'start',section:'Starts',cmd:'Start '+i}))
+        }]}})""")
+        self.page.evaluate("document.querySelectorAll('details').forEach(x=>x.open=true)")
+        # Record the real browser timer IDs for these two delayed operations.
+        self.page.evaluate("""() => {
+            const schedule=window.setTimeout, cancel=window.clearTimeout;
+            window.catalogueTimers=new Set();
+            window.setTimeout=(fn,ms,...args)=>{const id=schedule(fn,ms,...args);
+                if(ms===200||ms===250)catalogueTimers.add(id);return id};
+            window.clearTimeout=id=>{catalogueTimers.delete(id);cancel(id)};
+            const filter=document.querySelector('[aria-label="Find on this page"]');
+            filter.value='Start';filter.dispatchEvent(new Event('input'));
+            const command=document.querySelector('[aria-label="Your start command"]');
+            command.value='Start 1';command.dispatchEvent(new Event('input'));
+        }""")
+        self.assertEqual(self.page.evaluate('catalogueTimers.size'),2)
+        before=self.page.evaluate("sent.filter(x=>x.type==='catalog_check').length")
+        self.page.evaluate('dispose()')
+        self.assertEqual(self.page.evaluate('catalogueTimers.size'),0)
+        self.page.wait_for_timeout(350)
+        self.assertEqual(self.page.evaluate("sent.filter(x=>x.type==='catalog_check').length"),before)
+
     def test_continuation_states_attached_to_the_correct_reply(self):
         self.assertIn('Internal states',FIXTURE['continuationHtml'])
         self.page.evaluate('''(html)=>{
