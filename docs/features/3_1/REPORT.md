@@ -25,3 +25,13 @@ response 0.7823 → 0.8343 ms (+6.6%); prompt construction 0.3767 → 0.3717 ms.
 These are single cloud measurements, not demonstrated causal slowdowns.
 Prompt lengths unchanged (15,291 / 19,213 characters). Final alternating paired
 measurements will check the >5% observations before acceptance.
+
+## 2. Family location labels
+
+Frontend-only: off-scene `seen`/`told` locations say last seen/last known with
+existing in-game age. Guesses retain their uncertainty label. Old activity is
+secondary inside a closed Last reported activity disclosure; current reports
+remain visible. No stored `where`, timestamps or presence rules change.
+Regression checks a 30-minute scene departure, retained location/activity and
+byte-identical input. All 52 suites/release checks passed. English source keys
+and all four dictionaries updated and embedded. See per-feature benchmark table.

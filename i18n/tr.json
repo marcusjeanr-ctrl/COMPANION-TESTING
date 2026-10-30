@@ -2653,5 +2653,8 @@
  "Consistency warnings": "Tutarlılık uyarıları",
  "Reply has no readable HUD": "Yanıtta okunabilir HUD yok",
  "HUD time or date moved backwards": "HUD saati veya tarihi geriye gitti",
- "HUD conflicts with an explicit start setting": "HUD açık bir başlangıç ayarıyla çelişiyor"
+ "HUD conflicts with an explicit start setting": "HUD açık bir başlangıç ayarıyla çelişiyor",
+ "last seen": "son görüldüğü",
+ "last known": "son bilinen",
+ "Last reported activity": "Son bildirilen etkinlik"
 }

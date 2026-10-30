@@ -14,3 +14,14 @@ function consistency(){
 }
 consistency();
 console.log('3.1 feature regressions passed');
+function familyLabels(){
+ const fs=require('node:fs'),s=fs.readFileSync(require('node:path').join(__dirname,'../dist/frontend.js'),'utf8');
+ assert(s.includes("m.known === 'seen' ? 'last seen'"));assert(s.includes("m.known === 'told' ? 'last known'"));assert(s.includes('Last reported activity'));
+ const r=runtime(),c=r.ctx;
+ const report=characters=>c.parseCompanion('<rpg_companion>'+JSON.stringify({characters,family:characters.length?[{name:'Aurelius King',relation:'father',where:'Study',known:'seen',doing:'Reading'}]:[]})+'</rpg_companion>');
+ const a={id:'f1',role:'assistant',content:hud('Study','08:00'),metadata:{rpg_companion:{swipes:{0:report([{name:'Aurelius King'}])}}}};
+ const b={id:'f2',role:'assistant',content:hud('Yard','08:30'),metadata:{rpg_companion:{swipes:{0:report([])}}}};
+ const input=JSON.stringify([a,b]),family=c.hmsFamilyPanel([a,b],c.emptyChatState()).members[0];
+ assert.equal(family.present,false);assert.equal(family.where,'Study');assert.equal(family.since,30);assert.equal(family.doing,'Reading');assert.equal(family.doingNow,false);assert.equal(JSON.stringify([a,b]),input);
+}
+familyLabels();

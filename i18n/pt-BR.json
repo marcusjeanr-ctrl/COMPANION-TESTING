@@ -2653,5 +2653,8 @@
  "Consistency warnings": "Avisos de consistência",
  "Reply has no readable HUD": "A resposta não tem HUD legível",
  "HUD time or date moved backwards": "A hora ou data do HUD voltou atrás",
- "HUD conflicts with an explicit start setting": "O HUD contradiz uma configuração inicial explícita"
+ "HUD conflicts with an explicit start setting": "O HUD contradiz uma configuração inicial explícita",
+ "last seen": "visto por último",
+ "last known": "último local conhecido",
+ "Last reported activity": "Última atividade relatada"
 }

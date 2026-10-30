@@ -2653,5 +2653,8 @@
  "Consistency warnings": "Предупреждения о согласованности",
  "Reply has no readable HUD": "В ответе нет читаемого HUD",
  "HUD time or date moved backwards": "Время или дата HUD пошли назад",
- "HUD conflicts with an explicit start setting": "HUD противоречит явной начальной настройке"
+ "HUD conflicts with an explicit start setting": "HUD противоречит явной начальной настройке",
+ "last seen": "видели в последний раз",
+ "last known": "последнее известное место",
+ "Last reported activity": "Последняя сообщённая деятельность"
 }
