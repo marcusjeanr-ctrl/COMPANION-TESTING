@@ -65,3 +65,12 @@ function webProjection(){
  assert.equal(c.relationshipWebData(null).nodes.length,1);
 }
 webProjection();
+function canonEvidence(){
+ const fs=require('node:fs'),vm=require('node:vm'),s=fs.readFileSync(require('node:path').join(__dirname,'../dist/frontend.js'),'utf8');const c=vm.createContext({});
+ vm.runInContext(s.slice(s.indexOf('function canonDivergenceRows('),s.indexOf('// Bounded projection of existing Minds')),c);
+ const saga={personalArc:'Sandbox — personal story',arcs:[{year:400,title:'Old reference arc'}],events:[{name:'A',state:'occurred',detail:'Actually happened'},{name:'B',state:'changed',detail:'Explicit change'},{name:'C',state:'prevented',detail:'Explicit prevention'},{name:'D',state:'predicted',detail:'Rumor'}]};
+ const hud={lines:[{text:'Next Canon Event: Future event — in 1 month'}]};const before=JSON.stringify({saga,hud});
+ const rows=c.canonDivergenceRows(saga,hud);assert.equal(rows.length,4);assert.equal(rows[0].state,'passed');assert.equal(rows[1].state,'changed');assert.equal(rows[2].state,'skipped');assert.equal(rows[3].state,'pending');assert.equal(rows[3].name,'Future event');assert.equal(JSON.stringify({saga,hud}),before);assert(!rows.some(r=>r.name==='Old reference arc'));
+ assert.equal(c.canonDivergenceRows({personalArc:'Canon',events:saga.events},hud).length,0);assert.equal(c.canonDivergenceRows({personalArc:'Sandbox'}, {lines:[{text:'Next Canon Event: None'}]}).length,0);
+}
+canonEvidence();

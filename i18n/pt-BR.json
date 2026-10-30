@@ -2674,5 +2674,11 @@
  "Snapshots restore a read-only view. Live tracking and chat remain unchanged.": "Snapshots restauram uma visualização somente leitura. O rastreamento atual e o chat não mudam.",
  "Minds relationship web": "Rede de relações de Minds",
  "Arrows describe reported relationships; colours show the source character’s recorded mood.": "As setas representam relações relatadas; as cores mostram o humor registrado de quem sente.",
- "{0} people omitted from graph": "{0} pessoas omitidas do gráfico"
+ "{0} people omitted from graph": "{0} pessoas omitidas do gráfico",
+ "Canon divergence (Sandbox)": "Divergência do cânone (Sandbox)",
+ "Outcomes require explicit reports. Dates and reference arcs do not prove an event occurred.": "Resultados exigem relatos explícitos. Datas e arcos de referência não provam que um evento ocorreu.",
+ "canon status: pending": "pendente",
+ "canon status: passed": "ocorreu",
+ "canon status: changed": "alterado",
+ "canon status: skipped": "impedido"
 }

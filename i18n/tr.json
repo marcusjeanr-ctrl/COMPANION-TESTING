@@ -2674,5 +2674,11 @@
  "Snapshots restore a read-only view. Live tracking and chat remain unchanged.": "Anlık görüntüler salt okunur bir görünümü geri yükler. Canlı takip ve sohbet değişmez.",
  "Minds relationship web": "Minds ilişki ağı",
  "Arrows describe reported relationships; colours show the source character’s recorded mood.": "Oklar bildirilen ilişkileri gösterir; renkler kaynak karakterin kayıtlı ruh halini gösterir.",
- "{0} people omitted from graph": "Grafikte {0} kişi gösterilmedi"
+ "{0} people omitted from graph": "Grafikte {0} kişi gösterilmedi",
+ "Canon divergence (Sandbox)": "Kanon sapması (Sandbox)",
+ "Outcomes require explicit reports. Dates and reference arcs do not prove an event occurred.": "Sonuçlar açık bildirim gerektirir. Tarihler ve referans bölümler olayın gerçekleştiğini kanıtlamaz.",
+ "canon status: pending": "bekliyor",
+ "canon status: passed": "gerçekleşti",
+ "canon status: changed": "değişti",
+ "canon status: skipped": "önlendi"
 }

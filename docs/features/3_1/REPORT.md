@@ -89,3 +89,16 @@ people are counted. SVG uses a fixed viewBox with responsive width, text-only
 labels, full-name titles and an accessible name list. No physics, dependencies,
 listeners outside the disclosure, polling or timers. Tests cover caps, membership,
 colour mapping and unchanged inputs. All 52 suites and release checks passed.
+
+## 7. Sandbox canon divergence
+
+Frontend-only view reuses the existing Mushoku saga arcs/event ledger plus the
+Next Canon Event HUD line. Explicit occurred → passed, changed → changed,
+prevented → skipped (with the original prevention detail retained); the explicit
+next HUD event is pending. A same-name pending HUD row is retained separately
+from a historical outcome because no occurrence ID establishes they are the same.
+No dates, arc reference entries, predictions or rumours manufacture outcomes.
+The existing full arc reference view is preserved. Sandbox only; other worlds
+and canonical mode remain unchanged. No new lore reads or history traversals.
+Tests cover all four statuses, unknown predictions, future dates, non-Sandbox,
+empty next event and input immutability. All 52 suites/release checks passed.

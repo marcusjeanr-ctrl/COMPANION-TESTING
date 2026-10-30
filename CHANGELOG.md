@@ -14,6 +14,8 @@
 
 - Add a lazy, bounded Minds relationship graph with directed links.
 
+- Add an evidence-only Sandbox canon-event view; dates never imply outcomes.
+
 ## 3.0.10 RC — Quest assignment continuity
 
 - Add optional stable Quest IDs and bounded existing-quest context to the current

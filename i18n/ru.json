@@ -2674,5 +2674,11 @@
  "Snapshots restore a read-only view. Live tracking and chat remain unchanged.": "Снимки восстанавливают просмотр только для чтения. Текущее отслеживание и чат не меняются.",
  "Minds relationship web": "Сеть отношений Minds",
  "Arrows describe reported relationships; colours show the source character’s recorded mood.": "Стрелки показывают сообщённые отношения; цвета — записанное настроение исходного персонажа.",
- "{0} people omitted from graph": "{0} персонажей не показано на графе"
+ "{0} people omitted from graph": "{0} персонажей не показано на графе",
+ "Canon divergence (Sandbox)": "Отклонения от канона (Sandbox)",
+ "Outcomes require explicit reports. Dates and reference arcs do not prove an event occurred.": "Исходы требуют явных сообщений. Даты и справочные арки не доказывают наступление события.",
+ "canon status: pending": "ожидается",
+ "canon status: passed": "произошло",
+ "canon status: changed": "изменено",
+ "canon status: skipped": "предотвращено"
 }
