@@ -1,6 +1,8 @@
 # Changelog — RPG Companion HMS Edition
 
 ## 3.1.0 RC — Staging features (unpublished)
+
+- Preserve HUD ability labels in character-sheet exports.
 - Add optional read-only HUD consistency warnings for missing HUDs, backward clocks and explicit start-setting contradictions.
 - Label off-scene family locations as last seen/known and collapse older activity.
 - Reuse existing character context as a scene-cast reminder without prompt growth.

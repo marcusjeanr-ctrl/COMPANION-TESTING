@@ -1139,7 +1139,7 @@ function characterSheetMarkdown(view, tr = x => x) {
     for (const sp of hms.magic?.spellbook || []) if (!spellNames.has(String(sp.name).toLowerCase())) {spells.push(sp.name);spellNames.add(String(sp.name).toLowerCase());}
     section('Known spells', spells);
     section('Known techniques', known(hms.techniques));
-    section('Abilities', (hms.systems?.abilities || []).flatMap(g => (g.items || []).map(a => [a.name,a.state].filter(Boolean).join(' — '))));
+    section('Abilities', (hms.systems?.abilities || []).flatMap(g => (g.items || []).map(a => [(a.label ? a.label + ': ' : '') + a.name,a.state].filter(Boolean).join(' — '))));
     section('Agenda', (hms.agenda?.items || []).map(a => [a.what,a.when,a.state].filter(Boolean).join(' — ')));
     section('Gear', (hms.gear?.items || []).map(g => [g.name,g.state].filter(Boolean).join(' — ')));
     section('Family', (hms.family?.members || []).map(f => [f.name,f.relation,f.status,f.where,f.present ? tr('Here') : tr('last known')].filter(Boolean).join(' — ')));
