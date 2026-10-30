@@ -1,5 +1,17 @@
 # Changelog — RPG Companion HMS Edition
 
+## 3.0.8 RC — Display-cache stability cleanup
+
+- Share concurrent Thoughts/Internal States history loads and fill their caches
+  in one traversal, reusing each ordinary report's existing validation result.
+- Ignore superseded display loads and errors after invalidation or a newer
+  snapshot; an older completion cannot delete a replacement pending load.
+- Disconnect the popout theme observer and cancel new-game catalogue debounces
+  when the frontend is disposed.
+- Preserve source/swipe checks, continuation display rules, historical responses,
+  saved formats, prompts, tracking engines and refresh/model-call frequency.
+- Local regression/browser validation is not live Lumiverse certification.
+
 ## 3.0.7 RC — Exact Agenda bell/clock follow-up
 
 - Reconcile “09:00” and “when the bell rings at nine” for one source-confirmed

@@ -2530,7 +2530,7 @@ async function pushState(chatId, snapshot = null) {
 // Demo mode plays scripted turns (no tokens); Live mode asks the model, with a small
 // world narrator standing in for a bot card.
 
-const RPGC_VERSION = '3.0.7';
+const RPGC_VERSION = '3.0.8';
 const diagLog = [];
 function diagPush(kind, m) { diagLog.push({ at: new Date().toISOString(), kind, text: String(m).slice(0, 400) }); if (diagLog.length > 60) diagLog.shift(); }
 function logW(m) { diagPush('warn', m); return spindle.log.warn(m); }
@@ -3663,7 +3663,7 @@ function dialogueMarkPrompt(userName, cfg = chatDisplayCfg()) {
 // reply's own stored block, so it is the state of the story at that reply, and a swipe shows its own.
 
 const statesCache = new Map();    // chatId -> { order: [msgId…], data: Map(msgId -> swipe data) }
-const statesLoading = new Map();
+const messagePanelLoads = new Map(); // Shared, invalidatable display-only history reads.
 
 const STATES_MAP_CSS = '.rs-map{display:block;text-align:center;margin:.3em 0}.rs-legend{display:flex;flex-wrap:wrap;gap:.3em;justify-content:center}.mg-dot{display:inline-block;width:.6em;height:.6em;border-radius:50%;margin-right:.35em;vertical-align:baseline}.mg-dot.mg-you{background:#e8b030}.mg-dot.mg-ally{background:#3fae6a}.mg-dot.mg-foe{background:#e05050}.mg-dot.mg-other{background:#9a9ab0}';
 
@@ -3684,14 +3684,17 @@ function statesReading(msg) {
     return found ? { ...report, survival: you } : null;
 }
 
-function statesFill(chatId, chat) {
+function statesFill(chatId, chat, thoughts = null) {
     const order = [], data = new Map();
     for (const msg of chat) {
         if (msg.role !== 'assistant') continue;
-        const d = statesReading(msg);
+        const regular = thoughts ? getSwipeData(msg) : null;
+        if (thoughts && Array.isArray(regular?.characters) && regular.characters.length) thoughts.set(msg.id, regular.characters);
+        const d = regular || statesReading(msg);
         if (!d) continue;
         order.push(msg.id); data.set(msg.id, d);
     }
+    messagePanelLoads.delete(chatId); // A completed current snapshot supersedes pending loads.
     statesCache.set(chatId, { order, data });
 }
 function statesNote(chatId, msgId, d) {
@@ -3700,18 +3703,31 @@ function statesNote(chatId, msgId, d) {
     if (!c.data.has(msgId)) c.order.push(msgId);
     c.data.set(msgId, d);
 }
-function statesDrop(chatId) { if (chatId) statesCache.delete(chatId); else statesCache.clear(); }
+function statesDrop(chatId) {
+    if (chatId) { statesCache.delete(chatId); messagePanelLoads.delete(chatId); }
+    else { statesCache.clear(); messagePanelLoads.clear(); }
+}
+
+function loadMessagePanels(chatId, kind) {
+    let load = messagePanelLoads.get(chatId);
+    if (!load) {
+        load = { kinds: new Set(), promise: null };
+        messagePanelLoads.set(chatId, load);
+        load.promise = chatApi.getMessages(chatId)
+            .then(chat => { if (messagePanelLoads.get(chatId) === load) refreshThoughtsCache(chatId, chat); })
+            .catch(() => {
+                if (messagePanelLoads.get(chatId) !== load) return;
+                if (load.kinds.has('states')) statesCache.set(chatId, { order: [], data: new Map() });
+                if (load.kinds.has('thoughts')) thoughtsCache.set(chatId, new Map());
+            })
+            .finally(() => { if (messagePanelLoads.get(chatId) === load) messagePanelLoads.delete(chatId); });
+    }
+    load.kinds.add(kind);
+    return load.promise;
+}
 
 async function getStatesFor(chatId, msgId) {
-    if (!statesCache.has(chatId)) {
-        if (!statesLoading.has(chatId)) {
-            statesLoading.set(chatId, chatApi.getMessages(chatId)
-                .then(chat => statesFill(chatId, chat))
-                .catch(() => statesCache.set(chatId, { order: [], data: new Map() }))
-                .finally(() => statesLoading.delete(chatId)));
-        }
-        await statesLoading.get(chatId);
-    }
+    if (!statesCache.has(chatId)) await loadMessagePanels(chatId, 'states');
     const c = statesCache.get(chatId);
     const d = c && c.data.get(msgId);
     if (!d) return null;
@@ -5457,29 +5473,14 @@ async function toggleLock(chatId, path) {
 // ───────────────────────────── Thoughts in chat ─────────────────────────────
 
 const thoughtsCache = new Map(); // chatId -> Map(messageId -> characters[])
-const thoughtsLoading = new Map();
-
 function refreshThoughtsCache(chatId, chat) {
     const m = new Map();
-    for (const msg of chat) {
-        if (msg.role !== 'assistant') continue;
-        const d = getSwipeData(msg);
-        if (d && Array.isArray(d.characters) && d.characters.length) m.set(msg.id, d.characters);
-    }
+    statesFill(chatId, chat, m);
     thoughtsCache.set(chatId, m);
-    statesFill(chatId, chat);
 }
 
 async function getThoughtsFor(chatId, messageId) {
-    if (!thoughtsCache.has(chatId)) {
-        if (!thoughtsLoading.has(chatId)) {
-            thoughtsLoading.set(chatId, chatApi.getMessages(chatId)
-                .then(chat => refreshThoughtsCache(chatId, chat))
-                .catch(() => thoughtsCache.set(chatId, new Map()))
-                .finally(() => thoughtsLoading.delete(chatId)));
-        }
-        await thoughtsLoading.get(chatId);
-    }
+    if (!thoughtsCache.has(chatId)) await loadMessagePanels(chatId, 'thoughts');
     return thoughtsCache.get(chatId)?.get(messageId) || null;
 }
 
