@@ -10789,7 +10789,7 @@ const CONSISTENCY_CHECKS = [
         const out = [];
         // Only explicit field directives, never arbitrary narrative or inferred game rules.
         for (const line of c.start.split(/\n|\|/)) {
-            const rule = line.trim().match(/^([\w ()-]{2,40}):\s*(active|inactive|enabled|disabled)(?:\s+at rest)?[.!]?$/i);
+            const rule = line.trim().match(/^([\w ()-]{2,40}):\s*(?:available\s*;\s*(?=inactive\s+at rest\b))?(active|inactive|enabled|disabled)(?:\s+at rest)?[.!]?$/i);
             if (!rule) continue;
             const atRest = /at rest/i.test(line);
             const resting = fields.some(f => /^(?:status|activity|state)$/i.test(f.label || f.key || '') && /^(?:rested|resting|at rest|idle)$/i.test(f.value || ''));

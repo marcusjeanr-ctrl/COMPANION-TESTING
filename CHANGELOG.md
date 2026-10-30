@@ -2,6 +2,7 @@
 
 ## 3.1.0 RC — Staging features (unpublished)
 
+- Recognize explicit “Available; inactive at rest” consistency directives.
 - Preserve HUD ability labels in character-sheet exports.
 - Add optional read-only HUD consistency warnings for missing HUDs, backward clocks and explicit start-setting contradictions.
 - Label off-scene family locations as last seen/known and collapse older activity.

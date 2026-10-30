@@ -22,3 +22,19 @@ Post-change smoke benchmark: 600-message cold/warm 240.75/69.40 ms;
 parse/response/prompt 0.6469/0.9803/0.3757 ms. Prompt sizes 15,291/19,213 chars.
 These single smoke runs are not controlled before/after performance evidence;
 item 4 supplies the isolated alternating comparison.
+
+## Item 2 — consistency fixtures
+
+Before: `Touki: Available; inactive at rest.` **did not fire** against Active in a
+resting HUD; a reply without a WORLD STATE HUD **did fire** `no-hud`.
+After: both cases fire. The prefix `Available;` is accepted only before the
+explicit `inactive at rest` directive; unsupported extra conditions are rejected.
+Fighting, matching Inactive, unknown rest state and the off switch do not produce
+the contradiction warning. Checks remain advisory, source-preserving and write-free.
+
+Files: `dist/backend.js`, `tools/test_consistency_followup.cjs`, suite registration,
+`CHANGELOG.md`, this report. No new translated messages or settings/schema changes.
+All 55 suites, release identity and syntax checks passed. Post-change smoke:
+600-message cold/warm 234.11/64.42 ms; parse/response/prompt
+0.7487/1.1020/0.4793 ms; prompt lengths unchanged. These are uncontrolled smoke
+samples; item 4 is the merge-gating comparison.
