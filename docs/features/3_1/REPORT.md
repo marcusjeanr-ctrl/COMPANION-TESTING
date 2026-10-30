@@ -1,5 +1,9 @@
 # 3.1.0 RC staging feature verification
 
+> Historical initial staging report. The +5.71% two-pair performance concern is
+> superseded for merge gating by the [10-pair follow-up](FOLLOWUP.md), which
+> measures +3.40%. Live Lumiverse acceptance remains unperformed.
+
 Branch: `staging/features-3.1`. Baseline: `540df20f602bd475b9149c1ab28aa705e391f72d` (3.0.10 RC).
 No live Lumiverse instance has been used. Chromium uses a mocked host.
 Runtime source is the checked-in `dist/backend.js` and `dist/frontend.js`.

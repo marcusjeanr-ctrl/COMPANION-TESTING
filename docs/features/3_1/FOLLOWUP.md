@@ -53,3 +53,42 @@ report. This is display formatting only; the HUD term stays literal, not transla
 or written into the catalogue. No new UI translation keys were introduced.
 All 55 suites, syntax/release checks passed. Smoke cold/warm: 433.25/69.27 ms;
 parse/response/prompt: 1.0642/1.0853/0.5515 ms; prompt lengths unchanged.
+
+## Item 4 — merge-gating performance comparison
+
+`tools/benchmark_release_comparison.py` freezes both Git sources into temporary
+files, verifies Node 22, uses a fresh process per source/run and alternates AB/BA
+pair order. This first completed matrix used 10 pairs per chat size: **10 baseline
+and 10 candidate runs for both 600 and 2,000 messages**, 40 processes total.
+Each run measures the cold first read, three warmups, then the median of ten warm
+reads. No other local tests/benchmarks ran during the matrix; the runner checks
+for competing workloads. Assigned-machine load was 0.34 initially / 1.26 at the
+end, including the benchmark itself. Physical host/cotenant scheduling is outside
+our control. All mock warnings were zero; no provider calls were made.
+
+Frozen candidate checkout: `84cc76b`; baseline `540df20`. Full hashes, all raw
+samples, IQRs, order and elapsed time are in [PERFORMANCE_FOLLOWUP.json](PERFORMANCE_FOLLOWUP.json).
+The gate was predefined as the percentage ratio of the two source medians of
+2,000-message warm run medians. It was not changed after seeing the results.
+
+Times are ms. Spread below is minimum–maximum across the ten source runs.
+
+| Messages | Read | 3.0.10 median [spread] | Branch median [spread] | Change |
+|---|---|---:|---:|---:|
+| 600 | Cold | 295.78 [232.12–680.24] | 269.69 [236.60–637.47] | -8.82% |
+| 600 | Warm | 78.06 [64.89–338.46] | 74.28 [66.33–199.82] | -4.83% |
+| 2000 | Cold | 599.10 [533.30–1194.47] | 584.85 [524.37–1292.61] | -2.38% |
+| 2000 | Warm | 159.69 [151.63–191.99] | 165.12 [140.24–371.83] | +3.40% |
+
+**Gate: +3.40%, within 5%.** The earlier two-pair +5.71% result is superseded
+for this decision, not erased from the historical report. No feature was deferred
+and the conditional bisect was not triggered. The 600-message median paired
+percentage is +5.81% even though its ratio of medians is -4.83%; the JSON records
+both estimators. Wide outliers remain visible, so this is not a device-latency or
+general-speedup guarantee. Native long-campaign acceptance remains unverified.
+
+Files: new serial benchmark runner, raw performance evidence, this report, and
+supersession links in the original staging report/README. No runtime change for
+item 4. Release/syntax checks and all 55 suites passed; both standard benchmark
+scripts were also rerun after adding the runner. Their single smoke samples are
+not substituted for the 10-pair comparison above.
