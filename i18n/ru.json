@@ -2685,5 +2685,9 @@
  "Pinned scene summary": "Закреплённая сводка сцены",
  "Who is here": "Кто здесь",
  " +{0} more": " ещё +{0}",
- "Reward": "Награда"
+ "Reward": "Награда",
+ "mode: not reported": "не сообщено",
+ "Derived default; no mode reported": "Выведенное значение по умолчанию; режим не сообщён",
+ "Standing fell despite a positive stated reason": "Уровень отношений снизился при положительной указанной причине",
+ "Standing moved multiple steps without an explicit event": "Уровень отношений изменился на несколько ступеней без явного события"
 }

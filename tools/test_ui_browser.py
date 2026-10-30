@@ -473,6 +473,38 @@ class BrowserUi(unittest.TestCase):
         summary.click()
         self.assertTrue(states.locator('details').first.evaluate('(e)=>e.open'))
 
+    def test_relationship_defaults_and_explicit_mode_persistence(self):
+        payload=json.loads(json.dumps(FIXTURE['payload']))
+        payload['hms']=json.loads(subprocess.check_output(['node',str(ROOT/'tools/test_relationship_defaults_drift.cjs'),'--browser-fixture'],text=True))
+        pair=payload['hms']['minds']['people'][0]['pairs'][0]
+        self.assertTrue(pair['guessed'])
+        self.receive(payload)
+        mode=self.page.locator('.rpgc-pair .rpgc-chip.mode')
+        self.assertEqual(mode.inner_text(),'warm')
+        self.assertEqual(mode.get_attribute('title'),'Derived default; no mode reported')
+        pair['mode']='stranger';pair.pop('modeSource',None)
+        self.receive(payload)
+        self.assertEqual(mode.inner_text(),'stranger')
+        self.assertIsNone(mode.get_attribute('title'))
+        pair['mode']='not reported';pair['modeSource']='not-reported'
+        self.receive(payload)
+        self.assertEqual(mode.inner_text(),'not reported')
+        self.assertIn('first guess',self.page.locator('.rpgc-pair').inner_text())
+
+    def test_relationship_advisory_lists_npc_transition_and_reason_safely(self):
+        payload=json.loads(json.dumps(FIXTURE['payload']))
+        payload['hms']=json.loads(subprocess.check_output(['node',str(ROOT/'tools/test_relationship_defaults_drift.cjs'),'--browser-fixture'],text=True))
+        self.receive(payload)
+        panel=self.page.locator('.rpgc-consistency')
+        self.assertIn('Standing fell despite a positive stated reason',panel.inner_text())
+        self.assertIn('Guild clerk (Close → Friend)',panel.inner_text())
+        self.assertIn('grateful for your kindness',panel.inner_text())
+        payload['hms']['consistency'][0]['reason']='<img src=x onerror="window.bad=true">'
+        self.receive(payload)
+        self.assertEqual(panel.locator('img').count(),0)
+        self.assertIn('<img',panel.inner_text())
+        self.assertFalse(self.page.evaluate('Boolean(window.bad)'))
+
     def test_31_consistency_and_family_labels(self):
         payload=json.loads(json.dumps(FIXTURE['payload']))
         payload['hms']['consistency']=[{'code':'clock','message':'HUD time or date moved backwards'}]

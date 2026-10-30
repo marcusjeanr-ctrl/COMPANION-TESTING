@@ -2,6 +2,9 @@
 
 ## 3.1.0 RC — Panel tools and diagnostics
 
+- Derive unreported Minds modes from People standing or kin without altering saved reports or guessed flags.
+- Add optional, read-only relationship-standing consistency warnings for positive-reason drops and unexplained multi-step changes.
+
 - Display Elementary spell ranks as Beginner when that is the HUD’s rank terminology.
 - Recognize explicit “Available; inactive at rest” consistency directives.
 - Preserve HUD ability labels in character-sheet exports.

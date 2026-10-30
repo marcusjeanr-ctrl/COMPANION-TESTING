@@ -2685,5 +2685,9 @@
  "Pinned scene summary": "Resumo da cena fixado",
  "Who is here": "Quem está aqui",
  " +{0} more": " +{0} mais",
- "Reward": "Recompensa"
+ "Reward": "Recompensa",
+ "mode: not reported": "não informado",
+ "Derived default; no mode reported": "Valor padrão inferido; nenhum modo informado",
+ "Standing fell despite a positive stated reason": "A posição caiu apesar de um motivo declarado positivo",
+ "Standing moved multiple steps without an explicit event": "A posição mudou vários níveis sem evento explícito"
 }

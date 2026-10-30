@@ -1,0 +1,75 @@
+{
+  "method": "Diagnostic two fresh processes per variant, forwards then reverse order; insufficient for gate acceptance.",
+  "records": [
+    {
+      "file": "/tmp/companion-relationships/baseline-backend.js",
+      "messages": 2000,
+      "coldMs": 1369.25,
+      "medianMs": 159.77,
+      "warnings": 0,
+      "variant": "baseline-backend"
+    },
+    {
+      "file": "/tmp/companion-relationships/defaults-only.js",
+      "messages": 2000,
+      "coldMs": 520.88,
+      "medianMs": 178.53,
+      "warnings": 0,
+      "variant": "defaults-only"
+    },
+    {
+      "file": "/tmp/companion-relationships/drift-only.js",
+      "messages": 2000,
+      "coldMs": 555.97,
+      "medianMs": 144.5,
+      "warnings": 0,
+      "variant": "drift-only"
+    },
+    {
+      "file": "dist/backend.js",
+      "messages": 2000,
+      "coldMs": 530.86,
+      "medianMs": 136.14,
+      "warnings": 0,
+      "variant": "candidate"
+    },
+    {
+      "file": "dist/backend.js",
+      "messages": 2000,
+      "coldMs": 529.05,
+      "medianMs": 139.45,
+      "warnings": 0,
+      "variant": "candidate"
+    },
+    {
+      "file": "/tmp/companion-relationships/drift-only.js",
+      "messages": 2000,
+      "coldMs": 658.78,
+      "medianMs": 191.41,
+      "warnings": 0,
+      "variant": "drift-only"
+    },
+    {
+      "file": "/tmp/companion-relationships/defaults-only.js",
+      "messages": 2000,
+      "coldMs": 557.11,
+      "medianMs": 163.67,
+      "warnings": 0,
+      "variant": "defaults-only"
+    },
+    {
+      "file": "/tmp/companion-relationships/baseline-backend.js",
+      "messages": 2000,
+      "coldMs": 534.35,
+      "medianMs": 152.39,
+      "warnings": 0,
+      "variant": "baseline-backend"
+    }
+  ],
+  "warmMedians": {
+    "baseline-backend": 156.07999999999998,
+    "defaults-only": 171.1,
+    "drift-only": 167.95499999999998,
+    "candidate": 137.795
+  }
+}

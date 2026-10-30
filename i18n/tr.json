@@ -2685,5 +2685,9 @@
  "Pinned scene summary": "Sabitlenmiş sahne özeti",
  "Who is here": "Kim burada",
  " +{0} more": " +{0} daha",
- "Reward": "Ödül"
+ "Reward": "Ödül",
+ "mode: not reported": "bildirilmedi",
+ "Derived default; no mode reported": "Çıkarılan varsayılan; mod bildirilmedi",
+ "Standing fell despite a positive stated reason": "Belirtilen olumlu nedene rağmen ilişki seviyesi düştü",
+ "Standing moved multiple steps without an explicit event": "İlişki seviyesi açık bir olay olmadan birden fazla basamak değişti"
 }

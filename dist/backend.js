@@ -10776,6 +10776,7 @@ function hmsPanelState(chatId, chat, st) {
 }
 // Advisory checks only: never correct HUD values or write metadata.
 const CONSISTENCY_CHECKS = [
+    { id: 'relationship-standing', run: c => relationshipStandingWarnings(c) },
     { id: 'no-hud', run: c => c.message && !c.hud ? [{code:'no-hud', message:'Reply has no readable HUD'}] : [] },
     { id: 'clock', run: c => {
         if (!c.hud || c.timeline.length < 2) return [];
@@ -10802,13 +10803,47 @@ const CONSISTENCY_CHECKS = [
         return out.slice(0, 8);
     } }
 ];
+// Conservative English-language cues, not a sentiment model or a correction rule.
+function relationshipReasonCues(value) {
+    const text = String(value || '').slice(0, 240);
+    const uncertain = /\?|\b(?:if|unless|would|could|might|maybe|perhaps|hypothetical|example|will)\b/i.test(text);
+    const negated = /\b(?:not|never|no|didn['’]t|wasn['’]t|isn['’]t)\b/i.test(text);
+    const negative = /\b(?:betray(?:ed|al)?|attack(?:ed)?|threat(?:ened)?|insult(?:ed)?|stole|stolen|theft|harm(?:ed)?|lied|deceiv(?:ed|ing)|refused|killed|abused|disrespect|distrust(?:ed)?|resent(?:ed|ment)?|suspici(?:ous|on))\b/i.test(text);
+    const positive = /\b(?:positive|grateful|gratitude|kindness|appreciated|helped|rescued|saved|protected|reassured)\b|\b(?:earned|gained|increased|deepened)\s+(?:their\s+|his\s+|her\s+)?(?:trust|respect|affection)\b|\b(?:trust|respect|affection)\s+(?:grew|increased|deepened|improved|strengthened|rose)\b/i.test(text);
+    const action = /\b(?:betrayed|betrayal|attacked|threatened|insulted|stole|theft|harmed|lied|deceived|refused|killed|helped|rescued|saved|protected|defended|healed|confessed|apologized|forgave|revealed|discovered|witnessed)\b|\breturned\s+(?:the|a|an|your|their|his|her|our|my)\s+(?!(?:trust|respect|affection|standing|relationship|mood)\b)/i.test(text);
+    return {positive:positive && !negative && !uncertain && !negated, event:action && !uncertain && !negated};
+}
+function relationshipStandingWarnings(context) {
+    const message = context.message;
+    if (!message || message._rpgcPurpose === 'continue') return [];
+    const latest = context.timeline.at(-1);
+    if (latest?.msg.id === message.id && latest.reset && hudCanRewind(context.hud)) return [];
+    const rc = relCfg(), out = [];
+    let lines = null;
+    for (const change of continuityReadIndex(context.chat).relationshipChanges || []) {
+        if (change.msgId !== message.id) continue;
+        const from = relRank(change.from, rc), to = relRank(change.to, rc);
+        if (from === null || to === null || from === to) continue;
+        const reason = reportText(change.reason, 240), cues = relationshipReasonCues(reason);
+        const details = {field:change.name,expected:change.from,actual:change.to,...(reason ? {reason} : {})};
+        if (to < from && cues.positive) out.push({code:'relationship-positive-drop',message:'Standing fell despite a positive stated reason',...details});
+        if (Math.abs(to - from) <= 1 || cues.event) continue;
+        // Only this reply's visible prose, bounded and reused for all changed NPCs.
+        if (!lines) lines = trackingContinuityLines(message).map(text => ({key:' ' + lockKey(text) + ' ',event:relationshipReasonCues(text).event}));
+        const name = lockKey(change.name);
+        const event = name && lines.some(line => line.event && line.key.includes(' ' + name + ' '));
+        if (!event) out.push({code:'relationship-jump',message:'Standing moved multiple steps without an explicit event',...details});
+    }
+    return out;
+}
+
 function consistencyWarnings(chatId, chat, hud, guard) {
     if (settings.consistencyChecks === false) return [];
     const start = continuityReadIndex(chat).startCommand;
     // A declared rule is eligible only inside the matching cached start-handler entry.
     const startKey = start ? start.split(/\s/, 1)[0].toLowerCase() : '';
     const declared = startKey ? getLorePool(chatId).find(e => (e.key || []).some(k => startKey === String(k).toLowerCase())) : null;
-    const context = {message:latestHudMessage(chat),hud,guard,timeline:hmsTimeline(chat),start:[start,declared?.content?.slice(0,4096)].filter(Boolean).join('\n')};
+    const context = {chat,message:latestHudMessage(chat),hud,guard,timeline:hmsTimeline(chat),start:[start,declared?.content?.slice(0,4096)].filter(Boolean).join('\n')};
     return CONSISTENCY_CHECKS.flatMap(check => check.run(context));
 }
 
@@ -12557,14 +12592,23 @@ function famNormalize(list) {
 function continuityReadIndex(chat) {
     return memoRead(chat, 'continuity-source-index', () => {
         const order = new Map(), family = [], holdings = [], gear = [], factions = [], money = [], quests = [], relations = [], agenda = [], secrets = [], contacts = [], you = [];
-        let startCommand = null;
+        let startCommand = null, relationshipChanges = null;
+        const standingLast = settings.consistencyChecks === false ? null : new Map();
         for (let i = 0; i < chat.length; i++) {
             const m = chat[i]; order.set(m.id, i);
             if (!startCommand && m.role === 'user' && trackingMessageVisible(m) && /^(?:[A-Za-z][\w]*_Start_Handler\b|Start\b)/i.test(textOf(m.content).trim())) startCommand = textOf(m.content).trim().slice(0, 4096);
             const durable = { msgId: m.id }; you.push(durable); // structural anchors carry no facts
             if (m.role !== 'assistant' || !trackingMessageVisible(m)) continue;
+            relationshipChanges = null;
             const d = getSwipeData(m, true);
             if (!d) continue;
+            if (standingLast) for (const r of Array.isArray(d.relations) ? d.relations : []) {
+                if (!r?.name || typeof r.standing !== 'string' || !r.standing.trim()) continue;
+                const key = r.key || lockKey(r.name), from = standingLast.get(key);
+                if (from === r.standing || reportSpeculative(r)) continue;
+                if (from && m._rpgcPurpose !== 'continue') (relationshipChanges ||= []).push({name:r.name,from,to:r.standing,reason:r.why || null,msgId:m.id});
+                standingLast.set(key, r.standing);
+            }
             if (d.relations?.length) relations.push(m);
             if (d.agenda?.length || d.plot?.now || d.agendas?.length) agenda.push(m);
             if (d.family?.length || Array.isArray(d.relations) && d.relations.some(r => r && famIsBond(r.bond))) family.push(m);
@@ -12584,7 +12628,7 @@ function continuityReadIndex(chat) {
                 }
             }
         }
-        return { startCommand, order, family, holdings, gear, factions, money, quests, relations, agenda, secrets, contacts, you, clocks: new Map() };
+        return { startCommand, relationshipChanges:relationshipChanges || [], order, family, holdings, gear, factions, money, quests, relations, agenda, secrets, contacts, you, clocks: new Map() };
     });
 }
 function continuityObservation(m, recent, index) {
@@ -14756,28 +14800,54 @@ function simKeyer(roster, you) {
     return fn;
 }
 /** Minors, and the people whose bond to you is family: no desire and no romance, whatever is reported. */
-function simGuards(chat, st, keyOf) {
+function simGuards(chat, st, keyOf, live = null) {
     const minor = new Set(), kin = new Set();
-    const lastBond = new Map();
+    const lastBond = new Map(), modePeople = new Map();
+    // Reuse the safety traversal, but derive defaults only from active reports.
+    // The older safety sets deliberately retain their broader historical scope.
+    let liveIndex = 0;
+    const remember = (k, r) => {
+        if (!r.standing && !r.bond) return;
+        const previous = modePeople.get(k);
+        // Unchanged confirmations cannot alter a default; avoid reclassifying them.
+        if (previous && (!r.standing || r.standing === previous.standing) && (!r.bond || r.bond === previous.bond)) return;
+        if (reportSpeculative(r)) return;
+        const person = previous || { standing: null, bond: null, kin: false };
+        if (r.standing) person.standing = r.standing;
+        if (r.bond) { person.bond = r.bond; person.kin = REL_FAMILY_RE.test(r.bond); }
+        modePeople.set(k, person);
+    };
     for (const m of chat || []) {
         if (!m || m.role !== 'assistant') continue;
+        const isLive = live === null || live[liveIndex]?.msg === m;
+        if (live !== null && isLive) liveIndex++;
         const d = getSwipeData(m);
         if (d && Array.isArray(d.relations)) for (const r of d.relations) {
             if (!r || !r.name) continue;
             const k = keyOf(r.name);
             if (!k || k === SIM_YOU) continue;
+            if (isLive) remember(k, r);
             if (r.minor) minor.add(k);
             if (r.bond) lastBond.set(k, r.bond);
+        }
+        // Restored continuation snapshots supply context, never replay deltas.
+        if (isLive && m._rpgcPurpose === 'continue') {
+            const passive = getSwipeData(m, true);
+            for (const r of Array.isArray(passive?.relations) ? passive.relations : []) {
+                if (!r?.name) continue;
+                const k = keyOf(r.name);
+                if (k && k !== SIM_YOU) remember(k, r);
+            }
         }
     }
     for (const [k0, v] of Object.entries(relPins(st))) {
         const k = keyOf(k0);
         if (!k || !v) continue;
         if (v.minor === true) minor.add(k); else if (v.minor === false) minor.delete(k);
-        if (v.bond) lastBond.set(k, v.bond);
+        if (v.bond) { lastBond.set(k, v.bond); remember(k, {bond:v.bond}); }
     }
     for (const [k, b] of lastBond) if (REL_FAMILY_RE.test(b)) kin.add(k);
-    return { minor, kin };
+    return { minor, kin, modePeople };
 }
 
 /** Lets a quiet feeling fade toward where it rests: one step for every `D` replies nothing fed it. */
@@ -14805,7 +14875,7 @@ function simMindNew(name, key, turn) {
 
 function simPairNew(m, to, toName, turn, t, guarded) {
     const p = { key: `${m.key}>${to}`, from: m.key, fromName: m.name, to, toName, first: turn, last: turn, ax: {}, gate: 0, E: 'sealed', L: 'sealed',
-        filters: { soc: 0, val: 0, comp: 0, rel: 0 }, debts: [], intent: null, mode: t.mode && !(guarded && SIM_ROMANTIC.has(t.mode)) ? t.mode : 'stranger', kin: !!t.kin, guessed: !t.start, events: [] };
+        filters: { soc: 0, val: 0, comp: 0, rel: 0 }, debts: [], intent: null, mode: t.mode && !(guarded && SIM_ROMANTIC.has(t.mode)) ? t.mode : null, kin: !!t.kin, guessed: !t.start, events: [] };
     simPairSeed(p, t, turn, guarded);
     return p;
 }
@@ -15004,7 +15074,7 @@ function simFold(chat, st, opt = {}) {
     const rep = simReplies(chat, opt.excludeId || null);
     const you = simYouKeys(opt.userName || null);
     const keyOf = simKeyer(partyRoster(st), you);
-    const guards = simGuards(chat, st, keyOf);
+    const guards = simGuards(chat, st, keyOf, rep.live);
     const o = { D: sc.decay, cap: sc.maxStep, keyOf, guards };
     const minds = new Map(), pairs = new Map(), knows = new Map(), agendas = new Map();
     rep.live.forEach((e, i) => {
@@ -15062,8 +15132,21 @@ function simWarmth(p) {
 }
 function simMom(c, turn) { return (c.log || []).filter(x => x.turn >= turn - 2).reduce((a, x) => a + x.d, 0); }
 
+// Read-only default: a People standing concerns the player, never another NPC.
+// Reported/user modes and the pre-existing family/minor safeguards take priority.
+function simPairMode(fold, p) {
+    if (p.mode) return {mode:simGuardedPair(fold, p) && SIM_ROMANTIC.has(p.mode) ? 'warm' : p.mode, source:'reported'};
+    const person = p.to === SIM_YOU ? fold.guards.modePeople?.get(p.from) : null;
+    const standing = lockKey(person?.standing || '');
+    if (['nemesis','enemy','hostile'].includes(standing)) return {mode:'hostile',source:'standing'};
+    if (standing === 'wary') return {mode:'strained',source:'standing'};
+    if (['close','devoted','friend','friendly'].includes(standing)) return {mode:'warm',source:'standing'};
+    if (p.kin || person?.kin) return {mode:'warm',source:'kin'};
+    return {mode:'not reported',source:'not-reported'};
+}
+
 function simPairView(fold, p) {
-    const guarded = simGuardedPair(fold, p);
+    const guarded = simGuardedPair(fold, p), mode = simPairMode(fold, p);
     const axes = SIM_AXES.map(id => {
         const c = simAxisCell(p, id);
         const last = (c.log || []).filter(x => x.turn === fold.turn).reduce((a, x) => a + x.d, 0);
@@ -15077,11 +15160,11 @@ function simPairView(fold, p) {
         walls: simWalls(p, guarded).map(([a, b]) => ({ a, b, text: `${SIM_AXIS[a].emoji} ${SIM_AXIS[a].label} ↔ ${SIM_AXIS[b].emoji} ${SIM_AXIS[b].label}` })),
         gate: { i: p.gate, word: SIM_GATE[p.gate] }, E: p.E, L: p.L,
         filters: Object.entries(p.filters).map(([k, i]) => ({ k, label: SIM_FILTERS[k], i, word: SIM_FILTER_LV[i] })),
-        debts: p.debts.map(d => ({ text: d.text, since: fold.turn - d.since })), intent: p.intent, mode: guarded && SIM_ROMANTIC.has(p.mode) ? 'warm' : p.mode,
+        debts: p.debts.map(d => ({ text: d.text, since: fold.turn - d.since })), intent: p.intent, mode: mode.mode, ...(mode.source === 'reported' ? {} : {modeSource:mode.source}),
         guarded, kin: !!p.kin, guessed: !!p.guessed, clash, warmth: Math.round(simWarmth(p) * 10) / 10,
         lastAgo: fold.turn - p.last, moved: p.last === fold.turn,
         events: p.events.slice(-4).reverse().map(e => ({ ago: fold.turn - e.turn, why: e.why, moved: Object.entries(e.moved).map(([id, d]) => `${SIM_AXIS[id].emoji}${d > 0 ? '+' : ''}${d}`).join(' '),
-            gate: e.gate ? `${SIM_GATE[e.gate[0]]} → ${SIM_GATE[e.gate[1]]}` : null, debt: e.debt || null, paid: e.paid ? e.paid.join('; ') : null, mode: e.mode ? `${e.mode[0]} → ${e.mode[1]}` : null }))
+            gate: e.gate ? `${SIM_GATE[e.gate[0]]} → ${SIM_GATE[e.gate[1]]}` : null, debt: e.debt || null, paid: e.paid ? e.paid.join('; ') : null, mode: e.mode ? `${e.mode[0] || 'not reported'} → ${e.mode[1]}` : null }))
     };
 }
 
@@ -15172,8 +15255,8 @@ function simDamLine(p, fold) {
     const bits = [`gate ${SIM_GATE[p.gate]}`, `E ${p.E}`, `L ${p.L}`];
     const fl = Object.entries(p.filters).filter(([, i]) => i > 0).map(([k, i]) => `${SIM_FILTERS[k]} ${SIM_FILTER_LV[i]}`);
     bits.push(fl.length ? `filters: ${fl.join(', ')}, the rest holding` : 'filters holding');
-    const mode = simGuardedPair(fold, p) && SIM_ROMANTIC.has(p.mode) ? 'warm' : p.mode;
-    bits.push(`mode ${mode}`);
+    const mode = simPairMode(fold, p);
+    bits.push(`mode ${mode.mode}${mode.source === 'standing' || mode.source === 'kin' ? ' (default)' : ''}`);
     if (p.intent) bits.push(`wants: ${p.intent}`);
     if (p.debts.length) bits.push(`unpaid debt: ${p.debts.map(d => d.text).join('; ')}`);
     const w = simWalls(p, simGuardedPair(fold, p));
