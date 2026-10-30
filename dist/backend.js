@@ -2441,6 +2441,41 @@ function memoRead(chat, key, read) {
     if (!pass.values.has(key)) pass.values.set(key, read());
     return pass.values.get(key);
 }
+// Named snapshots are isolated read-only views. Never fold them into tracking,
+// prompts, transactions, manual corrections or message metadata.
+const trackerSnapshotRowsCache = new WeakMap();
+function trackerSnapshotList(st) {
+    const source = st?.trackerSnapshots;
+    if (!Array.isArray(source)) return [];
+    if (trackerSnapshotRowsCache.has(source)) return trackerSnapshotRowsCache.get(source);
+    const rows = source
+        .filter(x => x && typeof x.id === 'string' && typeof x.name === 'string' && isPlainObject(x.view) && isPlainObject(x.view.hms))
+        .slice(-10).filter(x => JSON.stringify(x.view).length <= 300000);
+    trackerSnapshotRowsCache.set(source, rows);
+    return rows;
+}
+function trackerSnapshotPanel(st) {
+    const rows = trackerSnapshotList(st), active = rows.find(x => x.id === st.activeTrackerSnapshot) || null;
+    return {list:rows.map(x => ({id:x.id,name:x.name})), active:active?.id || null, view:active?.view || null};
+}
+function trackerSnapshotEdit(st, payload) {
+    const rows = trackerSnapshotList(st);
+    if (payload.op === 'save') {
+        const name = typeof payload.name === 'string' ? payload.name.trim().slice(0,80) : '';
+        if (!name || !isPlainObject(payload.view?.hms) || JSON.stringify(payload.view).length > 300000) return false;
+        // Explicit allowlist: no chat messages, seed/locks, tracking transactions or settings.
+        const view = clone({hms:payload.view.hms});
+        const seq = Math.max(0, Number.isSafeInteger(st.trackerSnapshotSeq) ? st.trackerSnapshotSeq : 0) + 1;
+        st.trackerSnapshotSeq = seq;
+        st.trackerSnapshots = [...rows,{id:'tracker-snapshot-'+seq,name,view}].slice(-10);
+    } else if (payload.op === 'restore') {
+        if (!rows.some(x => x.id === payload.id)) return false;
+        st.activeTrackerSnapshot = payload.id;
+    } else if (payload.op === 'live') st.activeTrackerSnapshot = null;
+    else return false;
+    return true;
+}
+
 async function pushState(chatId, snapshot = null) {
     trimChatCaches(chatId);
     if (!chatId) {
@@ -2458,6 +2493,7 @@ async function pushState(chatId, snapshot = null) {
         const payload = withReadPass(chat, () => ({
             type: 'state',
             chatId,
+            trackerSnapshots: trackerSnapshotPanel(cs),
             version: RPGC_VERSION,
             paletteDefault: DIALOGUE_PALETTE_DEFAULT,
             userName,
@@ -2534,7 +2570,7 @@ async function pushState(chatId, snapshot = null) {
 // Demo mode plays scripted turns (no tokens); Live mode asks the model, with a small
 // world narrator standing in for a bot card.
 
-const RPGC_VERSION = '3.0.10';
+const RPGC_VERSION = '3.1.0';
 const diagLog = [];
 function diagPush(kind, m) { diagLog.push({ at: new Date().toISOString(), kind, text: String(m).slice(0, 400) }); if (diagLog.length > 60) diagLog.shift(); }
 function logW(m) { diagPush('warn', m); return spindle.log.warn(m); }
@@ -10429,7 +10465,13 @@ function buildCompanionInstructionRead(committed, userName, locks, st = null, ch
         if (stTxt) s += '\n\n' + stTxt;
     }
     const prev = wantChars && committed && Array.isArray(committed.characters) && committed.characters.length ? committed.characters : null;
-    if (prev) s += `\nPrevious panel data: ${JSON.stringify(leanPanelForPrompt(applyLocksForPrompt({ characters: prev }, locks).characters))}`;
+    if (prev) {
+        const rows = leanPanelForPrompt(applyLocksForPrompt({ characters: prev }, locks).characters);
+        const names = rows.map(row => row.name), details = rows.map(({name, ...rest}) => rest);
+        // Same-order rows retain all previous details without repeating names.
+        // This representation is no larger than the old Previous panel data block.
+        s += `\nCast to check: ${JSON.stringify(names)}\nIn order: ${JSON.stringify(details)}`;
+    }
     const wHud = chat ? parseHud(textOf((latestHudMessage(chat) || {}).content)) : null;
     if (settings.worldCard !== false && wHud && worldLines(wHud).some(l => /^\[HITOGAMI:/i.test(l))) {     // the advice log lives on the world card
         s += `\nMan-God: in the same block, add "hitogami": his advice to ${userName} in this reply, one line in his own words \u2014 only if he appeared or spoke (a dream, a voice); otherwise null. Report it; never let this decide whether he appears.`;
@@ -10732,6 +10774,44 @@ async function hmsHandleReplyInner(chatId, chat, msg, generationType) {
 function hmsPanelState(chatId, chat, st) {
     return withReadPass(chat, () => hmsPanelStateRead(chatId, chat, st));
 }
+// Advisory checks only: never correct HUD values or write metadata.
+const CONSISTENCY_CHECKS = [
+    { id: 'no-hud', run: c => c.message && !c.hud ? [{code:'no-hud', message:'Reply has no readable HUD'}] : [] },
+    { id: 'clock', run: c => {
+        if (!c.hud || c.timeline.length < 2) return [];
+        const a = hmsClock(c.timeline.at(-2).hud), b = hmsClock(c.hud);
+        if (!a || !b || a.dated !== b.dated || a.yearKnown !== b.yearKnown) return [];
+        return b.minutes < a.minutes ? [{code:'clock', message:'HUD time or date moved backwards'}] : [];
+    } },
+    { id: 'start-setting', run: c => {
+        if (!c.hud || !c.start) return [];
+        const fields = c.hud.lines.filter(l => !l.block).flatMap(hmsFieldsOf);
+        const out = [];
+        // Only explicit field directives, never arbitrary narrative or inferred game rules.
+        for (const line of c.start.split(/\n|\|/)) {
+            const rule = line.trim().match(/^([\w ()-]{2,40}):\s*(?:available\s*;\s*(?=inactive\s+at rest\b))?(active|inactive|enabled|disabled)(?:\s+at rest)?[.!]?$/i);
+            if (!rule) continue;
+            const atRest = /at rest/i.test(line);
+            const resting = fields.some(f => /^(?:status|activity|state)$/i.test(f.label || f.key || '') && /^(?:rested|resting|at rest|idle)$/i.test(f.value || ''));
+            if (atRest && !resting) continue;
+            const field = fields.find(f => hmsNorm(f.label || f.key || '').replace(/\s*\([^)]*\)/g,'') === hmsNorm(rule[1]).replace(/\s*\([^)]*\)/g,''));
+            const actual = String(field?.value || '').trim().toLowerCase();
+            const opposite = {active:'inactive',inactive:'active',enabled:'disabled',disabled:'enabled'};
+            if (actual === opposite[rule[2].toLowerCase()]) out.push({code:'start-setting',message:'HUD conflicts with an explicit start setting',field:rule[1],expected:rule[2],actual});
+        }
+        return out.slice(0, 8);
+    } }
+];
+function consistencyWarnings(chatId, chat, hud, guard) {
+    if (settings.consistencyChecks === false) return [];
+    const start = continuityReadIndex(chat).startCommand;
+    // A declared rule is eligible only inside the matching cached start-handler entry.
+    const startKey = start ? start.split(/\s/, 1)[0].toLowerCase() : '';
+    const declared = startKey ? getLorePool(chatId).find(e => (e.key || []).some(k => startKey === String(k).toLowerCase())) : null;
+    const context = {message:latestHudMessage(chat),hud,guard,timeline:hmsTimeline(chat),start:[start,declared?.content?.slice(0,4096)].filter(Boolean).join('\n')};
+    return CONSISTENCY_CHECKS.flatMap(check => check.run(context));
+}
+
 function hmsPanelStateRead(chatId, chat, st) {
     const msg = latestHudMessage(chat);
     const hud = msg ? parseHud(textOf(msg.content)) : null;
@@ -10760,6 +10840,7 @@ function hmsPanelStateRead(chatId, chat, st) {
         hud: hud ? { lines: hud.lines, time: hud.time, location: hud.location, arc: hud.arc, quests: hud.quests, fromHtml: !!hud.find.fromHtml } : null,
         noHud: hud ? null : hudDiagnosis(msg),
         guard,
+        ...(() => { const warnings = consistencyWarnings(chatId, chat, hud, guard); return warnings.length ? {consistency:warnings} : {}; })(),
         pins,
         questNotes: st.questNotes || [],
         atlas: (() => { try { return atlasHereInfo(chatId, hud, chat); } catch (e) { logW(`[RPG Companion HMS] Atlas read failed: ${e?.message || e}`); return null; } })(),
@@ -12476,8 +12557,10 @@ function famNormalize(list) {
 function continuityReadIndex(chat) {
     return memoRead(chat, 'continuity-source-index', () => {
         const order = new Map(), family = [], holdings = [], gear = [], factions = [], money = [], quests = [], relations = [], agenda = [], secrets = [], contacts = [], you = [];
+        let startCommand = null;
         for (let i = 0; i < chat.length; i++) {
             const m = chat[i]; order.set(m.id, i);
+            if (!startCommand && m.role === 'user' && trackingMessageVisible(m) && /^(?:[A-Za-z][\w]*_Start_Handler\b|Start\b)/i.test(textOf(m.content).trim())) startCommand = textOf(m.content).trim().slice(0, 4096);
             const durable = { msgId: m.id }; you.push(durable); // structural anchors carry no facts
             if (m.role !== 'assistant' || !trackingMessageVisible(m)) continue;
             const d = getSwipeData(m, true);
@@ -12501,7 +12584,7 @@ function continuityReadIndex(chat) {
                 }
             }
         }
-        return { order, family, holdings, gear, factions, money, quests, relations, agenda, secrets, contacts, you, clocks: new Map() };
+        return { startCommand, order, family, holdings, gear, factions, money, quests, relations, agenda, secrets, contacts, you, clocks: new Map() };
     });
 }
 function continuityObservation(m, recent, index) {
@@ -17599,6 +17682,15 @@ spindle.onFrontendMessage(async (payload, userId) => {
                 if (payload.characterId) await autoApplyPreset(payload.characterId);
                 await pushState(payload.chatId || null);
                 break;
+
+            case 'tracker_snapshot': {
+                if (!payload.chatId) return;
+                const st = await getChatState(payload.chatId);
+                if (!trackerSnapshotEdit(st, payload)) return;
+                await saveChatState(payload.chatId, st);
+                await pushState(payload.chatId);
+                break;
+            }
 
             case 'save_trackers': {
                 const { chatId, data } = payload;

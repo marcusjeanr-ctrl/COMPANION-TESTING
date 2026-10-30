@@ -1,0 +1,430 @@
+{
+  "baselineCommit": "540df20f602bd475b9149c1ab28aa705e391f72d",
+  "node": "22.22.2",
+  "status": "RC; no live Lumiverse certification",
+  "method": "Identical existing fixtures, source-bound reports; 3 warmups, 10 panel samples. Final pairs reversed order. Browser: 5 warmups, 20 measured renders per run, 2 reversed pairs. No paid API tests.",
+  "perFeatureUncontrolledCloudSamples": [
+    {
+      "checkpoint": "feature1",
+      "panel": {
+        "file": "/workspace/COMPANION-TESTING/dist/backend.js",
+        "messages": 600,
+        "coldMs": 347.57,
+        "medianMs": 61.33,
+        "warnings": 0
+      },
+      "pipeline": {
+        "file": "/workspace/COMPANION-TESTING/dist/backend.js",
+        "parseReportMedianMs": 0.5714,
+        "processResponseMedianMs": 0.8343,
+        "promptConstructMedianMs": 0.3717,
+        "promptCharacters": 15291,
+        "populatedPromptCharacters": 19213,
+        "warnings": 0
+      }
+    },
+    {
+      "checkpoint": "feature2",
+      "panel": {
+        "file": "/workspace/COMPANION-TESTING/dist/backend.js",
+        "messages": 600,
+        "coldMs": 222.85,
+        "medianMs": 65.64,
+        "warnings": 0
+      },
+      "pipeline": {
+        "file": "/workspace/COMPANION-TESTING/dist/backend.js",
+        "parseReportMedianMs": 0.6377,
+        "processResponseMedianMs": 0.7795,
+        "promptConstructMedianMs": 0.3637,
+        "promptCharacters": 15291,
+        "populatedPromptCharacters": 19213,
+        "warnings": 0
+      }
+    },
+    {
+      "checkpoint": "feature3",
+      "panel": {
+        "file": "/workspace/COMPANION-TESTING/dist/backend.js",
+        "messages": 600,
+        "coldMs": 219.47,
+        "medianMs": 63.92,
+        "warnings": 0
+      },
+      "pipeline": {
+        "file": "/workspace/COMPANION-TESTING/dist/backend.js",
+        "parseReportMedianMs": 0.7531,
+        "processResponseMedianMs": 1.2887,
+        "promptConstructMedianMs": 0.6282,
+        "promptCharacters": 15291,
+        "populatedPromptCharacters": 19213,
+        "warnings": 0
+      }
+    },
+    {
+      "checkpoint": "feature4",
+      "panel": {
+        "file": "/workspace/COMPANION-TESTING/dist/backend.js",
+        "messages": 600,
+        "coldMs": 231.55,
+        "medianMs": 87.95,
+        "warnings": 0
+      },
+      "pipeline": {
+        "file": "/workspace/COMPANION-TESTING/dist/backend.js",
+        "parseReportMedianMs": 0.5816,
+        "processResponseMedianMs": 0.8594,
+        "promptConstructMedianMs": 0.374,
+        "promptCharacters": 15291,
+        "populatedPromptCharacters": 19213,
+        "warnings": 0
+      }
+    },
+    {
+      "checkpoint": "feature5-final",
+      "panel": {
+        "file": "/workspace/COMPANION-TESTING/dist/backend.js",
+        "messages": 600,
+        "coldMs": 284.01,
+        "medianMs": 63.55,
+        "warnings": 0
+      },
+      "pipeline": {
+        "file": "/workspace/COMPANION-TESTING/dist/backend.js",
+        "parseReportMedianMs": 1.1533,
+        "processResponseMedianMs": 0.9248,
+        "promptConstructMedianMs": 0.504,
+        "promptCharacters": 15291,
+        "populatedPromptCharacters": 19213,
+        "warnings": 0
+      }
+    },
+    {
+      "checkpoint": "feature6",
+      "panel": {
+        "file": "/workspace/COMPANION-TESTING/dist/backend.js",
+        "messages": 600,
+        "coldMs": 237.13,
+        "medianMs": 61.49,
+        "warnings": 0
+      },
+      "pipeline": {
+        "file": "/workspace/COMPANION-TESTING/dist/backend.js",
+        "parseReportMedianMs": 0.543,
+        "processResponseMedianMs": 0.729,
+        "promptConstructMedianMs": 0.359,
+        "promptCharacters": 15291,
+        "populatedPromptCharacters": 19213,
+        "warnings": 0
+      }
+    },
+    {
+      "checkpoint": "feature7",
+      "panel": {
+        "file": "/workspace/COMPANION-TESTING/dist/backend.js",
+        "messages": 600,
+        "coldMs": 396.62,
+        "medianMs": 143.22,
+        "warnings": 0
+      },
+      "pipeline": {
+        "file": "/workspace/COMPANION-TESTING/dist/backend.js",
+        "parseReportMedianMs": 0.6433,
+        "processResponseMedianMs": 0.8346,
+        "promptConstructMedianMs": 0.4875,
+        "promptCharacters": 15291,
+        "populatedPromptCharacters": 19213,
+        "warnings": 0
+      }
+    },
+    {
+      "checkpoint": "feature8",
+      "panel": {
+        "file": "/workspace/COMPANION-TESTING/dist/backend.js",
+        "messages": 600,
+        "coldMs": 260.94,
+        "medianMs": 56.27,
+        "warnings": 0
+      },
+      "pipeline": {
+        "file": "/workspace/COMPANION-TESTING/dist/backend.js",
+        "parseReportMedianMs": 0.6301,
+        "processResponseMedianMs": 0.876,
+        "promptConstructMedianMs": 0.3649,
+        "promptCharacters": 15291,
+        "populatedPromptCharacters": 19213,
+        "warnings": 0
+      }
+    }
+  ],
+  "initialSampleCaveat": "Initial exploratory baseline command overlapped early development and is excluded from authoritative comparisons. Final pairs use the exact frozen 3.0.10 backend source. Per-feature timings are nonpaired observations; they do not establish causality.",
+  "paired600": {
+    "samples": [
+      {
+        "file": "/tmp/companion-3.1/baseline-backend.js",
+        "messages": 600,
+        "coldMs": 270.79,
+        "medianMs": 75.16,
+        "warnings": 0
+      },
+      {
+        "file": "dist/backend.js",
+        "messages": 600,
+        "coldMs": 241.95,
+        "medianMs": 69.53,
+        "warnings": 0
+      },
+      {
+        "file": "dist/backend.js",
+        "messages": 600,
+        "coldMs": 283.49,
+        "medianMs": 78.92,
+        "warnings": 0
+      },
+      {
+        "file": "/tmp/companion-3.1/baseline-backend.js",
+        "messages": 600,
+        "coldMs": 247.16,
+        "medianMs": 72.05,
+        "warnings": 0
+      }
+    ],
+    "aggregateMeanOfRunMedians": {
+      "coldMs": {
+        "baseline": 258.975,
+        "candidate": 262.72,
+        "percent": 1.45
+      },
+      "medianMs": {
+        "baseline": 73.605,
+        "candidate": 74.225,
+        "percent": 0.84
+      }
+    }
+  },
+  "paired2000": {
+    "samples": [
+      {
+        "file": "/tmp/companion-3.1/baseline-backend.js",
+        "messages": 2000,
+        "coldMs": 629.19,
+        "medianMs": 162.77,
+        "warnings": 0
+      },
+      {
+        "file": "dist/backend.js",
+        "messages": 2000,
+        "coldMs": 560.39,
+        "medianMs": 177.77,
+        "warnings": 0
+      },
+      {
+        "file": "dist/backend.js",
+        "messages": 2000,
+        "coldMs": 606.69,
+        "medianMs": 191.54,
+        "warnings": 0
+      },
+      {
+        "file": "/tmp/companion-3.1/baseline-backend.js",
+        "messages": 2000,
+        "coldMs": 545.44,
+        "medianMs": 186.6,
+        "warnings": 0
+      }
+    ],
+    "aggregateMeanOfRunMedians": {
+      "coldMs": {
+        "baseline": 587.315,
+        "candidate": 583.54,
+        "percent": -0.64
+      },
+      "medianMs": {
+        "baseline": 174.685,
+        "candidate": 184.655,
+        "percent": 5.71
+      }
+    }
+  },
+  "pairedPipeline": {
+    "samples": [
+      {
+        "file": "/tmp/companion-3.1/baseline-backend.js",
+        "parseReportMedianMs": 0.7808,
+        "processResponseMedianMs": 0.9533,
+        "promptConstructMedianMs": 0.625,
+        "promptCharacters": 15291,
+        "populatedPromptCharacters": 19213,
+        "warnings": 0
+      },
+      {
+        "file": "dist/backend.js",
+        "parseReportMedianMs": 0.7616,
+        "processResponseMedianMs": 1.0734,
+        "promptConstructMedianMs": 0.5853,
+        "promptCharacters": 15291,
+        "populatedPromptCharacters": 19213,
+        "warnings": 0
+      },
+      {
+        "file": "dist/backend.js",
+        "parseReportMedianMs": 0.6011,
+        "processResponseMedianMs": 0.9534,
+        "promptConstructMedianMs": 0.376,
+        "promptCharacters": 15291,
+        "populatedPromptCharacters": 19213,
+        "warnings": 0
+      },
+      {
+        "file": "/tmp/companion-3.1/baseline-backend.js",
+        "parseReportMedianMs": 0.5726,
+        "processResponseMedianMs": 0.8109,
+        "promptConstructMedianMs": 0.3768,
+        "promptCharacters": 15291,
+        "populatedPromptCharacters": 19213,
+        "warnings": 0
+      }
+    ],
+    "aggregateMeanOfRunMedians": {
+      "parseReportMedianMs": {
+        "baseline": 0.6767,
+        "candidate": 0.6814,
+        "percent": 0.69
+      },
+      "processResponseMedianMs": {
+        "baseline": 0.8821,
+        "candidate": 1.0134,
+        "percent": 14.88
+      },
+      "promptConstructMedianMs": {
+        "baseline": 0.5009,
+        "candidate": 0.4807,
+        "percent": -4.04
+      }
+    }
+  },
+  "browserRender": {
+    "baseline": [
+      [
+        35.599999994039536,
+        37,
+        40.29999998211861,
+        47.10000002384186,
+        31.19999998807907,
+        30.599999994039536,
+        52.099999994039536,
+        61.70000001788139,
+        34.29999998211861,
+        27.400000005960464,
+        25.400000005960464,
+        31.5,
+        32.900000005960464,
+        31.099999994039536,
+        31.700000017881393,
+        31.899999976158142,
+        31.600000023841858,
+        43,
+        37.10000002384186,
+        32.5
+      ],
+      [
+        29.599999994039536,
+        27.900000005960464,
+        28.900000005960464,
+        24.19999998807907,
+        24.200000017881393,
+        30,
+        42,
+        45.5,
+        26.299999982118607,
+        22.30000001192093,
+        25.099999994039536,
+        24.900000005960464,
+        24.900000005960464,
+        21.400000005960464,
+        29.099999994039536,
+        35.19999998807907,
+        26.30000001192093,
+        26.69999998807907,
+        26.5,
+        31.30000001192093
+      ]
+    ],
+    "candidate": [
+      [
+        36.79999998211861,
+        29.700000017881393,
+        33.5,
+        32.5,
+        29.400000005960464,
+        29.099999994039536,
+        50.599999994039536,
+        34.30000001192093,
+        23.799999982118607,
+        24.099999994039536,
+        27.200000017881393,
+        23.799999982118607,
+        23.900000005960464,
+        24.30000001192093,
+        33.400000005960464,
+        28.799999982118607,
+        31,
+        30.700000017881393,
+        27.19999998807907,
+        31.69999998807907
+      ],
+      [
+        36.70000001788139,
+        28.5,
+        33,
+        30.400000005960464,
+        30.099999994039536,
+        30.69999998807907,
+        42.5,
+        45.70000001788139,
+        23.69999998807907,
+        23.5,
+        25.5,
+        27.700000017881393,
+        24.599999994039536,
+        24.19999998807907,
+        27.599999994039536,
+        24.600000023841858,
+        27.799999982118607,
+        50.20000001788139,
+        34.79999998211861,
+        26.099999994039536
+      ]
+    ],
+    "pooledMedians": {
+      "baseline": 31.15,
+      "candidate": 29.25,
+      "percent": -6.1
+    }
+  },
+  "sourceHashes": {
+    "dist/backend.js": "35d46dffc26892d6ed98ba80f13ed306aa85a039b7aad3ed542dd8a0c74631c2",
+    "dist/frontend.js": "3e20bcd5190ab9f04f0baff7ea09dea6aa3c235ef675e4aa5b0f602e00db69d5",
+    "spindle.json": "23c98341bc1f207ebc63fc0bb85419840fafae9b0bed64d31ad0ae9146f4e821"
+  },
+  "focusedConsistency": {
+    "method": "1,273 cached lore entries; matching handler last, 2,749-character start, 3 warmups/20 samples. No model calls. Before/after normalization hoist, same warning required.",
+    "samples": [
+      {
+        "file": "/tmp/companion-3.1/pre-hoist-backend.js",
+        "entries": 1273,
+        "startCharacters": 2749,
+        "medianMs": 44.81748950000002,
+        "warnings": 0
+      },
+      {
+        "file": "dist/backend.js",
+        "entries": 1273,
+        "startCharacters": 2749,
+        "medianMs": 0.766712499999926,
+        "warnings": 0
+      }
+    ],
+    "script": "tools/benchmark_consistency_checks.cjs"
+  }
+}
