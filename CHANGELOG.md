@@ -16,6 +16,8 @@
 
 - Add an evidence-only Sandbox canon-event view; dates never imply outcomes.
 
+- Add optional compact mobile cards and a sticky scene/quest summary.
+
 ## 3.0.10 RC — Quest assignment continuity
 
 - Add optional stable Quest IDs and bounded existing-quest context to the current

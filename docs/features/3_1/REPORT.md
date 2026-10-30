@@ -102,3 +102,17 @@ The existing full arc reference view is preserved. Sandbox only; other worlds
 and canonical mode remain unchanged. No new lore reads or history traversals.
 Tests cover all four statuses, unknown predictions, future dates, non-Sandbox,
 empty next event and input immutability. All 52 suites/release checks passed.
+
+## 8. Compact mobile layout
+
+Optional, default-off setting. At <=480px use one-column cards and a sticky
+three-line location/cast/open-quest summary. Twelve reported cast names and two
+quest names plus the remaining count bound the header; full panels stay below.
+Desktop layout remains unchanged. CSS reflow only: no resize observer/timer.
+Browser tests exercise drawer and floating at 320/360px, viewport containment,
+sticky positioning and summary content. The other new browser cases cover the
+warning badge, old Family activity disclosure, actual Markdown download with zero
+backend requests, snapshot restore/isolation, lazy graph caps and canon evidence.
+The graph test explicitly closes the previous disclosure and waits for native
+`toggle` delivery before checking lazy SVG creation. All 52 JS suites and release
+checks passed; final complete Chromium rerun follows acceptance refinements.

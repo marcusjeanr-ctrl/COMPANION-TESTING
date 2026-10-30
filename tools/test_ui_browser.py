@@ -473,6 +473,98 @@ class BrowserUi(unittest.TestCase):
         summary.click()
         self.assertTrue(states.locator('details').first.evaluate('(e)=>e.open'))
 
+    def test_31_consistency_and_family_labels(self):
+        payload=json.loads(json.dumps(FIXTURE['payload']))
+        payload['hms']['consistency']=[{'code':'clock','message':'HUD time or date moved backwards'}]
+        payload['hms']['family']={'members':[{'key':'parent','name':'Parent','relation':'father','status':'alive','where':'Study','known':'seen','since':30,'present':False,'seenAgo':30,'everSeen':True,'doing':'Likely at breakfast','doingNow':False,'history':[],'changes':[],'alerts':[]}],'ask':True,'hidden':0}
+        self.receive(payload)
+        self.assertIn('HUD time or date moved backwards',self.page.locator('.rpgc-consistency').inner_text())
+        self.assertIn('last seen',self.page.locator('.rpgc-fam-where').inner_text())
+        self.assertIn('30m',self.page.locator('.rpgc-fam-where').inner_text())
+        detail=self.page.locator('details.rpgc-fam-doing')
+        detail.evaluate('(e)=>e.open=false')
+        self.assertFalse(detail.locator('span').is_visible())
+        detail.locator('summary').click()
+        self.assertIn('Likely at breakfast',detail.inner_text())
+
+    def test_31_character_sheet_download_is_read_only(self):
+        before=self.page.evaluate('sent.length')
+        with self.page.expect_download() as event:
+            self.page.get_by_role('button',name='Export character sheet',exact=True).click()
+        download=event.value
+        text=pathlib.Path(download.path()).read_text()
+        self.assertEqual(download.suggested_filename,'rpg-companion-character-sheet.md')
+        self.assertIn('# Character sheet',text)
+        self.assertIn('## World state',text)
+        self.assertEqual(self.page.evaluate('sent.length'),before)
+
+    def test_31_snapshot_restore_is_read_only_and_chat_isolated(self):
+        self.page.get_by_label('Snapshot name',exact=True).fill('Before the spar')
+        self.page.get_by_role('button',name='Save snapshot',exact=True).click()
+        request=self.page.evaluate('sent.at(-1)')
+        self.assertEqual(request['type'],'tracker_snapshot')
+        self.assertEqual(request['op'],'save')
+        payload=json.loads(json.dumps(FIXTURE['payload']))
+        saved={'hms':{'hud':{'lines':[{'text':'Past location: Observatory'}]}}}
+        payload['trackerSnapshots']={'list':[{'id':'snap1','name':'Before the spar'}],'active':None,'view':None}
+        self.receive(payload)
+        self.page.get_by_role('button',name='Restore view',exact=True).click()
+        self.assertEqual(self.page.evaluate('sent.at(-1).op'),'restore')
+        payload['trackerSnapshots'].update(active='snap1',view=saved)
+        self.receive(payload)
+        self.assertIn('Past location: Observatory',self.page.locator('.rpgc-snapshot-view').inner_text())
+        self.assertEqual(self.page.locator('[contenteditable]').count(),0)
+        self.assertEqual(self.page.locator('.rpgc-spell-row').count(),0)
+        self.page.get_by_role('button',name='Return to live tracking',exact=True).click()
+        self.assertEqual(self.page.evaluate('sent.at(-1).op'),'live')
+        self.page.evaluate("activeChat={chatId:'next-chat',characterId:'character'};hostEvents.CHAT_SWITCHED()")
+        self.assertNotIn('Past location: Observatory',self.page.locator('.rpgc').inner_text())
+
+    def test_31_relationship_web_lazy_bounded_mobile_and_float(self):
+        self.page.locator('.rpgc-relationship-web > summary').click()
+        payload=json.loads(json.dumps(FIXTURE['payload']))
+        payload['hms']['minds']={'people':[{'key':'p'+str(i),'name':'Person '+str(i),'pairs':[{'to':'p'+str((i+1)%30),'toName':'Person '+str((i+1)%30),'axes':[],'you':False}],'feel':None} for i in range(30)]}
+        # Avoid person-card fields: graph consumes the existing Minds payload directly.
+        payload['hms']['relations']=None
+        self.page.evaluate('(p)=>window.receive(p)',payload)
+        web=self.page.locator('.rpgc-relationship-web')
+        self.assertEqual(web.locator('svg').count(),0)
+        web.locator('summary').click()
+        web.locator('svg').wait_for(state='visible')
+        self.assertEqual(web.locator('svg circle').count(),20)
+        self.assertLessEqual(web.locator('svg line').count(),80)
+        self.assertIn('11 people omitted',web.inner_text())
+        self.assertLessEqual(web.locator('svg').bounding_box()['width'],320)
+        self.page.get_by_label('Where the panel lives').select_option('float')
+        self.assert_float_inside_viewport()
+
+    def test_31_canon_only_explicit_outcomes(self):
+        payload=json.loads(json.dumps(FIXTURE['payload']))
+        payload['world']['saga']={'arcs':[],'from':400,'to':500,'year':417,'current':None,'personalArc':'Sandbox — own story','events':[{'name':'Changed event','state':'changed','detail':'Explicit change'},{'name':'Prevented event','state':'prevented','detail':'Explicit prevention'}]}
+        payload['hms']['hud']['lines'].append({'key':'next canon event','text':'Next Canon Event: Future event — in one month'})
+        self.receive(payload)
+        panel=self.page.locator('.rpgc-canon-divergence')
+        self.assertIn('Future event',panel.inner_text())
+        self.assertIn('pending',panel.inner_text())
+        self.assertIn('Explicit change',panel.inner_text())
+
+    def test_31_compact_mobile_320_360(self):
+        for width in [320,360]:
+            for mode in ['drawer','float']:
+                with self.subTest(width=width,mode=mode):
+                    payload=json.loads(json.dumps(FIXTURE['payload']))
+                    payload['settings'].update(compactMobile=True,uiPanelMode=mode)
+                    self.page.set_viewport_size({'width':width,'height':800})
+                    self.receive(payload)
+                    pinned=self.page.locator('.rpgc-mobile-pinned')
+                    self.assertTrue(pinned.is_visible())
+                    self.assertEqual(pinned.evaluate('(e)=>getComputedStyle(e).position'),'sticky')
+                    self.assertIn('Who is here',pinned.inner_text())
+                    self.assertIn('Quests',pinned.inner_text())
+                    self.assertLessEqual(pinned.bounding_box()['width'],width)
+                    if mode=='float':self.assert_float_inside_viewport()
+
+
 if __name__=='__main__' and args.measure:
     BrowserUi.setUpClass()
     test=BrowserUi()

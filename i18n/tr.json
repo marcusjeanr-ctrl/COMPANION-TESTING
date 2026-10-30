@@ -2680,5 +2680,9 @@
  "canon status: pending": "bekliyor",
  "canon status: passed": "gerçekleşti",
  "canon status: changed": "değişti",
- "canon status: skipped": "önlendi"
+ "canon status: skipped": "önlendi",
+ "Compact mobile layout": "Kompakt mobil düzen",
+ "Pinned scene summary": "Sabitlenmiş sahne özeti",
+ "Who is here": "Kim burada",
+ " +{0} more": " +{0} daha"
 }

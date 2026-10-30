@@ -74,3 +74,8 @@ function canonEvidence(){
  assert.equal(c.canonDivergenceRows({personalArc:'Canon',events:saga.events},hud).length,0);assert.equal(c.canonDivergenceRows({personalArc:'Sandbox'}, {lines:[{text:'Next Canon Event: None'}]}).length,0);
 }
 canonEvidence();
+function compactLayout(){
+ const fs=require('node:fs'),s=fs.readFileSync(require('node:path').join(__dirname,'../dist/frontend.js'),'utf8');
+ assert(s.includes('function renderMobilePinned()'));assert(s.includes('rpgc-compact-mobile .rpgc-mobile-pinned{position:sticky'));assert(s.includes('Who is here'));assert(s.includes('Compact mobile layout'));
+}
+compactLayout();

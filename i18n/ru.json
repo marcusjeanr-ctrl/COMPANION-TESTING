@@ -2680,5 +2680,9 @@
  "canon status: pending": "ожидается",
  "canon status: passed": "произошло",
  "canon status: changed": "изменено",
- "canon status: skipped": "предотвращено"
+ "canon status: skipped": "предотвращено",
+ "Compact mobile layout": "Компактная мобильная компоновка",
+ "Pinned scene summary": "Закреплённая сводка сцены",
+ "Who is here": "Кто здесь",
+ " +{0} more": " ещё +{0}"
 }

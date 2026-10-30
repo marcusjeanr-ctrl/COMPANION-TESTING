@@ -2680,5 +2680,9 @@
  "canon status: pending": "pendiente",
  "canon status: passed": "ocurrió",
  "canon status: changed": "cambiado",
- "canon status: skipped": "impedido"
+ "canon status: skipped": "impedido",
+ "Compact mobile layout": "Diseño móvil compacto",
+ "Pinned scene summary": "Resumen de escena fijado",
+ "Who is here": "Quién está aquí",
+ " +{0} more": " +{0} más"
 }
