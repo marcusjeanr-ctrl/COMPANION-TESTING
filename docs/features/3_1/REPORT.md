@@ -35,3 +35,13 @@ remain visible. No stored `where`, timestamps or presence rules change.
 Regression checks a 30-minute scene departure, retained location/activity and
 byte-identical input. All 52 suites/release checks passed. English source keys
 and all four dictionaries updated and embedded. See per-feature benchmark table.
+
+## 3. Scene-cast reminder
+
+The existing one-line previous-character JSON is now labelled `Present now
+(check):`. This deliberately reuses the names AND existing details rather than
+adding a second list or losing previous-panel context. It remains a reminder to
+verify against the current response, not proof that absent characters are still
+present. Both Together and Separate prompt paths tested. Exact character budget
+is unchanged, with no state, schema, refresh or model-call changes. All 52 suites
+and release checks passed. This cannot independently recover an unreported cast.

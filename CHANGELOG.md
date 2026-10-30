@@ -6,6 +6,8 @@
 
 - Label off-scene family locations as last seen/known and collapse older activity.
 
+- Reuse existing character context as a scene-cast reminder without prompt growth.
+
 ## 3.0.10 RC — Quest assignment continuity
 
 - Add optional stable Quest IDs and bounded existing-quest context to the current

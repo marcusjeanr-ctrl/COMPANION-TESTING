@@ -25,3 +25,14 @@ function familyLabels(){
  assert.equal(family.present,false);assert.equal(family.where,'Study');assert.equal(family.since,30);assert.equal(family.doing,'Reading');assert.equal(family.doingNow,false);assert.equal(JSON.stringify([a,b]),input);
 }
 familyLabels();
+
+function sceneCast(){
+ const {seed}=require('./test_panel_tracking.cjs');const r=runtime();seed(r);const c=r.ctx;
+ for(const separate of [true,false]){
+  const prompt=c.buildCompanionInstruction({characters:[{name:'Aurelius King'},{name:'Seraphina King'}]},'Marcus',{},c.emptyChatState(),r.messages,separate);
+  assert(prompt.includes('Present now (check): '));assert(prompt.includes('Seraphina King'));assert(!prompt.includes('Previous panel data:'));
+ }
+ assert.equal('Present now (check): '.length,'Previous panel data: '.length);
+ assert.equal(r.writes.length,0);
+}
+sceneCast();

@@ -10429,7 +10429,7 @@ function buildCompanionInstructionRead(committed, userName, locks, st = null, ch
         if (stTxt) s += '\n\n' + stTxt;
     }
     const prev = wantChars && committed && Array.isArray(committed.characters) && committed.characters.length ? committed.characters : null;
-    if (prev) s += `\nPrevious panel data: ${JSON.stringify(leanPanelForPrompt(applyLocksForPrompt({ characters: prev }, locks).characters))}`;
+    if (prev) s += `\nPresent now (check): ${JSON.stringify(leanPanelForPrompt(applyLocksForPrompt({ characters: prev }, locks).characters))}`;
     const wHud = chat ? parseHud(textOf((latestHudMessage(chat) || {}).content)) : null;
     if (settings.worldCard !== false && wHud && worldLines(wHud).some(l => /^\[HITOGAMI:/i.test(l))) {     // the advice log lives on the world card
         s += `\nMan-God: in the same block, add "hitogami": his advice to ${userName} in this reply, one line in his own words \u2014 only if he appeared or spoke (a dream, a voice); otherwise null. Report it; never let this decide whether he appears.`;
