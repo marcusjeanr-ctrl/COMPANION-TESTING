@@ -1,4 +1,6 @@
-# RPG Companion HMS Edition 3.0.8 — Release Candidate
+# RPG Companion HMS Edition 3.0.9 — Release Candidate
+
+> 3.0.9 RC: [Export-reproduced Agenda and Quest identity fix](docs/compatibility/3_0/EXPORT_IDENTITY_DRIFT.md).
 
 > 3.0.8 RC: [Display-cache stability and lifecycle cleanup](docs/compatibility/3_0/STABILITY_CLEANUP.md).
 
