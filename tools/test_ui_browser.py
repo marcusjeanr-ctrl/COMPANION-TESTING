@@ -256,6 +256,20 @@ class BrowserUi(unittest.TestCase):
         self.assertEqual(event['key'],'review the supply contract')
         self.assertEqual(event['state'],'kept')
 
+    def test_exact_sparring_bell_clock_and_courtyard_duplicate_renders_once(self):
+        hms=json.loads(subprocess.check_output(['node',str(ROOT/'tools/test_agenda_bell_refinement.cjs'),'--browser-fixture'],text=True))
+        payload=json.loads(json.dumps(FIXTURE['payload']))
+        payload['hms']=hms
+        payload['world']['covers']=[]
+        self.receive(payload)
+        row=self.page.locator('.rpgc-agenda-item').filter(has_text='Spar with Cassian in the yard')
+        self.assertEqual(row.count(),1)
+        self.assertIn('Veyrath Hall courtyard',row.inner_text())
+        self.assertEqual(hms['agenda']['items'][0]['dueIn'],15)
+        row.get_by_role('button',name='✓: Spar with Cassian in the yard',exact=True).click()
+        event=self.page.evaluate("sent.filter(x=>x.type==='agenda').at(-1)")
+        self.assertEqual(event['key'],'spar with cassian in the yard')
+
     def test_durable_people_agenda_secrets_xp_and_carried_render(self):
         hms=json.loads(subprocess.check_output(['node',str(ROOT/'tools/test_six_sided_acceptance.cjs'),'--browser-fixture'],text=True))
         payload=json.loads(json.dumps(FIXTURE['payload']))
