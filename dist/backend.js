@@ -2089,6 +2089,10 @@ async function setSwipeData(chatId, msg, data, extraPatch = {}) {
         if (!fresh || (fresh.swipe_id ?? 0) !== swipe || readingSource(fresh.content) !== expected) {
             throw new Error('The reply changed before its tracking data could be saved. Refresh the active reply.');
         }
+        if (Array.isArray(snapshot.quests)) {
+            const previous = getSwipeData(fresh);
+            snapshot.quests = questRefreshReport(snapshot.quests, previous?.quests, fresh, snapshot);
+        }
         const metadata = { ...(fresh.metadata || {}) };
         const mine = { ...(metadata[META_KEY] || fresh.extra?.spindle_metadata?.[META_KEY] || {}) };
         const key = String(swipe);
@@ -2530,7 +2534,7 @@ async function pushState(chatId, snapshot = null) {
 // Demo mode plays scripted turns (no tokens); Live mode asks the model, with a small
 // world narrator standing in for a bot card.
 
-const RPGC_VERSION = '3.0.9';
+const RPGC_VERSION = '3.0.10';
 const diagLog = [];
 function diagPush(kind, m) { diagLog.push({ at: new Date().toISOString(), kind, text: String(m).slice(0, 400) }); if (diagLog.length > 60) diagLog.shift(); }
 function logW(m) { diagPush('warn', m); return spindle.log.warn(m); }
@@ -10359,7 +10363,7 @@ function buildCompanionInstructionRead(committed, userName, locks, st = null, ch
     if (momReq) parts.push(momReq.json);
     const injReq = injActive(chat) ? injRequest(userName) : null;
     if (injReq) parts.push(injReq.json);
-    if (wantQuests) parts.push('"quests": [{"name": "…", "objective": "current step", "progress": "measured 0..100 or null", "giver": "or null", "where": "or null", "deadline": "in-world time or null", "reward": "or null", "category": "main|side|personal|party", "state": "active|completed|failed|abandoned|closed or null"}]');
+    if (wantQuests) parts.push('"quests": [{"id": "existing ID or null for a new assignment", "name": "…", "objective": "current step", "progress": "measured 0..100 or null", "giver": "or null", "where": "or null", "deadline": "in-world time or null", "reward": "or null", "category": "main|side|personal|party", "state": "active|completed|failed|abandoned|closed or null"}]');
     if (party) parts.push(party.json);
     const rel = relRequest(chat, userName, null, st);
     if (rel) parts.push(rel.json);
@@ -10409,7 +10413,11 @@ function buildCompanionInstructionRead(committed, userName, locks, st = null, ch
     if (yc.on) s += `\n"you" also holds ${userName}'s own state at the end of this reply: mood, ${wantSurvival ? '' : 'stress (L), '}sanity (100 steady, 0 broken)${askXp ? ', and xp earned in this reply for a real accomplishment (0 if none) with why' : ''}. "got" and "lost": physical things ${userName} was handed, picked up, gave away, used up or lost — in their own last message or on screen in this reply — that the HUD does not list (a handout, a key, a note, a booklet), a few words each; [] when nothing changed hands. A message, a notice or news is not a thing.`;
     if (abilitiesSeen) s += '\n"you.abilities": one confirmed player spell/technique/skill per row; no ranks, casting labels, NPCs, catalog entries, instructions or hypotheticals. historical:true for past records, not new learning/current study. Attempts are not knowledge; reliability is not mastery. Exact quote required. Absence is not loss.';
     if (abilitiesSeen) s += '\nStudy requires practice begun now, not assigned/future lessons, demonstrations or failed combat alone. Never invent percentages. Omit empty study/learning.';
-    if (wantQuests) s += '\n"quests": accepted goals only; reuse existing names. Progress requires a measured percentage, else null. Report ended scene-level goals even when omitted from the HUD; use closed if the scene ended without a confirmed success/failure. Preserve broader quests and future commitments. No rewards from completion alone.';
+    if (wantQuests) s += '\n"quests": accepted goals only. Reuse a Known quest ID for the same assignment despite new titles, progress or stages; null for a genuinely separate assignment. Names are labels, not IDs. Progress requires a measured percentage, else null. Report ended scene-level goals even when omitted from the HUD; use closed if the scene ended without a confirmed success/failure. Preserve broader quests and future commitments. No rewards from completion alone.';
+    if (wantQuests && chat) {
+        const known = questIdentityContext(chat);
+        if (known) s += '\nKnown quest IDs: ' + known;
+    }
     if (plotReq) s += '\n' + plotReq.rules;
     if (momReq) s += '\n' + momReq.rules;
     if (injReq) s += '\n' + injReq.rules;
@@ -10805,11 +10813,23 @@ function hmsPanelStateRead(chatId, chat, st) {
                     // quest details from the story, joined to the quests the HUD lists
                     const det = questDetailsLatest(chat), now = systems.clock;
                     // the HUD writes "Name #1572188", the story block often just "Name": match without the code
-                    const find = (q) => { const matches = det.filter(d => questMatch(q, d)); return matches.length === 1 ? matches[0] : null; };
+                    const find = (q) => det.filter(d => questMatch(q, d));
                     // a bare time ("08:40") is read from the clock of the reply that gave it, so a passed deadline shows overdue
                     const whenOf = (d) => hmsParseWhen(d.deadline, d.readAt !== null && d.readAt !== undefined ? d.readAt : now);
-                    const attach = (q) => { const d = find(q); if (!d) return q; const when = whenOf(d); return { ...q, ...d, key: q.key || d.key, name: q.name, ...(q.state && d.lifecycleEvidence?.msgId !== tl.at(-1)?.msg.id ? { state: q.state, cls: q.cls } : {}), dueIn: when !== null && now !== null ? when - now : null }; };
-                    systems.quests = questUnique(systems.quests.map(attach));
+                    const attach = (q) => {
+                        const matches = find(q), d = matches.length === 1 ? matches[0] : null;
+                        if (!d) {
+                            if (matches.length > 1) {
+                                if (!q.objective && !q.giver && !q.reward) return null; // A bare ambiguous label is not a third assignment.
+                                const key = 'hud :: ' + q.key + ' :: ' + hashStr(JSON.stringify([q.objective,q.giver,q.where,q.reward]));
+                                return {...q,key,questIdentityKey:key}; // Keep any independent HUD facts unresolved.
+                            }
+                            return q;
+                        }
+                        const when = whenOf(d);
+                        return { ...q, ...d, key:d.key || q.key, name:q.name, ...(q.state && d.lifecycleEvidence?.msgId !== tl.at(-1)?.msg.id ? {state:q.state,cls:q.cls} : {}), dueIn:when !== null && now !== null ? when - now : null };
+                    };
+                    systems.quests = questUnique(systems.quests.map(attach).filter(Boolean));
                     for (const d of det) if (!systems.quests.some(q => questMatch(q, d))) { const when = whenOf(d); systems.quests.push({ ...d, state: d.state || null, cls: d.cls || 'active', fromStory: true, dueIn: when !== null && now !== null ? when - now : null }); }
                     const focus = st.questFocus || null;
                     const focused = focus ? systems.quests.filter(q => questKey(q.key) === questKey(focus) ||
@@ -16740,12 +16760,145 @@ function questChallengeMatch(a, b) {
     return !!target && target === challenge(b);
 }
 
+/** Whole records only: bounded model context, without truncating IDs/conditions. */
+function questIdentityContext(chat) {
+    const entries = [];
+    let chars = 2;
+    for (const q of questDetailsLatest(chat).filter(q => (q.cls || 'active') === 'active').slice(-8)) {
+        if (typeof q.key !== 'string' || q.key.length > 160) continue;
+        const entry = JSON.stringify({id:q.key, name:q.name, objective:q.objective, giver:q.giver, reward:q.reward});
+        if (chars + entry.length + (entries.length ? 1 : 0) > 1800) continue;
+        chars += entry.length + (entries.length ? 1 : 0); entries.push(entry);
+    }
+    return entries.length ? '[' + entries.join(',') + ']' : null;
+}
+
+/** References are optional and scoped to an already established assignment. */
+function questContractCompatible(a, b) {
+    return (!a.giver || !b.giver || relSameWords(a.giver, b.giver)) && questPlaceCompatible(a.where, b.where) &&
+        (!a.category || !b.category || a.category === b.category) &&
+        !(Array.isArray(a.separateQuestKeys) && a.separateQuestKeys.includes(b.key));
+}
+function questSeparateSource(lines) {
+    return lines.some(line => trackingContinuityAsserted(line) && !/\bno\s+(?:new|additional|separate)\b/i.test(line) &&
+        /\b(?:another|second|separate|additional|new)\s+(?:\w+\s+){0,2}(?:quests?|assignments?|tasks?|missions?|objectives?|challenges?)\b/i.test(line));
+}
+function questRewardCompatible(a, b, lines = []) {
+    const key = value => questObjectiveKey(value).replace(/\b(?:arranged|promised|with|to)\b/g, '')
+        .replace(/\b(?:introduction|introduce)\b/g, 'meeting').replace(/['’]s\b/g, '').replace(/\s+/g, ' ').trim();
+    const incoming = key(b.reward);
+    if (!incoming) return false;
+    const old = [a.reward, ...(Array.isArray(a.identityHistory) ? a.identityHistory.map(x => x.reward) : [])];
+    return old.some(value => {
+        const previous = key(value);
+        if (!previous) return false;
+        if (previous === incoming) return true;
+        const A = new Set(previous.split(' ')), B = new Set(incoming.split(' '));
+        if (Math.min(A.size, B.size) < 3) return false;
+        const family = /\b(?:son|daughter|child|boy|girl)\b/;
+        if (family.test(previous) && family.test(incoming) && (A.size < B.size ? [...A].every(w => B.has(w)) : [...B].every(w => A.has(w)))) return true;
+        // A named introduction may replace a relational reference only when the
+        // visible source explicitly continues that particular promised introduction.
+        if (!family.test(previous) || family.test(incoming) || !A.has('meeting') || !B.has('meeting')) return false;
+        const shared = [...A].filter(w => B.has(w) && !/^(?:meeting|son|daughter|child|boy|girl|his|her|their)$/.test(w));
+        return shared.length > 0 && lines.some(line => /\bwill (?:personally )?(?:arrange|organize|grant|make) the (?:introduction|meeting)\b/i.test(line) && !/\b(?:would|might|could|example|hypothetical)\b/i.test(line)) &&
+            lines.some(line => shared.some(w => (' '+questObjectiveKey(line)+' ').includes(' '+w+' ')) && family.test(line));
+    });
+}
+function questStageReferenceCue(lines) {
+    return lines.find(line => trackingContinuityAsserted(line) &&
+        /\b(?:next|new|following) (?:stage|phase|step)\b/i.test(line) &&
+        /\b(?:same|existing|ongoing) (?:quest|assignment|mission)\b/i.test(line)) || null;
+}
+function questReferenceMatch(row, q, lines, sameSource = false) {
+    const stage = questStageReferenceCue(lines);
+    const context = stage ? {...q,where:row.where} : q;
+    if (!q.questId || lockKey(q.questId) !== lockKey(row.key) || !questContractCompatible(row, context) || !sameSource && questSeparateSource(lines)) return false;
+    const active = (questReportedState(row.state)?.cls || row.cls || 'active') === 'active';
+    if (!active && q.state !== 'reopened') return false;
+    if (q.state === 'reopened' && !lines.some(line => /\breopen(?:ed|s)?\b/i.test(line) && trackingContinuityAsserted(line))) return false;
+    if (row.reward && q.reward && !questRewardCompatible(row, q, lines)) return false;
+    const concrete = value => questObjectiveKey(value).replace(/^win(?: or draw)? (?:spar|duel|match|bout|fight) against /, 'defeat ')
+        .replace(/^(?:defeat|beat)(?: or match)? /, 'defeat ').match(/^(defeat|kill|escort|deliver|collect|find|repair|obtain|rescue) ([\p{L}\p{N}'-]+)/u);
+    const before = concrete(row.objective), after = concrete(q.objective);
+    if (!stage && before && after && (before[1] !== after[1] || before[2] !== after[2])) return false;
+    const restrictions = value => (questObjectiveKey(value).match(/\b(?:without|using|before|after|unless|except|only|first|second|third|\d+)\b.*$/) || [''])[0];
+    if (restrictions(row.objective) !== restrictions(q.objective) && !lines.some(line => trackingContinuityAsserted(line) &&
+        (' '+questObjectiveKey(line)+' ').includes(' '+questObjectiveKey(q.objective)+' '))) return false;
+    return true;
+}
+/** A progress summary must be grounded in the current assignment's visible work,
+ * not just a shared giver, location or reward. No card-specific names or scan. */
+function questContractContinuation(row, q, m, data, previous, getLines, sameSource = false) {
+    if (!previous || m._rpgcPurpose === 'continue' || !row.giver || !q.giver || !row.where || !q.where || !questContractCompatible(row, q)) return false;
+    if ((questReportedState(row.state)?.cls || row.cls || 'active') !== 'active') return false;
+    if (row.deadline && q.deadline && questKey(row.deadline) !== questKey(q.deadline)) return false;
+    const text = questObjectiveKey(q.objective);
+    if (!/^(?:prove|demonstrate|show|dominate|excel|perform|succeed)\b/.test(text) ||
+        /\b(?:not|never|without|with|using|before|after|unless|except|only|and|first|second|third|another|additional|next|round|\d+)\b/.test(text)) return false;
+    const sourceLines = getLines();
+    const lines = sourceLines.flatMap(line => line.match(/[^.!?\n]+[.!?]?/g) || []).filter(trackingContinuityAsserted);
+    // Conditional promised benefits are identity evidence, never completion.
+    if (!sameSource && questSeparateSource(lines) || !questRewardCompatible(row, q, sourceLines)) return false;
+    const current = chapterMark(m).day, earlier = chapterMark(previous).day;
+    if (current == null || earlier == null || current !== earlier) return false;
+    const visible = trackingWords(lines.join(' ')), scene = trackingWords(data?.plot?.now || '');
+    if (!scene.size) return false;
+    const old = trackingWords(row.objective), giver = trackingWords(row.giver), place = trackingWords(row.where);
+    const people = Array.isArray(data.characters) ? data.characters : [];
+    const named = people.some(person => {
+        if (!person?.name || relSameWords(person.name, row.giver)) return false;
+        const first = questKey(person.name).split(' ')[0];
+        return first && partyMatch(people, first) === person && old.has(first) && visible.has(first) && scene.has(first);
+    });
+    const stop = new Set(['prove','demonstrate','show','skill','worth','competence','defeat','beat','repair','find','obtain','himself','herself','themselves','against','equal','force','acknowledg']);
+    const work = [...old].filter(w => !stop.has(w) && !giver.has(w) && !place.has(w) && visible.has(w) && scene.has(w));
+    const directed = [...giver].some(w => trackingWords(text).has(w));
+    const described = [...trackingWords(text)].some(w => !stop.has(w) && !giver.has(w) && !place.has(w) && scene.has(w));
+    return (named || work.length >= 2) && (directed || described);
+}
+
+/** Re-extraction of a validated unchanged swipe must not mint a new identity.
+ * Called inside the existing serialized metadata write, never another fetch. */
+function questRefreshReport(current, previous, message, data) {
+    if (!Array.isArray(previous) || !previous.length || !current.length) return current;
+    let lines = null;
+    const source = () => lines ??= trackingContinuityLines(message);
+    return current.map(q => {
+        if (!q || typeof q.name !== 'string') return q;
+        const references = q.questId ? previous.filter(old => typeof old?.name === 'string' && questReferenceMatch(old,q,source(),true)) : [];
+        const matches = references.length ? references : previous.filter(old => typeof old?.name === 'string' && (questMatch(old, q) || questReferenceMatch(old, q, source(), true) ||
+            questContractContinuation(old, q, message, data, message, source, true)));
+        if (matches.length !== 1) return q;
+        const old = matches[0], aliases = [...new Set([...(Array.isArray(old.questAliases) ? old.questAliases : []), old.name, q.name])].slice(-40);
+        const explicit = q.objective && source().some(line => trackingContinuityAsserted(line) &&
+            (' '+questObjectiveKey(line)+' ').includes(' '+questObjectiveKey(q.objective)+' '));
+        const keepObjective = old.objective && q.objective && old.objective.length > q.objective.length && !explicit;
+        const result = {...q, key:old.key || questKey(old.name), questId:q.questId || old.questId || old.key || questKey(old.name), questAliases:aliases,
+            objective:keepObjective ? old.objective : q.objective || old.objective,
+            progress:q.progress ?? old.progress, deadline:q.deadline || old.deadline,
+            giver:q.giver || old.giver, reward:q.reward || old.reward, category:q.category || old.category,
+            where:old.where && q.where && old.where.length > q.where.length && questPlaceCompatible(old.where,q.where) ? old.where : q.where || old.where,
+            ...(questReportedState(q.state) || questReportedState(old.state) || {})};
+        const history = Array.isArray(old.identityHistory) ? old.identityHistory : [];
+        const fields = ['name','objective','reward','progress','state'];
+        if (fields.some(field => result[field] !== old[field]) &&
+            (!history.length || fields.some(field => history.at(-1)[field] !== old[field]))) {
+            result.identityHistory = [...history, {name:old.name,objective:old.objective,reward:old.reward,progress:old.progress,state:old.state,msgId:message.id}].slice(-40);
+        } else if (history.length) result.identityHistory = [...history];
+        return result;
+    });
+}
+
 function questMatch(a, b) {
     if (!a || !b) return false;
+    if (a.questIdentityKey && b.questIdentityKey) return a.questIdentityKey === b.questIdentityKey;
     if ((Array.isArray(a.separateQuestKeys) ? a.separateQuestKeys : []).includes(b.key || questKey(b.name)) ||
         (Array.isArray(b.separateQuestKeys) ? b.separateQuestKeys : []).includes(a.key || questKey(a.name))) return false;
     if (a.giver && b.giver && !relSameWords(a.giver, b.giver)) return false;
     if (!questPlaceCompatible(a.where, b.where)) return questAssignmentRefinement(a, b);
+    if (a.questIdentityKey && questKey(b.name || b.key) === questKey(a.questIdentityKey) ||
+        b.questIdentityKey && questKey(a.name || a.key) === questKey(b.questIdentityKey)) return true;
     const ak = questKey(a.name || a.key), bk = questKey(b.name || b.key);
     if (ak && ak === bk) return true;
     if ((Array.isArray(a.questAliases) ? a.questAliases : []).some(n => questKey(n) === bk) || (Array.isArray(b.questAliases) ? b.questAliases : []).some(n => questKey(n) === ak)) return true;
@@ -16878,7 +17031,8 @@ function questNormalize(list) {
         const cat = String(q.category || '').toLowerCase();
         const state = questReportedState(q.state);
         const pr = reportNumber(q.progress);
-        out.push({ key: lockKey(q.name), name: q.name.trim().slice(0, 80), objective: reportText(q.objective, 500), progress: Number.isFinite(pr) ? Math.max(0, Math.min(100, Math.round(pr))) : null,
+        const reference = partyText(q.id ?? q.questId, 161);
+        out.push({ key: lockKey(q.name), ...(reference && reference.length <= 160 ? {questId:reference} : {}), name: q.name.trim().slice(0, 80), objective: reportText(q.objective, 500), progress: Number.isFinite(pr) ? Math.max(0, Math.min(100, Math.round(pr))) : null,
             giver: partyText(q.giver, 60), where: partyText(q.where, 80), deadline: partyText(q.deadline, 60), reward: partyText(q.reward, 100),
             category: ['main', 'side', 'personal', 'party'].includes(cat) ? cat : null, ...(state ? state : {}) });
     }
@@ -16980,12 +17134,14 @@ function questDetailsLatest(chat) {
     return memoRead(chat, 'quest-details', () => {
         const rows = [];
         const stageSources = new Map();
+        const contractSources = new Map();
         let previousReport = null;
         for (const m of continuityReadIndex(chat).quests) {
             const data = getSwipeData(m, true);
             const reported = Array.isArray(data?.quests) ? data.quests : [];
             const report = JSON.stringify(reported);
-            const repeated = reported.length && report === previousReport;
+            const separateHint = /\b(?:another|second|separate|additional|new)\s+(?:\w+\s+){0,2}(?:quests?|assignments?|tasks?|missions?|objectives?|challenges?)\b/i.test(textOf(m.content).slice(0,24000));
+            const repeated = reported.length && report === previousReport && !separateHint;
             if (reported.length) previousReport = report;
             let continuityLines = null;
             for (const q of repeated ? [] : reported) {
@@ -16993,18 +17149,31 @@ function questDetailsLatest(chat) {
                 const separateKeys = new Set();
                 const matches = x => {
                     if (!questMatch(x, q)) return false;
+                    const lines = () => continuityLines ??= trackingContinuityLines(m);
+                    if (separateHint && contractSources.get(x)?.id !== m.id && questSeparateSource(lines()) && lines().some(line =>
+                        trackingContinuityAsserted(line) && (' '+questObjectiveKey(line)+' ').includes(' '+questObjectiveKey(q.name)+' '))) {
+                        separateKeys.add(x.key); return false;
+                    }
                     if (questKey(x.name) !== questKey(q.name) && questChallengeMatch(x, q) &&
                         (continuityLines ??= trackingContinuityLines(m)).some(line => trackingContinuityAsserted(line) && !/\bno\s+(?:new|additional|separate)\b/i.test(line) && /\b(?:another|second|separate|additional|new)\s+(?:\w+\s+){0,2}(?:quests?|assignments?|tasks?|missions?|objectives?|challenges?)\b/i.test(line))) {
                         separateKeys.add(x.key); return false;
                     }
                     return true;
                 };
-                const exact = rows.filter(x => questKey(x.name) === questKey(q.name) && matches(x));
+                const referenced = q.questId ? rows.filter(x => questReferenceMatch(x, q, continuityLines ??= trackingContinuityLines(m))) : [];
+                const exact = referenced.length ? referenced : rows.filter(x => questKey(x.name) === questKey(q.name) && matches(x));
                 const candidates = exact.length ? exact : rows.filter(matches);
                 // An ambiguous paraphrase cannot choose or invent another assignment.
                 if (!exact.length && candidates.length > 1 && candidates.every(x => questChallengeMatch(x, q))) continue;
                 let row = candidates.length === 1 ? candidates[0] : null;
-                if (!candidates.length && rows.length) {
+                let contractLink = referenced.length === 1;
+                if (!row && !candidates.length && rows.length) {
+                    const lines = () => continuityLines ??= trackingContinuityLines(m);
+                    const referenced = rows.filter(x => !separateKeys.has(x.key) && questReferenceMatch(x, q, lines()));
+                    const linked = referenced.length ? referenced : rows.filter(x => !separateKeys.has(x.key) && questContractContinuation(x, q, m, data, contractSources.get(x), lines));
+                    if (linked.length === 1) { row = linked[0]; contractLink = true; }
+                }
+                if (!row && !candidates.length && rows.length) {
                     const stage = questStageContinuation(rows, q, reported, () => continuityLines ??= trackingContinuityLines(m));
                     if (stage) {
                         row = stage.row;
@@ -17013,25 +17182,39 @@ function questDetailsLatest(chat) {
                         row.continuationEvidence = { msgId: m.id, quote: stage.quote.slice(0, 240), kind: 'quest-stage' };
                     }
                 }
-                const identityRefinement = row && questKey(row.name) !== questKey(q.name) && questChallengeMatch(row, q);
+                if (contractLink) {
+                    const stage = questStageReferenceCue(continuityLines || []);
+                    if (stage) {
+                        row.stageHistory = [...(row.stageHistory || []), {name:row.name,objective:row.objective,progress:row.progress,state:row.state,reward:row.reward,msgId:stageSources.get(row) || null}].slice(-40);
+                        row.continuationEvidence = {msgId:m.id,quote:stage.slice(0,240),kind:'quest-stage'};
+                    }
+                }
+                const identityRefinement = row && (contractLink || questKey(row.name) !== questKey(q.name) && questChallengeMatch(row, q));
                 const explicitObjective = identityRefinement && q.objective && (continuityLines ??= trackingContinuityLines(m)).some(line =>
                     trackingContinuityAsserted(line) && (' ' + questObjectiveKey(line) + ' ').includes(' ' + questObjectiveKey(q.objective) + ' '));
                 if (identityRefinement) row.identityHistory = [...(Array.isArray(row.identityHistory) ? row.identityHistory : []), { name: row.name, objective: row.objective,
                     progress: row.progress, state: row.state, reward: row.reward, msgId: stageSources.get(row) || null }].slice(-40);
                 const deadlineChanged = !row || (q.deadline && q.deadline !== row.deadline);
-                if (!row) { row = { ...q, key: q.key || questKey(q.name) };
+                if (!row) { let key = q.questId && !rows.some(x => lockKey(x.key) === lockKey(q.questId)) ? lockKey(q.questId) : q.key || questKey(q.name);
+                    const base = key + ' :: ' + m.id;
+                    for (let n = 1; rows.some(x => x.key === key); n++) key = base + (n > 1 ? ' :: ' + n : '');
+                    row = { ...q, key };
                     if (separateKeys.size) row.separateQuestKeys = [...separateKeys];
                     rows.push(row); }
-                if (row.name !== q.name) row.questAliases = [...new Set([...(row.questAliases || []), row.name, q.name])].slice(-40);
+                if (row.name !== q.name || Array.isArray(q.questAliases)) row.questAliases = [...new Set([...(row.questAliases || []), ...(Array.isArray(q.questAliases) ? q.questAliases : []), row.name, q.name])].slice(-40);
                 for (const [key, value] of Object.entries(q)) {
+                    if (key === 'questAliases') continue;
+                    if (key === 'identityHistory' && Array.isArray(row.identityHistory)) continue;
                     if (key === 'objective' && identityRefinement && !explicitObjective && row.objective && value && row.objective.length > value.length) continue;
                     if (key === 'key' && row.key) continue;
-                    if (key === 'where' && row.where && value && row.where.length > value.length) continue;
+                    if (key === 'where' && row.where && value && row.where.length > value.length &&
+                        !(contractLink && questStageReferenceCue(continuityLines || []))) continue;
                     if (value !== null && value !== undefined && value !== '') row[key] = value;
                 }
                 const lifecycle = questReportedState(q.state);
                 if (lifecycle) { Object.assign(row, lifecycle); delete row.lifecycleEvidence; }
                 stageSources.set(row, m.id);
+                contractSources.set(row, m);
                 // A deadline is anchored to the reply that actually supplied it, not a later partial report.
                 if (deadlineChanged || row.readAt === undefined) { const at = chapterMark(m).minutes; row.readAt = Number.isFinite(at) ? at : null; }
             }
@@ -17044,7 +17227,7 @@ function questDetailsLatest(chat) {
             }
         }
         return rows;
-    }).map(q => ({ ...q }));
+    }).map(q => ({ ...q, questIdentityKey:q.key }));
 }
 
 const DIFFICULTY = {
