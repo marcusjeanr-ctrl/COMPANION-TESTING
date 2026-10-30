@@ -241,6 +241,21 @@ class BrowserUi(unittest.TestCase):
         self.assertEqual(event['key'],hms['agenda']['items'][0]['key'])
         self.assertEqual(event['state'],'kept')
 
+    def test_universal_agenda_wording_and_bell_time_render_once(self):
+        hms=json.loads(subprocess.check_output(['node',str(ROOT/'tools/test_universal_agenda_dedup.cjs'),'--browser-fixture'],text=True))
+        payload=json.loads(json.dumps(FIXTURE['payload']))
+        payload['hms']=hms
+        payload['world']['covers']=[]
+        self.receive(payload)
+        agenda=self.page.locator('.rpgc-agenda-item').filter(has_text='Supply contract review')
+        self.assertEqual(agenda.count(),1)
+        self.assertIn('nine o’clock bell',agenda.inner_text())
+        self.assertIsNone(hms['agenda']['items'][0]['dueIn'])
+        agenda.get_by_role('button',name='✓: Supply contract review meeting with Nia Vale',exact=True).click()
+        event=self.page.evaluate("sent.filter(x=>x.type==='agenda').at(-1)")
+        self.assertEqual(event['key'],'review the supply contract')
+        self.assertEqual(event['state'],'kept')
+
     def test_durable_people_agenda_secrets_xp_and_carried_render(self):
         hms=json.loads(subprocess.check_output(['node',str(ROOT/'tools/test_six_sided_acceptance.cjs'),'--browser-fixture'],text=True))
         payload=json.loads(json.dumps(FIXTURE['payload']))

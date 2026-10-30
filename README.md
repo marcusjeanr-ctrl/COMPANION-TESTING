@@ -1,6 +1,6 @@
-# RPG Companion HMS Edition 3.0.5 — Release Candidate
+# RPG Companion HMS Edition 3.0.6 — Release Candidate
 
-> 3.0.5 RC: [Agenda occurrence and quest stage continuity](docs/compatibility/3_0/AGENDA_QUEST_OCCURRENCE_FIX.md).
+> 3.0.6 RC: [Universal Agenda identity and saved-duplicate reconciliation](docs/compatibility/3_0/UNIVERSAL_AGENDA_3_0_6.md).
 
 > Six-Sided acceptance: [additional persistence fixes and verification](docs/compatibility/3_0/SIX_SIDED_ACCEPTANCE.md).
 
