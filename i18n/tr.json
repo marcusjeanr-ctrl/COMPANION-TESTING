@@ -2649,5 +2649,9 @@
  "Not one of your styles": "Senin stillerinden biri değil",
  "No technique rank given — the story decides": "Tekniğin rütbesi belirtilmemiş — hikâye karar verir",
  "Your style rank is unknown — the story decides": "Stil rütben bilinmiyor — hikâye karar verir",
- "Learned a technique — {0}.": "Bir teknik öğrenildi — {0}."
+ "Learned a technique — {0}.": "Bir teknik öğrenildi — {0}.",
+ "Consistency warnings": "Tutarlılık uyarıları",
+ "Reply has no readable HUD": "Yanıtta okunabilir HUD yok",
+ "HUD time or date moved backwards": "HUD saati veya tarihi geriye gitti",
+ "HUD conflicts with an explicit start setting": "HUD açık bir başlangıç ayarıyla çelişiyor"
 }

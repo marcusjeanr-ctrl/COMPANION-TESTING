@@ -1,5 +1,9 @@
 # Changelog — RPG Companion HMS Edition
 
+## 3.1.0 RC — Staging features (unpublished)
+
+- Add optional read-only HUD consistency warnings for missing HUDs, backward clocks and explicit start-setting contradictions.
+
 ## 3.0.10 RC — Quest assignment continuity
 
 - Add optional stable Quest IDs and bounded existing-quest context to the current

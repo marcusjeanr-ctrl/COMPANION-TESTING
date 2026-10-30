@@ -2649,5 +2649,9 @@
  "Not one of your styles": "Не ваш стиль",
  "No technique rank given — the story decides": "Ранг техники не указан — решает история",
  "Your style rank is unknown — the story decides": "Ранг вашего стиля неизвестен — решает история",
- "Learned a technique — {0}.": "Выучена техника — {0}."
+ "Learned a technique — {0}.": "Выучена техника — {0}.",
+ "Consistency warnings": "Предупреждения о согласованности",
+ "Reply has no readable HUD": "В ответе нет читаемого HUD",
+ "HUD time or date moved backwards": "Время или дата HUD пошли назад",
+ "HUD conflicts with an explicit start setting": "HUD противоречит явной начальной настройке"
 }

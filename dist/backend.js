@@ -10732,6 +10732,43 @@ async function hmsHandleReplyInner(chatId, chat, msg, generationType) {
 function hmsPanelState(chatId, chat, st) {
     return withReadPass(chat, () => hmsPanelStateRead(chatId, chat, st));
 }
+// Advisory checks only: never correct HUD values or write metadata.
+const CONSISTENCY_CHECKS = [
+    { id: 'no-hud', run: c => c.message && !c.hud ? [{code:'no-hud', message:'Reply has no readable HUD'}] : [] },
+    { id: 'clock', run: c => {
+        if (!c.hud || c.timeline.length < 2) return [];
+        const a = hmsClock(c.timeline.at(-2).hud), b = hmsClock(c.hud);
+        if (!a || !b || a.dated !== b.dated || a.yearKnown !== b.yearKnown) return [];
+        return b.minutes < a.minutes ? [{code:'clock', message:'HUD time or date moved backwards'}] : [];
+    } },
+    { id: 'start-setting', run: c => {
+        if (!c.hud || !c.start) return [];
+        const fields = c.hud.lines.filter(l => !l.block).flatMap(hmsFieldsOf);
+        const out = [];
+        // Only explicit field directives, never arbitrary narrative or inferred game rules.
+        for (const line of c.start.split(/\n|\|/)) {
+            const rule = line.trim().match(/^([\w ()-]{2,40}):\s*(active|inactive|enabled|disabled)(?:\s+at rest)?[.!]?$/i);
+            if (!rule) continue;
+            const atRest = /at rest/i.test(line);
+            const resting = fields.some(f => /^(?:status|activity|state)$/i.test(f.label || f.key || '') && /^(?:rested|resting|at rest|idle)$/i.test(f.value || ''));
+            if (atRest && !resting) continue;
+            const field = fields.find(f => hmsNorm(f.label || f.key || '').replace(/\s*\([^)]*\)/g,'') === hmsNorm(rule[1]).replace(/\s*\([^)]*\)/g,''));
+            const actual = String(field?.value || '').trim().toLowerCase();
+            const opposite = {active:'inactive',inactive:'active',enabled:'disabled',disabled:'enabled'};
+            if (actual === opposite[rule[2].toLowerCase()]) out.push({code:'start-setting',message:'HUD conflicts with an explicit start setting',field:rule[1],expected:rule[2],actual});
+        }
+        return out.slice(0, 8);
+    } }
+];
+function consistencyWarnings(chatId, chat, hud, guard) {
+    if (settings.consistencyChecks === false) return [];
+    const start = continuityReadIndex(chat).startCommand;
+    // A declared rule is eligible only inside the matching cached start-handler entry.
+    const declared = start ? getLorePool(chatId).find(e => (e.key || []).some(k => String(start).split(/\s/)[0].toLowerCase() === String(k).toLowerCase())) : null;
+    const context = {message:latestHudMessage(chat),hud,guard,timeline:hmsTimeline(chat),start:[start,declared?.content?.slice(0,4096)].filter(Boolean).join('\n')};
+    return CONSISTENCY_CHECKS.flatMap(check => check.run(context));
+}
+
 function hmsPanelStateRead(chatId, chat, st) {
     const msg = latestHudMessage(chat);
     const hud = msg ? parseHud(textOf(msg.content)) : null;
@@ -10760,6 +10797,7 @@ function hmsPanelStateRead(chatId, chat, st) {
         hud: hud ? { lines: hud.lines, time: hud.time, location: hud.location, arc: hud.arc, quests: hud.quests, fromHtml: !!hud.find.fromHtml } : null,
         noHud: hud ? null : hudDiagnosis(msg),
         guard,
+        ...(() => { const warnings = consistencyWarnings(chatId, chat, hud, guard); return warnings.length ? {consistency:warnings} : {}; })(),
         pins,
         questNotes: st.questNotes || [],
         atlas: (() => { try { return atlasHereInfo(chatId, hud, chat); } catch (e) { logW(`[RPG Companion HMS] Atlas read failed: ${e?.message || e}`); return null; } })(),
@@ -12476,8 +12514,10 @@ function famNormalize(list) {
 function continuityReadIndex(chat) {
     return memoRead(chat, 'continuity-source-index', () => {
         const order = new Map(), family = [], holdings = [], gear = [], factions = [], money = [], quests = [], relations = [], agenda = [], secrets = [], contacts = [], you = [];
+        let startCommand = null;
         for (let i = 0; i < chat.length; i++) {
             const m = chat[i]; order.set(m.id, i);
+            if (!startCommand && m.role === 'user' && trackingMessageVisible(m) && /^(?:Mushoku_Start_Handler|MUSHOKU_TENSEI_START_HANDLER|Start\b)/i.test(textOf(m.content).trim())) startCommand = textOf(m.content).slice(0, 4096);
             const durable = { msgId: m.id }; you.push(durable); // structural anchors carry no facts
             if (m.role !== 'assistant' || !trackingMessageVisible(m)) continue;
             const d = getSwipeData(m, true);
@@ -12501,7 +12541,7 @@ function continuityReadIndex(chat) {
                 }
             }
         }
-        return { order, family, holdings, gear, factions, money, quests, relations, agenda, secrets, contacts, you, clocks: new Map() };
+        return { startCommand, order, family, holdings, gear, factions, money, quests, relations, agenda, secrets, contacts, you, clocks: new Map() };
     });
 }
 function continuityObservation(m, recent, index) {

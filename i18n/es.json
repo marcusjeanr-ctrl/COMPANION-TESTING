@@ -2649,5 +2649,9 @@
  "Not one of your styles": "No es uno de tus estilos",
  "No technique rank given — the story decides": "La técnica no tiene rango indicado — decide la historia",
  "Your style rank is unknown — the story decides": "El rango de tu estilo es desconocido — decide la historia",
- "Learned a technique — {0}.": "Aprendió una técnica — {0}."
+ "Learned a technique — {0}.": "Aprendió una técnica — {0}.",
+ "Consistency warnings": "Avisos de coherencia",
+ "Reply has no readable HUD": "La respuesta no tiene un HUD legible",
+ "HUD time or date moved backwards": "La hora o fecha del HUD retrocedió",
+ "HUD conflicts with an explicit start setting": "El HUD contradice un ajuste inicial explícito"
 }
