@@ -1,5 +1,22 @@
 # Changelog — RPG Companion HMS Edition
 
+## 3.0.7 RC — Exact Agenda bell/clock follow-up
+
+- Reconcile “09:00” and “when the bell rings at nine” for one source-confirmed
+  appointment, including full/short location labels such as “Hall courtyard”
+  and “courtyard” when both source HUDs establish that full location.
+- Preserve the original key, status, more specific location and confirmed clock;
+  a vague bell phrase alone still does not invent an exact deadline or date.
+- Keep an established vague appointment on its observed day when its matching
+  explicit clock arrives after the scheduled time; retain future/new occurrences.
+- Prevent mismatched bell hours and conditional/approximate bell windows from
+  being treated as arbitrary exact-time refinements.
+- In Separate mode, partial re-extraction of an unchanged reply retains its
+  accepted clock/details; edited sources, other swipes and newly dated occurrences
+  cannot borrow an unrelated prior completion.
+- Consolidate eligible saved duplicate reports on normal reads, preserving raw
+  reports and legacy manual controls. No additional calls, polling or history pass.
+
 ## 3.0.6 RC — Universal Agenda identity
 
 - Reconcile equivalent appointment wording, participant honorifics/order and

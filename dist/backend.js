@@ -2530,7 +2530,7 @@ async function pushState(chatId, snapshot = null) {
 // Demo mode plays scripted turns (no tokens); Live mode asks the model, with a small
 // world narrator standing in for a bot card.
 
-const RPGC_VERSION = '3.0.6';
+const RPGC_VERSION = '3.0.7';
 const diagLog = [];
 function diagPush(kind, m) { diagLog.push({ at: new Date().toISOString(), kind, text: String(m).slice(0, 400) }); if (diagLog.length > 60) diagLog.shift(); }
 function logW(m) { diagPush('warn', m); return spindle.log.warn(m); }
@@ -5117,7 +5117,7 @@ async function runSeparateUpdate(chatId, targetId = null) {
             const existing = getSwipeData(msg) || {};
             const info = { ...(existing.infoBox || {}) };
             if (comp.weather) info.weather = { forecast: comp.weather, emoji: '' };
-            await setSwipeData(chatId, msg, { ...existing, characters: comp.characters || existing.characters || null, infoBox: info, survival: abilityReportMerge(comp.you, existing.survival), party: comp.party || existing.party || null, relations: comp.relations || existing.relations || null, family: Array.isArray(comp.family) ? comp.family : (existing.family || null), gear: Array.isArray(comp.gear) ? comp.gear : (existing.gear || null), agenda: Array.isArray(comp.agenda) ? comp.agenda : (existing.agenda || null), holdings: Array.isArray(comp.holdings) ? comp.holdings : (existing.holdings || null), money: Array.isArray(comp.money) ? comp.money : (existing.money || null), factions: Array.isArray(comp.factions) ? comp.factions : (existing.factions || null), secrets: Array.isArray(comp.secrets) ? comp.secrets : (existing.secrets || null), contacts: comp.contacts || existing.contacts || null, quests: comp.quests || existing.quests || null,
+            await setSwipeData(chatId, msg, { ...existing, characters: comp.characters || existing.characters || null, infoBox: info, survival: abilityReportMerge(comp.you, existing.survival), party: comp.party || existing.party || null, relations: comp.relations || existing.relations || null, family: Array.isArray(comp.family) ? comp.family : (existing.family || null), gear: Array.isArray(comp.gear) ? comp.gear : (existing.gear || null), agenda: agendaRefreshReport(comp.agenda, existing.agenda, msg), holdings: Array.isArray(comp.holdings) ? comp.holdings : (existing.holdings || null), money: Array.isArray(comp.money) ? comp.money : (existing.money || null), factions: Array.isArray(comp.factions) ? comp.factions : (existing.factions || null), secrets: Array.isArray(comp.secrets) ? comp.secrets : (existing.secrets || null), contacts: comp.contacts || existing.contacts || null, quests: comp.quests || existing.quests || null,
                 plot: comp.plot || existing.plot || null, objectives: comp.objectives || existing.objectives || null, injuries: comp.injuries || existing.injuries || null,
                 moments: Array.isArray(comp.moments) ? comp.moments : (existing.moments || null),
                 inbox: Array.isArray(comp.inbox) ? comp.inbox : (existing.inbox || null),
@@ -5194,7 +5194,7 @@ async function runSeparateUpdate(chatId, targetId = null) {
             relations: ex.relations || existing.relations || null,
             family: Array.isArray(ex.family) ? ex.family : (existing.family || null),
             gear: Array.isArray(ex.gear) ? ex.gear : (existing.gear || null),
-            agenda: Array.isArray(ex.agenda) ? ex.agenda : (existing.agenda || null),
+            agenda: agendaRefreshReport(ex.agenda, existing.agenda, msg),
             holdings: Array.isArray(ex.holdings) ? ex.holdings : (existing.holdings || null),
             money: Array.isArray(ex.money) ? ex.money : (existing.money || null),
             factions: Array.isArray(ex.factions) ? ex.factions : (existing.factions || null),
@@ -13109,6 +13109,59 @@ function agendaTimeKey(value) {
     return text;
 }
 
+// An identity hint only: a bell reference alone still has no exact dueAt/date.
+function agendaBellClock(value) {
+    const text = String(value || '').toLowerCase().replace(/[’‘]/g, "'").trim();
+    if (!text.includes('bell')) return null;
+    const m = text.match(/^(?:when (?:the )?bell rings at |(?:at )?(?:the )?)(\d{1,2}|one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|noon|midnight)(?:\s+o'clock)?(?:\s+(am|pm))?(?: bell)?$/);
+    if (!m) return null;
+    let hour = m[1] === 'noon' ? 12 : m[1] === 'midnight' ? 0 : AGENDA_NUM[m[1]] ?? Number(m[1]);
+    if (!Number.isFinite(hour) || hour > 23 || (m[2] && (hour < 1 || hour > 12))) return null;
+    if (m[2]) hour = hour % 12 + (m[2] === 'pm' ? 12 : 0);
+    return hour * 60;
+}
+
+function agendaBellRollover(a, b) {
+    return a.dueAt == null && b.clockOnly && agendaBellClock(a.when) === b.clockMinute &&
+        a.scheduleDay != null && a.scheduleDay === b.observedDay && b.scheduleDay === a.scheduleDay + 1 &&
+        a.madeAt != null && a.madeAt <= a.scheduleDay * 1440 + b.clockMinute &&
+        typeof b.allowClockRepeat === 'function' && b.allowClockRepeat();
+}
+
+function agendaPlaceDetail(previous, incoming) {
+    if (previous === incoming) return incoming;
+    const a = agendaTextKey(previous), b = agendaTextKey(incoming);
+    return a && b && !b.includes(' ') && a.endsWith(' ' + b) ? previous : incoming || previous;
+}
+
+/** Separate mode replaces one source's report. A later partial bell label must
+ * not erase that unchanged source's already accepted explicit clock/details. */
+function agendaRefreshReport(current, previous, message) {
+    if (!Array.isArray(current)) return previous || null;
+    if (!current.length || !Array.isArray(previous) || !previous.length) return current;
+    const place = messageHud(message)?.location?.join(' ') || null;
+    return current.map(row => {
+        if (row.moved) return row;
+        const bell = agendaBellClock(row.when);
+        if (bell === null && !agendaBareClock(row.when)) return row;
+        const clock = agendaClockPart(row.when);
+        const matches = previous.slice(0, 10).filter(old => old && typeof old.what === 'string' && lockKey(old.what) === lockKey(row.what) &&
+            (!old.with || !row.with || agendaPeopleSame(old.with, row.with)) &&
+            (!old.where || !row.where || agendaPlaceCompatible(old.where, row.where, true, {before:place, after:place})) &&
+            (!row.due || old.due && lockKey(old.due) === lockKey(row.due)) &&
+            (bell !== null && agendaBareClock(old.when) && agendaClockPart(old.when) === bell ||
+             agendaBareClock(row.when) && (agendaBellClock(old.when) === clock || agendaBareClock(old.when) && agendaClockPart(old.when) === clock)));
+        if (!matches.length) return row;
+        const old = matches[0];
+        if (matches.length > 1 && matches.some(other => ['with','where','when','due','moved'].some(f => lockKey(other[f]) !== lockKey(old[f])))) return row;
+        const state = matches.reduce((state, observation) => agendaReportedState(observation, {}, null, null, state), 'open');
+        const retainClock = bell !== null && !row.due;
+        return {...row, when:retainClock ? old.when : row.when, due:row.due || old.due || null,
+            where:agendaPlaceDetail(old.where, row.where), with:row.with || old.with,
+            state:agendaReportedState(row, {}, null, null, state), ...(old.moved ? {moved:true} : {})};
+    });
+}
+
 /** Equivalent word sets or an established title with appended conditions. */
 function agendaSame(a, b) {
     if (a === b) return true;
@@ -13183,16 +13236,22 @@ function agendaPlaceCompatible(a, b, refine = false, context = null) {
     const A = lockKey(a || ''), B = lockKey(b || '');
     if (A === B) return true;
     if (agendaTextKey(a) === agendaTextKey(b)) return true;
+    const short = A.length < B.length ? agendaTextKey(a) : agendaTextKey(b);
+    const long = A.length < B.length ? agendaTextKey(b) : agendaTextKey(a);
+    const aliasScene = agendaTextKey(A.length < B.length ? context?.before : context?.after);
+    const venue = long.slice(0, -short.length).trim();
+    if (short && !short.includes(' ') && !/^(?:annex|wing|extension)$/.test(short) && long.endsWith(' ' + short) &&
+        (aliasScene.endsWith(long) || venue.split(' ').length >= 2 && (' ' + aliasScene + ' ').includes(' ' + venue + ' '))) return true;
     if (!refine) return false;
     // A room's threshold is a location detail, not a different room. Keep annexes,
     // wings and other destinations distinct; only refine across reports.
     const room = text => text.replace(/\s+(?:doorway|threshold|entrance)$/, '');
     if (room(A) === room(B)) return true;
     const norm = text => lockKey(text || '').replace(/[^\p{L}\p{N}]+/gu, ' ').trim();
-    const x = norm(a), y = norm(b), short = x.length < y.length ? x : y, long = x.length < y.length ? y : x;
-    const contained = long.endsWith(' ' + short) || long.startsWith(short + ' ') && !/\b(?:annex|wing|extension)\b/.test(long.slice(short.length));
-    return short.split(' ').length >= 2 && contained && !!context?.before && !!context?.after &&
-        norm(context.before).endsWith(long) && norm(context.after).endsWith(long);
+    const x = norm(a), y = norm(b), brief = x.length < y.length ? x : y, full = x.length < y.length ? y : x;
+    const contained = full.endsWith(' ' + brief) || full.startsWith(brief + ' ') && !/\b(?:annex|wing|extension)\b/.test(full.slice(brief.length));
+    return brief.split(' ').length >= 2 && contained && !!context?.before && !!context?.after &&
+        norm(context.before).endsWith(full) && norm(context.after).endsWith(full);
 }
 
 /** Identity evidence is local to an accepted source, never a copied continuation
@@ -13316,7 +13375,7 @@ function agendaRead(chat, st) {
             const observation = { ...r, scheduleDay, reportedIn: m.id, scenePlace, continuing, clockOnly,
                 clockMinute: clockOnly ? agendaClockPart(r.when || r.due) : null, observedDay: at === null ? null : Math.floor(at / 1440),
                 allowClockRepeat: clockOnly ? () => { const lines = continuityLines ??= trackingContinuityLines(m); return m._rpgcPurpose !== 'continue' &&
-                    !agendaNewOccurrence(lines) && !lines.some(line => /\b(?:tomorrow|next day|next week|day after tomorrow)\b/i.test(line)); } : null };
+                    !agendaNewOccurrence(lines) && !lines.some(line => /\b(?:tomorrow|next day|next week|next bell|day after tomorrow)\b/i.test(line)); } : null };
             const separateCue = maySeparate &&
                 (continuityLines ??= trackingContinuityLines(m)).flatMap(line => line.match(/[^.!?\n]+[.!?]?/g) || []).find(line => trackingContinuityAsserted(line) && agendaNewOccurrence([line]) &&
                     [...trackingWords(r.what)].filter(w => trackingWords(line).has(w)).length >= 2);
@@ -13331,6 +13390,7 @@ function agendaRead(chat, st) {
                 dueAt = it.dueAt; scheduleDay = it.scheduleDay;
             }
             if (it && agendaPacketClockOutcome(it, observation, dueAt)) { dueAt = Math.min(it.dueAt, dueAt); scheduleDay = Math.floor(dueAt / 1440); }
+            if (it && agendaBellRollover(it, observation)) { scheduleDay = it.scheduleDay; dueAt = scheduleDay * 1440 + observation.clockMinute; }
             if (!it) {
                 if (!r.with && !r.where && !r.when && !r.due && items.some(x => agendaSame(lockKey(x.what), r.key))) continue;
                 const key = agendaItemKey(items, r);
@@ -13348,8 +13408,9 @@ function agendaRead(chat, st) {
             it.what = r.what; // The first key remains stable; show the latest confirmed description.
             if (scheduleDay !== null) it.scheduleDay = scheduleDay;
             if (r.with) it.with = r.with;
-            if (r.where) it.where = r.where;
-            if (r.when || r.due) { if (r.when) it.when = r.when; if (dueAt !== null || r.moved || moved) it.dueAt = dueAt; if (dueAt === null && r.due) it.when = r.when || r.due; }
+            if (r.where) it.where = r.moved || moved ? r.where : agendaPlaceDetail(it.where, r.where);
+            const keepClock = dueAt === null && it.dueAt != null && agendaBellClock(r.when) !== null && agendaBellClock(r.when) === agendaClockPart(it.when);
+            if (r.when || r.due) { if (r.when && !keepClock) it.when = r.when; if (dueAt !== null || r.moved || moved) it.dueAt = dueAt; if (dueAt === null && r.due && !keepClock) it.when = r.when || r.due; }
             if (r.when || r.due) { it.clockOnly = clockOnly; it.clockMinute = observation.clockMinute; }
             if (r.kind) it.kind = r.kind;
             const state = agendaReportedState({ ...r, scheduleDay, ...(moved ? { moved: true } : {}) }, d, at, it.dueAt, it.state, m);
@@ -16692,6 +16753,7 @@ function agendaVaguePeriod(text) {
 
 function agendaScheduleCompatible(a, b, dueAt, refine = false) {
     if (b.moved) return true;
+    if (agendaBellRollover(a, b)) return true;
     if (agendaPacketClockOutcome(a, b, dueAt)) return true;
     if (agendaRepeatedClock(a, b, refine)) return true;
     if (a.scheduleDay !== null && a.scheduleDay !== undefined && b.scheduleDay !== null && b.scheduleDay !== undefined && a.scheduleDay !== b.scheduleDay) return false;
@@ -16712,6 +16774,13 @@ function agendaScheduleCompatible(a, b, dueAt, refine = false) {
     }
     if (!a.when || (!b.when && !b.due)) return true;
     if (agendaTimeKey(a.when) === agendaTimeKey(b.when || b.due)) return true;
+    // A known bell hour must agree with an explicit clock. Before/after and
+    // approximate bell conditions cannot silently become an exact appointment.
+    if ((a.dueAt == null) !== (dueAt == null)) {
+        const vague = a.dueAt == null ? a.when : b.when || b.due;
+        const explicit = a.dueAt == null ? b.when || b.due : a.when;
+        if (/\bbell\b/i.test(vague || '')) return agendaBellClock(vague) !== null && agendaBellClock(vague) === agendaClockPart(explicit);
+    }
     const normalize = text => [...new Set(lockKey(text || '').replace(/\bmorning meal\b/g, 'breakfast')
         .replace(/\b(?:half past|quarter past|quarter to)\s+\w+\b|\b\d{1,2}:\d{2}\s*(?:am|pm)?\b/g, '')
         .replace(/\b(?:this|the|today|by|at)\b/g, '').split(/[^\p{L}\p{N}]+/u).filter(Boolean))].join(' ');

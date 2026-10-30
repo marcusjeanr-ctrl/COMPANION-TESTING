@@ -1,6 +1,6 @@
-# RPG Companion HMS Edition 3.0.6 — Release Candidate
+# RPG Companion HMS Edition 3.0.7 — Release Candidate
 
-> 3.0.6 RC: [Universal Agenda identity and saved-duplicate reconciliation](docs/compatibility/3_0/UNIVERSAL_AGENDA_3_0_6.md).
+> 3.0.7 RC: [Exact bell/clock and courtyard follow-up](docs/compatibility/3_0/AGENDA_BELL_REFINEMENT.md).
 
 > Six-Sided acceptance: [additional persistence fixes and verification](docs/compatibility/3_0/SIX_SIDED_ACCEPTANCE.md).
 

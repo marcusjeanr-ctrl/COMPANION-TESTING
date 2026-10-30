@@ -1,0 +1,285 @@
+{
+  "version": "3.0.7 RC",
+  "baselineCommit": "c1fd7cac527f5437091acc1abd7878e681e13460",
+  "baselineBackendSha256": "9a91570499555fa9a6ec10823e84d3a28faa4745e2c68b7ecb5b8696f3647a64",
+  "candidateBackendSha256": "232b32c52bc9dfc3751fcedfb447dfff910b9cdf70899323fc947c08da6300fc",
+  "runtime": "Node v22.22.2",
+  "checks": {
+    "exactFollowupGroups": 16,
+    "baselinePassed": 4,
+    "candidatePassed": 16,
+    "completeRegressionSuites": 48,
+    "bundleSyntaxChecks": 2,
+    "chromiumUiChecks": 26,
+    "chromiumVisibilityChecks": 5,
+    "releaseIdentity": "passed",
+    "diffWhitespace": "passed",
+    "sourceScope": "Agenda functions plus exactly the two Agenda assignments in runSeparateUpdate; unrelated engine function bodies unchanged",
+    "separateMode": "Four actual mocked refreshes of the same reply plus three actual automatic GENERATION_ENDED events; also classic mode, edited source, swipe, legacy, completion and reschedule cases"
+  },
+  "performance": {
+    "method": "Two alternating paired rounds against published 3.0.6, same Node runtime, existing panel/pipeline benchmark tools. Full Six-Sided and Living World card fixtures, 2000 source-bound messages; each panel cold read then three warmups and ten samples. Pipeline uses its existing five-round method. Focused Agenda comparison uses 1000 alternating exact/full-location and vague/short-location reports, four warmups and twelve paired alternating VM samples. No concurrent browser/regression workload during benchmarks.",
+    "limitations": "Cloud/GC/JIT variance is substantial; these synthetic measurements do not establish live Android responsiveness or an across-board speedup. No added calls or polling.",
+    "panelSummary": {
+      "six_sided_world": {
+        "baseline": {
+          "coldMs": 601.32,
+          "warmMs": 154.62
+        },
+        "candidate": {
+          "coldMs": 653.69,
+          "warmMs": 147.49
+        }
+      },
+      "living_world": {
+        "baseline": {
+          "coldMs": 1492.57,
+          "warmMs": 174.47
+        },
+        "candidate": {
+          "coldMs": 1250.66,
+          "warmMs": 165.17
+        }
+      }
+    },
+    "standardRunnerResults": [
+      {
+        "messages": 2000,
+        "coldMs": 611.94,
+        "medianMs": 136.25,
+        "warnings": 0,
+        "round": 1,
+        "card": "six_sided_world",
+        "kind": "panel",
+        "implementation": "baseline"
+      },
+      {
+        "messages": 2000,
+        "coldMs": 542.65,
+        "medianMs": 134.26,
+        "warnings": 0,
+        "round": 1,
+        "card": "six_sided_world",
+        "kind": "panel",
+        "implementation": "candidate"
+      },
+      {
+        "messages": 2000,
+        "coldMs": 1284.31,
+        "medianMs": 181.03,
+        "warnings": 0,
+        "round": 1,
+        "card": "living_world",
+        "kind": "panel",
+        "implementation": "baseline"
+      },
+      {
+        "messages": 2000,
+        "coldMs": 1184.28,
+        "medianMs": 164.81,
+        "warnings": 0,
+        "round": 1,
+        "card": "living_world",
+        "kind": "panel",
+        "implementation": "candidate"
+      },
+      {
+        "parseReportMedianMs": 0.6056,
+        "processResponseMedianMs": 0.9231,
+        "promptConstructMedianMs": 0.4851,
+        "promptCharacters": 15107,
+        "populatedPromptCharacters": 19029,
+        "warnings": 0,
+        "round": 1,
+        "kind": "pipeline",
+        "implementation": "baseline"
+      },
+      {
+        "parseReportMedianMs": 0.6744,
+        "processResponseMedianMs": 0.9035,
+        "promptConstructMedianMs": 0.431,
+        "promptCharacters": 15107,
+        "populatedPromptCharacters": 19029,
+        "warnings": 0,
+        "round": 1,
+        "kind": "pipeline",
+        "implementation": "candidate"
+      },
+      {
+        "messages": 2000,
+        "coldMs": 764.73,
+        "medianMs": 160.71,
+        "warnings": 0,
+        "round": 2,
+        "card": "six_sided_world",
+        "kind": "panel",
+        "implementation": "candidate"
+      },
+      {
+        "messages": 2000,
+        "coldMs": 590.7,
+        "medianMs": 173,
+        "warnings": 0,
+        "round": 2,
+        "card": "six_sided_world",
+        "kind": "panel",
+        "implementation": "baseline"
+      },
+      {
+        "messages": 2000,
+        "coldMs": 1317.04,
+        "medianMs": 165.53,
+        "warnings": 0,
+        "round": 2,
+        "card": "living_world",
+        "kind": "panel",
+        "implementation": "candidate"
+      },
+      {
+        "messages": 2000,
+        "coldMs": 1700.83,
+        "medianMs": 167.91,
+        "warnings": 0,
+        "round": 2,
+        "card": "living_world",
+        "kind": "panel",
+        "implementation": "baseline"
+      },
+      {
+        "parseReportMedianMs": 0.7056,
+        "processResponseMedianMs": 0.8363,
+        "promptConstructMedianMs": 0.4058,
+        "promptCharacters": 15107,
+        "populatedPromptCharacters": 19029,
+        "warnings": 0,
+        "round": 2,
+        "kind": "pipeline",
+        "implementation": "candidate"
+      },
+      {
+        "parseReportMedianMs": 0.5997,
+        "processResponseMedianMs": 1.9196,
+        "promptConstructMedianMs": 1.2063,
+        "promptCharacters": 15107,
+        "populatedPromptCharacters": 19029,
+        "warnings": 0,
+        "round": 2,
+        "kind": "pipeline",
+        "implementation": "baseline"
+      }
+    ],
+    "focusedAgendaResults": [
+      {
+        "implementation": "baseline",
+        "reports": 1000,
+        "items": 2,
+        "medianMs": 35.73143399999981,
+        "samplesMs": [
+          40.0103959999999,
+          33.008188000000246,
+          53.526864999999816,
+          28.76234499999964,
+          32.789514000000054,
+          37.51434100000006,
+          37.527520000000095,
+          30.477148999999827,
+          42.11710399999993,
+          34.775592999999844,
+          35.31378399999994,
+          36.149083999999675
+        ]
+      },
+      {
+        "implementation": "candidate",
+        "reports": 1000,
+        "items": 1,
+        "medianMs": 33.625888499999974,
+        "samplesMs": [
+          31.911938999999848,
+          31.072069000000283,
+          38.67070199999989,
+          36.260081999999784,
+          32.136633000000074,
+          39.16311799999994,
+          47.53223900000012,
+          29.971435999999812,
+          35.11514399999987,
+          35.675456999999824,
+          28.47686700000031,
+          28.581964000000426
+        ]
+      }
+    ]
+  },
+  "pipelineAndExistingExportReplay": [
+    {
+      "kind": "pipeline-calls",
+      "calls": {
+        "chat.getMessages": 6,
+        "world_books.getActivated": 1,
+        "storage.getJson": 2,
+        "generate.quiet": 1,
+        "chat.updateMessage": 1,
+        "storage.setJson": 4
+      },
+      "implementation": "baseline"
+    },
+    {
+      "kind": "existing-private-export-replay",
+      "messages": 13,
+      "counts": {
+        "agenda": 1,
+        "quests": 2,
+        "family": 5
+      },
+      "inputUnchanged": true,
+      "implementation": "baseline"
+    },
+    {
+      "kind": "existing-private-export-replay",
+      "messages": 15,
+      "counts": {
+        "agenda": 1,
+        "quests": 3,
+        "family": 5
+      },
+      "inputUnchanged": true,
+      "implementation": "baseline"
+    },
+    {
+      "kind": "pipeline-calls",
+      "calls": {
+        "chat.getMessages": 6,
+        "world_books.getActivated": 1,
+        "storage.getJson": 2,
+        "generate.quiet": 1,
+        "chat.updateMessage": 1,
+        "storage.setJson": 4
+      },
+      "implementation": "candidate"
+    },
+    {
+      "kind": "existing-private-export-replay",
+      "messages": 13,
+      "counts": {
+        "agenda": 1,
+        "quests": 2,
+        "family": 5
+      },
+      "inputUnchanged": true,
+      "implementation": "candidate"
+    },
+    {
+      "kind": "existing-private-export-replay",
+      "messages": 15,
+      "counts": {
+        "agenda": 1,
+        "quests": 3,
+        "family": 5
+      },
+      "inputUnchanged": true,
+      "implementation": "candidate"
+    }
+  ],
+  "limits": "Original screenshot chat metadata/export and live Lumiverse instance unavailable. Exact reported fields reproduced synthetically. Unknown location aliases and ambiguous dates remain conservative; no full universal or live-host certification."
+}
