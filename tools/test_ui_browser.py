@@ -443,6 +443,23 @@ class BrowserUi(unittest.TestCase):
         event=self.page.evaluate("sent.filter(x=>x.type==='quest_focus').at(-1)")
         self.assertEqual(event['key'],'prove yourself against cassian')
 
+    def test_extended_quest_contract_restoration_refresh_and_controls(self):
+        hms=json.loads(subprocess.check_output(['node',str(ROOT/'tools/test_quest_contract_continuity.cjs'),'--browser-fixture'],text=True))
+        payload=json.loads(json.dumps(FIXTURE['payload']))
+        payload['hms']=hms
+        old=json.loads(json.dumps(payload))
+        old['hms']['systems']['quests']=[dict(hms['systems']['quests'][0],key='old-'+str(i),name='Old alias '+str(i)) for i in range(5)]
+        self.receive(old)
+        self.assertEqual(self.page.locator('.rpgc-qcard').count(),5)
+        for _ in range(10):
+            self.receive(json.loads(json.dumps(payload)))
+            self.assertEqual(self.page.locator('.rpgc-qcard').count(),1)
+        card=self.page.locator('.rpgc-qcard')
+        self.assertIn('Defeat Cassian or force him to acknowledge Marcus as an equal',card.inner_text())
+        self.assertEqual(hms['systems']['quests'][0]['progress'],60)
+        self.page.get_by_label('Unfocus this quest',exact=True).click()
+        self.assertEqual(self.page.evaluate("sent.filter(x=>x.type==='quest_focus').at(-1).key"),'prove yourself against cassian')
+
     def test_internal_states_tabs_and_collapse(self):
         self.page.add_style_tag(content=FIXTURE['statesCss'])
         self.page.evaluate('(html)=>{let reply=document.createElement("article");reply.id="reply";reply.innerHTML=html;document.body.append(reply)}',FIXTURE['internalStates'])

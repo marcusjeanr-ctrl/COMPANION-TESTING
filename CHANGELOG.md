@@ -1,5 +1,19 @@
 # Changelog — RPG Companion HMS Edition
 
+## 3.0.10 RC — Quest assignment continuity
+
+- Add optional stable Quest IDs and bounded existing-quest context to the current
+  tracker request; titles and progress summaries no longer need to act as IDs.
+- Reconcile source-grounded progress summaries with their established assignment,
+  including shortened reward references and explicitly continued introductions.
+  Distinct targets, restrictions, assignments and ambiguous references stay separate.
+- Preserve identity, accepted conditions and sparse progress details during
+  unchanged-source refreshes; keep canonical control keys when attaching HUD aliases.
+- Preserve explicit stages, location changes, resets, completion history and focus.
+  Repeated identical refreshes do not accumulate redundant identity history.
+- Verify the complete extended export and seven-label sequence in Together and
+  Separate modes. Agenda and other tracking engines remain unchanged.
+
 ## 3.0.9 RC — Export-reproduced Agenda and Quest identity fix
 
 - Reconcile leading location articles and equivalent bell trigger wording;

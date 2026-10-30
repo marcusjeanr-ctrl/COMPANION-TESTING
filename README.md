@@ -1,4 +1,6 @@
-# RPG Companion HMS Edition 3.0.9 — Release Candidate
+# RPG Companion HMS Edition 3.0.10 — Release Candidate
+
+> 3.0.10 RC: [Quest assignment identity and full-sequence verification](docs/compatibility/3_0/QUEST_CONTRACT_CONTINUITY.md).
 
 > 3.0.9 RC: [Export-reproduced Agenda and Quest identity fix](docs/compatibility/3_0/EXPORT_IDENTITY_DRIFT.md).
 
