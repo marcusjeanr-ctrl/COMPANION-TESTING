@@ -36,3 +36,10 @@ function sceneCast(){
  assert.equal(r.writes.length,0);
 }
 sceneCast();
+function sheetExport(){
+ const fs=require('node:fs'),vm=require('node:vm'),s=fs.readFileSync(require('node:path').join(__dirname,'../dist/frontend.js'),'utf8');
+ const part=s.slice(s.indexOf('function characterSheetMarkdown('),s.indexOf('export function setup('));const c=vm.createContext({});vm.runInContext(part,c);
+ const view={hms:{hud:{lines:[{text:'Magic Tiers: Water (Advanced)'}]},magic:{list:{schools:[{spells:[{name:'Water Bolt',status:'known'},{name:'Secret Storm',status:'locked'},{name:'Training',status:'study'}]}]}},techniques:{schools:[{spells:[{name:'Blade',status:'mastered'}]}]},systems:{quests:[{name:'Current',cls:'active'},{name:'Finished',state:'completed'},{name:'Retired',state:'closed'}]},family:{members:[{name:'Parent',where:'Study',present:false}]},relations:{people:[{name:'Friend',bond:'ally',standing:'Friendly'}]}}};
+ const before=JSON.stringify(view),out=c.characterSheetMarkdown(view);assert(out.includes('Water Bolt'));assert(!out.includes('Secret Storm'));assert(!out.includes('Training'));assert(out.includes('Blade'));assert(out.includes('Finished'));assert(out.includes('Friendly'));assert.equal(JSON.stringify(view),before);assert(c.characterSheetMarkdown({}).includes('No recorded data'));
+}
+sheetExport();

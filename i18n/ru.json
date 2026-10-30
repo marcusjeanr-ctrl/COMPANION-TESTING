@@ -2656,5 +2656,14 @@
  "HUD conflicts with an explicit start setting": "HUD противоречит явной начальной настройке",
  "last seen": "видели в последний раз",
  "last known": "последнее известное место",
- "Last reported activity": "Последняя сообщённая деятельность"
+ "Last reported activity": "Последняя сообщённая деятельность",
+ "Export character sheet": "Экспорт листа персонажа",
+ "Character sheet": "Лист персонажа",
+ "Recorded tracker data; not a gameplay update.": "Записанные данные; не обновление игры.",
+ "No recorded data": "Нет записанных данных",
+ "Known spells": "Известные заклинания",
+ "Known techniques": "Известные техники",
+ "Open quests": "Открытые квесты",
+ "Completed quests": "Завершённые квесты",
+ "Other ended quests": "Другие законченные квесты"
 }

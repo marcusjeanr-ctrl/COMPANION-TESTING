@@ -2656,5 +2656,14 @@
  "HUD conflicts with an explicit start setting": "El HUD contradice un ajuste inicial explícito",
  "last seen": "visto por última vez",
  "last known": "último lugar conocido",
- "Last reported activity": "Última actividad informada"
+ "Last reported activity": "Última actividad informada",
+ "Export character sheet": "Exportar ficha de personaje",
+ "Character sheet": "Ficha de personaje",
+ "Recorded tracker data; not a gameplay update.": "Datos registrados; no actualiza el juego.",
+ "No recorded data": "Sin datos registrados",
+ "Known spells": "Hechizos conocidos",
+ "Known techniques": "Técnicas conocidas",
+ "Open quests": "Misiones abiertas",
+ "Completed quests": "Misiones completadas",
+ "Other ended quests": "Otras misiones terminadas"
 }

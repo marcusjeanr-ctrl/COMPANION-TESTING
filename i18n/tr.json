@@ -2656,5 +2656,14 @@
  "HUD conflicts with an explicit start setting": "HUD açık bir başlangıç ayarıyla çelişiyor",
  "last seen": "son görüldüğü",
  "last known": "son bilinen",
- "Last reported activity": "Son bildirilen etkinlik"
+ "Last reported activity": "Son bildirilen etkinlik",
+ "Export character sheet": "Karakter sayfasını dışa aktar",
+ "Character sheet": "Karakter sayfası",
+ "Recorded tracker data; not a gameplay update.": "Kayıtlı takip verileri; oyun güncellemesi değildir.",
+ "No recorded data": "Kayıtlı veri yok",
+ "Known spells": "Bilinen büyüler",
+ "Known techniques": "Bilinen teknikler",
+ "Open quests": "Açık görevler",
+ "Completed quests": "Tamamlanan görevler",
+ "Other ended quests": "Diğer sona eren görevler"
 }

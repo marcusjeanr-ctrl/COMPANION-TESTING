@@ -45,3 +45,14 @@ verify against the current response, not proof that absent characters are still
 present. Both Together and Separate prompt paths tested. Exact character budget
 is unchanged, with no state, schema, refresh or model-call changes. All 52 suites
 and release checks passed. This cannot independently recover an unreported cast.
+
+## 4. Character-sheet export
+
+Frontend-only local Markdown download: HUD (including tiers), confirmed Known/
+Mastered catalogue rows, labelled abilities, gear, family, open/completed/other
+ended quests and key relationship labels. The full catalogue is never exported
+as player knowledge. No private Minds monologues, calls, chat writes or stored
+changes. Markdown data is escaped; Blob URLs are revoked without timers.
+Synthetic regressions verify learned-vs-reference separation, empty state,
+quest statuses, relationships and immutable input. All 52 suites and release
+checks passed; native host download handling still needs live verification.
