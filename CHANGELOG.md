@@ -1,6 +1,6 @@
 # Changelog — RPG Companion HMS Edition
 
-## 3.1.0 RC — Staging features (unpublished)
+## 3.1.0 RC — Panel tools and diagnostics
 
 - Display Elementary spell ranks as Beginner when that is the HUD’s rank terminology.
 - Recognize explicit “Available; inactive at rest” consistency directives.

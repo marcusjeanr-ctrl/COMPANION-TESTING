@@ -92,3 +92,37 @@ supersession links in the original staging report/README. No runtime change for
 item 4. Release/syntax checks and all 55 suites passed; both standard benchmark
 scripts were also rerun after adding the runner. Their single smoke samples are
 not substituted for the 10-pair comparison above.
+
+## Item 5 — Martial omission and reliability investigation only
+
+Full findings and function references: [MARTIAL_INVESTIGATION.md](MARTIAL_INVESTIGATION.md).
+Accepted Abilities rows are not filtered out by the serializer. Known-technique
+catalogue rows deliberately exclude training/attempts, and bare Touki is represented
+by the HUD. The available export's countercut/diagonal assessment quotes fail
+source matching; they are raw reports, not accepted knowledge. An empty-lore
+fallback naming gap is also reproduced and left unchanged.
+
+A valid synthetic one-strike quote reported as reliable survives current guards
+and enters the known collection (`newlyLearned:false`, no mastery). This is a
+separate confidence-validation gap that the 3.0.3 guards do not cover. Failed
+practice, NPC demonstrations and nonmatching evidence remain rejected. No runtime
+ability logic changed. No arbitrary number of required strikes was introduced.
+
+Files: `tools/test_martial_investigation.cjs`, suite registration, investigation
+and follow-up reports. All 56 suites plus release/syntax checks passed. Standard
+benchmarks were rerun: 600-message smoke cold/warm 310.42/85.41 ms;
+parse/response/prompt 0.7410/0.9953/0.4410 ms. Prompt lengths unchanged.
+Item 4's frozen runtime source is unchanged by this docs/tests-only item.
+
+## Verification limits and merge decision
+
+The 10-pair primary gate is +3.40%, so the user's conditional merge is eligible
+once final browser and GitHub checks pass. Individual runs have wide outliers;
+this does not guarantee real-device timing. All prior saves, metadata and ability
+logic remain untouched. No new model calls, polling, timers or dependencies.
+No live Lumiverse instance, Android WebView, native installation/reload or actual
+provider/model response was tested. This remains **3.1.0 RC**, never a stable claim.
+
+Final local browser checks: **37 Chromium UI cases and five visibility cases
+passed**, using the mocked host. Existing save/load, Together/Separate and
+continuation/source-swipe regression coverage remains passing.
