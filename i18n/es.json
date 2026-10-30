@@ -2665,5 +2665,11 @@
  "Known techniques": "Técnicas conocidas",
  "Open quests": "Misiones abiertas",
  "Completed quests": "Misiones completadas",
- "Other ended quests": "Otras misiones terminadas"
+ "Other ended quests": "Otras misiones terminadas",
+ "Tracker snapshots": "Instantáneas del rastreador",
+ "Snapshot name": "Nombre de instantánea",
+ "Save snapshot": "Guardar instantánea",
+ "Restore view": "Restaurar vista",
+ "Return to live tracking": "Volver al seguimiento actual",
+ "Snapshots restore a read-only view. Live tracking and chat remain unchanged.": "Las instantáneas restauran una vista de solo lectura. El seguimiento actual y el chat no cambian."
 }

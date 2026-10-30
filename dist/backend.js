@@ -2441,6 +2441,41 @@ function memoRead(chat, key, read) {
     if (!pass.values.has(key)) pass.values.set(key, read());
     return pass.values.get(key);
 }
+// Named snapshots are isolated read-only views. Never fold them into tracking,
+// prompts, transactions, manual corrections or message metadata.
+const trackerSnapshotRowsCache = new WeakMap();
+function trackerSnapshotList(st) {
+    const source = st?.trackerSnapshots;
+    if (!Array.isArray(source)) return [];
+    if (trackerSnapshotRowsCache.has(source)) return trackerSnapshotRowsCache.get(source);
+    const rows = source
+        .filter(x => x && typeof x.id === 'string' && typeof x.name === 'string' && isPlainObject(x.view) && isPlainObject(x.view.hms))
+        .slice(-10).filter(x => JSON.stringify(x.view).length <= 300000);
+    trackerSnapshotRowsCache.set(source, rows);
+    return rows;
+}
+function trackerSnapshotPanel(st) {
+    const rows = trackerSnapshotList(st), active = rows.find(x => x.id === st.activeTrackerSnapshot) || null;
+    return {list:rows.map(x => ({id:x.id,name:x.name})), active:active?.id || null, view:active?.view || null};
+}
+function trackerSnapshotEdit(st, payload) {
+    const rows = trackerSnapshotList(st);
+    if (payload.op === 'save') {
+        const name = typeof payload.name === 'string' ? payload.name.trim().slice(0,80) : '';
+        if (!name || !isPlainObject(payload.view?.hms) || JSON.stringify(payload.view).length > 300000) return false;
+        // Explicit allowlist: no chat messages, seed/locks, tracking transactions or settings.
+        const view = clone({hms:payload.view.hms});
+        const seq = Math.max(0, Number.isSafeInteger(st.trackerSnapshotSeq) ? st.trackerSnapshotSeq : 0) + 1;
+        st.trackerSnapshotSeq = seq;
+        st.trackerSnapshots = [...rows,{id:'tracker-snapshot-'+seq,name,view}].slice(-10);
+    } else if (payload.op === 'restore') {
+        if (!rows.some(x => x.id === payload.id)) return false;
+        st.activeTrackerSnapshot = payload.id;
+    } else if (payload.op === 'live') st.activeTrackerSnapshot = null;
+    else return false;
+    return true;
+}
+
 async function pushState(chatId, snapshot = null) {
     trimChatCaches(chatId);
     if (!chatId) {
@@ -2458,6 +2493,7 @@ async function pushState(chatId, snapshot = null) {
         const payload = withReadPass(chat, () => ({
             type: 'state',
             chatId,
+            trackerSnapshots: trackerSnapshotPanel(cs),
             version: RPGC_VERSION,
             paletteDefault: DIALOGUE_PALETTE_DEFAULT,
             userName,
@@ -17639,6 +17675,15 @@ spindle.onFrontendMessage(async (payload, userId) => {
                 if (payload.characterId) await autoApplyPreset(payload.characterId);
                 await pushState(payload.chatId || null);
                 break;
+
+            case 'tracker_snapshot': {
+                if (!payload.chatId) return;
+                const st = await getChatState(payload.chatId);
+                if (!trackerSnapshotEdit(st, payload)) return;
+                await saveChatState(payload.chatId, st);
+                await pushState(payload.chatId);
+                break;
+            }
 
             case 'save_trackers': {
                 const { chatId, data } = payload;

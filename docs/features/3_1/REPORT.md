@@ -56,3 +56,24 @@ changes. Markdown data is escaped; Blob URLs are revoked without timers.
 Synthetic regressions verify learned-vs-reference separation, empty state,
 quest statuses, relationships and immutable input. All 52 suites and release
 checks passed; native host download handling still needs live verification.
+
+## 5. Named snapshots
+
+Additive optional `trackerSnapshots`, sequence and active-view keys in the
+existing per-chat store. Maximum ten named views, 80-character names and
+300,000 characters per view; oversized requests are refused. Validation is
+cached per array with a WeakMap, so ordinary updates do not repeatedly serialize
+saved snapshots. Old chats need no migration. Existing serialized state/recovery
+writes are reused only on explicit user action. No message metadata is changed.
+
+**Review decision:** Restore means restore an isolated read-only view, not roll
+back the live tracker. The active view survives reload and has Return to live
+tracking. It is never used for prompts, transactions, live HUD or manual edits;
+knowledge/items/XP cannot be granted by restoring. This is deliberately safer
+than replacing live state beneath an authoritative HUD. Private Minds data in a
+snapshot remains local to extension storage. Native host reload is unverified.
+
+Tests cover bounded eviction, missing IDs, old saves, view persistence, oversized
+input, return to live, immutable seed/XP/spellbook and zero metadata writes.
+All 52 suites/release checks passed, including a rerun after caching validation
+and clearing snapshot UI on chat switch. Backend/frontend plus dictionaries changed.

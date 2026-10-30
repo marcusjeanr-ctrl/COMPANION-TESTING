@@ -43,3 +43,17 @@ function sheetExport(){
  const before=JSON.stringify(view),out=c.characterSheetMarkdown(view);assert(out.includes('Water Bolt'));assert(!out.includes('Secret Storm'));assert(!out.includes('Training'));assert(out.includes('Blade'));assert(out.includes('Finished'));assert(out.includes('Friendly'));assert.equal(JSON.stringify(view),before);assert(c.characterSheetMarkdown({}).includes('No recorded data'));
 }
 sheetExport();
+async function snapshots(){
+ const r=runtime(),c=r.ctx,st=c.emptyChatState();st.seed={characters:[{name:'Current'}]};st.xpAdjust=17;st.spellbook=[{name:'Existing'}];
+ const stateBefore=JSON.stringify(st);assert.equal(c.trackerSnapshotEdit(st,{op:'restore',id:'missing'}),false);assert.equal(JSON.stringify(st),stateBefore);
+ const view={hms:{hud:{lines:[{text:'Past HUD'}]},systems:{quests:[{name:'Old objective',cls:'active'}]}}};
+ for(let i=0;i<12;i++)assert(c.trackerSnapshotEdit(st,{op:'save',name:'Before '+i,view}));
+ assert.equal(st.trackerSnapshots.length,10);assert.equal(st.trackerSnapshots[0].name,'Before 2');assert.equal(st.seed.characters[0].name,'Current');assert.equal(st.xpAdjust,17);assert.equal(st.spellbook.length,1);assert.equal(r.writes.length,0);
+ const id=st.trackerSnapshots[0].id;assert(c.trackerSnapshotEdit(st,{op:'restore',id}));assert.equal(c.trackerSnapshotPanel(st).view.hms.hud.lines[0].text,'Past HUD');
+ await c.saveChatState('snap-test',st);const stored=JSON.parse(JSON.stringify(st));assert.equal(c.trackerSnapshotPanel(stored).active,id);
+ assert(c.trackerSnapshotEdit(stored,{op:'live'}));assert.equal(c.trackerSnapshotPanel(stored).active,null);assert.equal(c.trackerSnapshotPanel(c.emptyChatState()).list.length,0);
+ assert.equal(c.trackerSnapshotEdit(st,{op:'save',name:'Huge',view:{hms:{text:'x'.repeat(300001)}}}),false);
+ assert.equal(c.trackerSnapshotEdit(st,{op:'save',name:'',view}),false);
+ assert.equal(r.writes.length,0);
+}
+snapshots().catch(e=>{console.error(e);process.exitCode=1;});

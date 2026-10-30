@@ -2665,5 +2665,11 @@
  "Known techniques": "Bilinen teknikler",
  "Open quests": "Açık görevler",
  "Completed quests": "Tamamlanan görevler",
- "Other ended quests": "Diğer sona eren görevler"
+ "Other ended quests": "Diğer sona eren görevler",
+ "Tracker snapshots": "Takip anlık görüntüleri",
+ "Snapshot name": "Anlık görüntü adı",
+ "Save snapshot": "Anlık görüntüyü kaydet",
+ "Restore view": "Görünümü geri yükle",
+ "Return to live tracking": "Canlı takibe dön",
+ "Snapshots restore a read-only view. Live tracking and chat remain unchanged.": "Anlık görüntüler salt okunur bir görünümü geri yükler. Canlı takip ve sohbet değişmez."
 }

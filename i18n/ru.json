@@ -2665,5 +2665,11 @@
  "Known techniques": "Известные техники",
  "Open quests": "Открытые квесты",
  "Completed quests": "Завершённые квесты",
- "Other ended quests": "Другие законченные квесты"
+ "Other ended quests": "Другие законченные квесты",
+ "Tracker snapshots": "Снимки трекера",
+ "Snapshot name": "Имя снимка",
+ "Save snapshot": "Сохранить снимок",
+ "Restore view": "Восстановить просмотр",
+ "Return to live tracking": "Вернуться к текущему отслеживанию",
+ "Snapshots restore a read-only view. Live tracking and chat remain unchanged.": "Снимки восстанавливают просмотр только для чтения. Текущее отслеживание и чат не меняются."
 }
