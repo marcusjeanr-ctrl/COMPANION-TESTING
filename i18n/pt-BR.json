@@ -2671,5 +2671,8 @@
  "Save snapshot": "Salvar snapshot",
  "Restore view": "Restaurar visualização",
  "Return to live tracking": "Voltar ao rastreamento atual",
- "Snapshots restore a read-only view. Live tracking and chat remain unchanged.": "Snapshots restauram uma visualização somente leitura. O rastreamento atual e o chat não mudam."
+ "Snapshots restore a read-only view. Live tracking and chat remain unchanged.": "Snapshots restauram uma visualização somente leitura. O rastreamento atual e o chat não mudam.",
+ "Minds relationship web": "Rede de relações de Minds",
+ "Arrows describe reported relationships; colours show the source character’s recorded mood.": "As setas representam relações relatadas; as cores mostram o humor registrado de quem sente.",
+ "{0} people omitted from graph": "{0} pessoas omitidas do gráfico"
 }

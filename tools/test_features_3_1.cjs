@@ -57,3 +57,11 @@ async function snapshots(){
  assert.equal(r.writes.length,0);
 }
 snapshots().catch(e=>{console.error(e);process.exitCode=1;});
+function webProjection(){
+ const fs=require('node:fs'),vm=require('node:vm'),s=fs.readFileSync(require('node:path').join(__dirname,'../dist/frontend.js'),'utf8');
+ const part=s.slice(s.indexOf('function relationshipWebData('),s.indexOf('// Read-only export;'));const c=vm.createContext({});vm.runInContext(part,c);
+ const people=Array.from({length:30},(_,i)=>({key:'p'+i,name:'Person '+i,feel:{p:'anger'},pairs:[{you:true},{to:'p'+((i+1)%30)}]}));
+ const before=JSON.stringify(people),web=c.relationshipWebData({people},'Player');assert.equal(web.nodes.length,20);assert.equal(web.omitted,11);assert(web.links.length<=80);assert(web.links.every(l=>web.nodes.some(n=>n.key===l.to)));assert(web.links.some(l=>l.color==='#dc5252'));assert.equal(JSON.stringify(people),before);
+ assert.equal(c.relationshipWebData(null).nodes.length,1);
+}
+webProjection();

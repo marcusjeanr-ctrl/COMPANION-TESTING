@@ -12,6 +12,8 @@
 
 - Add up to ten named read-only tracker snapshots; restoring never replays gameplay.
 
+- Add a lazy, bounded Minds relationship graph with directed links.
+
 ## 3.0.10 RC — Quest assignment continuity
 
 - Add optional stable Quest IDs and bounded existing-quest context to the current

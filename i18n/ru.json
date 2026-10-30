@@ -2671,5 +2671,8 @@
  "Save snapshot": "Сохранить снимок",
  "Restore view": "Восстановить просмотр",
  "Return to live tracking": "Вернуться к текущему отслеживанию",
- "Snapshots restore a read-only view. Live tracking and chat remain unchanged.": "Снимки восстанавливают просмотр только для чтения. Текущее отслеживание и чат не меняются."
+ "Snapshots restore a read-only view. Live tracking and chat remain unchanged.": "Снимки восстанавливают просмотр только для чтения. Текущее отслеживание и чат не меняются.",
+ "Minds relationship web": "Сеть отношений Minds",
+ "Arrows describe reported relationships; colours show the source character’s recorded mood.": "Стрелки показывают сообщённые отношения; цвета — записанное настроение исходного персонажа.",
+ "{0} people omitted from graph": "{0} персонажей не показано на графе"
 }

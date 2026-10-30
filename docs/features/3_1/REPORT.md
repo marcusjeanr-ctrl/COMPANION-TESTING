@@ -77,3 +77,15 @@ Tests cover bounded eviction, missing IDs, old saves, view persistence, oversize
 input, return to live, immutable seed/XP/spellbook and zero metadata writes.
 All 52 suites/release checks passed, including a rerun after caching validation
 and clearing snapshot UI on chat switch. Backend/frontend plus dictionaries changed.
+
+## 6. Relationship web
+
+Frontend-only Minds disclosure, available in HMS and classic tracking panels.
+No graph data/layout is computed while closed. Existing directed pair records
+supply links; colours explicitly describe the source character's recorded mood,
+not inferred reciprocal feelings or a computed relationship score. Neutral grey
+means no supported colour. Maximum 19 NPCs plus the player, 80 links; omitted
+people are counted. SVG uses a fixed viewBox with responsive width, text-only
+labels, full-name titles and an accessible name list. No physics, dependencies,
+listeners outside the disclosure, polling or timers. Tests cover caps, membership,
+colour mapping and unchanged inputs. All 52 suites and release checks passed.
