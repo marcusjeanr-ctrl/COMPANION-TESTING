@@ -1,4 +1,6 @@
-# RPG Companion HMS Edition 3.0.10 — Release Candidate
+# RPG Companion HMS Edition 3.1.0 — Release Candidate
+
+> Unpublished staging features: [3.1 RC verification and review decisions](docs/features/3_1/REPORT.md). No live Lumiverse acceptance performed.
 
 > 3.0.10 RC: [Quest assignment identity and full-sequence verification](docs/compatibility/3_0/QUEST_CONTRACT_CONTINUITY.md).
 

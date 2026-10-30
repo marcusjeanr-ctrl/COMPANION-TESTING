@@ -525,6 +525,7 @@ class BrowserUi(unittest.TestCase):
         payload=json.loads(json.dumps(FIXTURE['payload']))
         payload['hms']['minds']={'people':[{'key':'p'+str(i),'name':'Person '+str(i),'pairs':[{'to':'p'+str((i+1)%30),'toName':'Person '+str((i+1)%30),'axes':[],'you':False}],'feel':None} for i in range(30)]}
         # Avoid person-card fields: graph consumes the existing Minds payload directly.
+        payload['hms']['minds']['people'][0]['name']='LongUnbrokenName'*8
         payload['hms']['relations']=None
         self.page.evaluate('(p)=>window.receive(p)',payload)
         web=self.page.locator('.rpgc-relationship-web')
@@ -535,6 +536,7 @@ class BrowserUi(unittest.TestCase):
         self.assertLessEqual(web.locator('svg line').count(),80)
         self.assertIn('11 people omitted',web.inner_text())
         self.assertLessEqual(web.locator('svg').bounding_box()['width'],320)
+        self.assertTrue(web.locator('.rpgc-web-body').evaluate('(e)=>e.scrollWidth<=e.clientWidth+1'))
         self.page.get_by_label('Where the panel lives').select_option('float')
         self.assert_float_inside_viewport()
 
@@ -547,6 +549,12 @@ class BrowserUi(unittest.TestCase):
         self.assertIn('Future event',panel.inner_text())
         self.assertIn('pending',panel.inner_text())
         self.assertIn('Explicit change',panel.inner_text())
+
+    def test_31_compact_light_theme_contrast(self):
+        payload=json.loads(json.dumps(FIXTURE['payload']))
+        payload['settings'].update(compactMobile=True,uiTheme='mushoku')
+        self.receive(payload)
+        self.assertEqual(self.page.locator('.rpgc-mobile-pinned').evaluate('(e)=>getComputedStyle(e).backgroundColor'),'rgb(253, 247, 234)')
 
     def test_31_compact_mobile_320_360(self):
         for width in [320,360]:

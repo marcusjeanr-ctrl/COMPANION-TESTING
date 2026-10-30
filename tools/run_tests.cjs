@@ -3,7 +3,7 @@ const path = require('node:path');
 const { spawnSync } = require('node:child_process');
 const root = path.resolve(__dirname, '..');
 const suites = [
-    'test_features_3_1.cjs',
+    'test_features_3_1.cjs', 'test_quest_completion_investigation.cjs',
     'test_2_8_1_panel_parity.cjs', 'test_atlas_references.cjs', 'test_general_tracking.cjs',
     'test_panel_tracking.cjs', 'test_display_cache_lifecycle.cjs', 'test_reading_and_magic.cjs', 'test_reconciliation_integrity.cjs', 'test_universal_agenda_dedup.cjs', 'test_agenda_bell_refinement.cjs', 'test_export_identity_drift.cjs', 'test_quest_contract_continuity.cjs',
     'test_six_sided_repairs.cjs', 'test_spell_aliases.cjs', 'test_startup_and_render.cjs',

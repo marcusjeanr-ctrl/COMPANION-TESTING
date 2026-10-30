@@ -2570,7 +2570,7 @@ async function pushState(chatId, snapshot = null) {
 // Demo mode plays scripted turns (no tokens); Live mode asks the model, with a small
 // world narrator standing in for a bot card.
 
-const RPGC_VERSION = '3.0.10';
+const RPGC_VERSION = '3.1.0';
 const diagLog = [];
 function diagPush(kind, m) { diagLog.push({ at: new Date().toISOString(), kind, text: String(m).slice(0, 400) }); if (diagLog.length > 60) diagLog.shift(); }
 function logW(m) { diagPush('warn', m); return spindle.log.warn(m); }
@@ -10465,7 +10465,13 @@ function buildCompanionInstructionRead(committed, userName, locks, st = null, ch
         if (stTxt) s += '\n\n' + stTxt;
     }
     const prev = wantChars && committed && Array.isArray(committed.characters) && committed.characters.length ? committed.characters : null;
-    if (prev) s += `\nPresent now (check): ${JSON.stringify(leanPanelForPrompt(applyLocksForPrompt({ characters: prev }, locks).characters))}`;
+    if (prev) {
+        const rows = leanPanelForPrompt(applyLocksForPrompt({ characters: prev }, locks).characters);
+        const names = rows.map(row => row.name), details = rows.map(({name, ...rest}) => rest);
+        // Same-order rows retain all previous details without repeating names.
+        // This representation is no larger than the old Previous panel data block.
+        s += `\nCast to check: ${JSON.stringify(names)}\nIn order: ${JSON.stringify(details)}`;
+    }
     const wHud = chat ? parseHud(textOf((latestHudMessage(chat) || {}).content)) : null;
     if (settings.worldCard !== false && wHud && worldLines(wHud).some(l => /^\[HITOGAMI:/i.test(l))) {     // the advice log lives on the world card
         s += `\nMan-God: in the same block, add "hitogami": his advice to ${userName} in this reply, one line in his own words \u2014 only if he appeared or spoke (a dream, a voice); otherwise null. Report it; never let this decide whether he appears.`;
@@ -10800,7 +10806,8 @@ function consistencyWarnings(chatId, chat, hud, guard) {
     if (settings.consistencyChecks === false) return [];
     const start = continuityReadIndex(chat).startCommand;
     // A declared rule is eligible only inside the matching cached start-handler entry.
-    const declared = start ? getLorePool(chatId).find(e => (e.key || []).some(k => String(start).split(/\s/)[0].toLowerCase() === String(k).toLowerCase())) : null;
+    const startKey = start ? start.split(/\s/, 1)[0].toLowerCase() : '';
+    const declared = startKey ? getLorePool(chatId).find(e => (e.key || []).some(k => startKey === String(k).toLowerCase())) : null;
     const context = {message:latestHudMessage(chat),hud,guard,timeline:hmsTimeline(chat),start:[start,declared?.content?.slice(0,4096)].filter(Boolean).join('\n')};
     return CONSISTENCY_CHECKS.flatMap(check => check.run(context));
 }
@@ -12553,7 +12560,7 @@ function continuityReadIndex(chat) {
         let startCommand = null;
         for (let i = 0; i < chat.length; i++) {
             const m = chat[i]; order.set(m.id, i);
-            if (!startCommand && m.role === 'user' && trackingMessageVisible(m) && /^(?:Mushoku_Start_Handler|MUSHOKU_TENSEI_START_HANDLER|Start\b)/i.test(textOf(m.content).trim())) startCommand = textOf(m.content).slice(0, 4096);
+            if (!startCommand && m.role === 'user' && trackingMessageVisible(m) && /^(?:[A-Za-z][\w]*_Start_Handler\b|Start\b)/i.test(textOf(m.content).trim())) startCommand = textOf(m.content).trim().slice(0, 4096);
             const durable = { msgId: m.id }; you.push(durable); // structural anchors carry no facts
             if (m.role !== 'assistant' || !trackingMessageVisible(m)) continue;
             const d = getSwipeData(m, true);

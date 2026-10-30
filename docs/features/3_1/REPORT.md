@@ -19,12 +19,10 @@ is the source key); new `tools/test_features_3_1.cjs` registered in the suite.
 Checks cover missing HUD, raw time regression, start/card setting conflict,
 non-rest exclusions and disabling. All 52 suites and release identity passed.
 
-Initial benchmark baseline → feature 1: warm panel 63.04 → 61.33 ms;
-cold panel 284.24 → 347.57 ms (+22.3%); parse 0.5568 → 0.5714 ms;
-response 0.7823 → 0.8343 ms (+6.6%); prompt construction 0.3767 → 0.3717 ms.
-These are single cloud measurements, not demonstrated causal slowdowns.
-Prompt lengths unchanged (15,291 / 19,213 characters). Final alternating paired
-measurements will check the >5% observations before acceptance.
+The initial exploratory baseline command overlapped early development, so its
+numbers are excluded from acceptance. Final comparisons below read the exact
+frozen 3.0.10 source and reverse execution order. Per-feature post-check samples
+remain available as observations, not causal performance claims.
 
 ## 2. Family location labels
 
@@ -38,13 +36,14 @@ and all four dictionaries updated and embedded. See per-feature benchmark table.
 
 ## 3. Scene-cast reminder
 
-The existing one-line previous-character JSON is now labelled `Present now
-(check):`. This deliberately reuses the names AND existing details rather than
-adding a second list or losing previous-panel context. It remains a reminder to
-verify against the current response, not proof that absent characters are still
-present. Both Together and Separate prompt paths tested. Exact character budget
-is unchanged, with no state, schema, refresh or model-call changes. All 52 suites
-and release checks passed. This cannot independently recover an unreported cast.
+The existing previous-character context is split into one concise `Cast to
+check: [names]` line and same-order detail rows. Every existing field is retained
+without repeating each name. Tests enforce a length no greater than the previous
+block, including a one-person name-only record. The unchanged physical-presence
+instruction still requires checking the current response; this reminder is not
+proof of presence and cannot independently recover an unreported cast. Both
+Together and Separate paths are covered. All 52 suites/release checks passed at
+the feature checkpoint; final acceptance also checks the compact representation.
 
 ## 4. Character-sheet export
 
@@ -116,3 +115,151 @@ backend requests, snapshot restore/isolation, lazy graph caps and canon evidence
 The graph test explicitly closes the previous disclosure and waits for native
 `toggle` delivery before checking lazy SVG creation. All 52 JS suites and release
 checks passed; final complete Chromium rerun follows acceptance refinements.
+
+## Final acceptance refinements
+
+- Start handlers are matched generically, including leading whitespace. Normalize
+  their key once per check: a 1,273-entry cached-lore benchmark exposed repeated
+  full-command splitting, which is eliminated without changing results.
+- Cast names are separated from same-order details without increasing the prior
+  prompt budget or discarding fields. The text says **Cast to check**, rather
+  than asserting historical cast members are definitely still present.
+- Export also includes confirmed unlisted spellbook knowledge and Agenda rows.
+- Snapshots omit unlearned catalogue references, retaining known/mastered/studying
+  rows. A synthetic 1,000-reference catalogue fits after compaction without
+  changing live knowledge. Oversized tracker views are refused at the existing
+  300,000-character bound; unusually large campaigns may not fit.
+- Current off-scene Family activity stays visually secondary. Graph legends wrap
+  unbroken names: a new 320px browser reproduction failed before this correction
+  and passes after it. The sticky header follows light/dark theme card colours.
+- UI title explicitly says 3.1.0 RC. Manifest/backend version is 3.1.0; the release
+  identity check accepts the explicit RC presentation suffix while checking the
+  exact semantic version. Identifier, permissions and minimum host version stay.
+
+## Files and regression map
+
+`I` below means `i18n/{pt-BR,es,ru,tr}.json`; English is the source-key language,
+not a separate dictionary in this repository. All UI keys were added in all four
+dictionaries and `python3 tools/embed_i18n.py` was run. No guides changed.
+`T` means `tools/test_features_3_1.cjs`; browser cases are in
+`tools/test_ui_browser.py`. Every feature commit also records its changelog/report.
+
+| Feature | Runtime / translations | Added verification |
+|---|---|---|
+| 1. Consistency | `dist/backend.js`, `dist/frontend.js`, I | T: missing HUD, backward clock, explicit start/card setting, rest-only guard, off switch, no writes; browser warning badge |
+| 2. Family | `dist/frontend.js`, I | T: departure, 30-minute age, immutable location/activity; browser label and stale-activity disclosure |
+| 3. Cast | `dist/backend.js` | T: Together/Separate reminder, retained names and bounded prompt size; existing pipeline call-count tests |
+| 4. Export | `dist/frontend.js`, I | T: known versus locked/studying, unlisted known spell, statuses, relationships, empty state, immutable input; actual browser Markdown download and zero backend requests |
+| 5. Snapshots | Both runtime files, I | T: ten-view eviction, invalid ID/size/name, JSON/reload/recovery store, no metadata/XP/knowledge edits, catalogue compaction; browser restore/live/chat isolation |
+| 6. Web | `dist/frontend.js`, I | T: node/link limits, membership, moods and immutable inputs; browser lazy rendering, long names, floating at 320px |
+| 7. Canon | `dist/frontend.js`, I | T: explicit statuses, predictions excluded, Sandbox gate, empty next-event, reference arcs not outcomes; browser event list |
+| 8. Mobile | `dist/frontend.js`, I | Browser: 320/360px drawer/float, pinned summary, theme contrast; existing density/popout checks |
+
+`tools/run_tests.cjs` registers the feature suite and the separate
+`tools/test_quest_completion_investigation.cjs`. Version/review files:
+`spindle.json`, `README.md`, `CHANGELOG.md`, `tools/check_release.cjs`.
+
+Final local verification: **53 JS suites, both syntax checks, release identity,
+37 Chromium UI tests and 5 Chromium visibility tests passed.** The browser uses a
+mock Lumiverse bridge. Existing Together/Separate delivery, repeated refreshes,
+swipes/source edits, save/load, recovery and long-history tests remain passing.
+All 60 existing Quest/Agenda/Family functions compare byte-identical by function
+source to 3.0.10; the Quest investigation is documented separately and is not a
+fix. No new model calls, polling, timers or dependencies. Explicit snapshot
+save/restore actions alone use the existing per-chat state/recovery storage.
+
+## Measurements
+
+Times below are milliseconds. Post-feature samples were collected after each
+feature's release and full-suite checks. They are **uncontrolled sequential cloud
+samples** and can differ despite byte-identical backend work in frontend-only
+features. Full raw observations and exact-source paired results are in
+[PERFORMANCE.json](PERFORMANCE.json).
+
+| After feature | Cold panel | Warm panel | Parse | Response | Prompt build |
+|---|---:|---:|---:|---:|---:|
+| feature1 | 347.57 | 61.33 | 0.5714 | 0.8343 | 0.3717 |
+| feature2 | 222.85 | 65.64 | 0.6377 | 0.7795 | 0.3637 |
+| feature3 | 219.47 | 63.92 | 0.7531 | 1.2887 | 0.6282 |
+| feature4 | 231.55 | 87.95 | 0.5816 | 0.8594 | 0.3740 |
+| feature5-final | 284.01 | 63.55 | 1.1533 | 0.9248 | 0.5040 |
+| feature6 | 237.13 | 61.49 | 0.5430 | 0.7290 | 0.3590 |
+| feature7 | 396.62 | 143.22 | 0.6433 | 0.8346 | 0.4875 |
+| feature8 | 260.94 | 56.27 | 0.6301 | 0.8760 | 0.3649 |
+
+**Observations exceeding 5% versus the preceding checkpoint:**
+- feature1 → feature2: medianMs +7.0%, parseReportMedianMs +11.6%.
+- feature2 → feature3: parseReportMedianMs +18.1%, processResponseMedianMs +65.3%, promptConstructMedianMs +72.7%.
+- feature3 → feature4: coldMs +5.5%, medianMs +37.6%.
+- feature4 → feature5-final: coldMs +22.7%, parseReportMedianMs +98.3%, processResponseMedianMs +7.6%, promptConstructMedianMs +34.8%.
+- feature6 → feature7: coldMs +67.3%, medianMs +132.9%, parseReportMedianMs +18.5%, processResponseMedianMs +14.5%, promptConstructMedianMs +35.8%.
+
+These observations are reported, not hidden or attributed to code without a
+controlled comparison. The exact baseline/candidate comparisons used the same
+Node 22 runtime, existing fixtures and reversed order after the full suites
+finished. Cloud resource variation remains uncontrolled. Aggregate panel/pipeline values are the mean of the two run medians;
+render uses pooled medians. Cold values are one sample per run.
+
+| Exact-source comparison | 3.0.10 | 3.1 RC | Change |
+|---|---:|---:|---:|
+| 600-message cold | 258.9750 | 262.7200 | +1.45% |
+| 600-message warm | 73.6050 | 74.2250 | +0.84% |
+| 2,000-message cold | 587.3150 | 583.5400 | -0.64% |
+| 2,000-message warm | 174.6850 | 184.6550 | +5.71% |
+| Parse | 0.6767 | 0.6814 | +0.69% |
+| Response | 0.8821 | 1.0134 | +14.88% |
+| Prompt build | 0.5009 | 0.4807 | -4.04% |
+| Render/layout | 31.1500 | 29.2500 | -6.10% |
+
+Individual paired runs also vary by more than 5% (including cold reads); consult
+the raw samples. **The 2,000-message warm aggregate is +5.71%, above the requested review
+threshold. This remains an open performance acceptance concern before merge.**
+It is not hidden or dismissed as noise: individual runs vary, and live measurement
+is unavailable. Other aggregate results are not proof of a general speedup. Prompt benchmark sizes
+remain 15,291 / 19,213 characters; cast-context tests separately enforce its prior
+budget. All benchmark mock warnings are zero. No model/provider timing or paid
+API tests were performed.
+
+Focused consistency lookup: 1,273 cached entries, matching handler last,
+2,749-character start command. Repeated full-command splitting initially cost
+44.82 ms; normalizing its key once reduced the median to 0.77 ms with the same
+warning. The repeatable script is `node tools/benchmark_consistency_checks.cjs`.
+This is a fix to the new checker, not a claimed speedup over 3.0.10.
+
+## Review decisions and remaining verification
+
+1. Start/card contradiction matching recognizes explicit field directives only,
+   not arbitrary rule prose, condition systems or combat consequences. Intentional
+   rewinds/undated midnight can produce an advisory clock warning. The HUD is
+   never corrected; turn warnings off if not wanted.
+2. Snapshot restore is a read-only historical view, not a live rollback. Ten
+   snapshots / 300,000 characters each are the reviewable bounds. This cannot
+   restore deleted chat messages or reverse transactions.
+3. Graph link colour is the source character's recorded mood, explicitly labelled
+   as such; links come from directed pair data. It does not infer reciprocal
+   feelings or assign pair-specific emotions.
+4. Canon view lists reported outcomes and the explicit next event; the full arc
+   reference remains separate. Unmentioned events stay unverified, not passed.
+5. [Quest completion investigation](QUEST_COMPLETION_INVESTIGATION.md): completion
+   gates are reproduced, but neither Quest logic nor assignment status is patched.
+6. **None of this was tested in a live Lumiverse instance.** Android WebView,
+   native download support, real storage/reload, actual narrator/tracker output
+   and long-campaign responsiveness still require live acceptance. Chromium is a
+   mocked host, and card regression fixtures do not certify every card mechanic.
+7. No main merge, extension release, release tag or original-repository write is
+   part of this staging task. Draft PR only, for review.
+
+## Feature commits
+
+1. `afbf7d7` — consistency warnings.
+2. `835a1c5` — Family last-known labels.
+3. `1efcc20` — cast reminder.
+4. `3767e10` — Markdown export.
+5. `9566f80` — bounded snapshot views.
+6. `ce98f29` — lazy relationship web.
+7. `1224588` — explicit Sandbox canon outcomes.
+8. `1bcf762` — compact mobile layout.
+
+A final RC acceptance commit contains the version synchronization, edge-case
+corrections found during verification, Quest investigation and complete evidence.
+See the draft PR head for the final implementation commit. No release was made.

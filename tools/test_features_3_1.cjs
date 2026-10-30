@@ -4,11 +4,13 @@ function consistency(){
  const r=runtime(),c=r.ctx;
  const chat=[{id:'start',role:'user',content:'Mushoku_Start_Handler\nTouki: inactive at rest'}, {id:'a',role:'assistant',content:hud('Yard','09:00')}, {id:'b',role:'assistant',content:hud('Yard','08:45').replace('Reserve: Full','Reserve: Full | Status: Rested')}];
  const before=JSON.stringify(chat),check=()=>c.consistencyWarnings('test',chat,c.parseHud(chat.at(-1).content),null);
- assert(check().some(w=>w.code==='clock')); assert(check().some(w=>w.code==='start-setting'));
+ assert(check().some(w=>w.code==='clock')); assert(check().some(w=>w.code==='start-setting'));assert.equal(JSON.stringify(chat),before);
  chat.at(-1).content=chat.at(-1).content.replace('Status: Rested','Status: Fighting');assert(!check().some(w=>w.code==='start-setting'));
  chat.at(-1).content='A quiet scene.';assert(check().some(w=>w.code==='no-hud'));
  r.run('settings.consistencyChecks=false');assert.equal(check().length,0);assert.equal(r.writes.length,0);
  assert(before.includes('09:00'));
+ const dated=structuredClone(chat);dated.at(-1).content=hud('Yard','09:00').replace('Day 8','Day 7');r.run('settings.consistencyChecks=true');assert(c.consistencyWarnings('test',dated,c.parseHud(dated.at(-1).content),null).some(w=>w.code==='clock'));
+ const other=runtime();other.ctx.setLorePool('other',[{id:'generic-start',key:['Other_RPG_Start_Handler'],content:'Shield: disabled'}]);const otherChat=[{id:'u',role:'user',content:'  Other_RPG_Start_Handler  '},{id:'a',role:'assistant',content:hud()+'\n'}];otherChat[1].content=otherChat[1].content.replace('Touki (Battle Aura): Active','Shield: enabled');assert(other.ctx.consistencyWarnings('other',otherChat,other.ctx.parseHud(otherChat[1].content),null).some(w=>w.code==='start-setting'));
  const x=runtime();x.ctx.setLorePool('test',[{id:'rules',key:['Mushoku_Start_Handler'],content:'Touki: inactive at rest'}]);
  assert(x.ctx.consistencyWarnings('test',chat.slice(0,2).concat({id:'c',role:'assistant',content:hud().replace('Reserve: Full','Reserve: Full | Status: Rested')}),x.ctx.parseHud(hud().replace('Reserve: Full','Reserve: Full | Status: Rested')),null).some(w=>w.code==='start-setting'));
 }
@@ -30,9 +32,12 @@ function sceneCast(){
  const {seed}=require('./test_panel_tracking.cjs');const r=runtime();seed(r);const c=r.ctx;
  for(const separate of [true,false]){
   const prompt=c.buildCompanionInstruction({characters:[{name:'Aurelius King'},{name:'Seraphina King'}]},'Marcus',{},c.emptyChatState(),r.messages,separate);
-  assert(prompt.includes('Present now (check): '));assert(prompt.includes('Seraphina King'));assert(!prompt.includes('Previous panel data:'));
+  assert(prompt.includes('Cast to check: ['));assert(prompt.includes('In order: '));assert(prompt.includes('Seraphina King'));assert(!prompt.includes('Previous panel data:'));
  }
- assert.equal('Present now (check): '.length,'Previous panel data: '.length);
+ for(const rows of [[{name:'Only'}],[{name:'A',details:{Position:'By the door'}},{name:'B'}]]) {
+  const next='\nCast to check: '+JSON.stringify(rows.map(r=>r.name))+'\nIn order: '+JSON.stringify(rows.map(({name,...rest})=>rest));
+  assert(next.length<='\nPrevious panel data: '.length+JSON.stringify(rows).length);
+ }
  assert.equal(r.writes.length,0);
 }
 sceneCast();
@@ -40,7 +45,7 @@ function sheetExport(){
  const fs=require('node:fs'),vm=require('node:vm'),s=fs.readFileSync(require('node:path').join(__dirname,'../dist/frontend.js'),'utf8');
  const part=s.slice(s.indexOf('function characterSheetMarkdown('),s.indexOf('export function setup('));const c=vm.createContext({});vm.runInContext(part,c);
  const view={hms:{hud:{lines:[{text:'Magic Tiers: Water (Advanced)'}]},magic:{list:{schools:[{spells:[{name:'Water Bolt',status:'known'},{name:'Secret Storm',status:'locked'},{name:'Training',status:'study'}]}]}},techniques:{schools:[{spells:[{name:'Blade',status:'mastered'}]}]},systems:{quests:[{name:'Current',cls:'active'},{name:'Finished',state:'completed'},{name:'Retired',state:'closed'}]},family:{members:[{name:'Parent',where:'Study',present:false}]},relations:{people:[{name:'Friend',bond:'ally',standing:'Friendly'}]}}};
- const before=JSON.stringify(view),out=c.characterSheetMarkdown(view);assert(out.includes('Water Bolt'));assert(!out.includes('Secret Storm'));assert(!out.includes('Training'));assert(out.includes('Blade'));assert(out.includes('Finished'));assert(out.includes('Friendly'));assert.equal(JSON.stringify(view),before);assert(c.characterSheetMarkdown({}).includes('No recorded data'));
+ const before=JSON.stringify(view),out=c.characterSheetMarkdown(view);assert(out.includes('Water Bolt'));assert(!out.includes('Secret Storm'));assert(!out.includes('Training'));assert(out.includes('Blade'));assert(out.includes('Finished'));assert(out.includes('Friendly'));assert.equal(JSON.stringify(view),before);assert(c.characterSheetMarkdown({}).includes('No recorded data'));assert(c.characterSheetMarkdown({hms:{magic:{spellbook:[{name:'Uncatalogued known spell'}]}}}).includes('Uncatalogued known spell'));
 }
 sheetExport();
 async function snapshots(){
@@ -79,3 +84,21 @@ function compactLayout(){
  assert(s.includes('function renderMobilePinned()'));assert(s.includes('rpgc-compact-mobile .rpgc-mobile-pinned{position:sticky'));assert(s.includes('Who is here'));assert(s.includes('Compact mobile layout'));
 }
 compactLayout();
+function snapshotCatalogueBudget(){
+ const fs=require('node:fs'),vm=require('node:vm'),s=fs.readFileSync(require('node:path').join(__dirname,'../dist/frontend.js'),'utf8');
+ const c=vm.createContext({clone:x=>structuredClone(x)});
+ vm.runInContext(s.slice(s.indexOf('function trackerSnapshotCapture('),s.indexOf('// Read-only export;')),c);
+ const hms={magic:{list:{schools:[{name:'Water',spells:[{name:'Known spell',status:'known'},...Array.from({length:1000},(_,i)=>({name:'Reference '+i,status:'locked',effect:'x'.repeat(1000)}))]}]}},techniques:{schools:[{spells:[{name:'Training',status:'study'},{name:'Locked',status:'locked'}]}]}};
+ const before=JSON.stringify(hms),captured=c.trackerSnapshotCapture(hms);assert.equal(captured.hms.magic.list.schools[0].spells.length,1);assert.equal(captured.hms.techniques.schools[0].spells.length,1);assert(JSON.stringify(captured).length<300000);assert.equal(JSON.stringify(hms),before);
+}
+snapshotCatalogueBudget();
+async function snapshotReload(){
+ const r=runtime(),c=r.ctx,records=new Map();let storageWrites=0;
+ c.spindle.storage.setJson=async(k,v)=>{records.set(k,structuredClone(v));storageWrites++};
+ c.spindle.storage.getJson=async(k,options)=>records.has(k)?structuredClone(records.get(k)):options?.fallback??null;
+ const st=c.emptyChatState();st.xpAdjust=37;st.spellbook=[{name:'Established'}];st.family={pins:{mother:{where:'Study'}}};
+ c.trackerSnapshotEdit(st,{op:'save',name:'Before travel',view:{hms:{hud:{lines:[{text:'Past yard'}]}}}});
+ c.trackerSnapshotEdit(st,{op:'restore',id:st.trackerSnapshots[0].id});await c.saveChatState('reload',st);
+ r.run("chatStateCache.delete('reload')");const loaded=await c.getChatState('reload');assert.equal(c.trackerSnapshotPanel(loaded).active,'tracker-snapshot-1');assert.equal(loaded.xpAdjust,37);assert.equal(loaded.spellbook[0].name,'Established');assert.equal(loaded.family.pins.mother.where,'Study');assert.equal(storageWrites,2);assert.equal(r.writes.length,0);
+}
+snapshotReload().catch(e=>{console.error(e);process.exitCode=1;});

@@ -1,22 +1,15 @@
 # Changelog — RPG Companion HMS Edition
 
 ## 3.1.0 RC — Staging features (unpublished)
-
 - Add optional read-only HUD consistency warnings for missing HUDs, backward clocks and explicit start-setting contradictions.
-
 - Label off-scene family locations as last seen/known and collapse older activity.
-
 - Reuse existing character context as a scene-cast reminder without prompt growth.
-
 - Add a read-only local Markdown character-sheet download.
-
 - Add up to ten named read-only tracker snapshots; restoring never replays gameplay.
-
 - Add a lazy, bounded Minds relationship graph with directed links.
-
 - Add an evidence-only Sandbox canon-event view; dates never imply outcomes.
-
 - Add optional compact mobile cards and a sticky scene/quest summary.
+
 
 ## 3.0.10 RC — Quest assignment continuity
 
