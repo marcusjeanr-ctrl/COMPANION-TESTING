@@ -1,5 +1,22 @@
 # Changelog — RPG Companion HMS Edition
 
+## 3.0.6 RC — Universal Agenda identity
+
+- Reconcile equivalent appointment wording, participant honorifics/order and
+  location punctuation using independent context; preserve substantive differences.
+- Preserve outcome/correction observations within duplicate extraction packets.
+- Recognize equivalent bell-time descriptions without inventing a clock/date;
+  anchor explicitly continued relative countdowns to their established schedule.
+- Consolidate matching saved reports/manual additions in the derived Agenda,
+  retaining stable keys, outcome history and corrections through duplicate aliases.
+- Preserve explicit separate sessions, clock windows, recurring dates, reschedules
+  and completion history; reject premature outcomes contradicted by their source.
+- NPC daily routines alone no longer start the player's appointment.
+- Agenda-only runtime changes; no UI redesign, save migration, model calls,
+  polling, Quest/NPC/Magic/Inventory engine changes or additional history pass.
+- Ambiguous/free-form identities remain conservative; live Lumiverse verification
+  is still required. RC regression checks do not guarantee every narrator wording.
+
 ## 3.0.5 RC — Agenda occurrence and quest stage continuity
 
 - Keep repeated bare clock times on their stated day instead of silently moving
