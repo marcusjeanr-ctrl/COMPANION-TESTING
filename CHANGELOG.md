@@ -2,6 +2,7 @@
 
 ## 3.1.0 RC — Staging features (unpublished)
 
+- Display Elementary spell ranks as Beginner when that is the HUD’s rank terminology.
 - Recognize explicit “Available; inactive at rest” consistency directives.
 - Preserve HUD ability labels in character-sheet exports.
 - Add optional read-only HUD consistency warnings for missing HUDs, backward clocks and explicit start-setting contradictions.

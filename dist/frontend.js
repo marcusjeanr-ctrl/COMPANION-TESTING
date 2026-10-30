@@ -1133,8 +1133,10 @@ function characterSheetMarkdown(view, tr = x => x) {
         out.push(...(rows.length ? rows.map(row => '- ' + clean(row)) : ['- ' + tr('No recorded data')]), '');
     };
     section('World state', (hms.hud?.lines || []).map(l => l.text));
-    const known = list => (list?.schools || []).flatMap(g => (g.spells || []).filter(s => ['known','mastered'].includes(s.status)).map(s => `${s.name}${s.rank ? ' (' + s.rank + ')' : ''} — ${tr(s.status === 'mastered' ? 'Mastered' : 'Known')}`));
-    const spells = known(hms.magic?.list);
+    const beginnerTerm = (hms.hud?.lines || []).some(l => /^magic(?: tiers?| schools?)?\s*:/i.test(l.text || '') && /(?:[:(]\s*Beginner\b)/i.test(l.text));
+    const spellRank = rank => beginnerTerm && /^Elementary$/i.test(String(rank)) ? 'Beginner' : rank;
+    const known = (list, rankLabel = rank => rank) => (list?.schools || []).flatMap(g => (g.spells || []).filter(s => ['known','mastered'].includes(s.status)).map(s => `${s.name}${s.rank ? ' (' + rankLabel(s.rank) + ')' : ''} — ${tr(s.status === 'mastered' ? 'Mastered' : 'Known')}`));
+    const spells = known(hms.magic?.list, spellRank);
     const spellNames = new Set((hms.magic?.list?.schools || []).flatMap(g => (g.spells || []).filter(s => ['known','mastered'].includes(s.status)).map(s => String(s.name).toLowerCase())));
     for (const sp of hms.magic?.spellbook || []) if (!spellNames.has(String(sp.name).toLowerCase())) {spells.push(sp.name);spellNames.add(String(sp.name).toLowerCase());}
     section('Known spells', spells);

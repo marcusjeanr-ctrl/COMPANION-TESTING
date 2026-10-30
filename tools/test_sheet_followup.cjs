@@ -15,3 +15,12 @@ assert(abilities.includes('Mana Capacity: Vast'),abilities);
 assert.equal(JSON.stringify(view),before);assert.equal(r.writes.length,0);
 console.log('Sheet follow-up: actual HUD ability labels retained; input and stored metadata unchanged.');
 module.exports={sheet};
+function spellRankTerms(){
+ const make=sheet(),spell={name:'Water Bolt',rank:'Elementary',status:'known'},higher={name:'Water Jet',rank:'Intermediate',status:'known'};
+ for(const [hudText,expected] of [[hud(),'Beginner'],[hud().replace('Fire (Beginner)','Fire (Elementary)'),'Elementary'],['','Elementary'],[hud().replace('Fire (Beginner)','Fire (Elementary)')+'\nQuest: Learn a Beginner spell','Elementary']]){
+  const v={hms:{hud:{lines:hudText?r.ctx.parseHud(hudText).lines:[]},magic:{list:{schools:[{spells:[spell,higher]}]}}}};
+  const before=JSON.stringify(v),section=make(v).split('## Known spells\n')[1].split('\n## ')[0];
+  assert(section.includes('Water Bolt ('+expected+')'),section);assert(section.includes('Water Jet (Intermediate)'));assert.equal(JSON.stringify(v),before);
+ }
+}
+spellRankTerms();

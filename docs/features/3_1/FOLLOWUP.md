@@ -38,3 +38,18 @@ All 55 suites, release identity and syntax checks passed. Post-change smoke:
 600-message cold/warm 234.11/64.42 ms; parse/response/prompt
 0.7487/1.1020/0.4793 ms; prompt lengths unchanged. These are uncontrolled smoke
 samples; item 4 is the merge-gating comparison.
+
+## Item 3 — HUD spell-rank vocabulary
+
+Before: a known lorebook spell ranked Elementary exported as Elementary even
+when the HUD used Beginner. The new regression failed before the change.
+After: the Known spells section shows Beginner when the actual HUD magic-tier/
+school fields use that term. Elementary-only or missing HUDs retain Elementary;
+unrelated quest text cannot activate the substitution. Higher ranks and stored
+spell objects remain unchanged. Technique ranks are outside this spell-only fix.
+
+Files: `dist/frontend.js`, `tools/test_sheet_followup.cjs`, `CHANGELOG.md`, this
+report. This is display formatting only; the HUD term stays literal, not translated
+or written into the catalogue. No new UI translation keys were introduced.
+All 55 suites, syntax/release checks passed. Smoke cold/warm: 433.25/69.27 ms;
+parse/response/prompt: 1.0642/1.0853/0.5515 ms; prompt lengths unchanged.
