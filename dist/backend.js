@@ -13223,6 +13223,8 @@ function agendaContinuationCue(row, lines) {
         if (/\b(?:same|earlier|previous|ongoing)\b/i.test(line) &&
             /\b(?:finished|completed|concluded|ended|kept|missed|cancelled|canceled|called off)\b/i.test(line)) return 'terminal';
         if (/\b(?:continues?|continuing|ongoing|uninterrupted|still)\b/i.test(line)) return 'active';
+        if (row.state === 'in_progress' && words.filter(word => observed.has(word)).length >= 2 &&
+            /\b(?:is|are|remains?)\s+(?:underway|in progress)\b/i.test(line)) return 'active';
     }
     return false;
 }
@@ -13285,7 +13287,7 @@ function agendaRead(chat, st) {
     const find = (key, row = null, dueAt = null) => {
         if (!row) {
             const exact = items.find(x => x.key === key); if (exact) return exact;
-            const linked = aliases.get(key) || aliases.get(key.replace(/ :: \d+$/, ''));
+            const linked = aliases.get(key) || (key.split(' :: ').length >= 5 ? aliases.get(key.replace(/ :: \d+$/, '')) : null);
             if (linked?.size === 1) return [...linked][0];
         }
         const matches = items.filter(x => (lockKey(x.what) === key || agendaSame(lockKey(x.what), key) || row && agendaTitleEquivalent(x, row)) && compatible(x, row, dueAt));

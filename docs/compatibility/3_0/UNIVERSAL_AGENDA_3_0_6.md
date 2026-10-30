@@ -21,6 +21,8 @@ parser, Quest/NPC/Magic/Inventory engines, extraction schema and prompts are unc
   o’clock bell”; it does **not** assign clock minutes or a calendar date. Existing
   exact-date/time parsing remains authoritative. Source-confirmed continued relative
   countdowns reuse their established deadline rather than restarting the countdown.
+  Active same-appointment reports with an asserted “is underway”/“is in progress”
+  also retain one occurrence; they do not require the literal word “continues”.
 - Bare clocks on past outcome reports could roll into tomorrow, then collide with
   tomorrow's real recurring occurrence. Agenda-only anchoring keeps that outcome on
   its observed day and reconciles pending/outcome rows within one packet. Newly

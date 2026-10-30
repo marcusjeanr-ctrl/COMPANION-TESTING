@@ -2,12 +2,12 @@
   "version": "3.0.6 RC",
   "baselineCommit": "ab863217c639ae86cd37233b645a1f113e3cd1c7",
   "baselineBackendSha256": "0580be9a0120dc4e9a489bc6b98f4114d9b20a325657832641e3ab2029a9a5ba",
-  "candidateBackendSha256": "7c43bbe8ec18c997cdd866956722a2bb3a3343b2e44e34c4dafb66f5e8a56f18",
+  "candidateBackendSha256": "9a91570499555fa9a6ec10823e84d3a28faa4745e2c68b7ecb5b8696f3647a64",
   "runtime": "Node v22.22.2",
   "checks": {
-    "newAgendaGroups": 21,
+    "newAgendaGroups": 22,
     "baselinePassesNewGroups": 4,
-    "candidatePassesNewGroups": 21,
+    "candidatePassesNewGroups": 22,
     "completeRegressionSuites": 47,
     "bundleSyntaxChecks": 2,
     "chromiumUiChecks": 25,
@@ -17,13 +17,13 @@
     "unexpectedNonAgendaRuntimeFunctionChanges": []
   },
   "performance": {
-    "method": "Existing panel/pipeline runners: two paired rounds, reversed file order in round 2; 2000 source-bound messages, full Six-Sided and Living World fixtures; cold read, three warmups, ten warm samples per panel run. Pipeline runner measures five warmed rounds. Additional panel corroboration reuses the same runner setup in two VM contexts in one process, three warmups and twelve alternating samples; first file reversed between cards. Agenda-only comparison: 1000 source-bound reports, four warmups and twelve alternating VM samples. No concurrent browser/regression workload during measurements.",
-    "limitations": "Cloud load/JIT/GC variance is substantial; full-panel results differ across order and runs, including slower candidate medians. No across-board speedup, exact zero-overhead or live Android responsiveness claim. Isolated Agenda median difference was about 0.97 ms across 1000 reports; host/model call counts and prompt sizes unchanged.",
+    "method": "Existing panel/pipeline runners: two paired rounds, reversed file order in round 2; 2000 source-bound messages, full Six-Sided and Living World fixtures; cold read, three warmups, ten warm samples per panel run. Pipeline runner measures five warmed rounds. Agenda-only comparison: 1000 source-bound reports, four warmups and twelve alternating VM samples. No concurrent browser/regression workload during measurements.",
+    "limitations": "Cloud load/JIT/GC variance is substantial. No across-board speedup, exact zero-overhead or live Android responsiveness claim. Isolated Agenda median difference was 1.70 ms across 1000 reports; host/model call counts and prompt sizes unchanged.",
     "standardRunnerResults": [
       {
         "messages": 2000,
-        "coldMs": 590.98,
-        "medianMs": 133.77,
+        "coldMs": 623.97,
+        "medianMs": 147.01,
         "warnings": 0,
         "round": 1,
         "card": "six_sided_world",
@@ -32,8 +32,8 @@
       },
       {
         "messages": 2000,
-        "coldMs": 516.31,
-        "medianMs": 136.44,
+        "coldMs": 572.7,
+        "medianMs": 147.88,
         "warnings": 0,
         "round": 1,
         "card": "six_sided_world",
@@ -42,8 +42,8 @@
       },
       {
         "messages": 2000,
-        "coldMs": 1448.06,
-        "medianMs": 148.84,
+        "coldMs": 1259.26,
+        "medianMs": 157.46,
         "warnings": 0,
         "round": 1,
         "card": "living_world",
@@ -52,8 +52,8 @@
       },
       {
         "messages": 2000,
-        "coldMs": 1211.68,
-        "medianMs": 196.01,
+        "coldMs": 1217.41,
+        "medianMs": 151.42,
         "warnings": 0,
         "round": 1,
         "card": "living_world",
@@ -61,9 +61,9 @@
         "implementation": "candidate"
       },
       {
-        "parseReportMedianMs": 0.517,
-        "processResponseMedianMs": 0.7507,
-        "promptConstructMedianMs": 0.345,
+        "parseReportMedianMs": 0.7358,
+        "processResponseMedianMs": 1.1037,
+        "promptConstructMedianMs": 0.4596,
         "promptCharacters": 15107,
         "populatedPromptCharacters": 19029,
         "warnings": 0,
@@ -72,9 +72,9 @@
         "implementation": "baseline"
       },
       {
-        "parseReportMedianMs": 0.5417,
-        "processResponseMedianMs": 0.7483,
-        "promptConstructMedianMs": 0.3393,
+        "parseReportMedianMs": 0.6893,
+        "processResponseMedianMs": 0.9729,
+        "promptConstructMedianMs": 0.4611,
         "promptCharacters": 15107,
         "populatedPromptCharacters": 19029,
         "warnings": 0,
@@ -84,8 +84,8 @@
       },
       {
         "messages": 2000,
-        "coldMs": 788.53,
-        "medianMs": 183.06,
+        "coldMs": 740.99,
+        "medianMs": 174.76,
         "warnings": 0,
         "round": 2,
         "card": "six_sided_world",
@@ -94,8 +94,8 @@
       },
       {
         "messages": 2000,
-        "coldMs": 672.56,
-        "medianMs": 170.38,
+        "coldMs": 661.94,
+        "medianMs": 166.48,
         "warnings": 0,
         "round": 2,
         "card": "six_sided_world",
@@ -104,8 +104,8 @@
       },
       {
         "messages": 2000,
-        "coldMs": 1731.12,
-        "medianMs": 176.65,
+        "coldMs": 1424.71,
+        "medianMs": 173.44,
         "warnings": 0,
         "round": 2,
         "card": "living_world",
@@ -114,8 +114,8 @@
       },
       {
         "messages": 2000,
-        "coldMs": 1387.72,
-        "medianMs": 181.69,
+        "coldMs": 1341.76,
+        "medianMs": 171.71,
         "warnings": 0,
         "round": 2,
         "card": "living_world",
@@ -123,9 +123,9 @@
         "implementation": "baseline"
       },
       {
-        "parseReportMedianMs": 0.5357,
-        "processResponseMedianMs": 0.6977,
-        "promptConstructMedianMs": 0.3133,
+        "parseReportMedianMs": 0.617,
+        "processResponseMedianMs": 0.8218,
+        "promptConstructMedianMs": 0.369,
         "promptCharacters": 15107,
         "populatedPromptCharacters": 19029,
         "warnings": 0,
@@ -134,109 +134,15 @@
         "implementation": "candidate"
       },
       {
-        "parseReportMedianMs": 0.5326,
-        "processResponseMedianMs": 0.7087,
-        "promptConstructMedianMs": 0.393,
+        "parseReportMedianMs": 0.5803,
+        "processResponseMedianMs": 0.8672,
+        "promptConstructMedianMs": 0.4027,
         "promptCharacters": 15107,
         "populatedPromptCharacters": 19029,
         "warnings": 0,
         "round": 2,
         "kind": "pipeline",
         "implementation": "baseline"
-      }
-    ],
-    "pairedPanelCorroboration": [
-      {
-        "kind": "paired-panel",
-        "messages": 2000,
-        "coldMs": 726.5986930000004,
-        "medianMs": 169.05897949999962,
-        "samplesMs": [
-          167.4802749999999,
-          169.2410949999994,
-          160.23275600000034,
-          168.64149999999972,
-          193.87763300000006,
-          178.71702800000003,
-          252.52487199999996,
-          157.90532100000019,
-          180.0837190000002,
-          184.2689190000001,
-          158.97154500000033,
-          168.87686399999984
-        ],
-        "warnings": 0,
-        "implementation": "baseline",
-        "card": "six_sided_world"
-      },
-      {
-        "kind": "paired-panel",
-        "messages": 2000,
-        "coldMs": 649.6149560000003,
-        "medianMs": 194.49962549999964,
-        "samplesMs": [
-          183.32942100000037,
-          596.9783420000003,
-          174.63221900000008,
-          194.10314800000015,
-          195.98072500000035,
-          171.5107510000007,
-          273.5729389999997,
-          173.869189,
-          194.89610299999913,
-          229.3202799999999,
-          256.23135399999956,
-          156.63838400000168
-        ],
-        "warnings": 0,
-        "implementation": "candidate",
-        "card": "six_sided_world"
-      },
-      {
-        "kind": "paired-panel",
-        "messages": 2000,
-        "coldMs": 1491.6631060000004,
-        "medianMs": 206.64699099999962,
-        "samplesMs": [
-          175.65155400000003,
-          391.3127109999996,
-          260.90786600000047,
-          261.9417429999994,
-          186.1816060000001,
-          399.5656770000005,
-          166.93564399999923,
-          428.8927169999988,
-          227.11237599999913,
-          171.40713900000083,
-          172.6173720000006,
-          182.08750999999938
-        ],
-        "warnings": 0,
-        "implementation": "candidate",
-        "card": "living_world"
-      },
-      {
-        "kind": "paired-panel",
-        "messages": 2000,
-        "coldMs": 1390.214167,
-        "medianMs": 209.83504100000027,
-        "samplesMs": [
-          181.48394300000018,
-          209.61595099999977,
-          284.39622299999974,
-          437.4447060000002,
-          210.05413100000078,
-          231.50185799999963,
-          188.68801499999972,
-          560.093057,
-          228.4065759999994,
-          168.41267499999958,
-          186.44629600000007,
-          144.37303799999972
-        ],
-        "warnings": 0,
-        "implementation": "baseline",
-        "card": "living_world"
       }
     ],
     "agendaOnlyCorroboration": [
@@ -244,40 +150,40 @@
         "kind": "agenda-only",
         "reports": 1000,
         "samplesMs": [
-          21.15374799999995,
-          19.775024999999914,
-          24.68067999999994,
-          20.708393000000115,
-          19.467640000000074,
-          17.033465999999862,
-          18.567285999999967,
-          22.220191999999997,
-          20.197347000000036,
-          21.554118000000017,
-          18.80126199999995,
-          16.898218999999926
+          22.20340599999986,
+          22.590166999999838,
+          24.329381999999896,
+          70.39441000000011,
+          40.00914199999988,
+          20.905320999999958,
+          25.757532000000083,
+          19.553875000000062,
+          22.882813999999826,
+          23.561601999999993,
+          20.02031800000009,
+          30.443430000000035
         ],
-        "medianMs": 19.986185999999975,
+        "medianMs": 23.22220799999991,
         "implementation": "baseline"
       },
       {
         "kind": "agenda-only",
         "reports": 1000,
         "samplesMs": [
-          21.68058700000006,
-          25.27833099999998,
-          21.274905999999874,
-          28.08864399999993,
-          20.32451900000001,
-          20.64134799999988,
-          23.271080999999867,
-          24.49074900000005,
-          19.203224999999975,
-          19.055421000000024,
-          19.50912399999993,
-          18.272204999999985
+          34.07122000000004,
+          23.81200899999999,
+          27.98099100000013,
+          22.71393000000012,
+          42.12080399999991,
+          26.036357999999836,
+          26.460154000000102,
+          26.47245799999996,
+          21.496361999999863,
+          20.030087999999978,
+          22.42871699999978,
+          21.177776999999878
         ],
-        "medianMs": 20.958126999999877,
+        "medianMs": 24.924183499999913,
         "implementation": "candidate"
       }
     ]

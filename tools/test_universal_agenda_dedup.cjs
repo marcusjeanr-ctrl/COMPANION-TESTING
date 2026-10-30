@@ -41,6 +41,11 @@ test('A repeated relative countdown with explicit continuity keeps its establish
     const c=setup().ctx,a={...base,when:'in ten minutes'},chat=[msg(c,'a',[a]),msg(c,'b',[a],{time:'08:05',body:'The same supply contract review appointment is still pending.'})];
     const rows=read(c,chat);assert.equal(rows.length,1);assert.equal(rows[0].dueAt,read(c,chat.slice(0,1))[0].dueAt);
 });
+test('An ongoing appointment does not require the literal word continues on every turn', () => {
+    const c=setup().ctx,a={...base,when:'now',state:'in_progress'};
+    const chat=[0,1,2].map(i=>msg(c,'ongoing'+i,[a],{time:'08:'+String(i*5).padStart(2,'0'),body:'The supply contract review is underway.'}));
+    const rows=read(c,chat);assert.equal(rows.length,1);assert.equal(rows[0].state,'in_progress');assert.equal(rows[0].dueAt,read(c,chat.slice(0,1))[0].dueAt);
+});
 test('Legacy saved duplicate rows consolidate without changing input metadata', () => {
     const c=setup().ctx,a={...base,key:'review the supply contract'},b={...a,key:'legacy-duplicate',what:'Supply contract review meeting with Nia Vale',with:'Nia Vale',state:'kept'};
     const chat=JSON.parse(JSON.stringify([msg(c,'saved',[a,b],{raw:true,time:'09:15'})])),before=JSON.stringify(chat);
@@ -61,6 +66,8 @@ test('Previously generated duplicate control keys retain manual corrections afte
     // An ambiguous historical control cannot transfer to a different recurring day.
     const recurring=[msg(c,'a',[base]),msg(c,'b',[base],{day:9})],key='review the supply contract :: dr. nia vale :: orbital station, briefing room :: 09:00 :: 99';
     assert(read(c,recurring,{agenda:{edits:{[key]:{state:'kept',after:'b'}}}}).every(x=>x.state==='open'));
+    const unrelated=base.what.toLowerCase()+' :: 2';
+    assert(read(c,chat,{agenda:{edits:{[unrelated]:{state:'kept',after:'b'}}}}).every(x=>x.state==='open'),'A different numbered title is not a legacy compound control key');
 });
 test('An explicitly separate occurrence is never deduplicated just because its fields repeat', () => {
     const c=setup().ctx,chat=[msg(c,'a',[base]),msg(c,'b',[base],{body:'A second separate supply contract review meeting is scheduled.'})];
