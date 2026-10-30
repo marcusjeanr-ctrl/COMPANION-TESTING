@@ -2530,7 +2530,7 @@ async function pushState(chatId, snapshot = null) {
 // Demo mode plays scripted turns (no tokens); Live mode asks the model, with a small
 // world narrator standing in for a bot card.
 
-const RPGC_VERSION = '3.0.8';
+const RPGC_VERSION = '3.0.9';
 const diagLog = [];
 function diagPush(kind, m) { diagLog.push({ at: new Date().toISOString(), kind, text: String(m).slice(0, 400) }); if (diagLog.length > 60) diagLog.shift(); }
 function logW(m) { diagPush('warn', m); return spindle.log.warn(m); }
@@ -10811,7 +10811,10 @@ function hmsPanelStateRead(chatId, chat, st) {
                     const attach = (q) => { const d = find(q); if (!d) return q; const when = whenOf(d); return { ...q, ...d, key: q.key || d.key, name: q.name, ...(q.state && d.lifecycleEvidence?.msgId !== tl.at(-1)?.msg.id ? { state: q.state, cls: q.cls } : {}), dueIn: when !== null && now !== null ? when - now : null }; };
                     systems.quests = questUnique(systems.quests.map(attach));
                     for (const d of det) if (!systems.quests.some(q => questMatch(q, d))) { const when = whenOf(d); systems.quests.push({ ...d, state: d.state || null, cls: d.cls || 'active', fromStory: true, dueIn: when !== null && now !== null ? when - now : null }); }
-                    systems.questFocus = st.questFocus || null;
+                    const focus = st.questFocus || null;
+                    const focused = focus ? systems.quests.filter(q => questKey(q.key) === questKey(focus) ||
+                        [q.name, ...(Array.isArray(q.questAliases) ? q.questAliases : [])].some(name => questKey(name) === questKey(focus))) : [];
+                    systems.questFocus = focused.length === 1 ? focused[0].key : focus;
                 }
             } catch (e) { logW(`[RPG Companion HMS] You/Magic read failed: ${e?.message || e}`); }
             // A party member in agony or at the end of their strength is a danger, not a mood.
@@ -13104,7 +13107,7 @@ function agendaTitleEquivalent(a, b) {
 function agendaTimeKey(value) {
     let text = agendaTextKey(value);
     // These are equivalent trigger descriptions, not a newly inferred date/time.
-    text = text.replace(/\bwhen the bell rings at (\w+)\b/g, 'at $1 bell')
+    text = text.replace(/\b(?:when )?(?:the )?bell rings at (\w+)\b/g, 'at $1 bell')
         .replace(/\b(one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve) o'?clock\b/g, '$1')
         .replace(/\b(?:at|the|today|this)\b/g, '').replace(/\s+/g, ' ').trim();
     return text;
@@ -13114,7 +13117,7 @@ function agendaTimeKey(value) {
 function agendaBellClock(value) {
     const text = String(value || '').toLowerCase().replace(/[’‘]/g, "'").trim();
     if (!text.includes('bell')) return null;
-    const m = text.match(/^(?:when (?:the )?bell rings at |(?:at )?(?:the )?)(\d{1,2}|one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|noon|midnight)(?:\s+o'clock)?(?:\s+(am|pm))?(?: bell)?$/);
+    const m = text.match(/^(?:(?:when )?(?:the )?bell rings at |(?:at )?(?:the )?)(\d{1,2}|one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|noon|midnight)(?:\s+o'clock)?(?:\s+(am|pm))?(?: bell)?$/);
     if (!m) return null;
     let hour = m[1] === 'noon' ? 12 : m[1] === 'midnight' ? 0 : AGENDA_NUM[m[1]] ?? Number(m[1]);
     if (!Number.isFinite(hour) || hour > 23 || (m[2] && (hour < 1 || hour > 12))) return null;
@@ -13144,19 +13147,22 @@ function agendaRefreshReport(current, previous, message) {
     return current.map(row => {
         if (row.moved) return row;
         const bell = agendaBellClock(row.when);
-        if (bell === null && !agendaBareClock(row.when)) return row;
+        const broad = agendaVaguePeriod(row.when);
+        const daypart = broad && !broad.phase;
+        if (bell === null && !agendaBareClock(row.when) && !daypart) return row;
         const clock = agendaClockPart(row.when);
         const matches = previous.slice(0, 10).filter(old => old && typeof old.what === 'string' && lockKey(old.what) === lockKey(row.what) &&
             (!old.with || !row.with || agendaPeopleSame(old.with, row.with)) &&
             (!old.where || !row.where || agendaPlaceCompatible(old.where, row.where, true, {before:place, after:place})) &&
             (!row.due || old.due && lockKey(old.due) === lockKey(row.due)) &&
-            (bell !== null && agendaBareClock(old.when) && agendaClockPart(old.when) === bell ||
+            (daypart && agendaDaypartContains(row.when, agendaBellClock(old.when) ?? agendaClockPart(old.when)) ||
+             bell !== null && agendaBareClock(old.when) && agendaClockPart(old.when) === bell ||
              agendaBareClock(row.when) && (agendaBellClock(old.when) === clock || agendaBareClock(old.when) && agendaClockPart(old.when) === clock)));
         if (!matches.length) return row;
         const old = matches[0];
         if (matches.length > 1 && matches.some(other => ['with','where','when','due','moved'].some(f => lockKey(other[f]) !== lockKey(old[f])))) return row;
         const state = matches.reduce((state, observation) => agendaReportedState(observation, {}, null, null, state), 'open');
-        const retainClock = bell !== null && !row.due;
+        const retainClock = (bell !== null || daypart) && !row.due;
         return {...row, when:retainClock ? old.when : row.when, due:row.due || old.due || null,
             where:agendaPlaceDetail(old.where, row.where), with:row.with || old.with,
             state:agendaReportedState(row, {}, null, null, state), ...(old.moved ? {moved:true} : {})};
@@ -13234,11 +13240,12 @@ function agendaReportedState(row, data, at, dueAt, previous = 'open', source = n
 
 function agendaPlaceCompatible(a, b, refine = false, context = null) {
     if (a === b) return true;
-    const A = lockKey(a || ''), B = lockKey(b || '');
+    // A leading article is grammatical context, not a different venue.
+    const placeKey = value => agendaTextKey(value).replace(/^the\s+/, '');
+    const A = placeKey(a), B = placeKey(b);
     if (A === B) return true;
-    if (agendaTextKey(a) === agendaTextKey(b)) return true;
-    const short = A.length < B.length ? agendaTextKey(a) : agendaTextKey(b);
-    const long = A.length < B.length ? agendaTextKey(b) : agendaTextKey(a);
+    const short = A.length < B.length ? A : B;
+    const long = A.length < B.length ? B : A;
     const aliasScene = agendaTextKey(A.length < B.length ? context?.before : context?.after);
     const venue = long.slice(0, -short.length).trim();
     if (short && !short.includes(' ') && !/^(?:annex|wing|extension)$/.test(short) && long.endsWith(' ' + short) &&
@@ -13410,9 +13417,10 @@ function agendaRead(chat, st) {
             if (scheduleDay !== null) it.scheduleDay = scheduleDay;
             if (r.with) it.with = r.with;
             if (r.where) it.where = r.moved || moved ? r.where : agendaPlaceDetail(it.where, r.where);
-            const keepClock = dueAt === null && it.dueAt != null && agendaBellClock(r.when) !== null && agendaBellClock(r.when) === agendaClockPart(it.when);
+            const keepClock = dueAt === null && (it.dueAt != null && agendaBellClock(r.when) !== null && agendaBellClock(r.when) === agendaClockPart(it.when) ||
+                !r.moved && !moved && agendaDaypartContains(r.when, agendaBellClock(it.when) ?? agendaClockPart(it.when)));
             if (r.when || r.due) { if (r.when && !keepClock) it.when = r.when; if (dueAt !== null || r.moved || moved) it.dueAt = dueAt; if (dueAt === null && r.due && !keepClock) it.when = r.when || r.due; }
-            if (r.when || r.due) { it.clockOnly = clockOnly; it.clockMinute = observation.clockMinute; }
+            if ((r.when || r.due) && !keepClock) { it.clockOnly = clockOnly; it.clockMinute = observation.clockMinute; }
             if (r.kind) it.kind = r.kind;
             const state = agendaReportedState({ ...r, scheduleDay, ...(moved ? { moved: true } : {}) }, d, at, it.dueAt, it.state, m);
             if (state !== it.state) it.history.push({ from: it.state, to: state, at });
@@ -16702,8 +16710,40 @@ function questAssignmentRefinement(a, b) {
     return [...pa].filter(w => pb.has(w)).length >= 2;
 }
 
+/** Recognize a renamed victory challenge only with independent assignment
+ * anchors. This is not general semantic similarity or reward-only matching. */
+function questChallengeMatch(a, b) {
+    if (!a.giver || !b.giver || !relSameWords(a.giver, b.giver) || !a.where || !b.where || !questPlaceCompatible(a.where, b.where)) return false;
+    if (a.category && b.category && a.category !== b.category) return false;
+    if ((questReportedState(a.state)?.cls || a.cls || 'active') !== 'active') return false;
+    if (a.deadline && b.deadline && agendaTimeKey(a.deadline) !== agendaTimeKey(b.deadline)) return false;
+    const reward = value => questObjectiveKey(value).replace(/\b(?:arranged|promised)\b/g, '').replace(/\s+/g, ' ').trim();
+    const ar = reward(a.reward), br = reward(b.reward);
+    if (!ar || ar !== br || ar.split(' ').length < 3) return false;
+    const challenge = q => {
+        const text = questObjectiveKey(q.objective);
+        // Preserve restrictions, quantities, extra actions and separate rounds.
+        if (/…|\b(?:not|never|without|with|using|before|after|by|unless|except|only|and|first|second|third|another|additional|next|round|\d+)\b/.test(text)) return null;
+        let target = text.match(/^(?:defeat|beat|best)(?: or match)? (.+?)(?: or force (?:him|her|them) to acknowledge .+? as equal)?$/)?.[1] ||
+            text.match(/^win(?: or draw)? (?:spar|duel|match|bout|fight|contest|challenge) against (.+)$/)?.[1];
+        if (!target) return null;
+        const place = target.match(/ (?:in|at) (.+)$/);
+        if (place) {
+            const venue = questObjectiveKey(q.where).replace(/\bcourtyard\b/g, 'yard');
+            const location = place[1].replace(/\bcourtyard\b/g, 'yard');
+            if (!(' ' + venue + ' ').includes(' ' + location + ' ')) return null;
+            target = target.slice(0, place.index);
+        }
+        return /^[\p{L}][\p{L}'-]*(?: [\p{L}][\p{L}'-]*){0,3}$/u.test(target) && !/\b(?:or|in|at|to|for)\b/.test(target) ? target : null;
+    };
+    const target = challenge(a);
+    return !!target && target === challenge(b);
+}
+
 function questMatch(a, b) {
     if (!a || !b) return false;
+    if ((Array.isArray(a.separateQuestKeys) ? a.separateQuestKeys : []).includes(b.key || questKey(b.name)) ||
+        (Array.isArray(b.separateQuestKeys) ? b.separateQuestKeys : []).includes(a.key || questKey(a.name))) return false;
     if (a.giver && b.giver && !relSameWords(a.giver, b.giver)) return false;
     if (!questPlaceCompatible(a.where, b.where)) return questAssignmentRefinement(a, b);
     const ak = questKey(a.name || a.key), bk = questKey(b.name || b.key);
@@ -16711,7 +16751,7 @@ function questMatch(a, b) {
     if ((Array.isArray(a.questAliases) ? a.questAliases : []).some(n => questKey(n) === bk) || (Array.isArray(b.questAliases) ? b.questAliases : []).some(n => questKey(n) === ak)) return true;
     const objective = questObjectiveKey(a.objective);
     if (!objective || /…/.test(a.objective + b.objective)) return false;
-    if (objective !== questObjectiveKey(b.objective)) return questAssignmentRefinement(a, b);
+    if (objective !== questObjectiveKey(b.objective)) return questAssignmentRefinement(a, b) || questChallengeMatch(a, b);
     // A changed title needs independent context; a generic unanchored instruction is insufficient.
     return !!((a.giver && b.giver) || (a.where && b.where));
 }
@@ -16750,6 +16790,19 @@ function agendaVaguePeriod(text) {
     if (!parts.every(part => period(part) === period(parts[0]))) return null;
     const phase = parts.includes('dawn') ? 'dawn' : t.match(/\b(early|late)\s+(?:this\s+)?(?:morning|afternoon|evening|night)\b/)?.[1] || null;
     return { period: period(parts[0]), phase };
+}
+
+/** A broad daypart can restate an anchored hour without inventing a due time.
+ * Qualified/approximate windows and solar times remain distinct. */
+function agendaDaypartContains(text, clock) {
+    if (clock === null || clock === undefined) return false;
+    const part = agendaVaguePeriod(text);
+    if (!part || part.phase) return false;
+    const hour = clock / 60;
+    return part.period === 'morning' ? hour >= 6 && hour < 12 :
+        part.period === 'afternoon' ? hour >= 12 && hour < 18 :
+        part.period === 'evening' ? hour >= 18 && hour < 22 :
+        part.period === 'night' ? hour >= 22 || hour < 6 : false;
 }
 
 function agendaScheduleCompatible(a, b, dueAt, refine = false) {
@@ -16794,6 +16847,8 @@ function agendaScheduleCompatible(a, b, dueAt, refine = false) {
         const core = text => normalize(String(text || '').replace(/,\s*(?:after|before|once|when|if|provided)\b.*$/i, ''));
         if (core(a.when) === normalize(b.when || b.due) || core(b.when || b.due) === normalize(a.when)) return true;
     }
+    if (agendaDaypartContains(a.when, agendaBellClock(b.when || b.due)) ||
+        agendaDaypartContains(b.when || b.due, agendaBellClock(a.when))) return true;
     // A later explicit clock can refine a vague time; conflicting named days/dayparts remain separate.
     const boundary = text => String(text || '').match(/^\s*(before|after)\b/i)?.[1]?.toLowerCase() || '';
     const clockHint = text => agendaClockPart(text) !== null || /\bbell\b/i.test(text || '') && /\b(?:one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve)\b/i.test(text || '');
@@ -16935,8 +16990,19 @@ function questDetailsLatest(chat) {
             let continuityLines = null;
             for (const q of repeated ? [] : reported) {
                 if (!q || !q.name || q.accepted === false || reportSpeculative(q)) continue;
-                const exact = rows.filter(x => questKey(x.name) === questKey(q.name) && questMatch(x, q));
-                const candidates = exact.length ? exact : rows.filter(x => questMatch(x, q));
+                const separateKeys = new Set();
+                const matches = x => {
+                    if (!questMatch(x, q)) return false;
+                    if (questKey(x.name) !== questKey(q.name) && questChallengeMatch(x, q) &&
+                        (continuityLines ??= trackingContinuityLines(m)).some(line => trackingContinuityAsserted(line) && !/\bno\s+(?:new|additional|separate)\b/i.test(line) && /\b(?:another|second|separate|additional|new)\s+(?:\w+\s+){0,2}(?:quests?|assignments?|tasks?|missions?|objectives?|challenges?)\b/i.test(line))) {
+                        separateKeys.add(x.key); return false;
+                    }
+                    return true;
+                };
+                const exact = rows.filter(x => questKey(x.name) === questKey(q.name) && matches(x));
+                const candidates = exact.length ? exact : rows.filter(matches);
+                // An ambiguous paraphrase cannot choose or invent another assignment.
+                if (!exact.length && candidates.length > 1 && candidates.every(x => questChallengeMatch(x, q))) continue;
                 let row = candidates.length === 1 ? candidates[0] : null;
                 if (!candidates.length && rows.length) {
                     const stage = questStageContinuation(rows, q, reported, () => continuityLines ??= trackingContinuityLines(m));
@@ -16947,10 +17013,18 @@ function questDetailsLatest(chat) {
                         row.continuationEvidence = { msgId: m.id, quote: stage.quote.slice(0, 240), kind: 'quest-stage' };
                     }
                 }
+                const identityRefinement = row && questKey(row.name) !== questKey(q.name) && questChallengeMatch(row, q);
+                const explicitObjective = identityRefinement && q.objective && (continuityLines ??= trackingContinuityLines(m)).some(line =>
+                    trackingContinuityAsserted(line) && (' ' + questObjectiveKey(line) + ' ').includes(' ' + questObjectiveKey(q.objective) + ' '));
+                if (identityRefinement) row.identityHistory = [...(Array.isArray(row.identityHistory) ? row.identityHistory : []), { name: row.name, objective: row.objective,
+                    progress: row.progress, state: row.state, reward: row.reward, msgId: stageSources.get(row) || null }].slice(-40);
                 const deadlineChanged = !row || (q.deadline && q.deadline !== row.deadline);
-                if (!row) { row = { ...q, key: q.key || questKey(q.name) }; rows.push(row); }
+                if (!row) { row = { ...q, key: q.key || questKey(q.name) };
+                    if (separateKeys.size) row.separateQuestKeys = [...separateKeys];
+                    rows.push(row); }
                 if (row.name !== q.name) row.questAliases = [...new Set([...(row.questAliases || []), row.name, q.name])].slice(-40);
                 for (const [key, value] of Object.entries(q)) {
+                    if (key === 'objective' && identityRefinement && !explicitObjective && row.objective && value && row.objective.length > value.length) continue;
                     if (key === 'key' && row.key) continue;
                     if (key === 'where' && row.where && value && row.where.length > value.length) continue;
                     if (value !== null && value !== undefined && value !== '') row[key] = value;

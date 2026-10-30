@@ -428,6 +428,21 @@ class BrowserUi(unittest.TestCase):
         self.assertIn(row['note'],self.page.locator('.rpgc').inner_text())
         self.assertFalse(self.page.evaluate('!!window.bad'))
 
+    def test_export_identity_drift_renders_one_appointment_and_quest_after_restore(self):
+        hms=json.loads(subprocess.check_output(['node',str(ROOT/'tools/test_export_identity_drift.cjs'),'--browser-fixture'],text=True))
+        payload=json.loads(json.dumps(FIXTURE['payload']))
+        payload['hms']=hms
+        for _ in range(3):
+            self.receive(json.loads(json.dumps(payload)))
+            self.assertEqual(self.page.locator('.rpgc-agenda-item').count(),1)
+            self.assertEqual(self.page.locator('.rpgc-qcard').count(),1)
+            self.assertIn('Veyrath Hall courtyard',self.page.locator('.rpgc-agenda-item').inner_text())
+            self.assertIn('Defeat Cassian or force him to acknowledge Marcus as an equal',self.page.locator('.rpgc-qcard').inner_text())
+        self.assertEqual(hms['systems']['questFocus'],'prove yourself against cassian')
+        self.page.get_by_label('Unfocus this quest',exact=True).click()
+        event=self.page.evaluate("sent.filter(x=>x.type==='quest_focus').at(-1)")
+        self.assertEqual(event['key'],'prove yourself against cassian')
+
     def test_internal_states_tabs_and_collapse(self):
         self.page.add_style_tag(content=FIXTURE['statesCss'])
         self.page.evaluate('(html)=>{let reply=document.createElement("article");reply.id="reply";reply.innerHTML=html;document.body.append(reply)}',FIXTURE['internalStates'])

@@ -1,5 +1,18 @@
 # Changelog — RPG Companion HMS Edition
 
+## 3.0.9 RC — Export-reproduced Agenda and Quest identity fix
+
+- Reconcile leading location articles and equivalent bell trigger wording;
+  retain a specific bell label when a later report only says “Morning.”
+  A bell hint remains a hint, never an invented exact deadline.
+- Match renamed victory challenges only when the opponent, giver, location and
+  distinctive reward agree. Preserve restrictions, separate assignments, terminal
+  history, the first key, progress and fuller established quest conditions.
+- Retain prior quest descriptions as identity history and preserve focus saved
+  under a former quest label. Existing raw reports are not rewritten or deleted.
+- Verify the supplied export, repeated Separate updates, Together inline reports,
+  legacy controls and restored browser projections. No extra model calls/polling.
+
 ## 3.0.8 RC — Display-cache stability cleanup
 
 - Share concurrent Thoughts/Internal States history loads and fill their caches
