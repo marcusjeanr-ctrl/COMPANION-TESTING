@@ -2734,5 +2734,9 @@
  "Overused words": "Palavras repetidas",
  "No repeated wording flagged": "Nenhuma repetição sinalizada",
  "Avoid repeated wording in context (opt-in)": "Evitar repetições no contexto (opcional)",
- "Prose style is normally the preset's job. Off by default; uses spare context budget only.": "O estilo normalmente cabe à predefinição. Desativado por padrão; usa apenas espaço livre no contexto."
+ "Prose style is normally the preset's job. Off by default; uses spare context budget only.": "O estilo normalmente cabe à predefinição. Desativado por padrão; usa apenas espaço livre no contexto.",
+ "What could I do next?": "O que posso fazer agora?",
+ "Draft only — review and send yourself.": "Apenas rascunho — revise e envie você.",
+ "Chat composer unavailable": "Campo de mensagem indisponível",
+ "No supported next actions": "Nenhuma ação baseada nos dados"
 }

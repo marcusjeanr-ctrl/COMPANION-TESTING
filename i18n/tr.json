@@ -2734,5 +2734,9 @@
  "Overused words": "Sık tekrarlanan kelimeler",
  "No repeated wording flagged": "Tekrarlanan ifade bulunamadı",
  "Avoid repeated wording in context (opt-in)": "Bağlamda tekrarları azalt (isteğe bağlı)",
- "Prose style is normally the preset's job. Off by default; uses spare context budget only.": "Üslubu normalde önayar belirler. Varsayılan kapalıdır; yalnızca boş bağlam bütçesini kullanır."
+ "Prose style is normally the preset's job. Off by default; uses spare context budget only.": "Üslubu normalde önayar belirler. Varsayılan kapalıdır; yalnızca boş bağlam bütçesini kullanır.",
+ "What could I do next?": "Sonra ne yapabilirim?",
+ "Draft only — review and send yourself.": "Yalnızca taslak — gözden geçirip kendiniz gönderin.",
+ "Chat composer unavailable": "Sohbet yazma alanı kullanılamıyor",
+ "No supported next actions": "Verilere dayalı eylem yok"
 }

@@ -40,7 +40,7 @@ class BrowserUi(unittest.TestCase):
         self.page.add_script_tag(content=SOURCE)
         self.page.evaluate('''() => {
             window.sent=[]; window.hostEvents={}; window.activeChat={chatId:'test',characterId:'character'};
-            window.dispose=window.setup({dom:{addStyle(css){const s=document.createElement('style');s.textContent=css;document.head.append(s);return ()=>s.remove();}},
+            window.dispose=window.setup({composer:{getState(){return {mounted:window.composerMounted!==false,chatId:activeChat.chatId,text:window.draft||''}},setText(text){window.draft=text},focus(){window.composerFocused=true},send(){throw new Error('Must never send a draft')}},dom:{addStyle(css){const s=document.createElement('style');s.textContent=css;document.head.append(s);return ()=>s.remove();}},
             ui:{registerDrawerTab(){return {root:document.querySelector('#drawer'),activate(){},destroy(){}};},
                 registerInputBarAction(){return {onClick(){},setEnabled(){},destroy(){}};}},
             sendToBackend(x){sent.push(x)},onBackendMessage(fn){window.receive=fn;return ()=>{};},
@@ -71,6 +71,21 @@ class BrowserUi(unittest.TestCase):
         self.page.evaluate("p=>receive(p)",{'type':'play_prose','chatId':'test','requestKey':self.page.evaluate("sent.findLast(x=>x.type==='play_prose').requestKey"),'replyId':FIXTURE['payload']['hms']['messageId'],'rows':[],'repetition':[{'text':'sharp','count':8,'total':10}]})
         self.assertIn('sharp · 8/10',pane.inner_text())
         pane.locator('summary').click();self.assertFalse(pane.locator('li').first.is_visible())
+
+
+    def test_next_actions_only_edit_the_composer_draft(self):
+        payload=json.loads(json.dumps(FIXTURE['payload']))
+        payload['data']['characters']=[{'name':'Clerk'}]
+        self.receive(payload)
+        pane=self.page.locator('[data-open-key=play-next-actions]')
+        button=pane.get_by_role('button',name='I speak to Clerk.',exact=True)
+        self.page.evaluate('sent=[]');button.click()
+        self.assertEqual(self.page.evaluate('window.draft'),'I speak to Clerk.')
+        self.assertTrue(self.page.evaluate('window.composerFocused'))
+        self.assertEqual(self.page.evaluate('sent'),[])
+        self.page.evaluate("window.draft+=' I pause.'")
+        self.assertIn('I pause.',self.page.evaluate('window.draft'))
+        self.assertTrue(pane.evaluate('(e)=>e.scrollWidth<=e.clientWidth+1'))
 
 
     def test_calendar_birth_month_has_no_invented_day(self):

@@ -88,3 +88,11 @@ assert.equal(pc.playProse([...proseChat,{role:'assistant',_rpgcPurpose:'continue
  assert.equal(rt.writes.length,0);
  console.log('Repetition: bounded visible prose, once per reply, hidden/HUD/tracker exclusions, opt-in default and spare prompt budget passed');
 })().catch(e=>{console.error(e);process.exitCode=1;});
+
+const actionView={data:{characters:[{name:'Clerk'}]},hms:{agenda:{items:[{what:'Study',state:'open',dueIn:40}]},minds:{chekhov:{chamber:[{what:'A promised letter',status:'live'}]}}},plotView:{objectives:[{text:'Deliver the parcel',state:'active'}]},playProse:{room:{exits:[{to:'Hall'}]}}};
+const actionBefore=JSON.stringify(actionView),actions=c.nextActionRows(actionView);assert.equal(actions.length,5);assert.equal(actions.map(x=>x.kind).join(','),'appointment,person,objective,loop,exit');assert.equal(JSON.stringify(actionView),actionBefore);assert.equal(c.nextActionRows({}).length,0);
+assert(!c.nextActionRows({...actionView,hms:{agenda:{items:[{what:'Study',state:'open',dueIn:null}]}}}).some(x=>x.kind==='appointment'));
+assert(!c.nextActionRows({hms:{secrets:{yours:[{text:'Private NPC information'}]}}}).some(x=>x.kind==='loop'));
+console.log('Next actions: every supported source, no data, stable ordering, five cap and no state mutation passed');
+
+assert.equal(c.nextActionRows({plotView:{objectives:[{text:'An abandoned objective',state:'abandoned'}]}}).length,0);

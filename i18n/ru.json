@@ -2734,5 +2734,9 @@
  "Overused words": "Частые повторы",
  "No repeated wording flagged": "Повторы не отмечены",
  "Avoid repeated wording in context (opt-in)": "Избегать повторов в контексте (по выбору)",
- "Prose style is normally the preset's job. Off by default; uses spare context budget only.": "Стиль обычно задаёт пресет. По умолчанию выключено; используется только свободный бюджет контекста."
+ "Prose style is normally the preset's job. Off by default; uses spare context budget only.": "Стиль обычно задаёт пресет. По умолчанию выключено; используется только свободный бюджет контекста.",
+ "What could I do next?": "Что я могу сделать дальше?",
+ "Draft only — review and send yourself.": "Только черновик — проверьте и отправьте сами.",
+ "Chat composer unavailable": "Поле ввода чата недоступно",
+ "No supported next actions": "Нет действий на основе данных"
 }
