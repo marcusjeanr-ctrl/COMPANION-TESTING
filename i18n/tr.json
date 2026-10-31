@@ -2758,5 +2758,14 @@
  "Save journal": "Günlüğü kaydet",
  "Ask the story to write this day in my voice": "Hikâyeden bu günü benim ağzımdan yazmasını iste",
  "Note limit reached": "Not sınırına ulaşıldı",
- "Could not draft journal": "Günlük taslağı oluşturulamadı"
+ "Could not draft journal": "Günlük taslağı oluşturulamadı",
+ "Reputation": "İtibar",
+ "No reported reputation": "Bildirilen itibar yok",
+ "I prepare for: {0}.": "Şuna hazırlanıyorum: {0}.",
+ "I speak to {0}.": "{0} ile konuşuyorum.",
+ "I consider my objective: {0}.": "Hedefimi değerlendiriyorum: {0}.",
+ "I consider the unresolved lead: {0}.": "Çözümlenmemiş ipucunu değerlendiriyorum: {0}.",
+ "I go to {0}.": "{0} konumuna gidiyorum.",
+ "Generated draft ready": "Oluşturulan taslak hazır",
+ "Use generated draft": "Oluşturulan taslağı kullan"
 }

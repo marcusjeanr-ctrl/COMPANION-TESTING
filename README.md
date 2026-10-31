@@ -1,6 +1,6 @@
-# RPG Companion HMS Edition 3.1.0 — Release Candidate
+# RPG Companion HMS Edition 3.2.0 — Release Candidate
 
-> 3.2 staging: [Phase A fixes, reliability investigation and gate results](docs/features/3_2/REPORT.md). The revised main-relative wall/CPU gate passes Phase A; later phases are in progress. This is not a completed 3.2 release.
+> 3.2.0 RC review candidate: [phased verification, measurements and limitations](docs/features/3_2/REPORT.md). Main is unchanged; phase checkpoints are on `staging/features-3.2`. No live Lumiverse acceptance or stable-release claim.
 
 > 3.1 RC follow-up: [export fixes, consistency fixtures, controlled performance gate and investigations](docs/features/3_1/FOLLOWUP.md).
 

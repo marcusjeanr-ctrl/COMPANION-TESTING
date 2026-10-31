@@ -1,13 +1,19 @@
 # Changelog — RPG Companion HMS Edition
 
-## Unreleased — 3.2 Phase A staging (performance gate held)
+## 3.2.0 RC — Play tools and display safeguards
 
-- Resolve objective quest IDs to unique existing quest titles for display; unknown or ambiguous references remain unchanged.
-- Optionally collapse nearby repeated Chronicle and planted-detail descriptions in the UI, preserving source reports and earliest control identities.
-- Keep different participants, outcomes, occurrences and uncertain matches separate; show duplicate counts and support lazy closed views.
-- Investigate single-action Reliable assessments and martial routing without changing progression or ownership rules.
-- Later phases and the 3.2.0 RC identity bump remain blocked by the performance gate; see the staging report.
-
+- Resolve objective quest IDs to titles and conservatively group nearby repeated Chronicle/planted descriptions without changing reports.
+- Add optional NPC dossiers, resumed-chat recaps, Chronicle Highlights and daily bond folds.
+- Show appointment countdowns, advisory quest-chain links and retained ability evidence.
+- Add lazy change strips, open loops, standing charts and a supported-world calendar with month-only birthdays kept imprecise.
+- Add a bounded repetition watch; its context reminder defaults off.
+- Add editable next-action drafts through the host composer bridge; chips never send messages.
+- Add explicitly accepted NPC voice notes with an optional, default-off context reminder.
+- Assemble daily journals from recorded dates; only Save persists edits and only an explicit OOC button requests a draft.
+- Show reported regional Renown and recorded NPC knowledge without inventing reputation scores.
+- Keep model report cards deferred where generating-model provenance is unavailable; ability progression rules remain unchanged after investigation.
+- Revise development benchmarks to compare warm wall and CPU medians against frozen phase-start main, with IQR noise checks and informational 3.0.10 results.
+- RC only: no live Lumiverse/WebView certification. See the phased report for measurements, caps and unverified behavior.
 
 ## 3.1.0 RC — Panel tools and diagnostics
 

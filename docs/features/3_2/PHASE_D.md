@@ -104,3 +104,77 @@ numbers, unknown dates, immutable messages, edit/reload, no request/save on load
 exactly one manual OOC draft and no OOC/chat write. Browser verifies editing/save
 and that the model button runs only after a click. Actual generated draft quality
 and host provider behavior have not been tested; fixtures use a stub, never paid API.
+
+## 19. Reported reputation
+
+A lazy read-only view shows the HUD's exact Renown region/level terms and the NPC
+knowledge already explicitly attributed to the player. Certainty labels stay as
+reported. No region, relationship score, witness or outcome is invented. Thin or
+missing sources show a short empty state. Each source is read only on expansion;
+the feature has its own setting. Files: frontend helper/view; shared tests;
+Chromium case; dictionaries. Tests cover several regions, no line, player-related
+versus unrelated knowledge, uncertainty, absent knowledge and immutable state.
+Chromium checks the actual view at 320px. The reputation projection itself changes no backend/prompt/storage behavior.
+
+The RC identity is synchronized to 3.2.0 in manifest, backend diagnostics, frontend
+title, README and CHANGELOG. This is a review candidate, not publication or live
+acceptance. The first item-15 test caught the host's normal story annotation and
+was corrected before commit; no failed implementation was published. Prose reads
+are additionally bounded to 64,000 source characters per recent message before
+hidden-content filtering, then 12,000 visible characters. No new timer/dependency.
+
+Final lazy-read review tightened the shared RPC: room-only action chips do not
+extract prose, and voice-only reads do not run repetition analysis. Results share
+one active-chat cache when available, with per-view pending flags and existing
+reply/edit invalidation. Tests replace closed-view helpers with throwing stubs to
+prove those paths are not called; this is covered in the final full rerun. No
+polling cadence, timer, report storage or model-call change is involved.
+
+Final UI review also keeps rejected voice-note saves in the unsaved editor, and
+keeps edits made while an OOC journal draft is pending. A late generated candidate
+then requires an explicit Use generated draft click rather than overwriting the
+new edit. Browser regressions exercise both cases. Action-draft templates are
+translated in all four dictionaries. Dossiers now also recognize names whose only
+existing source is an Agenda participant or cached Chronicle entry; sparse-source
+regressions confirm those views without creating NPC records.
+
+## Final local checks before the gate
+
+Node 22 `check_release`, both syntax checks, **61 JS regression suites + 12 Python
+gate tests**, **57 Chromium UI + 5 visibility cases** pass on the final source.
+The final pipeline smoke reports 1.1568 ms parsing, 1.0506 ms response processing
+and 0.5825 ms prompt construction; standard prompt lengths remain 15,291 / 19,213.
+These independent tiny timing runs varied on this host (including slower readings)
+and are not controlled before/after estimates. All four phase C/D smoke outputs,
+including earlier faster readings, are retained in [validation data](VALIDATION_PHASE_D.json).
+The authorized 20-pair CPU/wall projection gate is measured next, with no concurrent
+local tests. New UI cost on the actual host, opted-in provider responses and WebView
+behavior remain unverified; no stable or live acceptance is claimed.
+
+## Phase D revised gate
+
+20 alternating three-source observations per case; frozen main `e07830a`, historical
+`540df20`. Full raw CPU/wall observations, IQRs and source spreads are retained in
+[summary](REVISED_PHASE_D.json) and [raw archive](REVISED_PHASE_D_RAW.json.gz).
+
+| Case | Metric | Main median → candidate ms | Change | Baseline IQR | Candidate IQR | Baseline / candidate spread ms |
+| --- | --- | --- | --- | --- | --- | --- |
+| 600 | cold wall | 264.68 → 260.47 | -1.59% | 45.23 | 40.84 | 956.85 / 150.43 |
+| 600 | cold CPU | 303.59 → 293.29 | -3.40% | 52.40 | 48.74 | 1159.45 / 159.99 |
+| 600 | warm wall | 72.56 → 69.04 | -4.85% | 9.38 | 10.86 | 38.54 / 83.93 |
+| 600 | warm CPU | 147.02 → 136.70 | -7.02% | 29.21 | 22.38 | 76.66 / 109.59 |
+| 2000 | cold wall | 565.13 → 557.02 | -1.44% | 112.81 | 64.45 | 176.11 / 404.45 |
+| 2000 | cold CPU | 695.74 → 686.88 | -1.27% | 126.29 | 81.47 | 210.15 / 473.64 |
+| 2000 | warm wall | 149.39 → 153.82 | +2.96% | 29.58 | 13.48 | 73.09 / 105.69 |
+| 2000 | warm CPU | 216.32 → 214.73 | -0.74% | 39.65 | 36.73 | 115.82 / 125.45 |
+
+| 2000 warm comparison | Wall change | CPU change | Assessment |
+| --- | --- | --- | --- |
+| baseline_to_candidate | +2.96% | -0.74% | pass |
+| reference_to_baseline | -4.05% | -3.39% | pass (informational) |
+| reference_to_candidate | -1.21% | -4.10% | pass (informational) |
+
+**Phase D: PASS** under the revised main-relative rule.
+No measurements were discarded. CPU is process-wide and can exceed wall time.
+Shared-host scheduling remains uncontrolled; these results are neither live UI
+latency nor proof of a per-feature speed improvement.

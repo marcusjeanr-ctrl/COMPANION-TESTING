@@ -133,3 +133,16 @@ assert(diaryChron.some(x=>x.recordedDay==='K417, Month 2, Day 8'));assert(diaryC
 assert.equal(c.dailyJournalRows({chronData:{entries:diaryChron}}).length,2);
 assert.equal(c.dailyBondGroups([{...bonds[0],recordedDay:'K417, Month 2, Day 1'},{...bonds[1],recordedDay:'K417, Month 3, Day 1'}]).length,2);
 assert.equal(c.dailyJournalRows({chronData:{entries:[{kind:'moment',when:'Day 1, 09:00',recordedDay:null,text:'No current dated HUD'}]}}).length,0);
+
+const repView={userName:'Marcus',hms:{hud:{lines:[{text:'Renown: Fittoa: Local name | Asura: Noticed | elsewhere: Unknown'}]},minds:{people:[{name:'Clerk',knows:[{fact:'Marcus won the duel',sure:'reported'},{fact:'Rain falls in the west',sure:'certain'}]}]}}},repCopy=JSON.stringify(repView);
+const rep=c.reputationData(repView);assert.equal(rep.regions.length,3);assert.equal(rep.regions[0].level,'Local name');assert.equal(rep.knowledge.length,1);assert.equal(rep.knowledge[0].sure,'reported');assert.equal(JSON.stringify(repView),repCopy);assert.equal(c.reputationData({}).regions.length,0);assert.equal(c.reputationData({}).knowledge.length,0);assert.equal(c.reputationData({hms:{hud:repView.hms.hud}}).knowledge.length,0);
+console.log('Reputation: regional HUD terms, explicit player knowledge and uncertainty, empty data, no invented scores and immutable input passed');
+(async()=>{
+ const rt=playRuntime();rt.messages.push(...proseChat);rt.run("repetitionRows=()=>{throw new Error('closed repetition view computed')}");
+ await rt.frontendHandlers[0]({type:'play_prose',chatId:'test',replyId:'p4',view:'voice',requestKey:'voice'});assert.equal(rt.events.at(-1).rows.length,5);assert.equal(rt.events.at(-1).repetition,undefined);
+ rt.run("playProse=()=>{throw new Error('closed prose view computed')}");await rt.frontendHandlers[0]({type:'play_prose',chatId:'test',replyId:'p4',view:'room',requestKey:'room'});assert.equal(rt.events.at(-1).view,'room');assert.equal(rt.events.at(-1).rows,undefined);assert.equal(rt.events.at(-1).repetition,undefined);
+ console.log('Lazy play reads: room-only never analyzes prose; voice-only never computes repetition');
+})().catch(e=>{console.error(e);process.exitCode=1;});
+assert.equal(c.npcDossierData({hms:{agenda:{items:[{what:'Deliver a letter',with:'Courier',state:'open'}]}}},'Courier').appointment.what,'Deliver a letter');
+assert.equal(c.npcDossierData({chronData:{entries:[{who:['Courier'],text:'Delivered a letter'}]}},'Courier').chronicle.length,1);
+assert(c.nextActionRows(actionView,(template,value)=>'Translated '+value).every(x=>x.text.startsWith('Translated ')));

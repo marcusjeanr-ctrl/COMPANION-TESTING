@@ -1,0 +1,54 @@
+{
+  "pipelineSmokeRuns": {
+    "phaseC": {
+      "file": "/workspace/COMPANION-TESTING/dist/backend.js",
+      "parseReportMedianMs": 0.5649,
+      "processResponseMedianMs": 0.8122,
+      "promptConstructMedianMs": 0.3651,
+      "promptCharacters": 15291,
+      "populatedPromptCharacters": 19213,
+      "warnings": 0
+    },
+    "phaseD_first": {
+      "file": "/workspace/COMPANION-TESTING/dist/backend.js",
+      "parseReportMedianMs": 0.609,
+      "processResponseMedianMs": 1.0898,
+      "promptConstructMedianMs": 0.5175,
+      "promptCharacters": 15291,
+      "populatedPromptCharacters": 19213,
+      "warnings": 0
+    },
+    "phaseD_lazy_review": {
+      "file": "/workspace/COMPANION-TESTING/dist/backend.js",
+      "parseReportMedianMs": 0.5714,
+      "processResponseMedianMs": 0.8726,
+      "promptConstructMedianMs": 0.3903,
+      "promptCharacters": 15291,
+      "populatedPromptCharacters": 19213,
+      "warnings": 0
+    },
+    "phaseD_final": {
+      "file": "/workspace/COMPANION-TESTING/dist/backend.js",
+      "parseReportMedianMs": 1.1568,
+      "processResponseMedianMs": 1.0506,
+      "promptConstructMedianMs": 0.5825,
+      "promptCharacters": 15291,
+      "populatedPromptCharacters": 19213,
+      "warnings": 0
+    }
+  },
+  "method": "Independent nonalternating smoke runs; do not infer speed changes from these host-sensitive microbenchmarks. The 20-pair warm panel CPU/wall matrix is the authorized gate.",
+  "liveLumiverse": false,
+  "runtimeSuites": 61,
+  "gateTests": 12,
+  "chromiumUiTests": 57,
+  "visibilityTests": 5,
+  "releaseIdentity": "3.2.0 RC",
+  "sourceHashes": {
+    "dist/backend.js": "a75af1c2b4ed7ccf980b9e270aa93a649ca38dae001fb7747651cc87b09e5f2d",
+    "dist/frontend.js": "6af06d7395aedfc58739416b91babe78a1322b43ba90fe0f9d0306c3fe3658c5"
+  },
+  "gateStatus": "pass",
+  "measuredCandidateCommit": "68b2b53f46affda5634a0e04f1d2593c37a8a19d",
+  "mainBaseline": "e07830acbfe3e7a9d84185d7d19b067d247d39b1"
+}
