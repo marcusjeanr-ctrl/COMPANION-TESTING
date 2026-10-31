@@ -1,5 +1,10 @@
 # Changelog — RPG Companion HMS Edition
 
+## 3.2.2 RC — Survival action evidence
+
+- Count reported ate, drank, slept and rested flags only when the same reply’s prose contains matching evidence. Unsupported flags remain available in `survival.unconfirmed`; old messages are filtered on read without migration. Manual logs still count.
+- Tighten the survival model instruction: leave flags false when the reply does not describe the action, and never carry flags over from earlier replies.
+
 ## 3.2.1 RC — Quest and Agenda display fixes
 
 - Keep active quest cards visible and place completed and other ended quests in separate, collapsed disclosure sections. Expansion is session-only and changes no tracking data.

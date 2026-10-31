@@ -2059,6 +2059,45 @@ function messageSource(msg) {
 function trackingMessageVisible(msg) {
     return !!msg && !['save', 'help'].includes(msg._rpgcPurpose) && msg.hidden !== true && msg.is_hidden !== true && msg.metadata?.hidden !== true && msg.extra?.hidden !== true;
 }
+// Lexical evidence only: en, pt-BR, es, ru and tr. Water alone is not drinking.
+const SURVIVAL_FLAG_EVIDENCE = Object.freeze({
+    ate: /(?<![\p{L}])(?:eat|eats|ate|eating|eaten|meal|breakfast|lunch|dinner|supper|feast|snack|food|bread|stew|soup|porridge|fruit|comer|comeu|comendo|comida|refeição|café da manhã|almoço|jantar|pão|sopa|comió|comiendo|desayuno|almuerzo|cena|pan|есть|ел|ела|ели|ест|поел|поела|завтрак|обед|ужин|еда|хлеб|суп|каша|yedi|yemek|yiyor|kahvaltı|öğle yemeği|akşam yemeği|ekmek|çorba)(?![\p{L}])/giu,
+    drank: /(?<![\p{L}])(?:drink|drinks|drank|drunk|drinking|sip|sips|sipped|sipping|gulp|gulped|tea|wine|ale|milk|bebeu|beber|bebendo|chá|vinho|leite|bebió|beber|bebiendo|sorbo|té|vino|leche|пил|пила|пили|пьёт|выпил|выпила|глоток|чай|вино|молоко|içti|içiyor|içmek|yudum|çay|şarap|süt)(?![\p{L}])/giu,
+    slept: /(?<![\p{L}])(?:sleep|sleeps|slept|sleeping|asleep|nap|napped|dozed|bed|bedtime|rest overnight|dormiu|dormir|dormindo|adormeceu|cochilo|cama|durmió|dormir|durmiendo|dormido|siesta|cama|спал|спала|спали|уснул|уснула|сон|кровать|uyudu|uyuyor|uyumak|uyku|yatak)(?![\p{L}])/giu,
+    rested: /(?<![\p{L}])(?:rest|rests|rested|resting|sat down|break|catch (?:his |her |their |your )?breath|recover|recovered|recovering|descansou|descansar|descansando|sentou|pausa|recuperou|descansó|descansar|descansando|se sentó|descanso|recuperó|отдохнул|отдохнула|отдых|передышка|сел|села|восстановился|dinlendi|dinleniyor|dinlenmek|oturdu|mola|toparlandı)(?![\p{L}])/giu
+});
+const SURVIVAL_EVIDENCE_NEGATION = /(?<![\p{L}])(?:didn't|didn’t|did not|doesn't|does not|don't|do not|hasn't|has not|hadn't|had not|never|not|without|refused|skipped|não|sem|recusou|pulou|no|sin|rechazó|omitió|не|без|отказался|отказалась|пропустил|пропустила)(?:\s+(?!(?:but|however|instead)\b)[\p{L}'’]+){0,3}\s*$/iu;
+const survivalEvidenceCache = new WeakMap();
+function survivalFlagReading(msg, data) {
+    const y = data?.survival;
+    if (!isPlainObject(y)) return data;
+    if (y.ate !== true && y.drank !== true && y.slept !== true && y.rested !== true && !y.unconfirmed?.length) return data;
+    const keys = Object.keys(SURVIVAL_FLAG_EVIDENCE);
+    const reported = keys.filter(k => y[k] === true || (Array.isArray(y.unconfirmed) && y.unconfirmed.includes(k)));
+    if (!reported.length) return data;
+    const text = textOf(msg.content), signature = keys.map(k => y[k] === true ? '1' : '0').join('') + ':' + reported.join(',');
+    const cached = survivalEvidenceCache.get(msg);
+    if (cached?.data === data && cached.text === text && cached.signature === signature) return cached.value;
+    const clean = stripCompanion(stripThink(text)).replace(/```json\b[\s\S]*?(?:```|$)/gi, '');
+    const frame = findHud(clean);
+    const prose = (frame ? clean.slice(frame.bodyEnd) : clean).replace(/\*+/g, '').normalize('NFC');
+    const unconfirmed = [], survival = {...y};
+    for (const k of reported) {
+        const pattern = new RegExp(SURVIVAL_FLAG_EVIDENCE[k].source, 'giu');
+        let confirmed = false;
+        for (const m of prose.matchAll(pattern)) {
+            const prefix = prose.slice(Math.max(0, m.index - 90), m.index).split(/[.!?;,\n]/).pop();
+            if (!SURVIVAL_EVIDENCE_NEGATION.test(prefix)) { confirmed = true; break; }
+        }
+        survival[k] = confirmed;
+        if (!confirmed) unconfirmed.push(k);
+    }
+    if (unconfirmed.length || Array.isArray(y.unconfirmed)) survival.unconfirmed = unconfirmed;
+    const value = {...data, survival};
+    survivalEvidenceCache.set(msg, {data, text, signature, value});
+    return value;
+}
+
 function getSwipeData(msg, allowSnapshot = false) {
     const continuation = msg?._rpgcPurpose === 'continue';
     if (!trackingMessageVisible(msg) || (continuation && !allowSnapshot)) return null;
@@ -2070,11 +2109,11 @@ function getSwipeData(msg, allowSnapshot = false) {
     const data = live?.swipes?.[key], source = live?.sources?.[key];
     // Most reads use live metadata. Avoid allocating fallback candidates on that path,
     // and fingerprint only signed records; unsigned legacy reports stay readable.
-    if (isPlainObject(data) && (!continuation || source) && (!source || source === messageSource(msg))) return data;
+    if (isPlainObject(data) && (!continuation || source) && (!source || source === messageSource(msg))) return survivalFlagReading(msg, data);
     const candidates = [msg?.extra?.spindle_metadata?.[META_KEY], msg?.metadata?.spindle_metadata?.[META_KEY]];
     for (const mine of candidates) {
         const fallback = mine?.swipes?.[key], bound = mine?.sources?.[key];
-        if (isPlainObject(fallback) && (!continuation || bound) && (!bound || bound === messageSource(msg))) return fallback;
+        if (isPlainObject(fallback) && (!continuation || bound) && (!bound || bound === messageSource(msg))) return survivalFlagReading(msg, fallback);
     }
     return null;
 }
@@ -2093,6 +2132,7 @@ async function setSwipeData(chatId, msg, data, extraPatch = {}) {
             const previous = getSwipeData(fresh);
             snapshot.quests = questRefreshReport(snapshot.quests, previous?.quests, fresh, snapshot);
         }
+        if (snapshot.survival) snapshot.survival = survivalFlagReading({content: patch.content ?? fresh.content}, snapshot).survival;
         const metadata = { ...(fresh.metadata || {}) };
         const mine = { ...(metadata[META_KEY] || fresh.extra?.spindle_metadata?.[META_KEY] || {}) };
         const key = String(swipe);
@@ -2613,7 +2653,7 @@ async function pushState(chatId, snapshot = null) {
 // Demo mode plays scripted turns (no tokens); Live mode asks the model, with a small
 // world narrator standing in for a bot card.
 
-const RPGC_VERSION = '3.2.1';
+const RPGC_VERSION = '3.2.2';
 const diagLog = [];
 function diagPush(kind, m) { diagLog.push({ at: new Date().toISOString(), kind, text: String(m).slice(0, 400) }); if (diagLog.length > 60) diagLog.shift(); }
 function logW(m) { diagPush('warn', m); return spindle.log.warn(m); }
@@ -10496,7 +10536,7 @@ function buildCompanionInstructionRead(committed, userName, locks, st = null, ch
     if (com) s += '\n' + com.rules;
     if (fight) s += '\n' + fight.rules;
     if (posReq) s += '\n' + posReq.rules;
-    if (wantSurvival) s += `\nIn "you", set a flag to true only if ${userName} actually did it in this reply's events: a proper sleep counts as slept; a short break or sitting down counts as rested; a real meal counts as ate. Set "mind" to ${userName}'s state of mind at the end of this reply, as one of the listed words.`;
+    if (wantSurvival) s += `\nIn "you", set a flag to true only if ${userName} actually did it in this reply's events: a proper sleep counts as slept; a short break or sitting down counts as rested; a real meal counts as ate. If the reply does not describe the action, leave all four flags false. Do not carry a flag over from an earlier reply. Set "mind" to ${userName}'s state of mind at the end of this reply, as one of the listed words.`;
     if (yc.on) s += `\n"you" also holds ${userName}'s own state at the end of this reply: mood, ${wantSurvival ? '' : 'stress (L), '}sanity (100 steady, 0 broken)${askXp ? ', and xp earned in this reply for a real accomplishment (0 if none) with why' : ''}. "got" and "lost": physical things ${userName} was handed, picked up, gave away, used up or lost — in their own last message or on screen in this reply — that the HUD does not list (a handout, a key, a note, a booklet), a few words each; [] when nothing changed hands. A message, a notice or news is not a thing.`;
     if (abilitiesSeen) s += '\n"you.abilities": one confirmed player spell/technique/skill per row; no ranks, casting labels, NPCs, catalog entries, instructions or hypotheticals. historical:true for past records, not new learning/current study. Attempts are not knowledge; reliability is not mastery. Exact quote required. Absence is not loss.';
     if (abilitiesSeen) s += '\nStudy requires practice begun now, not assigned/future lessons, demonstrations or failed combat alone. Never invent percentages. Omit empty study/learning.';
