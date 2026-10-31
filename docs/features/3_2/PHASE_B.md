@@ -25,3 +25,20 @@ Show timeline in the popup. These UI decisions are called out for review.
 
 Performance is recorded at the Phase B gate; this feature changes no backend code
 or prompt content. No separate per-item speed improvement is claimed.
+
+## 5. Previously on recap
+
+Frontend-only: pure `recapData` and a dismissible card reuse current HUD, plot,
+active quests/objectives/manual objectives and cached Chronicle highlights. Missing
+identity/data produces no recap. The existing GENERATION_ENDED handler marks local
+reply IDs; no new listener, timer, polling or model request is added. Unknown event
+IDs bind to the next changed pushed reply rather than the stale request response.
+Dismissal is local UI state, retained across refreshes for the same chat/reply.
+Session caches are bounded (80 chats / 64 IDs each); restoring an older reply beyond
+that window may conservatively show a recap again. At most 8 quests/objectives,
+6 threads and 4 highlights are shown. No new source facts or messages are written.
+
+Files: frontend, shared view tests, one Chromium test and four dictionary updates.
+Tests cover fresh/generated, resumed, dismissal/no reappearance, empty data and
+immutable input. Feature off returns before assembling the view. No backend/prompt
+change; phase-level performance and full checks follow item 9.
