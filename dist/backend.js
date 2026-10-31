@@ -17846,9 +17846,8 @@ spindle.onFrontendMessage(async (payload, userId) => {
                 if(!payload.chatId)return;
                 const chat=await chatApi.getMessages(payload.chatId),last=lastAssistant(chat);
                 if(last?.id!==payload.replyId)return;
-                const rows=playProse(chat),reported=getSwipeData(last,true)?.room;
-                const room=reported?{exits:(reported.exits || []).filter(x=>x.to&&!x.hidden&&!x.secret&&x.known!==false).slice(0,6).map(x=>({to:String(x.to).slice(0,120)}))}:null;
-                toFrontend({type:'play_prose',chatId:payload.chatId,replyId:last.id,requestKey:payload.requestKey,rows,room,repetition:repetitionRows(rows)});
+                const rows=playProse(chat);
+                toFrontend({type:'play_prose',chatId:payload.chatId,replyId:last.id,requestKey:payload.requestKey,rows,repetition:repetitionRows(rows)});
                 break;
             }
 
