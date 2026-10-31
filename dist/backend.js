@@ -2678,7 +2678,7 @@ async function pushState(chatId, snapshot = null) {
 // Demo mode plays scripted turns (no tokens); Live mode asks the model, with a small
 // world narrator standing in for a bot card.
 
-const RPGC_VERSION = '3.2.10';
+const RPGC_VERSION = '3.2.11';
 const diagLog = [];
 function diagPush(kind, m) { diagLog.push({ at: new Date().toISOString(), kind, text: String(m).slice(0, 400) }); if (diagLog.length > 60) diagLog.shift(); }
 function logW(m) { diagPush('warn', m); return spindle.log.warn(m); }
@@ -13418,6 +13418,20 @@ function agendaTitleEquivalent(a, b) {
     return !!A && A === B;
 }
 
+/** "Depart for Greyrat meeting" → "Depart for Greyrat meeting (with House Guards) at Neutral waypoint":
+ * the same commitment when the added words only restate its own people and place. */
+function agendaTitleRefines(a, b) {
+    const A = agendaTextKey(a.what), B = agendaTextKey(b.what);
+    const [short, long, base] = A.length < B.length ? [A, B, a] : [B, A, b];
+    if (short.split(' ').length < 2 || !long.startsWith(short + ' ')) return false;
+    const extra = long.slice(short.length + 1).split(' ').filter(Boolean);
+    const anchor = [base.with, base.where].map(v => agendaTextKey(v).split(' ').filter(w => w.length > 2)).filter(w => w.length);
+    const allowed = new Set([...[a.with, a.where, b.with, b.where].flatMap(v => agendaTextKey(v).split(' ')),
+        'with', 'at', 'to', 'in', 'near', 'by', 'the', 'a', 'an', 'and', ...Object.keys(AGENDA_NUM)]);
+    // every added word is one of those, and they name the established people or place in full
+    return extra.length > 0 && extra.every(w => allowed.has(w) || /^\d+$/.test(w)) && anchor.some(words => words.every(w => extra.includes(w)));
+}
+
 function agendaTimeKey(value) {
     let text = agendaTextKey(value);
     // These are equivalent trigger descriptions, not a newly inferred date/time.
@@ -13661,9 +13675,9 @@ function agendaRead(chat, st) {
         if (!aliases.has(key)) aliases.set(key, new Set());
         aliases.get(key).add(item);
     };
-    const compatible = (x, row, dueAt = null) => (!row?.moved || ['open', 'in_progress'].includes(x.state)) &&
-        (!row?.with || !x.with || row.moved || agendaPeopleSame(row.with, x.with)) &&
-        (!row?.where || !x.where || row.moved || agendaPlaceCompatible(x.where, row.where, !!row.reportedIn && row.reportedIn !== x.changedIn, { before: x.scenePlace, after: row.scenePlace })) &&
+    const compatible = (x, row, dueAt = null, refines = !!row && agendaTitleRefines(x, row)) => (!row?.moved || ['open', 'in_progress'].includes(x.state)) &&
+        (!row?.with || !x.with || row.moved || refines || agendaPeopleSame(row.with, x.with)) &&
+        (!row?.where || !x.where || row.moved || refines || agendaPlaceCompatible(x.where, row.where, !!row.reportedIn && row.reportedIn !== x.changedIn, { before: x.scenePlace, after: row.scenePlace })) &&
         (!row || agendaScheduleCompatible(x, row, dueAt, !!row.reportedIn && row.reportedIn !== x.changedIn));
     const find = (key, row = null, dueAt = null) => {
         if (!row) {
@@ -13671,7 +13685,7 @@ function agendaRead(chat, st) {
             const linked = aliases.get(key) || (key.split(' :: ').length >= 5 ? aliases.get(key.replace(/ :: \d+$/, '')) : null);
             if (linked?.size === 1) return [...linked][0];
         }
-        const matches = items.filter(x => (lockKey(x.what) === key || agendaSame(lockKey(x.what), key) || row && agendaTitleEquivalent(x, row)) && compatible(x, row, dueAt));
+        const matches = items.filter(x => (lockKey(x.what) === key || agendaSame(lockKey(x.what), key) || row && (agendaTitleEquivalent(x, row) || agendaTitleRefines(x, row))) && compatible(x, row, dueAt));
         return matches.length === 1 ? matches[0] : matches.length ? undefined : null;
     };
     for (const m of msgs) {
