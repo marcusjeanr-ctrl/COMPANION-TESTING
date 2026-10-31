@@ -6,10 +6,13 @@ function msg(prose, survival = {ate:true}, id = 'one', minute = '08:00') {
  return {id,role:'assistant',swipe_id:0,content:hud('Study',minute).split('***')[0]+'***\n'+prose,
  metadata:{rpg_companion:{swipes:{0:{survival}}}}};
 }
-function read(m) { return c.getSwipeData(m).survival; }
+function evidence(m) { return c.survivalFlagReading(m,c.getSwipeData(m)); }
+function read(m) { return evidence(m).survival; }
 function check(prose, flag, expected) {
  const m=msg(prose,{[flag]:true,mood:'focused',mind:'calm',stress:2,sanity:95,xp:4,spells:['Spark'],got:['Key'],lost:[],abilities:[]}), before=JSON.stringify(m);
- const y=read(m); assert.equal(y[flag],expected,prose);
+ const raw=c.getSwipeData(m),y=read(m); assert.equal(y[flag],expected,prose);
+ const html=c.statesPanelHtml({d:raw,survivalSource:c.survivalSourceDescriptor(m,raw)},c.parseHud(m.content),m.id);
+ assert.equal(/This reply<\/span><span>[^<]+/.test(html),expected,'Rendered action: '+prose);
  assert.equal((y.unconfirmed||[]).includes(flag),!expected,prose);
  for(const k of ['mood','mind','stress','sanity','xp','spells','got','lost','abilities']) assert.deepEqual(y[k],m.metadata.rpg_companion.swipes[0].survival[k]);
  assert.equal(JSON.stringify(m),before);
@@ -27,7 +30,7 @@ const excluded=msg('You speak quietly.\n<rpg_companion>{"you":{"mood":"ate food"
 excluded.content='<think>You ate breakfast.</think>\n'+excluded.content.replace('Equipment:','Breakfast: food\nEquipment:');
 excluded.extra={reasoning:'You ate breakfast.'};assert.equal(read(excluded).ate,false);
 check('You speak.\n```json\n{"you":{"mood":"ate food"}}\n```','ate',false);
-const cached=msg('You speak.');const first=c.getSwipeData(cached);assert.equal(c.getSwipeData(cached),first);
+const cached=msg('You speak.');const first=evidence(cached);assert.equal(evidence(cached),first);
 cached.content=cached.content.replace('You speak.','You ate soup.');assert.equal(read(cached).ate,true);
 cached.swipe_id=1;cached.metadata.rpg_companion.swipes[1]={survival:{ate:true}};cached.content=cached.content.replace('You ate soup.','You speak.');assert.equal(read(cached).ate,false);
 const base=msg('You begin the day.',{},'start','08:00'),falseFlags=msg('You talk in the study.',{ate:true,drank:true,slept:true,rested:true},'false','18:00');
@@ -37,6 +40,15 @@ for(const t of sv.tracks) assert.equal(t.minutes,600,t.id);
 sv=c.hmsSurvival(tl,{survival:{log:flags.map(kind=>({kind,at:now}))}},cfg,null);
 assert.equal(sv.events.filter(e=>e.src==='you').length,4);for(const t of sv.tracks)assert.equal(t.minutes,0,t.id);
 (async()=>{
+ // Old, unsaved data stays raw in the generic getter but both consumers filter it.
+ const before=JSON.stringify([base,falseFlags]);
+ assert.equal(c.getSwipeData(falseFlags).survival.ate,true);
+ c.statesFill('legacy-read',[base,falseFlags]);
+ const state=await c.getStatesFor('legacy-read',falseFlags.id);
+ const html=c.statesPanelHtml(state,c.parseHud(falseFlags.content),falseFlags.id);
+ assert(!html.includes('>This reply</span>'));
+ assert.equal(c.hmsSurvival(c.hmsTimeline([base,falseFlags]),{},cfg,null).events.length,0);
+ assert.equal(JSON.stringify([base,falseFlags]),before);assert.equal(r.writes.length,0);
  // Acceptance saves rejected originals additively, never edits narrative.
  r.messages.push(msg('You speak.',{ate:true},'saved'));
  await c.setSwipeData('test',r.messages[0],{survival:{ate:true,mood:'calm'}});
@@ -47,10 +59,10 @@ assert.equal(sv.events.filter(e=>e.src==='you').length,4);for(const t of sv.trac
  const file=process.argv[2];if(file){
   const bytes=fs.readFileSync(file),j=JSON.parse(bytes);assert.equal(j.messages.length,39);const report=[];
   for(const i of [4,8,10,12,28,38]){
-   const m={...j.messages[i],role:'assistant'},before=JSON.stringify(m),d=c.getSwipeData(m);assert(d?.survival);
+   const m={...j.messages[i],role:'assistant'},before=JSON.stringify(m),raw=c.getSwipeData(m),d=c.survivalFlagReading(m,raw);assert(d?.survival);
    assert.equal(m.index_in_chat,i);assert.equal(m.is_user,false);
    assert.equal(d.survival.ate,i===8,'reply '+i);
-   const html=c.statesPanelHtml({d},c.parseHud(m.content),m.id);
+   const html=c.statesPanelHtml({d:raw,survivalSource:c.survivalSourceDescriptor(m,raw)},c.parseHud(m.content),m.id);
    assert.equal(/This reply<\/span><span>[^<]*\bate\b/.test(html),i===8,'This reply '+i);
    assert.equal(JSON.stringify(m),before);
    report.push({reply:i,ate:d.survival.ate,unconfirmed:Array.from(d.survival.unconfirmed||[])});

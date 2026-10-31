@@ -2071,20 +2071,37 @@ const SURVIVAL_FLAG_KEYS = Object.freeze(Object.keys(SURVIVAL_FLAG_EVIDENCE));
 const SURVIVAL_FENCED_REPORT_RE = /```json\b[\s\S]*?(?:```|$)/gi;
 const SURVIVAL_EMPHASIS_RE = /\*+/g;
 const SURVIVAL_CLAUSE_RE = /[.!?;,\n]/;
-const survivalEvidenceCache = new Map();
-function survivalFlagReading(msg, data) {
+const survivalEvidenceCache = new WeakMap();
+function survivalFlagSource(msg, data) {
+    const key = msg.swipe_id ?? 0;
+    const live = msg.metadata?.[META_KEY];
+    if (live?.swipes?.[key] === data) return live.sources?.[key] || null;
+    const exported = msg.extra?.spindle_metadata?.[META_KEY];
+    if (exported?.swipes?.[key] === data) return exported.sources?.[key] || null;
+    const nested = msg.metadata?.spindle_metadata?.[META_KEY];
+    return nested?.swipes?.[key] === data ? nested.sources?.[key] || null : null;
+}
+function survivalSourceDescriptor(msg, data) {
+    const y = data?.survival;
+    if (!y || (y.ate !== true && y.drank !== true && y.slept !== true && y.rested !== true && !y.unconfirmed?.length)) return null;
+    return {id:msg.id, swipe_id:msg.swipe_id ?? 0, content:msg.content, sourceHash:survivalFlagSource(msg, data)};
+}
+function survivalFlagReading(msg, data, boundSource = null) {
     const y = data?.survival;
     if (!isPlainObject(y)) return data;
     const flags = (y.ate === true ? 1 : 0) | (y.drank === true ? 2 : 0) | (y.slept === true ? 4 : 0) | (y.rested === true ? 8 : 0);
     let rejected = 0;
     if (Array.isArray(y.unconfirmed)) for (let i = 0; i < SURVIVAL_FLAG_KEYS.length; i++) if (y.unconfirmed.includes(SURVIVAL_FLAG_KEYS[i])) rejected |= 1 << i;
     if (!(flags | rejected)) return data;
+    const signature = flags | (rejected << 4), cached = survivalEvidenceCache.get(data);
+    // Signed consumers have already passed getSwipeData's source validation.
+    const source = boundSource || survivalFlagSource(msg, data);
+    if (source && cached?.source === source && cached.y === y && cached.signature === signature) return cached.value;
+    // Unsigned legacy reports have no stored hash: retain exact edit invalidation.
+    // No prose normalization or regex matching occurs on their cache hits.
     const text = textOf(msg.content);
-    // Like the existing HUD/quest caches, use reply identity and source content.
-    // Exact text also invalidates equal-length edits; the size bound limits retention.
-    const key = msg.id == null ? msg : `${msg.id}:${msg.swipe_id ?? 0}:${text.length}`;
-    const signature = flags | (rejected << 4), cached = survivalEvidenceCache.get(key);
-    if (cached?.data === data && cached.y === y && cached.text === text && cached.signature === signature) return cached.value;
+    const key = source ? null : `${msg.id ?? ''}:${msg.swipe_id ?? 0}:${text.length}`;
+    if (!source && cached?.source === null && cached.key === key && cached.text === text && cached.y === y && cached.signature === signature) return cached.value;
     const reported = SURVIVAL_FLAG_KEYS.filter((k, i) => ((flags | rejected) & (1 << i)) !== 0);
     const clean = stripCompanion(stripThink(text)).replace(SURVIVAL_FENCED_REPORT_RE, '');
     const frame = findHud(clean);
@@ -2102,8 +2119,7 @@ function survivalFlagReading(msg, data) {
     }
     if (unconfirmed.length || Array.isArray(y.unconfirmed)) survival.unconfirmed = unconfirmed;
     const value = {...data, survival};
-    if (survivalEvidenceCache.size >= 3000 && !survivalEvidenceCache.has(key)) survivalEvidenceCache.delete(survivalEvidenceCache.keys().next().value);
-    survivalEvidenceCache.set(key, {data, y, text, signature, value});
+    survivalEvidenceCache.set(data, {y, source, key, text:source ? null : text, signature, value});
     return value;
 }
 
@@ -2118,11 +2134,11 @@ function getSwipeData(msg, allowSnapshot = false) {
     const data = live?.swipes?.[key], source = live?.sources?.[key];
     // Most reads use live metadata. Avoid allocating fallback candidates on that path,
     // and fingerprint only signed records; unsigned legacy reports stay readable.
-    if (isPlainObject(data) && (!continuation || source) && (!source || source === messageSource(msg))) return survivalFlagReading(msg, data);
+    if (isPlainObject(data) && (!continuation || source) && (!source || source === messageSource(msg))) return data;
     const candidates = [msg?.extra?.spindle_metadata?.[META_KEY], msg?.metadata?.spindle_metadata?.[META_KEY]];
     for (const mine of candidates) {
         const fallback = mine?.swipes?.[key], bound = mine?.sources?.[key];
-        if (isPlainObject(fallback) && (!continuation || bound) && (!bound || bound === messageSource(msg))) return survivalFlagReading(msg, fallback);
+        if (isPlainObject(fallback) && (!continuation || bound) && (!bound || bound === messageSource(msg))) return fallback;
     }
     return null;
 }
@@ -2151,7 +2167,7 @@ async function setSwipeData(chatId, msg, data, extraPatch = {}) {
         await chatApi.updateMessage(chatId, msg.id, { ...patch, metadata });
         msg.metadata = metadata;
         if (patch.content !== undefined) msg.content = patch.content;
-        statesNote(chatId, msg.id, snapshot);
+        statesNote(chatId, msg.id, snapshot, msg);
         const tc = thoughtsCache.get(chatId);
         if (tc) {
             if (Array.isArray(snapshot.characters) && snapshot.characters.length) tc.set(msg.id, snapshot.characters);
@@ -3823,7 +3839,7 @@ function statesReading(msg) {
 }
 
 function statesFill(chatId, chat, thoughts = null) {
-    const order = [], data = new Map();
+    const order = [], data = new Map(), survivalSources = new Map();
     for (const msg of chat) {
         if (msg.role !== 'assistant') continue;
         const regular = thoughts ? getSwipeData(msg) : null;
@@ -3831,15 +3847,21 @@ function statesFill(chatId, chat, thoughts = null) {
         const d = regular || statesReading(msg);
         if (!d) continue;
         order.push(msg.id); data.set(msg.id, d);
+        const source = survivalSourceDescriptor(msg, d);
+        if (source) survivalSources.set(msg.id, source);
     }
     messagePanelLoads.delete(chatId); // A completed current snapshot supersedes pending loads.
-    statesCache.set(chatId, { order, data });
+    statesCache.set(chatId, { order, data, survivalSources });
 }
-function statesNote(chatId, msgId, d) {
+function statesNote(chatId, msgId, d, msg = null) {
     const c = statesCache.get(chatId);
     if (!c) return;
     if (!c.data.has(msgId)) c.order.push(msgId);
     c.data.set(msgId, d);
+    if (!c.survivalSources) c.survivalSources = new Map();
+    const source = msg ? survivalSourceDescriptor(msg, d) : null;
+    if (source) c.survivalSources.set(msgId, source);
+    else c.survivalSources.delete(msgId);
 }
 function statesDrop(chatId) {
     if (chatId) { statesCache.delete(chatId); messagePanelLoads.delete(chatId); }
@@ -3877,7 +3899,7 @@ async function getStatesFor(chatId, msgId) {
         const pd = c.data.get(c.order[i]);
         for (const r of (pd && Array.isArray(pd.relations) ? pd.relations : [])) if (r && want.has(r.key)) { prevRel.set(r.key, r); want.delete(r.key); }
     }
-    return { d, prevRel };
+    return { d, prevRel, survivalSource: c.survivalSources?.get(msgId) };
 }
 
 const STATES_CSS = `
@@ -3959,7 +3981,7 @@ function statesPanelHtml(state, hud, msgId, cfg = chatDisplayCfg(), colours = nu
         if (w) rows.push(`<span class="rs-row"><span class="rs-k">Weather</span><span>${escapeHtml(w)}</span></span>`);
         const here = (Array.isArray(d.characters) ? d.characters : []).map(c => c && c.name).filter(Boolean);
         if (here.length) rows.push(`<span class="rs-row"><span class="rs-k">Here</span><span>${here.map(n => `<span class="rs-chip">${escapeHtml(n)}</span>`).join(' ')}</span></span>`);
-        const y = d.survival;
+        const y = state.survivalSource ? survivalFlagReading(state.survivalSource, d, state.survivalSource.sourceHash).survival : d.survival;
         if (y) {
             const bits = [y.mood, y.mind && y.mind !== y.mood ? y.mind : null].filter(Boolean);
             const did = ['slept', 'ate', 'drank', 'rested'].filter(k => y[k] === true);
@@ -10760,7 +10782,7 @@ async function hmsHandleReplyInner(chatId, chat, msg, generationType) {
         // Reuse the completed message, without another read or transaction extraction.
         if (statesCache.has(chatId)) {
             const data = statesReading(msg);
-            if (data) statesNote(chatId, msg.id, data);
+            if (data) statesNote(chatId, msg.id, data, msg);
         }
         return null;
     }
@@ -11823,7 +11845,7 @@ function hmsSurvival(timeline, st, cfg, sys) {
     for (const e of timeline) {
         if (e.clock === null || e.clock < base) continue;
         const d = getSwipeData(e.msg);
-        const y = d && d.survival;
+        const y = d && survivalFlagReading(e.msg, d).survival;
         if (!y) continue;
         for (const k of ['slept', 'ate', 'drank', 'rested']) if (y[k]) events.push({ kind: k, at: e.clock, src: 'story' });
         if (y.mind) events.push({ kind: 'mind', value: y.mind, at: e.clock, src: 'story' });
