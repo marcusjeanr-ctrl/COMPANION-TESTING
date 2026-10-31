@@ -29,5 +29,6 @@ if(file){
  assert.equal(groups.completed.length,1);assert.equal(groups.completed[0].name,"The Prodigy's Meeting");
  assert(groups.open.some(q=>q.name==='The Greyrat Connection'));
  assert.equal(JSON.stringify(chat),before);assert.equal(r.writes.length,0);assert(bytes.equals(fs.readFileSync(file)));
- console.log(JSON.stringify(payloadMode?{quests,messageCount:chat.length}:{messages:chat.length,completed:groups.completed.length,active:groups.open.length,requiredTargetsCorrect:true,inputUnchanged:true,writes:0}));
+ const departure=panel.agenda.items.find(x=>x.what==='Depart for Greyrat meeting');assert(departure);assert.equal(departure.displayDueDate,'K417-04-14');assert.equal(departure.dueIn,null);assert.equal(departure.when,'In two days');assert.equal(c.agendaDisplayTiming(departure,panel.systems.clock,panel.hud).status,'upcoming');
+ console.log(JSON.stringify(payloadMode?{quests,agenda:panel.agenda,clock:panel.systems.clock,hud:panel.hud,messageCount:chat.length}:{messages:chat.length,completed:groups.completed.length,active:groups.open.length,requiredTargetsCorrect:true,agendaGroupCorrect:true,inputUnchanged:true,writes:0}));
 }else console.log('Quest display groups: empty, active, mixed, completed-only, ended states, unchanged input, sheet and completed objective labels passed');

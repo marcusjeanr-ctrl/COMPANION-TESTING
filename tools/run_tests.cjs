@@ -3,7 +3,7 @@ const path = require('node:path');
 const { spawnSync } = require('node:child_process');
 const root = path.resolve(__dirname, '..');
 const suites = [
-    'test_completed_quest_display.cjs', 'test_play_tools.cjs',
+    'test_agenda_display_grouping.cjs', 'test_completed_quest_display.cjs', 'test_play_tools.cjs',
     'test_objective_quest_labels.cjs', 'test_recent_display_dedup.cjs', 'test_reliability_3_2_investigation.cjs',
     'test_features_3_1.cjs', 'test_sheet_followup.cjs', 'test_consistency_followup.cjs', 'test_martial_investigation.cjs', 'test_relationship_defaults_drift.cjs', 'test_quest_completion_investigation.cjs',
     'test_2_8_1_panel_parity.cjs', 'test_atlas_references.cjs', 'test_general_tracking.cjs',

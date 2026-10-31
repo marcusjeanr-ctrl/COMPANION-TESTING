@@ -91,7 +91,7 @@ browser labels and opt-out. Existing classification tests pass. No prompt change
 
 Selected-candidate acceptance and measurements are recorded in REPORT.md.
 
-## Quest disclosure follow-up (planned 3.2.1)
+## Quest and Agenda display follow-up (3.2.1 RC)
 
 The live Quests card and character-sheet export reuse `questDisplayGroups` for
 terminal-state membership. Active cards remain inline; completed and other ended
@@ -99,3 +99,7 @@ records use separate native disclosures, initially closed and remembered only in
 `state.open`, like Paid off. Rows build only when expanded. Existing done styling,
 focus controls, quest identities, progress and objective title lookup are retained.
 Details and combined-release status: [QUEST_AGENDA_3_2_1.md](QUEST_AGENDA_3_2_1.md).
+
+For unresolved date-only appointments, a UI-only source reference supports day-level
+Agenda grouping while keeping the original wording. Numeric rows and groups share
+`agendaDisplayTiming`. No resolver, dueAt/dueIn, model hint or stored record changes.

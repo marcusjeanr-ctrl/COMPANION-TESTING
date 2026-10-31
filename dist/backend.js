@@ -2589,7 +2589,7 @@ async function pushState(chatId, snapshot = null) {
                 try { x.relations = hmsRelationsPanel(chat, cs, undefined, true); } catch (e) { x.relations = null; }
                 try { x.family = hmsFamilyPanel(chat, cs); } catch (e) { x.family = null; }
                 try { x.gear = hmsGearPanel(chat, cs); } catch (e) { x.gear = null; }
-                try { x.agenda = hmsAgendaPanel(chat, cs); } catch (e) { x.agenda = null; }
+                try { x.agenda = hmsAgendaPanel(chat, cs, undefined, true); } catch (e) { x.agenda = null; }
                 try { x.holdings = hmsHoldingsPanel(chat, cs); } catch (e) { x.holdings = null; }
                 try { x.money = hmsMoneyPanel(chat, cs); } catch (e) { x.money = null; }
                 try { x.factions = hmsFactionsPanel(chat, cs); } catch (e) { x.factions = null; }
@@ -2613,7 +2613,7 @@ async function pushState(chatId, snapshot = null) {
 // Demo mode plays scripted turns (no tokens); Live mode asks the model, with a small
 // world narrator standing in for a bot card.
 
-const RPGC_VERSION = '3.2.0';
+const RPGC_VERSION = '3.2.1';
 const diagLog = [];
 function diagPush(kind, m) { diagLog.push({ at: new Date().toISOString(), kind, text: String(m).slice(0, 400) }); if (diagLog.length > 60) diagLog.shift(); }
 function logW(m) { diagPush('warn', m); return spindle.log.warn(m); }
@@ -10941,7 +10941,7 @@ function hmsPanelStateRead(chatId, chat, st) {
             try { systems = hmsSystemsPanel(chat, st); } catch (e) { logW(`[RPG Companion HMS] Systems read failed: ${e?.message || e}`); }
             try { party = hmsPartyPanel(chat, st); } catch (e) { logW(`[RPG Companion HMS] Party read failed: ${e?.message || e}`); }
             try { relations = hmsRelationsPanel(chat, st); } catch (e) { logW(`[RPG Companion HMS] Relationships read failed: ${e?.message || e}`); }
-            try { agenda = hmsAgendaPanel(chat, st); } catch (e) { logW(`[RPG Companion HMS] Agenda read failed: ${e?.message || e}`); }
+            try { agenda = hmsAgendaPanel(chat, st, undefined, true); } catch (e) { logW(`[RPG Companion HMS] Agenda read failed: ${e?.message || e}`); }
             try { holdings = hmsHoldingsPanel(chat, st); } catch (e) { logW(`[RPG Companion HMS] Holdings read failed: ${e?.message || e}`); }
             try { money = hmsMoneyPanel(chat, st); } catch (e) { logW(`[RPG Companion HMS] Finances read failed: ${e?.message || e}`); }
             try { factions = hmsFactionsPanel(chat, st); } catch (e) { logW(`[RPG Companion HMS] Factions read failed: ${e?.message || e}`); }
@@ -13654,14 +13654,22 @@ function agendaRead(chat, st) {
     return { items: items.filter(x => !x.removed), now, lastId };
 }
 
-function hmsAgendaPanel(chat, st, cfg) {
+function hmsAgendaPanel(chat, st, cfg, forDisplay = false) {
     const ac = agendaCfg(cfg);
     if (!ac.on) return null;
     const { items, now, lastId } = agendaRead(chat, st);
     const out = items.map(it => {
         const dueIn = it.dueAt !== null && it.dueAt !== undefined && now !== null ? it.dueAt - now : null;
         const status = it.state !== 'open' ? it.state : dueIn === null ? 'unset' : dueIn < -60 ? 'overdue' : dueIn <= 180 ? 'soon' : 'upcoming';
-        return { key: it.key, what: it.what, with: it.with, where: it.where, when: it.when, dueIn, kind: it.kind, state: it.state, status, from: it.from, mine: !!it.mine, isNew: it.changedIn === lastId && !!lastId };
+        const row = { key: it.key, what: it.what, with: it.with, where: it.where, when: it.when, dueIn, kind: it.kind, state: it.state, status, from: it.from, mine: !!it.mine, isNew: it.changedIn === lastId && !!lastId };
+        // UI-only source reference. Never resolve a time or add this field to model hints.
+        if (forDisplay && it.state === 'open' && it.dueAt == null && dueIn === null) {
+            const index = continuityReadIndex(chat).order.get(it.changedIn);
+            const report = index === undefined ? null : getSwipeData(chat[index], true);
+            const matches = (report?.agenda || []).filter(r => ['what','with','where','when'].every(k => lockKey(r[k] || '') === lockKey(it[k] || '')));
+            if (matches.length === 1 && matches[0].due) row.displayDueDate = matches[0].due;
+        }
+        return row;
     });
     const rank = { in_progress: -1, overdue: 0, soon: 1, upcoming: 2, unset: 3, kept: 4, missed: 5, cancelled: 6 };
     out.sort((a, b) => (rank[a.status] - rank[b.status]) || ((a.dueIn ?? 1e12) - (b.dueIn ?? 1e12)));

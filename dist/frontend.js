@@ -1179,6 +1179,38 @@ function appointmentDelta(item, clock) {
     if(Number.isFinite(item.dueAt)&&Number.isFinite(clock))return item.dueAt-clock;
     return Number.isFinite(item.dueIn)?item.dueIn:null;
 }
+// Read-only grouping and row timing share the same numeric delta. Date-only
+// fallback compares calendar days, never assigns an appointment hour or minute.
+function agendaDisplayTiming(item, clock, hud) {
+    const delta = appointmentDelta(item, clock);
+    if (item.state !== 'open') return {delta,status:item.status,dayOnly:false};
+    if (delta !== null) return {delta,status:delta < -60 ? 'overdue' : delta <= 180 ? 'soon' : 'upcoming',dayOnly:false};
+    const unknown = {delta:null,status:'unset',dayOnly:false};
+    if (item.dueAt != null || item.dueIn != null) return unknown;
+    const raw = String(item.displayDueDate || item.due || item.when || '').trim();
+    const k = raw.match(/^K\.?\s*(\d{3,4})-(\d{1,2})-(\d{1,2})$/i);
+    const iso = raw.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+    if (!k && !iso) return unknown;
+    const lines = (hud?.lines || []).map(l => l.text || '');
+    const header = k ? lines.find(l => /^Armored Dragon Calendar:/i.test(l)) : lines.find(l => /^(?:Date|Calendar):\s*\d{4}-\d{2}-\d{2}\b/i.test(l));
+    if (!header) return unknown;
+    const year = k ? header.match(/\bK\.?\s*(\d{3,4})\b/i) : header.match(/:\s*(\d{4})-/);
+    const month = k ? header.match(/\bMonth\s*(\d+)\b/i) : header.match(/:\s*\d{4}-(\d{2})-/);
+    const day = k ? header.match(/\bDay\s*(\d+)\b/i) : header.match(/:\s*\d{4}-\d{2}-(\d{2})\b/);
+    if (!year || !month || !day) return unknown;
+    const target = (k || iso).slice(1).map(Number), current = [year[1],month[1],day[1]].map(Number);
+    const valid = date => {
+        const [y,m,d] = date;
+        if (k) return m >= 1 && m <= 12 && d >= 1 && d <= 30;
+        const actual = new Date(0); actual.setUTCFullYear(y,m-1,d);
+        return actual.getUTCFullYear() === y && actual.getUTCMonth() === m-1 && actual.getUTCDate() === d;
+    };
+    if (!valid(target) || !valid(current)) return unknown;
+    const order = date => date[0]*10000 + date[1]*100 + date[2];
+    const difference = order(target)-order(current);
+    return {delta:null,status:difference > 0 ? 'upcoming' : difference < 0 ? 'overdue' : 'soon',dayOnly:true};
+}
+
 function nextAppointment(items, clock) {
     const known=(items || []).filter(x=>x.state==='open'&&appointmentDelta(x,clock)!==null);
     return known.filter(x=>appointmentDelta(x,clock)>=0).sort((a,b)=>appointmentDelta(a,clock)-appointmentDelta(b,clock))[0] ||
@@ -1398,7 +1430,7 @@ export function setup(ctx) {
         id: 'rpg-companion-hms',
         title: 'RPG Companion (HMS)',
         shortName: 'RPG',
-        headerTitle: 'RPG Companion HMS Edition 3.2.0 RC',
+        headerTitle: 'RPG Companion HMS Edition 3.2.1 RC',
         description: 'The side panel for HMS bots: the HUD as cards, people, quests, the map, fights, the Chronicle, and a guide',
         keywords: ['rpg', 'hms', 'tracker', 'hud', 'quests', 'dice', 'guide'],
         iconSvg: ICON_SVG
@@ -4423,17 +4455,19 @@ export function setup(ctx) {
         return h('small',{class:'rpgc-ability-evidence rpgc-note',title:e.last?.evidence || null},' · '+label);
     }
     function countdownText(item) {
-        const value=appointmentDelta(item,state.hms?.systems?.clock);
+        const value=(item.agendaTiming || agendaDisplayTiming(item,state.hms?.systems?.clock,state.hms?.hud)).delta;
         return value===null?null:value<0?T('overdue')+' '+fmtSpan(-value):value===0?T('now'):TT('in {0}',fmtSpan(value));
     }
     function agendaDue(x) {
         if (x.state === 'in_progress') return T('In progress');
         if (x.state !== 'open') return { kept: 'kept', missed: 'missed', cancelled: 'called off' }[x.state] || x.state;
+        const timing=x.agendaTiming || agendaDisplayTiming(x,state.hms?.systems?.clock,state.hms?.hud);
+        if (timing.dayOnly) return x.when || x.displayDueDate || x.due;
         if(playOn('appointmentCountdown')){const text=countdownText(x);if(text)return text;}
-        if (x.dueIn === null || x.dueIn === undefined) return x.when || 'no set time';
-        if (x.dueIn < -60) return TT('{0} late', fmtSpan(-x.dueIn));
-        if (x.dueIn <= 0) return T('now');
-        return `${TT('in {0}', fmtSpan(x.dueIn))}${x.when ? ` (${x.when})` : ''}`;
+        if (timing.delta === null) return x.when || 'no set time';
+        if (timing.delta < -60) return TT('{0} late', fmtSpan(-timing.delta));
+        if (timing.delta <= 0) return T('now');
+        return `${TT('in {0}', fmtSpan(timing.delta))}${x.when ? ` (${x.when})` : ''}`;
     }
     function agendaRow(x) {
         const act = (st, label, title) => h('button', { class: 'rpgc-mini', title, 'aria-label': `${label}: ${x.what}`, onclick: () => send({ type: 'agenda', chatId: state.chatId, op: 'set', key: x.key, state: st }) }, label);
@@ -4449,17 +4483,21 @@ export function setup(ctx) {
         const a = agendaOf();
         const c = (sysCfg().agenda) || {};
         if (!a || c.enabled === false) return null;
+        const rows = a.items.map(item => {
+            const timing = agendaDisplayTiming(item,state.hms?.systems?.clock,state.hms?.hud);
+            return {...item,status:timing.status,agendaTiming:timing};
+        });
         const out = [];
         const groups = [['in_progress', '▶ In progress'], ['overdue', '⚠️ Late'], ['soon', '⏰ Soon (next 3 hours)'], ['upcoming', '📅 Coming up'], ['unset', '❔ No set time']];
         for (const [st, title] of groups) {
-            const list = a.items.filter(x => x.status === st);
+            const list = rows.filter(x => x.status === st);
             if (list.length) out.push(h('div', { class: 'rpgc-agenda-group ' + st }, h('h4', null, title), h('ul', null, list.map(agendaRow))));
         }
-        const done = a.items.filter(x => x.state !== 'open' && x.state !== 'in_progress');
+        const done = rows.filter(x => x.state !== 'open' && x.state !== 'in_progress');
         if (!out.length) out.push(h('p', { class: 'rpgc-note' }, a.ask
             ? 'Appointments and promises show up here as they are made — “I’ll meet you at the river tomorrow”, “the exam is on Friday”. With a clock on the HUD, the panel counts down to each and tells the story when one is due.'
             : 'Asking the story about appointments is off (Settings → HMS systems → Agenda). You can still add your own.'));
-        if (!a.clock && a.items.some(x => x.state === 'open')) out.push(h('p', { class: 'rpgc-note' }, 'The HUD shows no clock, so times stay as the story worded them.'));
+        if (!a.clock && !Number.isFinite(state.hms?.systems?.clock) && rows.some(x => x.state === 'open')) out.push(h('p', { class: 'rpgc-note' }, 'The HUD shows no clock, so times stay as the story worded them.'));
         if (done.length) {
             const det = h('details', { class: 'rpgc-subdet' }, h('summary', null, `Done (${done.length})`), h('ul', { class: 'rpgc-agenda-group done' }, done.map(agendaRow)));
             det.open = state.open['agenda-done'] === true;
@@ -4472,10 +4510,10 @@ export function setup(ctx) {
         const add = () => { const w = whatIn.value.trim(); if (!w) return; send({ type: 'agenda', chatId: state.chatId, op: 'add', what: w, when: whenIn.value.trim(), with: withIn.value.trim() }); whatIn.value = ''; whenIn.value = ''; withIn.value = ''; };
         for (const x of [whatIn, whenIn, withIn]) x.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); add(); } });
         out.push(h('div', { class: 'rpgc-add', style: 'flex-wrap:wrap' }, whatIn, whenIn, withIn, h('button', { class: 'rpgc-btn', onclick: add }, 'Add')));
-        const active = a.items.filter(x => x.state === 'in_progress').length;
-        const late = a.items.filter(x => x.status === 'overdue').length, soon = a.items.filter(x => x.status === 'soon').length;
+        const active = rows.filter(x => x.state === 'in_progress').length;
+        const late = rows.filter(x => x.status === 'overdue').length, soon = rows.filter(x => x.status === 'soon').length;
         const summary = [active ? TT('{0} in progress', active) : null, late ? T(`${late} late`) : null, soon ? T(`${soon} soon`) : null].filter(Boolean).join(' · ');
-        const sec = section('agenda', 'Agenda', state.open, summary || (a.items.filter(x => x.state === 'open').length ? String(a.items.filter(x => x.state === 'open').length) : null), ...out);
+        const sec = section('agenda', 'Agenda', state.open, summary || (rows.filter(x => x.state === 'open').length ? String(rows.filter(x => x.state === 'open').length) : null), ...out);
         if (late) sec.classList.add('alarm');
         return sec;
     }
@@ -6818,7 +6856,7 @@ body{background:${bs ? bs.backgroundColor : '#111'};color:${bs ? bs.color : '#dd
             if (!popWin || popWin.closed) {
                 popWin = window.open('', 'rpgc_popout', 'width=460,height=860');
                 if (!popWin) { state.status = { kind: 'warning', text: 'The browser blocked the pop-out window. Allow pop-ups for Lumiverse and try again.' }; const s = S(); s.uiPanelMode = 'drawer'; return applyPanelMode(); }
-                popWin.document.title = 'RPG Companion HMS Edition 3.2.0 RC';
+                popWin.document.title = 'RPG Companion HMS Edition 3.2.1 RC';
                 syncPopoutLook(popWin);
                 try { if (!popLookObs) { popLookObs = new MutationObserver(() => syncPopoutLook(popWin)); popLookObs.observe(document.documentElement, { attributes: true }); if (document.body) popLookObs.observe(document.body, { attributes: true, attributeFilter: ['class'] }); } } catch { /* optional */ }
                 popWin.addEventListener('beforeunload', () => { popWin = null; if (panelMode() === 'popout') { const s = S(); s.uiPanelMode = 'drawer'; saveSettings(false); applyPanelMode(); render(); } });

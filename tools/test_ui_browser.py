@@ -65,6 +65,33 @@ class BrowserUi(unittest.TestCase):
         self.assertLessEqual(bounds['x']+bounds['width'],viewport['width']+1)
         self.assertLessEqual(bounds['y']+bounds['height'],viewport['height']+1)
 
+    def test_agenda_groups_share_row_timing_and_day_precision(self):
+        clock=216318795
+        base={'key':'display-appointment','what':'Display appointment','with':'Guard','where':'Gate','when':'In two days','state':'open','status':'unset','dueAt':None,'dueIn':None,'kind':'meeting'}
+        cases=[({'dueAt':clock+240},'upcoming',False),({'dueAt':clock+40},'soon',False),({'dueAt':clock-61},'overdue',False),
+            ({'dueIn':40},'soon',False),({'displayDueDate':'K417-04-14'},'upcoming',True),
+            ({'displayDueDate':'K417-04-12'},'soon',True),({'displayDueDate':'K417-04-11'},'overdue',True),
+            ({'displayDueDate':'unknown'},'unset',True),({'when':None},'unset',True),
+            ({'state':'in_progress','status':'in_progress','displayDueDate':'K417-04-14'},'in_progress',False),
+            ({'state':'kept','status':'kept','displayDueDate':'K417-04-14'},'done',False)]
+        for changes,group,literal in cases:
+            with self.subTest(changes=changes):
+                payload=json.loads(json.dumps(FIXTURE['payload']));item=dict(base,**changes)
+                payload['hms']['systems']['clock']=clock
+                payload['hms']['hud']['lines'][0]['text']='Armored Dragon Calendar: K417, Month 4, Day 12 | Time: 09:15'
+                payload['hms']['agenda']={'items':[item],'clock':False,'ask':True,'tell':True}
+                self.page.evaluate('(p)=>{window.agendaInput=p;window.receive(p)}',payload)
+                row=self.page.locator(f'.rpgc-agenda-group.{group} .rpgc-agenda-item')
+                self.assertEqual(row.count(),1)
+                text=row.locator('.due').text_content()
+                if literal:self.assertEqual(text,item['when'] or 'no set time')
+                elif item['state']=='in_progress':self.assertEqual(text,'In progress')
+                elif item['state']=='kept':self.assertEqual(text,'kept')
+                elif group=='overdue':self.assertIn('overdue',text)
+                else:self.assertTrue(text.startswith('in '))
+                self.assertEqual(self.page.evaluate('agendaInput.hms.agenda.items[0]'),item)
+        self.assertEqual(self.page.evaluate("sent.filter(x=>x.type==='agenda')"),[])
+
     def test_terminal_quest_partition_defaults_and_empty_cases(self):
         def quest(name,state=None,cls='active'):
             return {'name':name,'key':name.lower(),'questId':'q_'+name,'questAliases':['Earlier '+name],'state':state,'cls':cls,'progress':100}
@@ -129,6 +156,7 @@ class BrowserUi(unittest.TestCase):
         fixture=json.loads(subprocess.check_output(['node',str(ROOT/'tools/test_completed_quest_display.cjs'),os.environ['COMPANION_COMPLETED_QUEST_EXPORT'],'--payload'],text=True))
         self.assertEqual(fixture['messageCount'],37)
         payload=json.loads(json.dumps(FIXTURE['payload']));payload['hms']['systems']['quests']=fixture['quests']
+        payload['hms']['agenda']=fixture['agenda'];payload['hms']['systems']['clock']=fixture['clock'];payload['hms']['hud']=fixture['hud']
         self.page.evaluate('(p)=>window.receive(p)',payload)
         pane=self.page.locator('[data-open-key=quests]');completed=pane.locator('[data-open-key=quests-completed]')
         self.assertEqual(completed.locator('summary').inner_text(),'Completed (1)');self.assertFalse(completed.evaluate('(e)=>e.open'))
@@ -137,6 +165,9 @@ class BrowserUi(unittest.TestCase):
         self.assertEqual(completed.locator('.rpgc-qcard').count(),1)
         self.assertEqual(completed.locator('.name').inner_text(),"The Prodigy's Meeting")
         self.assertTrue(completed.evaluate('(e)=>e.scrollWidth<=e.clientWidth+1'))
+        departure=self.page.locator('.rpgc-agenda-group.upcoming .rpgc-agenda-item').filter(has_text='Depart for Greyrat meeting')
+        self.assertEqual(departure.count(),1);self.assertEqual(departure.locator('.due').inner_text(),'In two days')
+        self.assertEqual(self.page.locator('.rpgc-agenda-group.unset .rpgc-agenda-item').filter(has_text='Depart for Greyrat meeting').count(),0)
 
     def test_voice_suggestion_needs_explicit_acceptance(self):
         self.assertFalse(self.page.evaluate("sent.some(x=>x.type==='voice_dialogue')"))
