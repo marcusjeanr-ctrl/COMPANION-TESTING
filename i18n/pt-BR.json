@@ -2722,5 +2722,13 @@
  "Secret": "Segredo",
  "Open thread": "Trama aberta",
  "No open loops": "Nenhuma pendência",
- "Standing history": "Histórico da relação"
+ "Standing history": "Histórico da relação",
+ "World calendar": "Calendário do mundo",
+ "Previous month": "Mês anterior",
+ "Next month": "Próximo mês",
+ "Month {0}": "Mês {0}",
+ "Turns {0} in K{1}, Month {2}": "Faz {0} anos em K{1}, mês {2}",
+ "Exact birthday not reported": "Dia exato do aniversário não informado",
+ "Day {0}": "Dia {0}",
+ "Canon timing not exact": "Data canônica não exata"
 }

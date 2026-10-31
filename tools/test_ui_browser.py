@@ -65,6 +65,22 @@ class BrowserUi(unittest.TestCase):
         self.assertLessEqual(bounds['x']+bounds['width'],viewport['width']+1)
         self.assertLessEqual(bounds['y']+bounds['height'],viewport['height']+1)
 
+    def test_calendar_birth_month_has_no_invented_day(self):
+        payload=json.loads(json.dumps(FIXTURE['payload']))
+        payload['userName']='Marcus'
+        payload['hms']['hud']['lines'][0]['text']='Armored Dragon Calendar: K417, Month 4, Day 1 | Time: 09:20'
+        payload['hms']['hud']['lines'].append({'key':'race','text':'Age: 13 (born K404, Month 2)'})
+        self.receive(payload)
+        pane=self.page.locator('[data-open-key=play-calendar]')
+        self.assertEqual(pane.locator('.rpgc-calendar-day').count(),30)
+        for _ in range(10):pane.get_by_role('button',name='Next month',exact=True).click()
+        self.assertIn('Turns 14 in K418, Month 2',pane.inner_text())
+        self.assertIn('Exact birthday not reported',pane.inner_text())
+        self.assertTrue(pane.locator('.rpgc-calendar-grid').evaluate('(e)=>e.scrollWidth<=e.clientWidth+1'))
+        payload['hms']['hud']['lines']=[{'key':'date','text':'Date: 2026-10-30'}]
+        self.receive(payload)
+        self.assertEqual(self.page.locator('[data-open-key=play-calendar]').count(),0)
+
     def test_standing_history_is_in_lazy_npc_dossier(self):
         payload=json.loads(json.dumps(FIXTURE['payload']))
         person=payload['hms']['relations']['people'][0]
