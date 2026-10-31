@@ -15,7 +15,7 @@ const ctx = {
 };
 ctx.globalThis = ctx;
 vm.createContext(ctx);
-vm.runInContext(source.slice(0, startup) + '\nglobalThis.__t = { questDetailsLatest, relGuard, relCfg, martialAbilityItems, techListPanel, setPool: p => { loreCatalogPool = () => p; } };', ctx);
+vm.runInContext(source.slice(0, startup) + '\nglobalThis.__t = { questDetailsLatest, relGuard, relCfg, martialAbilityItems, techListPanel, posMovedNow, keepRoomReading, posRoomKey, setState: (st) => { getChatState = async () => st; saveChatState = async () => {}; }, setPool: p => { loreCatalogPool = () => p; } };', ctx);
 const t = ctx.__t;
 
 let n = 0;
@@ -80,7 +80,34 @@ check('practice on a known technique shows on its card', () => {
     assert.equal(row.progress, 40);
 });
 
+// 6. (3.3.4) Only a completed move in the player's own message asks for a new room.
+check('room moves: completed vs hypothetical, intended or begun', () => {
+    const moved = text => t.posMovedNow([user(text)]);
+    for (const yes of ['*I enter my bedroom.*', 'I walk to my room.', 'I walk over to the rack, placing my sword, then I walk to my father\'s study.', '*I walk the remaining distance to my room, finally reaching the door and stepping inside.*',
+        'I return to the library.', '*I quietly step into the kitchen.*', 'I head back to the courtyard.', 'I leave the study.', '*I walk to my room*'])
+        assert.equal(moved(yes), true, `should move: ${yes}`);
+    for (const no of ['I think about entering my bedroom.', 'I want to go to the library.', 'I begin walking back toward my room.', 'Can I go to the kitchen?',
+        'I might head to the courtyard later.', '"I walk to my room," I say, staying put.', 'I look around my room.', 'I walk to my desk.', 'I walk toward the weapon rack and take a sword.', 'I burst inward. I enter, then cut toward his torso.', 'I plan to return to the hall.'])
+        assert.equal(moved(no), false, `should not move: ${no}`);
+});
+
+// 7. (3.3.4) Drawing a different room under the same place keeps the earlier room.
+
+(async () => {
+// 7. (3.3.4) Drawing a different room under the same place keeps the earlier room.
+try {
+    const st = { rooms: { 'fittoa region > hall': { name: 'Dining hall', w: 10, h: 10, features: [], exits: [] } } };
+    t.setState(st);
+    const hud = { location: ['Central Continent', 'Fittoa Region', 'Hall'] };
+    await t.keepRoomReading('c1', { room: { name: 'Bedroom', w: 6, h: 6, features: [], exits: [] } }, hud);
+    assert.equal(st.rooms['fittoa region > hall'].name, 'Bedroom', 'the current room is the new one');
+    assert.equal(st.rooms['fittoa region > hall :: dining hall'].name, 'Dining hall', 'the earlier room is kept');
+    await t.keepRoomReading('c1', { room: { name: 'Bedroom', w: 7, h: 6, features: [], exits: [] } }, hud);
+    assert.equal(Object.keys(st.rooms).length, 2, 'redrawing the same room adds nothing');
+    results.push('a new room under the same place keeps the earlier one');
+} catch (e) { failed.push(`a new room under the same place keeps the earlier one: ${e.message.split('\n')[0]}`); }
 console.log(`tracking audit regressions: ${results.length} passed, ${failed.length} failed`);
 for (const r of results) console.log(`  ✓ ${r}`);
 for (const f of failed) console.log(`  ✗ ${f}`);
 if (failed.length) process.exitCode = 1;
+})();

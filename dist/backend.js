@@ -2678,7 +2678,7 @@ async function pushState(chatId, snapshot = null) {
 // Demo mode plays scripted turns (no tokens); Live mode asks the model, with a small
 // world narrator standing in for a bot card.
 
-const RPGC_VERSION = '3.3.3';
+const RPGC_VERSION = '3.3.4';
 const diagLog = [];
 function diagPush(kind, m) { diagLog.push({ at: new Date().toISOString(), kind, text: String(m).slice(0, 400) }); if (diagLog.length > 60) diagLog.shift(); }
 function logW(m) { diagPush('warn', m); return spindle.log.warn(m); }
@@ -4702,6 +4702,21 @@ function posWanted(chat, st) {
     return !!(lastU && POS_FIGHT_WORDS_RE.test(textOf(lastU.content)));
 }
 
+// A completed move in the player's own message: "I enter my bedroom", "I walk to the library", "I return to my room".
+// Not hypothetical, intended, asked-about or begun-only movement ("I think about entering…", "I want to go…",
+// "I start walking toward…", "Can I go…?"). English phrasing only.
+const POS_MOVE_RE = /\bI\s+(?:(?:then|finally|quietly|quickly|slowly|carefully|calmly|also|now)\s+)*(?:enter(?:ed)?\s+(?=[a-z])|arrive(?:d)?\s+(?:at|in)|reach(?:ed)?|return(?:ed)?\s+(?:to|into|back)|(?:step(?:ped)?|walk(?:ed)?|go|went|head(?:ed)?|move(?:d)?|run|ran|hurr(?:y|ied)|climb(?:ed)?|descend(?:ed)?|make\s+my\s+way|made\s+my\s+way)(?:\s+(?:the|remaining|rest|of|way|short|last|few|steps|distance|back))*\s+(?:to|into|inside|in\s+to|out\s+of|up\s+to|down\s+to|over\s+to|through)|(?:leave|left|exit(?:ed)?)\s+(?:the|my|his|her|their|this))\b/i;
+const POS_NOT_DONE_RE = /\b(?:think|thinking|thought|consider|considering|wonder|wondering|imagine|imagining|want|wanted|wish|plan|planning|intend|intending|decide\s+whether|can|might|could|would|will|shall|should|going\s+to|about\s+to|try\s+to|tried\s+to|ask|asking|if|maybe|perhaps|before\s+I|begin|began|start|started)\b|\?/i;
+function posMovedNow(chat) {
+    const lastU = [...(chat || [])].reverse().find(m => m.role === 'user');
+    if (!lastU) return false;
+    const text = stripCompanion(textOf(lastU.content)).replace(/["“][^"”]*["”]/g, ' ');   // spoken words are not actions
+    const furniture = /^\s*(?:the|my|his|her|their|a|an)?\s*(?:\w+\s+)?(?:desk|table|bed|window|chair|door|doorway|shelf|shelves|bookshelf|fireplace|hearth|wall|corner|rack|chest|counter|bench|stool|couch|sofa|wardrobe|mirror|basin|washbasin)\b/i;
+    const re = new RegExp(POS_MOVE_RE.source, 'gi');
+    return text.split(/(?<=[.!?\n])\s+|\*/).some(sentence => !sentence.includes('?') && [...sentence.matchAll(re)].some(m =>
+        !POS_NOT_DONE_RE.test(sentence.slice(0, m.index + m[0].length)) && !furniture.test(sentence.slice(m.index + m[0].length))));   // furniture: same room
+}
+
 /** The place a HUD is in, as a key: its last two location segments. */
 function posRoomKey(hud) {
     if (!hud || !Array.isArray(hud.location) || !hud.location.length) return null;
@@ -4769,7 +4784,9 @@ function posRequest(chat, st, userName) {
     const hud = tl.length ? tl[tl.length - 1].hud : null;
     const key = posRoomKey(hud);
     // this chat's own copy first (the room as it is now), then the bank: a place is drawn once
-    const room = (key && isPlainObject(st && st.rooms) ? st.rooms[key] : null) || mapBankGet(hud);
+    // a room change the HUD line does not show (same building): ask for the new room instead of the saved one
+    const moved = posMovedNow(chat);
+    const room = moved ? null : (key && isPlainObject(st && st.rooms) ? st.rooms[key] : null) || mapBankGet(hud);
     const json = [];
     if (!room) json.push('"room": {"name": "…", "w": 12, "h": 16, "floor": 0, "features": [{"name": "fireplace", "x": 5, "y": 0, "w": 2, "h": 1}], "exits": [{"to": "where it leads", "side": "N|E|S|W", "at": 6}]}');
     json.push('"pos": [{"name": "…", "x": 0, "y": 0, "side": "you|ally|foe|other", "note": "a few words"}]');
@@ -10794,7 +10811,11 @@ async function keepRoomReading(chatId, comp, hud) {
         try { await mapBankLoad(); if (chatId !== SANDBOX_ID) mapBankPut(hud, comp.room, chatId); } catch { /* the bank is a convenience */ }
         // the room as the story drew it, kept for this place: later replies only move people in it
         const key = posRoomKey(hud);
-        if (key) { try { const rst = await getChatState(chatId); if (!isPlainObject(rst.rooms)) rst.rooms = {}; const hp = (hud || {}).location; rst.rooms[key] = { ...comp.room, path: Array.isArray(hp) ? hp.slice(0, 12) : undefined, at: Date.now() };
+        if (key) { try { const rst = await getChatState(chatId); if (!isPlainObject(rst.rooms)) rst.rooms = {}; const hp = (hud || {}).location;
+            // a different room under the same place (bedroom vs dining hall) keeps the earlier one under its own name
+            const was = rst.rooms[key];
+            if (was && was.name && comp.room.name && lockKey(was.name) !== lockKey(comp.room.name) && !rst.rooms[key + ' :: ' + lockKey(was.name)]) rst.rooms[key + ' :: ' + lockKey(was.name)] = was;
+            rst.rooms[key] = { ...comp.room, path: Array.isArray(hp) ? hp.slice(0, 12) : undefined, at: Date.now() };
             const keys = Object.keys(rst.rooms); if (keys.length > 80) for (const k of keys.sort((a, b) => (rst.rooms[a].at || 0) - (rst.rooms[b].at || 0)).slice(0, keys.length - 80)) delete rst.rooms[k];
             await saveChatState(chatId, rst); } catch (e) { logW(`[RPG Companion HMS] Could not keep the room: ${e?.message || e}`); } }
     }

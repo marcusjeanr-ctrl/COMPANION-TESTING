@@ -1,5 +1,12 @@
 # Changelog — RPG Companion HMS Edition
 
+## 3.3.4 RC — Room changes inside a building
+
+- When your own message completes a move ("I enter my bedroom", "I walk to my room", "I return to the library"), the map request asks for the room you are now in instead of re-sending the last room saved for that HUD place. Before, moving between rooms of one building (HUD still "Veyrath Hall") kept sending the dining hall to the narrator.
+- Hypothetical, intended, asked-about or begun-only movement ("I think about entering…", "I want to go…", "I begin walking toward…", "Can I go…?"), crossing to furniture in the same room ("I walk to my desk") and spoken words don't count.
+- A newly drawn room no longer overwrites a different room saved under the same place: the earlier one is kept under its own name.
+- No extra model calls; with no move, the request is unchanged.
+
 ## 3.3.3 RC — Folding spells and techniques
 
 - Each spell and technique folds to its header line (name, rank, status, buttons). Tap it to see the description, incantation, requirements, practice note, evidence and progress bar. Opened entries are remembered; folded is the default.
