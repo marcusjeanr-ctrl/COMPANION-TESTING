@@ -2678,7 +2678,7 @@ async function pushState(chatId, snapshot = null) {
 // Demo mode plays scripted turns (no tokens); Live mode asks the model, with a small
 // world narrator standing in for a bot card.
 
-const RPGC_VERSION = '3.2.6';
+const RPGC_VERSION = '3.2.7';
 const diagLog = [];
 function diagPush(kind, m) { diagLog.push({ at: new Date().toISOString(), kind, text: String(m).slice(0, 400) }); if (diagLog.length > 60) diagLog.shift(); }
 function logW(m) { diagPush('warn', m); return spindle.log.warn(m); }
@@ -17167,7 +17167,11 @@ function questStageReferenceCue(lines) {
 function questReferenceMatch(row, q, lines, sameSource = false) {
     const stage = questStageReferenceCue(lines);
     const context = stage ? {...q,where:row.where} : q;
-    if (!q.questId || lockKey(q.questId) !== lockKey(row.key) || !questContractCompatible(row, context) || !sameSource && questSeparateSource(lines)) return false;
+    // The reported Quest ID is the identity: a drifting place ("study" → "Marcus's room") or a
+    // main/personal label flip does not make it another quest. Giver and separate-quest checks stay.
+    const sameContract = (!row.giver || !context.giver || relSameWords(row.giver, context.giver)) &&
+        !(Array.isArray(row.separateQuestKeys) && row.separateQuestKeys.includes(context.key));
+    if (!q.questId || lockKey(q.questId) !== lockKey(row.key) || !sameContract || !sameSource && questSeparateSource(lines)) return false;
     const active = (questReportedState(row.state)?.cls || row.cls || 'active') === 'active';
     if (!active && q.state !== 'reopened') return false;
     if (q.state === 'reopened' && !lines.some(line => /\breopen(?:ed|s)?\b/i.test(line) && trackingContinuityAsserted(line))) return false;

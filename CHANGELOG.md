@@ -1,5 +1,9 @@
 # Changelog — RPG Companion HMS Edition
 
+## 3.2.7 RC — One card per Quest ID
+
+- A quest reported with the same Quest ID stays one card when its place drifts with the player ("study" → "Marcus's room") or the model flips its main/personal label. Giver, separate-quest and objective checks are unchanged.
+
 ## 3.2.6 RC — Map follows room changes inside a building
 
 - When the HUD location stays the same (e.g. "Veyrath Hall") but you walk to another room, the map request now asks for the new room instead of keeping the last one drawn there.
