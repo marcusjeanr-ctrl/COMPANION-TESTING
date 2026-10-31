@@ -1,9 +1,0 @@
-{
-  "file": "dist/backend.js",
-  "parseReportMedianMs": 0.6912,
-  "processResponseMedianMs": 0.9398,
-  "promptConstructMedianMs": 0.3896,
-  "promptCharacters": 15291,
-  "populatedPromptCharacters": 19213,
-  "warnings": 0
-}
