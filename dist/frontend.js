@@ -982,6 +982,24 @@ function editable(value, onCommit, opts = {}) {
     return span;
 }
 
+// Which cards you opened or closed, kept between visits (in this browser only), so a card you
+// closed stays closed the next time the panel opens. Never required: without storage it starts as before.
+const OPEN_KEY = 'rpgc-open-sections';
+function rememberedOpen(initial) {
+    let saved = {};
+    try { saved = JSON.parse(localStorage.getItem(OPEN_KEY) || '{}') || {}; } catch { saved = {}; }
+    const target = { ...initial };
+    for (const [k, v] of Object.entries(saved && typeof saved === 'object' ? saved : {}).slice(0, 300)) if (typeof v === 'boolean') target[k] = v;
+    let timer = null;
+    const save = () => { clearTimeout(timer); timer = setTimeout(() => {
+        try { localStorage.setItem(OPEN_KEY, JSON.stringify(Object.fromEntries(Object.entries(target).filter(([, v]) => typeof v === 'boolean')))); } catch { /* storage is a convenience */ }
+    }, 300); };
+    return new Proxy(target, {
+        set(t, k, v) { t[k] = v; if (typeof v === 'boolean') save(); return true; },
+        deleteProperty(t, k) { delete t[k]; save(); return true; }
+    });
+}
+
 function section(id, title, openState, extra, ...content) {
     const d = h('details', { class: 'rpgc-sec' },
         h('summary', null, title, extra ? h('span', { class: 'rpgc-sum-extra' }, extra) : null),
@@ -1391,7 +1409,7 @@ export function setup(ctx) {
         status: null,
         view: 'trackers',
         invTab: 'onPerson',
-        open: { chapter: false },
+        open: rememberedOpen({ chapter: false }),
         locks: {},
         checkpoint: null,
         encounter: null,
@@ -1431,7 +1449,7 @@ export function setup(ctx) {
         id: 'rpg-companion-hms',
         title: 'RPG Companion (HMS)',
         shortName: 'RPG',
-        headerTitle: 'RPG Companion HMS Edition 3.2.11 RC',
+        headerTitle: 'RPG Companion HMS Edition 3.2.12 RC',
         description: 'The side panel for HMS bots: the HUD as cards, people, quests, the map, fights, the Chronicle, and a guide',
         keywords: ['rpg', 'hms', 'tracker', 'hud', 'quests', 'dice', 'guide'],
         iconSvg: ICON_SVG
@@ -6857,7 +6875,7 @@ body{background:${bs ? bs.backgroundColor : '#111'};color:${bs ? bs.color : '#dd
             if (!popWin || popWin.closed) {
                 popWin = window.open('', 'rpgc_popout', 'width=460,height=860');
                 if (!popWin) { state.status = { kind: 'warning', text: 'The browser blocked the pop-out window. Allow pop-ups for Lumiverse and try again.' }; const s = S(); s.uiPanelMode = 'drawer'; return applyPanelMode(); }
-                popWin.document.title = 'RPG Companion HMS Edition 3.2.11 RC';
+                popWin.document.title = 'RPG Companion HMS Edition 3.2.12 RC';
                 syncPopoutLook(popWin);
                 try { if (!popLookObs) { popLookObs = new MutationObserver(() => syncPopoutLook(popWin)); popLookObs.observe(document.documentElement, { attributes: true }); if (document.body) popLookObs.observe(document.body, { attributes: true, attributeFilter: ['class'] }); } } catch { /* optional */ }
                 popWin.addEventListener('beforeunload', () => { popWin = null; if (panelMode() === 'popout') { const s = S(); s.uiPanelMode = 'drawer'; saveSettings(false); applyPanelMode(); render(); } });
