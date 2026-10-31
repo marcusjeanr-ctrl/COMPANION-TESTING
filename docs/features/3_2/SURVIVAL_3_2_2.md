@@ -227,3 +227,9 @@ not installed and no test was weakened, per the explicit test-conflict STOP rule
 pushed branch for review. No main merge, release, tag change or original-repo
 write. Parts 2 (3.2.3) and 3 (3.2.4) have not started. Their investigations were
 not run out of order. None of this was tested in a live Lumiverse instance.
+
+## Consumer-placement follow-up
+
+The latest reader inventory and unchanged-test entry-point conflict are recorded
+in [the consumer audit](SURVIVAL_3_2_2_CONSUMER_AUDIT.md). Runtime remains candidate
+`11db330`; no new gate result or release is claimed.
