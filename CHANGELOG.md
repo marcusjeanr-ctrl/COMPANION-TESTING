@@ -1,5 +1,10 @@
 # Changelog — RPG Companion HMS Edition
 
+## 3.2.11 RC — Agenda title restatements stay one entry
+
+- A title that only adds the entry's own people and place ("Depart for Greyrat meeting" → "… (with House Guards) at Neutral waypoint") updates the existing entry instead of adding a second one. The day must still agree and only a single entry may match.
+- The panel also groups `K417 Month 4 Day 14 morning`-style dates (no commas, trailing time word) under Coming up instead of No set time.
+
 ## 3.2.10 RC — Sessions left in practice notes
 
 - When the story states how much practice is left ("4 more sessions"), the study note ends with it ("4 sessions left"), so the spell card's latest note shows the countdown. No new field and no extra calls.
