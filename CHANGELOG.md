@@ -1,5 +1,11 @@
 # Changelog — RPG Companion HMS Edition
 
+## 3.2.13 RC — Tracking review fixes
+
+- Gear reported "on body" (slung/strapped) with a desk, shelf or other furniture as its place is shown as left there, not carried. "In hand" at a desk is unchanged (held while seated there).
+- A spell you already know is listed under Studying only while the latest study report names it; one past review keeps its note on the spell card instead of staying under Studying.
+- Study notes keep what is left in the story's own words ("4 more study sessions or practical casts left") instead of a fixed "N sessions left" that dropped alternatives.
+
 ## 3.2.12 RC — Panels remember open and closed
 
 - The panel remembers which cards and sections you opened or closed and restores them the next time it opens, instead of opening every card each time. Kept in this browser only; nothing is sent anywhere.

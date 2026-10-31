@@ -2678,7 +2678,7 @@ async function pushState(chatId, snapshot = null) {
 // Demo mode plays scripted turns (no tokens); Live mode asks the model, with a small
 // world narrator standing in for a bot card.
 
-const RPGC_VERSION = '3.2.12';
+const RPGC_VERSION = '3.2.13';
 const diagLog = [];
 function diagPush(kind, m) { diagLog.push({ at: new Date().toISOString(), kind, text: String(m).slice(0, 400) }); if (diagLog.length > 60) diagLog.shift(); }
 function logW(m) { diagPush('warn', m); return spindle.log.warn(m); }
@@ -10535,7 +10535,7 @@ function buildCompanionInstructionRead(committed, userName, locks, st = null, ch
         if (magicSeen) yf.push('"spells": ["one individual magical spell name per entry; no physical/Touki maneuvers; include confirmed prior knowledge; no grouped lists, school/style ranks, casting methods, NPC, hypothetical or failed-only mentions"]');
         if (abilitiesSeen) yf.push('"abilities": [{"name":"individual ability", "owner":"you", "state":"known|practiced|attempted|reliable|mastered|forgotten", "historical":false, "evidence":"short exact quote from this reply, <=160 chars"}]');
         const studying = magicSeen ? spellStudyActive(chat, st).map(x => x.name).slice(0, 8) : [];
-        if (abilitiesSeen || studying.length) yf.push(`"learned": ["explicitly earned player learning this turn under the card rules; practice success alone is not learning; not historical knowledge"], "study": [{"spell": "${abilitiesSeen ? 'ability deliberately practiced/taught now' : `one of: ${studying.join(', ')}`}", "progress": "explicit measured percentage or null", "note": "practice evidence or null; when the story states what is left (e.g. 4 more sessions), end with it as \\"4 sessions left\\""}]`);
+        if (abilitiesSeen || studying.length) yf.push(`"learned": ["explicitly earned player learning this turn under the card rules; practice success alone is not learning; not historical knowledge"], "study": [{"spell": "${abilitiesSeen ? 'ability deliberately practiced/taught now' : `one of: ${studying.join(', ')}`}", "progress": "explicit measured percentage or null", "note": "practice evidence or null; when the story states what is left, end with it in the story's words (e.g. \\"4 more study sessions or practical casts left\\")"}]`);
         if (abilitiesSeen)
             yf.push(`"mastered": ["explicit mastery by ${userName}, not mere success or reliability; otherwise empty"]`);
         parts.push(`"you": {${yf.join(', ')}}`);
@@ -12970,6 +12970,8 @@ async function hmsFamilyEdit(chatId, p) {
 // and the reply), from the HUD's Equipment/Items lines, from things handed over ("got"/"lost"), and
 // from the player's own edits, which hold until the story says something newer about that item.
 
+const GEAR_FURNITURE_RE = /\b(?:desk|table|shelf|shelves|shelving|counter|nightstand|dresser|cabinet|rack|stand|floor|ground|bench|bed|sideboard|mantel|tray|ledge)\b/i;
+const GEAR_BODY_RE = /\b(?:belt|back|hip|hips|shoulder|shoulders|neck|wrist|waist|chest|arm|arms|thigh|leg|ankle|pocket|bandolier|harness|strap|strapped|slung|on (?:him|her|you|them))\b/i;
 const GEAR_STATES = ['in hand', 'worn', 'sheathed', 'on body', 'in container', 'stowed', 'dropped', 'gone'];
 const GEAR_SYN = [
     [/\b(gone|given(?: away)?|handed (?:over|to)|sold|used up|consumed|eaten|drunk|spent|lost|destroyed|broken|thrown away|discarded)\b/i, 'gone'],
@@ -13187,7 +13189,9 @@ function gearReadUncached(chat, st, cfg) {
             if (!it) continue;
             reported.add(it);
             if (r.state === 'in container' && r.inside && !find(gearBare(r.inside)) && !/\b(pocket|bolso|bolsillo)\b/i.test(r.inside)) { const box = ensure(r.inside, 'story'); if (box && !box.state) box.state = 'on body'; }
-            apply(it, r.state, r.where, r.inside, at, m.id, idx);
+            // "on body" means slung/strapped; reported with a desk or shelf as its place, it was set down there.
+            const setDown = String(r.state || '').toLowerCase() === 'on body' && GEAR_FURNITURE_RE.test(r.where || '') && !GEAR_BODY_RE.test(r.where || '');
+            apply(it, setDown ? 'stowed' : r.state, r.where, r.inside, at, m.id, idx);
         }
     }
     // the old Carried row: what you added there by hand still counts, and what you removed there is gone
@@ -16629,12 +16633,16 @@ function spellStudyActive(chat, st, fold = null, chatId = null, knownMap = null)
     const active = new Map();
     for (const s of saved) if (s && s.name && !(s.from === 'story' && known?.has(spellKey(s.name)))) active.set(spellKey(s.name), s);
     const stopped = isPlainObject(st && st.spellStudyStopped) ? st.spellStudyStopped : {};
+    const latestStudy = Math.max(-1, ...[...f.progress.values()].map(p => p.at ?? -1));
     for (const [key, p] of f.progress) {
         if ((f.withdrawn?.get(key)?.at ?? -1) >= p.at) continue;
         const after = stopped[key] && f.order.has(stopped[key]) ? f.order.get(stopped[key]) : -1;
         const earned = f.learned.get(key), mastered = f.mastered.get(key);
         const completedHere = (earned?.newlyLearned && earned.at >= p.at) || (mastered && mastered.at >= p.at);
-        if (p.at > after && (!known?.has(key) || completedHere || spellOngoingPractice(f, known, key)) && !active.has(key)) active.set(key, { name: p.name, school: null, rank: null, from: 'story' });
+        // A known spell is "Studying" only while the latest study report still names it; one past
+        // review keeps its note on the spell card but does not leave it listed as ongoing study.
+        const current = !known?.has(key) || p.at === latestStudy;
+        if (p.at > after && current && (!known?.has(key) || completedHere || spellOngoingPractice(f, known, key)) && !active.has(key)) active.set(key, { name: p.name, school: null, rank: null, from: 'story' });
     }
     return [...active.values()].slice(-8);
 }
