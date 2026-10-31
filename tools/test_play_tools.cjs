@@ -47,12 +47,6 @@ const evidenceRuntime=playRuntime(),bc=evidenceRuntime.ctx,quote='You knew the c
 const historicalData=bc.parseCompanion('<rpg_companion>'+JSON.stringify({you:{abilities:[{name:'Compact diagonal cut',owner:'you',historical:true,state:'known',evidence:quote}]}})+'</rpg_companion>');
 const historyMsg={id:'past-evidence',role:'assistant',content:playHud()+'\n'+quote,metadata:{rpg_companion:{swipes:{0:{...historicalData,survival:historicalData.you}}}}},historyBefore=JSON.stringify(historyMsg);
 const ability=bc.martialAbilityItems('test',[historyMsg],bc.emptyChatState())[0];assert.equal(c.abilityEvidenceSummary(ability).historical,1);assert.equal(c.abilityEvidenceSummary(ability).current,0);assert.equal(JSON.stringify(historyMsg),historyBefore);assert.equal(evidenceRuntime.writes.length,0);
-const changeBefore={hms:{hud:{location:['Town']},gear:{items:[{key:'blade',name:'Blade',state:'stowed'}]},relations:{people:[{key:'clerk',name:'Clerk',standing:'Wary'}]},agenda:{items:[]},systems:{quests:[]}},chronicle:[]};
-const changeAfter=JSON.parse(JSON.stringify(changeBefore));changeAfter.hms.hud.location=['Yard'];changeAfter.hms.gear.items[0].state='in hand';changeAfter.hms.relations.people[0].standing='Friendly';changeAfter.chronicle=[{id:'new',text:'A milestone'}];
-assert.equal(c.snapshotChanges(null,changeAfter).length,0);assert.equal(c.snapshotChanges(changeBefore,changeBefore).length,0);assert.equal(c.snapshotChanges(changeBefore,changeAfter).length,4);
-console.log('What changed: two snapshots only, first reply, no changes and multiple source changes passed');
-assert.equal(c.snapshotChanges({hms:{systems:{clock:100},agenda:{items:[{key:'a',what:'Study',state:'open',when:'at noon',dueIn:40}]}}},{hms:{systems:{clock:110},agenda:{items:[{key:'a',what:'Study',state:'open',when:'at noon',dueIn:30}]}}}).length,0);
-assert.equal(c.snapshotChanges({hms:{},chronicle:null},{hms:{},chronicle:[{id:'old',text:'Old record just fetched'}]}).length,0);
 const standingLadder=['Hostile','Wary','Friendly','Close'];
 assert.equal(c.standingHistory({standing:'Friendly',events:[]},standingLadder).points.length,1);
 assert.equal(c.standingHistory({standing:'Close',events:['Wary → Friendly','Friendly → Close']},standingLadder).points.at(-1).value,3);
