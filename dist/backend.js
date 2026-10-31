@@ -2678,7 +2678,7 @@ async function pushState(chatId, snapshot = null) {
 // Demo mode plays scripted turns (no tokens); Live mode asks the model, with a small
 // world narrator standing in for a bot card.
 
-const RPGC_VERSION = '3.2.8';
+const RPGC_VERSION = '3.2.9';
 const diagLog = [];
 function diagPush(kind, m) { diagLog.push({ at: new Date().toISOString(), kind, text: String(m).slice(0, 400) }); if (diagLog.length > 60) diagLog.shift(); }
 function logW(m) { diagPush('warn', m); return spindle.log.warn(m); }
@@ -13142,7 +13142,10 @@ function gearReadUncached(chat, st, cfg) {
             reacquiredAfter.set(gearCanon(lockKey(gearBare(removed.key))), idxOf.get(removed.after));
     }
     const items = new Map();
-    const find = (name) => {
+    // "leather pouch" and "leather pouch of allowance coins": the same thing, described further
+    const refined = (a, b) => { const s = a.length < b.length ? a : b, l = a.length < b.length ? b : a;
+        return s.length > 3 && /^(?:of|with|from|for|containing)\s/.test(l.startsWith(s + ' ') ? l.slice(s.length + 1) : ''); };
+    const find = (name, avoid = null) => {
         const k = lockKey(name);
         if (!k) return null;
         if (items.has(k)) return items.get(k);
@@ -13150,11 +13153,14 @@ function gearReadUncached(chat, st, cfg) {
         const bare = gearCanon;
         if (!bare(k)) return null;
         for (const it of items.values()) { const a = bare(it.key), b = bare(k); if (a === b || (a.length > 3 && b.length > 3 && (a.endsWith(' ' + b) || b.endsWith(' ' + a))) || (Math.min(a.length, b.length) >= 5 && (a.endsWith(b) || b.endsWith(a)))) return it; }
-        return null;
+        // a further description matches only one item, and never one already reported in this same reply
+        const described = [...items.values()].filter(it => !avoid?.has(it) && refined(bare(it.key), bare(k)));
+        return described.length === 1 ? described[0] : null;
     };
-    const ensure = (name, from) => {
+    const ensure = (name, from, avoid = null) => {
         name = gearBare(name);
-        let it = find(name);
+        let it = find(name, avoid);
+        if (it && avoid && lockKey(name) !== it.key && lockKey(name).startsWith(lockKey(it.name) + ' ')) it.name = name;   // show the fuller name
         if (!it) { const key = lockKey(name); if (!key) return null; it = { key, name, state: null, where: null, inside: null, from, at: null, msgId: null, idx: -1, history: [], onHud: false }; items.set(key, it); }
         return it;
     };
@@ -13173,11 +13179,13 @@ function gearReadUncached(chat, st, cfg) {
         const y = isPlainObject(d.survival) ? d.survival : {};
         for (const n of Array.isArray(y.got) ? y.got : []) { if (pocketIsMessage(n) || pocketAcquisitionPending(n)) continue; const it = ensure(n, 'story'); if (it && (!it.state || it.state === 'gone' || (reacquiredAfter.has(gearCanon(it.key)) && idx > reacquiredAfter.get(gearCanon(it.key))))) apply(it, 'on body', null, null, at, m.id, idx); }
         for (const n of Array.isArray(y.lost) ? y.lost : []) { const it = find(n); if (it) apply(it, 'gone', null, null, at, m.id, idx); }
+        const reported = new Set();
         for (const r of Array.isArray(d.gear) ? d.gear : []) {
             if (!isPlainObject(r) || !r.name) continue;
             if (pocketIsAuthorization(r?.name)) continue;
-            const it = ensure(r.name, 'story');
+            const it = ensure(r.name, 'story', reported);
             if (!it) continue;
+            reported.add(it);
             if (r.state === 'in container' && r.inside && !find(gearBare(r.inside)) && !/\b(pocket|bolso|bolsillo)\b/i.test(r.inside)) { const box = ensure(r.inside, 'story'); if (box && !box.state) box.state = 'on body'; }
             apply(it, r.state, r.where, r.inside, at, m.id, idx);
         }
