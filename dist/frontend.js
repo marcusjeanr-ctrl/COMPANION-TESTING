@@ -560,6 +560,12 @@ button.rpgc-chip.intel:hover { border-color: var(--lumiverse-accent, #7aa2f7); }
 .rpgc-pfold > summary::before { content: '▸'; opacity: .6; font-size: 11px; }
 .rpgc-pfold[open] > summary::before { content: '▾'; }
 .rpgc-pfold > summary > .head { flex: 1; min-width: 0; }
+.rpgc-spell-fold > summary { list-style: none; cursor: pointer; display: flex; align-items: center; gap: 4px; }
+.rpgc-spell-fold > summary::-webkit-details-marker { display: none; }
+.rpgc-spell-fold > summary::before { content: '▸'; opacity: .6; font-size: 11px; }
+.rpgc-spell-fold[open] > summary::before { content: '▾'; }
+.rpgc-spell-fold > summary > .head { flex: 1; min-width: 0; }
+.rpgc-spell-studying { font-size: 11px; white-space: nowrap; }
 .rpgc-people-find { width: 100%; margin: 4px 0; }
 .rpgc-foldall { gap: 6px; }
 .rpgc-gear-group > summary .meta { color: var(--lumiverse-text-dim, #777); font-size: 11px; font-weight: normal; }
@@ -1458,7 +1464,7 @@ export function setup(ctx) {
         id: 'rpg-companion-hms',
         title: 'RPG Companion (HMS)',
         shortName: 'RPG',
-        headerTitle: 'RPG Companion HMS Edition 3.3.2 RC',
+        headerTitle: 'RPG Companion HMS Edition 3.3.3 RC',
         description: 'The side panel for HMS bots: the HUD as cards, people, quests, the map, fights, the Chronicle, and a guide',
         keywords: ['rpg', 'hms', 'tracker', 'hud', 'quests', 'dice', 'guide'],
         iconSvg: ICON_SVG
@@ -4492,7 +4498,9 @@ export function setup(ctx) {
     const AGENDA_ICON = { meeting: '🤝', promise: '🤞', deadline: '⏳', event: '📅', errand: '🧭' };
     function renderAbilityEvidence(item, pane='abilities') {
         if(!playOn('abilityEvidence')||state.open[pane]===false)return null;
-        const e=abilityEvidenceSummary(item),label=e.current?TT('Retained observations: {0}',e.current):e.historical?TT('Historical evidence: {0}',e.historical):T('No retained evidence');
+        const e=abilityEvidenceSummary(item);
+        if(!e.current&&!e.historical)return null; // no evidence: no label (it repeated on every entry)
+        const label=e.current?TT('Retained observations: {0}',e.current):TT('Historical evidence: {0}',e.historical);
         return h('small',{class:'rpgc-ability-evidence rpgc-note',title:e.last?.evidence || null},' · '+label);
     }
     function countdownText(item) {
@@ -6759,6 +6767,14 @@ body{background:${bs ? bs.backgroundColor : '#111'};color:${bs ? bs.color : '#dd
             findBox);
         out.push(bar);
         const groups = [];
+        const studyingNow = new Set((L.studying || []).filter(sp => !sp.done).map(sp => String(sp.name).toLowerCase()));
+        // Remembered open/closed state that a search never overwrites: a change made by the search is marked
+        // and skipped by the toggle handler; clearing the search puts each back as remembered.
+        const autoSet = (el, open) => { if (el.open !== open) { el._auto = true; el.open = open; } };
+        const remember = (el, key, closedDefault) => el.addEventListener('toggle', () => {
+            if (el._auto) { el._auto = false; return; }
+            if (closedDefault && !el.open) delete state.open[key]; else state.open[key] = el.open;   // folded rows store only what you opened
+        });
         for (const g of L.schools) {
             const rows = g.spells.filter(shown);
             if (!rows.length) continue;
@@ -6766,17 +6782,19 @@ body{background:${bs ? bs.backgroundColor : '#111'};color:${bs ? bs.color : '#dd
             const det = h('details', { class: 'rpgc-spells rpgc-spell-school' + (g.mine ? ' mine' : '') },
                 h('summary', null, h('b', null, raw(g.name)), g.rank ? h('span', { class: 'rpgc-note' }, raw(' \u2014 ' + rankLabel(g.rank))) : null, counts ? h('span', { class: 'rpgc-note' }, ' \u00B7 ' + counts) : null),
                 rows.map(sp => {
-                    const row = h('div', { class: 'rpgc-spell-row ' + sp.status, 'data-find': (sp.name + ' ' + (sp.effect || '')).toLowerCase() },
-                        h('div', { class: 'head' },
+                    const studyingIt = sp.status === 'study' || studyingNow.has(String(sp.name).toLowerCase());
+                    const head = h('div', { class: 'head' },
                             h('span', { class: 'nm' }, raw(sp.name)),
                             sp.rank ? h('span', { class: 'rpgc-chip abil' }, raw(rankLabel(sp.rank))) : null,
                             h('span', { class: 'rpgc-chip rpgc-spell-st ' + sp.status, title: sp.why ? rankLabel(sp.why) : null }, SW('spell', SPELL_STATUS[sp.status] || sp.status)),
-                            ['known','mastered','study'].includes(sp.status)?renderAbilityEvidence(sp,kind==='technique'?'techniques':'magic'):null,
+                            studyingIt ? h('span', { class: 'rpgc-spell-studying', title: 'Studying or practising it' }, '\uD83D\uDCD6' + (sp.progress !== null && sp.progress !== undefined ? ` ${sp.progress}%` : '')) : null,
+                            ['known', 'mastered', 'study'].includes(sp.status) ? renderAbilityEvidence(sp, tech ? 'techniques' : 'magic') : null,
                             h('span', { class: 'rpgc-spell-btns' },
                                 sp.status === 'known' || sp.status === 'mastered' ? h('button', { class: 'rpgc-mini', title: 'Not learned after all: take it off', onclick: () => known(sp, false) }, '\u2715')
                                     : [sp.status === 'study' ? h('button', { class: 'rpgc-mini', title: 'Stop studying', onclick: () => study(sp, false) }, '\uD83D\uDCD6\u2715')
                                         : h('button', { class: 'rpgc-mini', title: 'Study it: the story is reminded, and reports how it goes', onclick: () => study(sp, true) }, '\uD83D\uDCD6'),
-                                    h('button', { class: 'rpgc-mini', title: 'Mark it learned', onclick: () => known(sp, true) }, '\u2713')])),
+                                    h('button', { class: 'rpgc-mini', title: 'Mark it learned', onclick: () => known(sp, true) }, '\u2713')]));
+                    const body = [
                         sp.why && !['known', 'mastered'].includes(sp.status) ? h('p', { class: 'rpgc-note why' }, rankLabel(sp.why)) : null,
                         sp.note && ['known', 'mastered'].includes(sp.status) ? h('p', { class: 'rpgc-note' }, sp.note) : null,
                         sp.evidence ? h('p', { class: 'rpgc-note' }, `${sp.evidence.historical ? 'Historical assessment' : 'Current evidence'} · ${sp.evidence.state}: ${sp.evidence.evidence}`) : null,
@@ -6784,12 +6802,23 @@ body{background:${bs ? bs.backgroundColor : '#111'};color:${bs ? bs.color : '#dd
                         sp.effect ? h('p', { class: 'eff' }, raw(sp.effect)) : null,
                         sp.requires ? h('p', { class: 'rpgc-note' }, T('Requires') + ': ', raw(sp.requires)) : null,
                         sp.chant ? h('p', { class: 'chant' }, '\u201C', raw(sp.chant), '\u201D', L.voiceless ? h('span', { class: 'rpgc-note' }, ' (', 'you can skip it', ')') : null) : null,
-                        sp.progress !== null && sp.progress !== undefined ? levelBar(sp.progress, 'ok') : null);
+                        sp.progress !== null && sp.progress !== undefined ? levelBar(sp.progress, 'ok') : null].filter(Boolean);
+                    const find = (sp.name + ' ' + (sp.effect || '')).toLowerCase();
+                    // nothing to unfold: a plain row
+                    if (!body.length) return h('div', { class: 'rpgc-spell-row ' + sp.status, 'data-find': find }, head);
+                    const rowKey = (tech ? 'tech-' : 'spell-') + sp.key;
+                    const sum = h('summary', null, head);
+                    sum.addEventListener('click', e => { if (e.target !== sum && e.target.closest && e.target.closest('button, a, input, select, textarea, label')) e.preventDefault(); });
+                    const row = h('details', { class: 'rpgc-spell-row rpgc-spell-fold ' + sp.status, 'data-find': find }, sum, body);
+                    row.dataset.foldKey = rowKey;
+                    row.open = state.open[rowKey] === true;
+                    remember(row, rowKey, true);
                     return row;
                 }));
             const key = (tech ? 'tech-style-' : 'spells-school-') + g.key;
             det.open = state.open[key] !== undefined ? !!state.open[key] : g.mine;
-            det.dataset.openKey = key; det.addEventListener('toggle', () => { state.open[key] = det.open; });
+            det.dataset.openKey = key; det.dataset.foldKey = key; det.dataset.foldDefault = g.mine ? '1' : '';
+            remember(det, key, false);
             groups.push(det);
         }
         if (!groups.length) groups.push(h('p', { class: 'rpgc-note' }, 'Nothing here with this filter.'));
@@ -6799,9 +6828,14 @@ body{background:${bs ? bs.backgroundColor : '#111'};color:${bs ? bs.color : '#dd
             state[qKey] = q;
             for (const d of box.querySelectorAll('.rpgc-spell-school')) {
                 let any = false;
-                for (const r of d.querySelectorAll('.rpgc-spell-row')) { const ok = !q || r.dataset.find.includes(q); r.hidden = !ok; any = any || ok; }
+                for (const r of d.querySelectorAll('.rpgc-spell-row')) {
+                    const ok = !q || r.dataset.find.includes(q); r.hidden = !ok; any = any || ok;
+                    // a search opens what it matched; clearing it restores what you had open
+                    if (r.dataset.foldKey) autoSet(r, q ? ok : state.open[r.dataset.foldKey] === true);
+                }
                 d.hidden = !any;
-                if (q && any) d.open = true;
+                const remembered = state.open[d.dataset.foldKey];
+                autoSet(d, q ? any || (remembered !== undefined ? !!remembered : !!d.dataset.foldDefault) : remembered !== undefined ? !!remembered : !!d.dataset.foldDefault);
             }
         };
         findBox.addEventListener('input', applyFind);
@@ -6930,7 +6964,7 @@ body{background:${bs ? bs.backgroundColor : '#111'};color:${bs ? bs.color : '#dd
             if (!popWin || popWin.closed) {
                 popWin = window.open('', 'rpgc_popout', 'width=460,height=860');
                 if (!popWin) { state.status = { kind: 'warning', text: 'The browser blocked the pop-out window. Allow pop-ups for Lumiverse and try again.' }; const s = S(); s.uiPanelMode = 'drawer'; return applyPanelMode(); }
-                popWin.document.title = 'RPG Companion HMS Edition 3.3.2 RC';
+                popWin.document.title = 'RPG Companion HMS Edition 3.3.3 RC';
                 syncPopoutLook(popWin);
                 try { if (!popLookObs) { popLookObs = new MutationObserver(() => syncPopoutLook(popWin)); popLookObs.observe(document.documentElement, { attributes: true }); if (document.body) popLookObs.observe(document.body, { attributes: true, attributeFilter: ['class'] }); } } catch { /* optional */ }
                 popWin.addEventListener('beforeunload', () => { popWin = null; if (panelMode() === 'popout') { const s = S(); s.uiPanelMode = 'drawer'; saveSettings(false); applyPanelMode(); render(); } });

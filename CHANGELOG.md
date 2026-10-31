@@ -1,5 +1,14 @@
 # Changelog — RPG Companion HMS Edition
 
+## 3.3.3 RC — Folding spells and techniques
+
+- Each spell and technique folds to its header line (name, rank, status, buttons). Tap it to see the description, incantation, requirements, practice note, evidence and progress bar. Opened entries are remembered; folded is the default.
+- Studying stays visible: the Studying box is unchanged, and a folded entry you are studying or practising shows 📖 (with its percentage when the story gave one).
+- Search opens what it matches and folds the rest while you search; clearing it restores exactly what you had open. A search never changes remembered open/closed state, for entries or schools (previously it saved school groups as opened).
+- "No retained evidence" is no longer shown on every entry (Magic, Sword techniques, Abilities); the evidence label appears only when there is evidence.
+- Technique evidence labels follow the Sword techniques card instead of the Magic card.
+- Display only: tracking, saved data and the model request are unchanged.
+
 ## 3.3.2 RC — Easier navigation
 
 - People: someone who isn't in the current scene folds to their header row (name, standing, bond). Tap to see the full card; what you open or close is remembered per person. People in the scene, and everyone under the Here tab, stay as full cards.
