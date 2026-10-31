@@ -96,3 +96,48 @@ Standard prompts remain **15,291 / 19,213 characters**. Pipeline smoke: parse
 warnings. These tiny independent smoke timings are not a controlled speed claim.
 Source hashes and acceptance details: [SELECTED_VALIDATION.json](SELECTED_VALIDATION.json).
 The revised gate below is measured separately with no concurrent local tests.
+
+## Selected 20-pair gate result
+
+[Complete statistics](SELECTED_GATE.json) and [lossless raw observations](SELECTED_GATE_RAW.json.gz)
+retain all 120 fresh-process runs, individual warm samples, process CPU totals,
+medians, quartiles/IQR, MAD and min/max spreads. No measurements were discarded.
+Main is frozen at `e07830a`; historical `540df20` is informational.
+
+| Messages | Metric | Main → selected median ms | Change | Main / selected IQR ms | Main / selected spread ms |
+| --- | --- | --- | --- | --- | --- |
+| 600 | cold wall | 235.41 → 228.60 | -2.89% | 35.98 / 30.98 | 84.93 / 115.25 |
+| 600 | cold CPU | 261.18 → 261.48 | +0.11% | 38.64 / 29.63 | 112.94 / 116.42 |
+| 600 | warm wall | 61.71 → 61.20 | -0.83% | 6.33 / 9.88 | 23.13 / 22.45 |
+| 600 | warm CPU | 121.48 → 120.87 | -0.50% | 5.84 / 14.96 | 48.73 / 39.44 |
+| 2000 | cold wall | 492.56 → 490.55 | -0.41% | 65.11 / 46.44 | 533.69 / 374.44 |
+| 2000 | cold CPU | 617.91 → 624.51 | +1.07% | 60.11 / 51.24 | 544.96 / 549.77 |
+| 2000 | warm wall | 135.36 → 136.97 | +1.19% | 10.37 / 14.74 | 86.62 / 36.41 |
+| 2000 | warm CPU | 200.51 → 202.04 | +0.76% | 23.48 / 17.79 | 86.73 / 87.27 |
+
+| 2,000 warm comparison | Wall change | CPU change | Assessment |
+| --- | --- | --- | --- |
+| baseline_to_candidate | +1.19% | +0.76% | pass |
+| reference_to_baseline | +1.86% | +1.46% | pass (informational) |
+| reference_to_candidate | +3.07% | +2.23% | pass (informational) |
+
+**Selected gate: PASS.** Full decisions and IQR checks
+are in the linked JSON. CPU is process-wide and can exceed wall time. Shared-host
+scheduling is uncontrolled; backend projection readings do not establish live
+frontend/provider latency or prove a per-feature speed improvement.
+
+## Files and branch safety
+
+Runtime changes: `dist/backend.js`, `dist/frontend.js`; translations:
+`i18n/pt-BR.json`, `es.json`, `ru.json`, `tr.json`; regression updates:
+`tools/test_play_tools.cjs`, `tools/test_ui_browser.py`. README and CHANGELOG describe
+only the included additions. Feature reports are rewritten to selected scope;
+selected validation/statistics/raw archives replace unrelated current-scope reports.
+The revised benchmark scripts and gate tests are unchanged from `c971a57`.
+A complete changed-file list is in SELECTED_VALIDATION.json.
+
+Historical full-staging records remain accessible at the unchanged `c971a57`
+checkpoint. No existing tag, staging branch, main branch, original repository or
+saved campaign record is changed. The source measured by the gate and the final
+review branch match the recorded runtime hashes; subsequent commits add only
+verification documents. No release artifact or stable release is published.
