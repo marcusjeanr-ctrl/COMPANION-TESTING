@@ -1,5 +1,9 @@
 # Changelog — RPG Companion HMS Edition
 
+## 3.2.12 RC — Panels remember open and closed
+
+- The panel remembers which cards and sections you opened or closed and restores them the next time it opens, instead of opening every card each time. Kept in this browser only; nothing is sent anywhere.
+
 ## 3.2.11 RC — Agenda title restatements stay one entry
 
 - A title that only adds the entry's own people and place ("Depart for Greyrat meeting" → "… (with House Guards) at Neutral waypoint") updates the existing entry instead of adding a second one. The day must still agree and only a single entry may match.
