@@ -65,6 +65,29 @@ class BrowserUi(unittest.TestCase):
         self.assertLessEqual(bounds['x']+bounds['width'],viewport['width']+1)
         self.assertLessEqual(bounds['y']+bounds['height'],viewport['height']+1)
 
+    def test_npc_dossier_is_lazy_read_only_and_mobile(self):
+        self.assertEqual(self.page.locator('[role=dialog][aria-label="NPC dossier"]').count(),0)
+        button=self.page.locator('button.rpgc-npc-name').first
+        button.click()
+        modal=self.page.locator('[role=dialog][aria-label="NPC dossier"]')
+        self.assertEqual(modal.count(),1)
+        self.assertIn('Aurelius',modal.inner_text())
+        self.assertTrue(modal.evaluate('(e)=>e.scrollWidth<=e.clientWidth+1'))
+        modal.get_by_role('button',name='Close',exact=True).click()
+        self.assertEqual(modal.count(),0)
+        self.assertEqual(self.page.evaluate("sent.filter(x=>/edit|rel_pin|family$|sim_edit/.test(x.type))"),[])
+        payload=json.loads(json.dumps(FIXTURE['payload']))
+        payload['settings'].update(uiTheme='mushoku',uiPanelMode='float')
+        self.receive(payload)
+        self.page.locator('button.rpgc-npc-name').first.click()
+        modal=self.page.locator('[role=dialog][aria-label="NPC dossier"]')
+        self.assertTrue(modal.evaluate('(e)=>e.getBoundingClientRect().width<=innerWidth'))
+        self.assertEqual(modal.evaluate('(e)=>getComputedStyle(e).backgroundColor'),'rgb(253, 247, 234)')
+        modal.get_by_role('button',name='Close',exact=True).click()
+        payload['settings']['playTools']={'npcDossier':False}
+        self.receive(payload)
+        self.assertEqual(self.page.locator('button.rpgc-npc-name').count(),0)
+
     def recent_timeline_fixture(self):
         payload=json.loads(json.dumps(FIXTURE['payload']))
         payload['userName']='Marcus'

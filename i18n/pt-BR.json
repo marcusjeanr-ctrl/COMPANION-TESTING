@@ -2692,5 +2692,13 @@
  "Standing moved multiple steps without an explicit event": "A posição mudou vários níveis sem evento explícito",
  "Collapse similar timeline entries": "Agrupar entradas semelhantes da cronologia",
  "Display only: nearby repeated Chronicle and planted descriptions. Source reports stay unchanged.": "Apenas exibição: descrições próximas e repetidas da Crônica e de detalhes plantados. Os relatos originais permanecem inalterados.",
- "Similar descriptions: {0}": "Descrições semelhantes: {0}"
+ "Similar descriptions: {0}": "Descrições semelhantes: {0}",
+ "NPC dossier": "Dossiê do NPC",
+ "Play tools": "Ferramentas de jogo",
+ "Unknown person": "Pessoa desconhecida",
+ "Current mind": "Estado mental atual",
+ "What they know about you": "O que sabem sobre você",
+ "Next appointment": "Próximo compromisso",
+ "Recent Chronicle": "Crônica recente",
+ "Show timeline": "Mostrar cronologia"
 }

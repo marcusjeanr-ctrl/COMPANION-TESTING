@@ -2692,5 +2692,13 @@
  "Standing moved multiple steps without an explicit event": "Уровень отношений изменился на несколько ступеней без явного события",
  "Collapse similar timeline entries": "Группировать похожие записи хронологии",
  "Display only: nearby repeated Chronicle and planted descriptions. Source reports stay unchanged.": "Только отображение: близкие повторные описания Хроники и заложенных деталей. Исходные отчёты не меняются.",
- "Similar descriptions: {0}": "Похожих описаний: {0}"
+ "Similar descriptions: {0}": "Похожих описаний: {0}",
+ "NPC dossier": "Досье персонажа",
+ "Play tools": "Игровые инструменты",
+ "Unknown person": "Неизвестный персонаж",
+ "Current mind": "Текущее состояние",
+ "What they know about you": "Что знает о вас",
+ "Next appointment": "Следующая встреча",
+ "Recent Chronicle": "Последние записи Хроники",
+ "Show timeline": "Показать хронологию"
 }
