@@ -1,5 +1,9 @@
 # Changelog — RPG Companion HMS Edition
 
+## 3.3.1 RC — Collapsible containers in Gear
+
+- Each bag, pouch or other container in the Gear panel is a collapsible group with its item count ("👜 Inside reinforced travel satchel (3)"). Containers start open, as before; one you close stays closed. Display only: tracking, item movement and saved data are unchanged.
+
 ## 3.3.0 RC — Clean build
 
 A review of the whole codebase against 3.2.14, the Six-Sided World card and seven Lumiverse exports. Tracking behavior is unchanged except the fix below; everything else is cleanup, and release checks that work again.

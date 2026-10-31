@@ -46,7 +46,7 @@ const chat = [
     user('I pack.'),
     reply('09:20', 'Test Hall', 'You pack the map and check the straps.', {
         characters: [], relations: [], quests: quest('Pack for the road', 20),
-        gear: [{ key: 'travel pack', name: 'travel pack', state: 'on body', where: 'back', inside: null }],
+        gear: [{ key: 'travel pack', name: 'travel pack', state: 'on body', where: 'back', inside: null }, { key: 'rations', name: 'rations', state: 'in container', where: null, inside: 'travel pack' }],
         survival: { mood: 'calm', spells: ['Water Ball', 'Ice Blade'], learned: [], mastered: [], study: [], abilities: [] },
     }),
 ];
@@ -149,6 +149,11 @@ globalThis.__hooks = (chat, lore, user) => {
     assert(receive, 'frontend registered no backend handler');
     receive(JSON.parse(JSON.stringify(state)));
     const rendered = textOfTree(tabRoot);
+    const find = (node, pred) => !node ? null : pred(node) ? node : (node.children || []).reduce((hit, c) => hit || find(c, pred), null);
+    const bag = find(tabRoot, n => n.tagName === 'DETAILS' && n.dataset && n.dataset.openKey === 'gear-box-travel pack');
+    assert(bag, 'container renders as a collapsible group');
+    assert.equal(bag.open, true, 'containers start open');
+    assert(textOfTree(bag).includes('(1)') && textOfTree(bag).includes('rations'), 'container shows its item count and contents');
     // Optional, local only: also render real payloads (never committed), e.g. SMOKE_PAYLOADS=a.json,b.json
     for (const file of (process.env.SMOKE_PAYLOADS || '').split(',').filter(Boolean)) {
         const real = JSON.parse(fs.readFileSync(file, 'utf8'));
