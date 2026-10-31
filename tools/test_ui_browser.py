@@ -178,6 +178,7 @@ class BrowserUi(unittest.TestCase):
         self.assertEqual(section.locator('.rpgc-daily-bond').count(),1)
         self.assertEqual(section.locator('.rpgc-chron-item.bond').count(),0)
         section.locator('.rpgc-daily-bond > summary').click()
+        section.locator('.rpgc-chron-item.bond').first.wait_for(state='visible')
         self.assertEqual(section.locator('.rpgc-chron-item.bond').count(),2)
         filters.get_by_role('button',name='All',exact=True).click()
         self.assertEqual(section.locator('.rpgc-daily-bond').count(),0)
