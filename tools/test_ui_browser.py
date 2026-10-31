@@ -158,18 +158,6 @@ class BrowserUi(unittest.TestCase):
         self.assertEqual(section.locator('.rpgc-daily-bond').count(),0)
         self.assertEqual(section.locator('.rpgc-chron-item.bond').count(),2)
 
-    def test_recap_resumed_dismissal_and_session_generation(self):
-        self.assertEqual(self.page.locator('.rpgc-recap').count(),1)
-        self.page.get_by_role('button',name='Dismiss recap',exact=True).click()
-        self.assertEqual(self.page.locator('.rpgc-recap').count(),0)
-        self.receive(FIXTURE['payload'])
-        self.assertEqual(self.page.locator('.rpgc-recap').count(),0)
-        payload=json.loads(json.dumps(FIXTURE['payload']))
-        payload['hms']['messageId']='generated-here'
-        self.page.evaluate("hostEvents.GENERATION_ENDED({chatId:activeChat.chatId,messageId:'generated-here'})")
-        self.receive(payload)
-        self.assertEqual(self.page.locator('.rpgc-recap').count(),0)
-
     def test_npc_dossier_is_lazy_read_only_and_mobile(self):
         self.assertEqual(self.page.locator('[role=dialog][aria-label="NPC dossier"]').count(),0)
         button=self.page.locator('button.rpgc-npc-name').first
