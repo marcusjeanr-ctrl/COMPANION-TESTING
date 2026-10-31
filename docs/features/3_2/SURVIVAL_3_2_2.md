@@ -1,5 +1,7 @@
 # 3.2.2 RC — Survival flag evidence
 
+> Current acceptance is in [the reader follow-up](SURVIVAL_3_2_2_READERS.md): both new gates PASS. The earlier STOP and prototype measurements below are historical.
+
 Baseline: main `01c3df9e37d707dcdecb7ced2cd401b66d6be513` (PR #34).
 Branch: `fix/survival-flag-evidence`. No other features are included.
 

@@ -1,5 +1,7 @@
 # 3.2.2 — Consumer placement audit and test-contract STOP
 
+> Current acceptance is in [the reader follow-up](SURVIVAL_3_2_2_READERS.md): both new gates PASS. The earlier STOP and prototype measurements below are historical.
+
 Audited source: candidate `11db330`, branch `fix/survival-flag-evidence`, draft
 PR #35. This follow-up changes documentation only. No runtime/test/gate change,
 new benchmark, merge, tag change or later-part work was performed.
