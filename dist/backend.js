@@ -2068,26 +2068,33 @@ const SURVIVAL_FLAG_EVIDENCE = Object.freeze({
 });
 const SURVIVAL_EVIDENCE_NEGATION = /(?<![\p{L}])(?:didn't|didn’t|did not|doesn't|does not|don't|do not|hasn't|has not|hadn't|had not|never|not|without|refused|skipped|não|sem|recusou|pulou|no|sin|rechazó|omitió|не|без|отказался|отказалась|пропустил|пропустила)(?:\s+(?!(?:but|however|instead)\b)[\p{L}'’]+){0,3}\s*$/iu;
 const SURVIVAL_FLAG_KEYS = Object.freeze(Object.keys(SURVIVAL_FLAG_EVIDENCE));
-const survivalEvidenceCache = new WeakMap();
+const SURVIVAL_FENCED_REPORT_RE = /```json\b[\s\S]*?(?:```|$)/gi;
+const SURVIVAL_EMPHASIS_RE = /\*+/g;
+const SURVIVAL_CLAUSE_RE = /[.!?;,\n]/;
+const survivalEvidenceCache = new Map();
 function survivalFlagReading(msg, data) {
     const y = data?.survival;
     if (!isPlainObject(y)) return data;
-    if (y.ate !== true && y.drank !== true && y.slept !== true && y.rested !== true && !y.unconfirmed?.length) return data;
-    const keys = SURVIVAL_FLAG_KEYS;
-    const reported = keys.filter(k => y[k] === true || (Array.isArray(y.unconfirmed) && y.unconfirmed.includes(k)));
-    if (!reported.length) return data;
-    const text = textOf(msg.content), signature = keys.map(k => y[k] === true ? '1' : '0').join('') + ':' + reported.join(',');
-    const cached = survivalEvidenceCache.get(msg);
-    if (cached?.data === data && cached.text === text && cached.signature === signature) return cached.value;
-    const clean = stripCompanion(stripThink(text)).replace(/```json\b[\s\S]*?(?:```|$)/gi, '');
+    const flags = (y.ate === true ? 1 : 0) | (y.drank === true ? 2 : 0) | (y.slept === true ? 4 : 0) | (y.rested === true ? 8 : 0);
+    let rejected = 0;
+    if (Array.isArray(y.unconfirmed)) for (let i = 0; i < SURVIVAL_FLAG_KEYS.length; i++) if (y.unconfirmed.includes(SURVIVAL_FLAG_KEYS[i])) rejected |= 1 << i;
+    if (!(flags | rejected)) return data;
+    const text = textOf(msg.content);
+    // Like the existing HUD/quest caches, use reply identity and source content.
+    // Exact text also invalidates equal-length edits; the size bound limits retention.
+    const key = msg.id == null ? msg : `${msg.id}:${msg.swipe_id ?? 0}:${text.length}`;
+    const signature = flags | (rejected << 4), cached = survivalEvidenceCache.get(key);
+    if (cached?.data === data && cached.y === y && cached.text === text && cached.signature === signature) return cached.value;
+    const reported = SURVIVAL_FLAG_KEYS.filter((k, i) => ((flags | rejected) & (1 << i)) !== 0);
+    const clean = stripCompanion(stripThink(text)).replace(SURVIVAL_FENCED_REPORT_RE, '');
     const frame = findHud(clean);
-    const prose = (frame ? clean.slice(frame.bodyEnd) : clean).replace(/\*+/g, '').normalize('NFC');
+    const prose = (frame ? clean.slice(frame.bodyEnd) : clean).replace(SURVIVAL_EMPHASIS_RE, '').normalize('NFC');
     const unconfirmed = [], survival = {...y};
     for (const k of reported) {
         const pattern = SURVIVAL_FLAG_EVIDENCE[k];
         let confirmed = false;
         for (const m of prose.matchAll(pattern)) {
-            const prefix = prose.slice(Math.max(0, m.index - 90), m.index).split(/[.!?;,\n]/).pop();
+            const prefix = prose.slice(Math.max(0, m.index - 90), m.index).split(SURVIVAL_CLAUSE_RE).pop();
             if (!SURVIVAL_EVIDENCE_NEGATION.test(prefix)) { confirmed = true; break; }
         }
         survival[k] = confirmed;
@@ -2095,7 +2102,8 @@ function survivalFlagReading(msg, data) {
     }
     if (unconfirmed.length || Array.isArray(y.unconfirmed)) survival.unconfirmed = unconfirmed;
     const value = {...data, survival};
-    survivalEvidenceCache.set(msg, {data, text, signature, value});
+    if (survivalEvidenceCache.size >= 3000 && !survivalEvidenceCache.has(key)) survivalEvidenceCache.delete(survivalEvidenceCache.keys().next().value);
+    survivalEvidenceCache.set(key, {data, y, text, signature, value});
     return value;
 }
 
@@ -2133,7 +2141,7 @@ async function setSwipeData(chatId, msg, data, extraPatch = {}) {
             const previous = getSwipeData(fresh);
             snapshot.quests = questRefreshReport(snapshot.quests, previous?.quests, fresh, snapshot);
         }
-        if (snapshot.survival) snapshot.survival = survivalFlagReading({content: patch.content ?? fresh.content}, snapshot).survival;
+        if (snapshot.survival) snapshot.survival = survivalFlagReading({id:fresh.id, swipe_id:swipe, content: patch.content ?? fresh.content}, snapshot).survival;
         const metadata = { ...(fresh.metadata || {}) };
         const mine = { ...(metadata[META_KEY] || fresh.extra?.spindle_metadata?.[META_KEY] || {}) };
         const key = String(swipe);
