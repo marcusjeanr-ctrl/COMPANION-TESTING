@@ -65,6 +65,26 @@ class BrowserUi(unittest.TestCase):
         self.assertLessEqual(bounds['x']+bounds['width'],viewport['width']+1)
         self.assertLessEqual(bounds['y']+bounds['height'],viewport['height']+1)
 
+    def test_quieter_chronicle_all_highlights_and_lazy_daily_bonds(self):
+        payload,chron=self.recent_timeline_fixture()
+        chron['chronicle']['entries'] += [{'id':'b'+str(i),'kind':'bond','text':text,'who':['Clerk'],
+            'replyIndex':8+i*2,'when':'K417 Month 4 Day 1, 10:0'+str(i),'settled':True,'imp':3} for i,text in enumerate(['Wary to friendly','Friendly to close'])]
+        self.receive(payload);self.receive(chron)
+        section=self.page.locator('[data-open-key=chronicle]')
+        filters=section.locator('.rpgc-filters')
+        self.assertEqual(section.locator('.rpgc-chron-item.bond').count(),2)
+        filters.get_by_role('button',name='Highlights',exact=True).click()
+        self.assertEqual(section.locator('.rpgc-chron-item.bond').count(),0)
+        self.assertEqual(section.locator('.rpgc-chron-item.moment').count(),1)
+        filters.get_by_role('button',name='💞 Bonds',exact=True).click()
+        self.assertEqual(section.locator('.rpgc-daily-bond').count(),1)
+        self.assertEqual(section.locator('.rpgc-chron-item.bond').count(),0)
+        section.locator('.rpgc-daily-bond > summary').click()
+        self.assertEqual(section.locator('.rpgc-chron-item.bond').count(),2)
+        filters.get_by_role('button',name='All',exact=True).click()
+        self.assertEqual(section.locator('.rpgc-daily-bond').count(),0)
+        self.assertEqual(section.locator('.rpgc-chron-item.bond').count(),2)
+
     def test_recap_resumed_dismissal_and_session_generation(self):
         self.assertEqual(self.page.locator('.rpgc-recap').count(),1)
         self.page.get_by_role('button',name='Dismiss recap',exact=True).click()

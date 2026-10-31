@@ -42,3 +42,18 @@ Files: frontend, shared view tests, one Chromium test and four dictionary update
 Tests cover fresh/generated, resumed, dismissal/no reappearance, empty data and
 immutable input. Feature off returns before assembling the view. No backend/prompt
 change; phase-level performance and full checks follow item 9.
+
+## 6. Quieter Chronicle
+
+Frontend-only Highlights filter includes explicit fight/encounter kinds, milestones,
+plot/quest entries, stars and high-importance/fight-worded moments. The wording
+fallback is conservative English; no gameplay outcome is inferred. All remains the
+default, unchanged apart from Phase A deduplication. Consecutive same-pair/same-day
+bond entries fold only in the Bonds filter so All stays intact. Expand lazily
+reveals original per-entry controls and source IDs; open state survives refresh.
+Unknown dates/pairs and different loops/days remain separate. The shared optional
+Quieter Chronicle setting restores the old filters/Bonds view when off.
+
+Files: frontend, shared pure tests, Chromium test and four dictionaries. Tests cover
+filter membership, folding and negative pair/day cases, empty input, immutability,
+All preservation, lazy expand and original entries. No backend or prompt changes.
