@@ -1,5 +1,10 @@
 # Changelog — RPG Companion HMS Edition
 
+## 3.2.8 RC — Practice on spells you already know
+
+- Studying or practising a spell that is already Known now shows the latest practice note (and progress, when the story gives a percentage) on its Magic card.
+- The spell list the model repeats every reply no longer re-dates when each spell was learned, which had hidden every later practice report. Known/mastered status is unchanged.
+
 ## 3.2.7 RC — One card per Quest ID
 
 - A quest reported with the same Quest ID stays one card when its place drifts with the player ("study" → "Marcus's room") or the model flips its main/personal label. Giver, separate-quest and objective checks are unchanged.

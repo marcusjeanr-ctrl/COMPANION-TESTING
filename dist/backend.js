@@ -2678,7 +2678,7 @@ async function pushState(chatId, snapshot = null) {
 // Demo mode plays scripted turns (no tokens); Live mode asks the model, with a small
 // world narrator standing in for a bot card.
 
-const RPGC_VERSION = '3.2.7';
+const RPGC_VERSION = '3.2.8';
 const diagLog = [];
 function diagPush(kind, m) { diagLog.push({ at: new Date().toISOString(), kind, text: String(m).slice(0, 400) }); if (diagLog.length > 60) diagLog.shift(); }
 function logW(m) { diagPush('warn', m); return spindle.log.warn(m); }
@@ -16523,7 +16523,10 @@ function spellStoryFoldUncached(chat, chatId = null) {
         if (!y) continue;
         const assessments = abilityEvidenceRows(m, d, playerName);
         const rejectedClaims = new Set(assessments.filter(row => row.state === 'unverified').flatMap(row => resolve.records(row.name).map(target => target.key)));
-        for (const n of Array.isArray(y.spells) ? y.spells : []) for (const target of resolve.records(n)) if (!rejectedClaims.has(target.key)) learned.set(target.key, { ...target, ...((target.note || learned.get(target.key)?.note || established.get(target.key)?.note) ? { note: target.note || learned.get(target.key)?.note || established.get(target.key)?.note } : {}), msgId: m.id, at: order.get(m.id), newlyLearned: false });
+        // The spell list is repeated every reply: it adds a spell the first time, and a repeat
+        // never re-dates when it was learned (which would hide later practice on it).
+        for (const n of Array.isArray(y.spells) ? y.spells : []) for (const target of resolve.records(n)) if (!rejectedClaims.has(target.key) && learned.has(target.key)) { const prev = learned.get(target.key); if (!prev.note && target.note) prev.note = target.note; }
+        else if (!rejectedClaims.has(target.key)) learned.set(target.key, { ...target, ...((target.note || learned.get(target.key)?.note || established.get(target.key)?.note) ? { note: target.note || learned.get(target.key)?.note || established.get(target.key)?.note } : {}), msgId: m.id, at: order.get(m.id), newlyLearned: false });
         for (const n of Array.isArray(y.learned) ? y.learned : []) for (const target of resolve.records(n)) if (!rejectedClaims.has(target.key)) learned.set(target.key, { ...target, msgId: m.id, at: order.get(m.id), newlyLearned: true });
         for (const n of Array.isArray(y.mastered) ? y.mastered : []) for (const target of resolve.records(n)) if (!rejectedClaims.has(target.key)) mastered.set(target.key, { ...target, msgId: m.id, at: order.get(m.id) });
         for (const s of Array.isArray(y.study) ? y.study : []) if (s && s.spell) for (const target of resolve.records(s)) progress.set(target.key, { name: target.name, progress: s.progress, note: s.note || target.note || null, msgId: m.id, at: order.get(m.id) });
@@ -16589,8 +16592,11 @@ function spellOngoingPractice(fold, known, key) {
         const after = anchor === null ? -1 : fold.order.get(anchor);
         return after !== undefined && practice.at > after;
     }
+    // The spell list the model repeats every reply restates what is known; it is not new learning,
+    // so practice reported in that same reply still counts as practice after learning.
+    const earnedAt = earned && !earned.newlyLearned && earned.at === practice?.at ? earned.at - 1 : earned?.at ?? -1;
     return !!(practice && known?.has(key) &&
-        ((practice.at > Math.max(earned?.at ?? -1, mastered?.at ?? -1)) ||
+        ((practice.at > Math.max(earnedAt, mastered?.at ?? -1)) ||
         (known.get(key).evidence?.historical && !known.get(key).mastered && !earned?.newlyLearned)));
 }
 function spellStudyActive(chat, st, fold = null, chatId = null, knownMap = null) {
@@ -16661,9 +16667,10 @@ function spellListPanel(chatId, chat, st, sys) {
         else { status = 'locked'; why = needs(r); }
         const pr = fold.progress.get(r.key);
         const evidence = known.has(r.key) ? known.get(r.key).evidence || null : fold.abilityEvidence?.get(r.key) || null;
+        const practicing = status === 'known' && spellOngoingPractice(fold, known, r.key);   // improving a spell already known
         return { name: r.name, key: r.key, school: r.school, rank: r.rank, step: r.step, status, why, who: r.who, effect: r.effect, chant: r.chant, fan: !!r.fan,
-            progress: status === 'study' && pr && pr.progress !== null && pr.progress !== undefined && Number.isFinite(Number(pr.progress)) ? Math.max(0, Math.min(100, Math.round(Number(pr.progress)))) : null,
-            note: status === 'study' && pr ? pr.note : known.get(r.key)?.note || (spellOngoingPractice(fold, known, r.key) ? pr?.note : null) || null, ...(evidence ? { evidence } : {}) };
+            progress: (status === 'study' || practicing) && pr && pr.progress !== null && pr.progress !== undefined && Number.isFinite(Number(pr.progress)) ? Math.max(0, Math.min(100, Math.round(Number(pr.progress)))) : null,
+            note: status === 'study' && pr ? pr.note : (practicing ? pr?.note : null) || known.get(r.key)?.note || null, ...(evidence ? { evidence } : {}) };
     });
     // a known spell the lorebook does not have still shows, under its own heading
     const catKeys = cat.map(r => r.key);
