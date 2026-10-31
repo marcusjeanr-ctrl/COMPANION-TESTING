@@ -66,10 +66,11 @@ class BrowserUi(unittest.TestCase):
         self.assertLessEqual(bounds['y']+bounds['height'],viewport['height']+1)
 
     def test_voice_suggestion_needs_explicit_acceptance(self):
+        self.assertFalse(self.page.evaluate("sent.some(x=>x.type==='voice_dialogue')"))
         self.page.locator('button.rpgc-npc-name').first.click()
         name=self.page.locator('.rpgc-play-modal h3').inner_text()
         req=self.page.evaluate("sent.findLast(x=>x.type==='voice_dialogue')")
-        self.page.evaluate('p=>receive(p)',{'type':'voice_dialogue','chatId':'test','replyId':req['replyId'],'requestKey':req['requestKey'],'rows':[{'text':f'[D:{name}]"Wait."\n[D:{name}]"Good morning."'}],'repetition':[]})
+        self.page.evaluate('p=>receive(p)',{'type':'voice_dialogue','chatId':'test','replyId':req['replyId'],'requestKey':req['requestKey'],'rows':[{'text':f'[D:{name}]"Wait."\n[D:{name}]"Good morning."'}]})
         self.page.evaluate('p=>receive(p)',{'type':'play_note','chatId':'test','kind':'voice','name':name,'text':''})
         pane=self.page.locator('.rpgc-voice-note')
         self.assertIn('Suggestion — not accepted',pane.inner_text())
@@ -77,6 +78,8 @@ class BrowserUi(unittest.TestCase):
         pane.get_by_role('textbox').fill('My accepted note')
         pane.get_by_role('button',name='Accept or save edit').click()
         self.assertEqual(self.page.evaluate("sent.findLast(x=>x.type==='play_note_save').text"),'My accepted note')
+        self.page.evaluate('p=>receive(p)',{'type':'play_note','chatId':'test','kind':'voice','name':name,'error':'Note limit reached'})
+        self.assertEqual(self.page.locator('.rpgc-voice-note input').input_value(),'My accepted note')
 
 
     def test_standing_history_is_in_lazy_npc_dossier(self):

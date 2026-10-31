@@ -2723,5 +2723,6 @@
  "Accept or save edit": "Принять или сохранить правку",
  "Save note": "Сохранить заметку",
  "Clear note": "Удалить заметку",
- "Accepted voice notes in context (opt-in)": "Принятые заметки о речи в контексте (по выбору)"
+ "Accepted voice notes in context (opt-in)": "Принятые заметки о речи в контексте (по выбору)",
+ "Note limit reached": "Достигнут лимит заметок"
 }

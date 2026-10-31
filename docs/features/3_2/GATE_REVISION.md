@@ -1,5 +1,8 @@
 # Revised phase gate — tools only
 
+Current selected-candidate verification is in [REPORT.md](REPORT.md). The tables
+below retain the historical gate calibration; they do not certify another build.
+
 The user superseded the original 3.0.10-relative wall-only gate. Old failed matrices
 remain in REPORT.md; none was discarded or relabeled as a pass. No runtime code was
 changed to revise the measurement. Historical 3.0.10 is informational, not a gate.

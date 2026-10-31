@@ -73,3 +73,20 @@ assert.equal(c.voiceSuggestion(dialogue,'Clerk King',['Clerk King']),'Short dial
  const off=await prompt();assert(!off.includes('Accepted voice notes:'));rt.run('settings.playTools={voiceHint:true}');const on=await prompt();assert(on.includes('Accepted voice notes: Clerk: Clipped dialogue'));assert(on.length-off.length<=241);
  rt.run('settings.playTools={voiceHint:false}');assert.equal(await prompt(),off);
 })().catch(e=>{console.error(e);process.exitCode=1;});
+
+// Full source dates prevent daily bond folds from crossing calendar months.
+const datedRt=playRuntime(),datedChat=[{id:'d1',role:'assistant',content:playHud()},{id:'d2',role:'assistant',content:playHud('New Town').replace('Thawmoon (Month 2)','Month 3')}],datedBefore=JSON.stringify(datedChat);
+const datedEntries=datedRt.ctx.chronicleBuild(datedChat,datedRt.ctx.emptyChatState());
+assert(datedEntries.some(x=>x.recordedDay==='K417, Month 2, Day 8'));assert(datedEntries.some(x=>x.recordedDay==='K417, Month 3, Day 8'));assert.equal(JSON.stringify(datedChat),datedBefore);
+assert.equal(c.dailyBondGroups([{...bonds[0],recordedDay:'K417, Month 2, Day 1'},{...bonds[1],recordedDay:'K417, Month 3, Day 1'}]).length,2);
+assert.equal(datedRt.run("hmsLabelIn('reputation'.toUpperCase(),FACTION_HUD_LABELS)"),true);
+assert.equal(c.npcDossierData({hms:{agenda:{items:[{what:'Deliver a letter',with:'Courier',state:'open'}]}}},'Courier').appointment.what,'Deliver a letter');
+assert.equal(c.npcDossierData({chronData:{entries:[{who:['Courier'],text:'Delivered a letter'}]}},'Courier').chronicle.length,1);
+(async()=>{
+ const rt=playRuntime();rt.messages.push(...Array.from({length:5},(_,i)=>({id:'voice-'+i,role:'assistant',content:'### WORLD STATE ###\nHUDOnly: hidden-field\n***\n[D:Clerk]"Wait, friend."\n<think>hidden thought</think>\n<rpg_companion>{"secret":"hidden report"}</rpg_companion>'})));
+ const before=JSON.stringify(rt.messages);await rt.frontendHandlers[0]({type:'voice_dialogue',chatId:'test',replyId:'voice-4',requestKey:'read'});
+ const rows=rt.events.at(-1).rows;assert.equal(rows.length,5);assert(rows.every(x=>x.text.includes('[D:Clerk]')&&!/hidden|HUDOnly/.test(x.text)));assert.equal(JSON.stringify(rt.messages),before);assert.equal(rt.writes.length,0);
+ assert.equal(rt.ctx.voiceDialogueRows(Array(100).fill(rt.messages[0])).length,10);
+ assert.equal(rt.ctx.voiceDialogueRows([{...rt.messages[0],hidden:true}]).length,0);
+ console.log('Voice source: lazy read RPC, API story annotations, bounded window and hidden/HUD/tracker exclusions passed');
+})().catch(e=>{console.error(e);process.exitCode=1;});

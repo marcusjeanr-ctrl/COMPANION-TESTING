@@ -1,0 +1,32 @@
+{
+  "runtimeSuites": 61,
+  "gateTests": 12,
+  "chromiumUiTests": 49,
+  "visibilityTests": 5,
+  "version": "3.2.0 RC",
+  "requestedNameScan": {
+    "matchCount": 0,
+    "ripgrepExitCode": 1,
+    "paths": [
+      "dist/",
+      "i18n/"
+    ]
+  },
+  "gateStatus": "pending",
+  "liveLumiverse": false,
+  "pipelineSmoke": {
+    "file": "/workspace/COMPANION-TESTING/dist/backend.js",
+    "parseReportMedianMs": 0.5993,
+    "processResponseMedianMs": 0.8472,
+    "promptConstructMedianMs": 0.4553,
+    "promptCharacters": 15291,
+    "populatedPromptCharacters": 19213,
+    "warnings": 0
+  },
+  "sourceHashes": {
+    "dist/backend.js": "6415b7daa55500e181d7f802e0ff44d041eb420c000bc1445c229a28c1b382da",
+    "dist/frontend.js": "3e4e49841f959da2ead016b38aa3c6c38233e728b886ea27628c58793332036d"
+  },
+  "protectedMain": "e07830acbfe3e7a9d84185d7d19b067d247d39b1",
+  "protectedStaging": "c971a576c89a2928c54369f260365c4766d211f3"
+}

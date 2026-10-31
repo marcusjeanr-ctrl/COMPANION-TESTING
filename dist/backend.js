@@ -2476,7 +2476,7 @@ function trackerSnapshotEdit(st, payload) {
     return true;
 }
 
-// Bounded visible prose, requested only by an open play view or explicit opt-in.
+// Bounded visible dialogue source, requested only by an open NPC voice editor.
 function voiceDialogueRows(chat) {
     const rows=[];
     for(let i=(chat || []).length-1;i>=Math.max(0,chat.length-40)&&rows.length<10;i--) {
@@ -2499,7 +2499,7 @@ function playNoteRead(st,kind,name) {
 }
 function playNoteEdit(st,kind,name,text) {
     const key=playNoteKey(kind,name);if(!key||key==='npc:')return false;
-    const value=(kind==='voice'?String(text || '').replace(/[\r\n]+/g,' '):String(text || '')).trim().slice(0,240),store=isPlainObject(st.playNotes)?st.playNotes:{};
+    const value=String(text || '').replace(/[\r\n]+/g,' ').trim().slice(0,240),store=isPlainObject(st.playNotes)?st.playNotes:{};
     const notes=isPlainObject(store[kind])?store[kind]:{};
     if(!Object.hasOwn(notes,key)&&value&&Object.keys(notes).length>=60)return false;
     if(value)notes[key]=value;else delete notes[key];store[kind]=notes;st.playNotes=store;return true;
@@ -8422,13 +8422,15 @@ function chronicleBuild(chat, st, userName = null) {
         if (hud && hudCanRewind(hud)) rewindWorld = true;
         const prevHud = prevE ? prevE.hud : null;
         const when = chronWhen(hud || prevHud);
+        const calendar=mtCalendar((hud?.lines || []).slice(0,4).map(l=>l.text).join('\n'));
+        const recordedDay=calendar?'K'+calendar.year+', '+(calendar.month?'Month '+calendar.month+', ':'')+'Day '+calendar.day:(hud&&hmsClock(hud)?.dated?String(hud.lines[0]?.text || '').replace(/\s*(?:[|—–-]\s*)?Time\s*:.*/i,'').replace(/,?\s*\d{1,2}:\d{2}.*$/,'').trim():null);
         const placeNow = (hud || prevHud) && (hud || prevHud).location ? (hud || prevHud).location.filter(s => !/^\[/.test(s)).slice(-1)[0] || null : null;
         const settled = idxOf.get(m.id) < lastUser;
         const add = (kind, text, imp, extra = {}) => {
             const id = 'c' + hashStr(`${m.id}:${m.swipe_id ?? 0}:${kind}:${text}`).toString(36);
             if (seenIds.has(id)) return null;
             seenIds.add(id);
-            const x = { id, msgId: m.id, replyIndex: idxOf.get(m.id), kind, text, imp, when, loop: rewindWorld ? loop : null, arc, where: placeNow, who: [], settled, ...extra };
+            const x = { id, msgId: m.id, replyIndex: idxOf.get(m.id), kind, text, imp, when, recordedDay, loop: rewindWorld ? loop : null, arc, where: placeNow, who: [], settled, ...extra };
             if (ch.star[id]) { x.star = true; x.imp = CHRON_IMP.star; }
             if (ch.hide[id]) x.hidden = true;
             out.push(x);
@@ -14096,7 +14098,7 @@ async function hmsMoneyEdit(chatId, p) {
 // ("factions"), the HUD's Faction/Guild/Affiliation/Bounty lines, and by hand.
 
 const FACTION_LADDER = ['hunted', 'hostile', 'unfriendly', 'neutral', 'friendly', 'trusted', 'allied', 'member'];
-const FACTION_HUD_LABELS = ['Faction', 'Factions', 'Guild', 'Guilds', 'Affiliation', 'Affiliations', 'Allegiance', 'Organization', 'Organisation', 'Membership', 'Order', 'House', 'Clan', 'Bounty', 'Bounties', 'Reputation', 'Renown'];
+const FACTION_HUD_LABELS = ['Faction', 'Factions', 'Guild', 'Guilds', 'Affiliation', 'Affiliations', 'Allegiance', 'Organization', 'Organisation', 'Membership', 'Order', 'House', 'Clan', 'Bounty', 'Bounties', 'reputation', 'Renown'];
 
 function factionCfg(cfg) {
     const c = (cfg || hmsCfg()).factions || {};

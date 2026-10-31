@@ -1,8 +1,4 @@
-# Phase B — play-focused features
-
-Phase-start main is frozen at `e07830acbfe3e7a9d84185d7d19b067d247d39b1`.
-Phase A passes the revised gate; historical wall-only failures remain archived.
-No live Lumiverse testing, main merge or release is performed.
+# Selected play tools — items 4, 6–9
 
 ## 4. NPC dossier
 
@@ -93,15 +89,4 @@ Tests cover one/several/duplicate observations, no evidence, rejected claims,
 historical-only evidence, real parser/fold projection and unchanged metadata, plus
 browser labels and opt-out. Existing classification tests pass. No prompt change.
 
-## Phase B acceptance
-
-Node 22 release identity and both syntax checks pass; **61** runtime suites plus **12** gate tests pass. Real Chromium/mock bridge: **48 UI + 5 visibility** tests pass. Source hashes match the frozen tested runtime after local commit cleanup. No live Lumiverse instance was tested.
-
-[Corrected three-way summary](REVISED_PHASE_B.json), [complete raw observations](REVISED_PHASE_B_RAW.json.gz), and [original individual-read-noise analysis](REVISED_PHASE_B_ORIGINAL_SAMPLE_NOISE.json.gz) are retained. No observations were rerun or discarded for the noise-statistic correction. Main is frozen at the phase-start e07830a.
-
-| Case | Wall median baseline → candidate, ms | CPU median baseline → candidate, ms | Gate |
-| --- | --- | --- | --- |
-| 600 warm | 68.13 → 68.82 (+1.01%) | 132.01 → 139.58 (+5.74%) | informational |
-| 2000 warm | 165.56 → 158.25 (-4.42%) | 248.03 → 233.83 (-5.72%) | pass |
-
-**Phase B passes** the revised main-relative rule. Run medians, IQRs, min/max, spreads, MADs and cold/whole-process CPU readings are in the linked artifacts. 3.0.10 comparisons remain informational. Phase C may proceed. No per-item speed improvement is inferred from this backend-only synthetic gate; new UI views are functionally tested and lazy, not live-certified.
+Selected-candidate acceptance and measurements are recorded in REPORT.md.
