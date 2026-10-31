@@ -554,6 +554,8 @@ button.rpgc-chip.intel:hover { border-color: var(--lumiverse-accent, #7aa2f7); }
 .rpgc-gear-item { display: flex; align-items: center; gap: 6px; font-size: 12px; }
 .rpgc-gear-item .name { font-weight: 600; }
 .rpgc-gear-item .meta, .rpgc-gear-group h4 .meta { color: var(--lumiverse-text-dim, #777); font-size: 11px; font-weight: normal; }
+.rpgc-gear-group > summary { margin: 6px 0 2px; font-size: 12px; font-weight: bold; cursor: pointer; }
+.rpgc-gear-group > summary .meta { color: var(--lumiverse-text-dim, #777); font-size: 11px; font-weight: normal; }
 .rpgc-gear-item.now .name { color: var(--lumiverse-accent, #7aa2f7); }
 .rpgc-gear-item .rpgc-gear-move { margin-left: auto; font-size: 11px; max-width: 120px; }
 .rpgc-gear-now { font-size: 12px; margin: 0; }
@@ -1449,7 +1451,7 @@ export function setup(ctx) {
         id: 'rpg-companion-hms',
         title: 'RPG Companion (HMS)',
         shortName: 'RPG',
-        headerTitle: 'RPG Companion HMS Edition 3.3.0 RC',
+        headerTitle: 'RPG Companion HMS Edition 3.3.1 RC',
         description: 'The side panel for HMS bots: the HUD as cards, people, quests, the map, fights, the Chronicle, and a guide',
         keywords: ['rpg', 'hms', 'tracker', 'hud', 'quests', 'dice', 'guide'],
         iconSvg: ICON_SVG
@@ -4635,8 +4637,13 @@ export function setup(ctx) {
                     const box = g.items.find(it => it.name.toLowerCase() === cn.toLowerCase());
                     if (!inside.length && !box) continue;
                     inside.forEach(it => used.add(it.key));
-                    out.push(h('div', { class: 'rpgc-gear-group box' }, h('h4', null, `👜 Inside ${cn}`, box && box.state ? h('span', { class: 'meta' }, ` · ${box.state === 'in container' ? TT('in {0}', box.inside) : T(GEAR_LABEL[box.state] || '')}${box.where ? ` (${box.where})` : ''}`) : null),
-                        inside.length ? h('ul', null, inside.map(it => gearRow(g, it))) : h('p', { class: 'rpgc-note' }, 'Nothing known inside.')));
+                    // a collapsible list per bag; open by default, and a bag you close stays closed (remembered)
+                    const boxKey = 'gear-box-' + cn.toLowerCase();
+                    const det = h('details', { class: 'rpgc-gear-group box' }, h('summary', null, `👜 Inside ${cn}`, h('span', { class: 'meta' }, ` (${inside.length})`), box && box.state ? h('span', { class: 'meta' }, ` · ${box.state === 'in container' ? TT('in {0}', box.inside) : T(GEAR_LABEL[box.state] || '')}${box.where ? ` (${box.where})` : ''}`) : null),
+                        inside.length ? h('ul', null, inside.map(it => gearRow(g, it))) : h('p', { class: 'rpgc-note' }, 'Nothing known inside.'));
+                    det.open = state.open[boxKey] !== false;
+                    det.dataset.openKey = boxKey; det.addEventListener('toggle', () => { state.open[boxKey] = det.open; });
+                    out.push(det);
                 }
                 // things in a container nobody listed
                 const loose = g.items.filter(it => it.state === 'in container' && !used.has(it.key));
@@ -6875,7 +6882,7 @@ body{background:${bs ? bs.backgroundColor : '#111'};color:${bs ? bs.color : '#dd
             if (!popWin || popWin.closed) {
                 popWin = window.open('', 'rpgc_popout', 'width=460,height=860');
                 if (!popWin) { state.status = { kind: 'warning', text: 'The browser blocked the pop-out window. Allow pop-ups for Lumiverse and try again.' }; const s = S(); s.uiPanelMode = 'drawer'; return applyPanelMode(); }
-                popWin.document.title = 'RPG Companion HMS Edition 3.3.0 RC';
+                popWin.document.title = 'RPG Companion HMS Edition 3.3.1 RC';
                 syncPopoutLook(popWin);
                 try { if (!popLookObs) { popLookObs = new MutationObserver(() => syncPopoutLook(popWin)); popLookObs.observe(document.documentElement, { attributes: true }); if (document.body) popLookObs.observe(document.body, { attributes: true, attributeFilter: ['class'] }); } } catch { /* optional */ }
                 popWin.addEventListener('beforeunload', () => { popWin = null; if (panelMode() === 'popout') { const s = S(); s.uiPanelMode = 'drawer'; saveSettings(false); applyPanelMode(); render(); } });
