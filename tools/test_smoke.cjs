@@ -108,7 +108,7 @@ globalThis.__hooks = (chat, lore, user) => {
         constructor(tag) { this.tagName = String(tag).toUpperCase(); this.children = []; this.dataset = {}; this.attributes = {}; this.style = { setProperty() {}, removeProperty() {} };
             this.classList = { add() {}, remove() {}, toggle() {}, contains: () => false }; this.textContent = ''; this.open = false; }
         get childNodes() { return this.children; }
-        appendChild(c) { if (c) { this.children.push(c); c.parentElement = this; } return c; }
+        appendChild(c) { if (c) { if (c.parentElement && c.parentElement.children) c.parentElement.children = c.parentElement.children.filter(x => x !== c); this.children.push(c); c.parentElement = this; } return c; } // moves, like the DOM
         append(...c) { c.forEach(x => this.appendChild(typeof x === 'string' ? { textContent: x } : x)); }
         prepend(...c) { this.append(...c); }
         replaceChildren(...c) { this.children = []; this.append(...c); }
@@ -154,12 +154,18 @@ globalThis.__hooks = (chat, lore, user) => {
     assert(bag, 'container renders as a collapsible group');
     assert.equal(bag.open, true, 'containers start open');
     assert(textOfTree(bag).includes('(1)') && textOfTree(bag).includes('rations'), 'container shows its item count and contents');
+    const folded = find(tabRoot, n => n.tagName === 'DETAILS' && n.dataset && /^person-/.test(n.dataset.openKey || ''));
+    assert(folded, 'someone not in the scene folds to a header row');
+    assert.equal(folded.open, false, 'folded people start closed');
+    assert(textOfTree(folded.children[0]).includes('Old Mentor'), 'the folded header shows the name');
+    assert(rendered.includes('Collapse all') && rendered.includes('Expand all'), 'collapse/expand all controls render');
     // Optional, local only: also render real payloads (never committed), e.g. SMOKE_PAYLOADS=a.json,b.json
     for (const file of (process.env.SMOKE_PAYLOADS || '').split(',').filter(Boolean)) {
         const real = JSON.parse(fs.readFileSync(file, 'utf8'));
         receive({ type: 'state', chatId: 'c1', settings: state.settings, ...real, hms: real.hms || real });
         assert(textOfTree(tabRoot).length > 200, `real payload ${path.basename(file)} rendered nothing`);
-        console.log(`  rendered real payload ${path.basename(file)}: ${textOfTree(tabRoot).length} chars of panel text`);
+        const all = []; const walk = n => { if (!n) return; if (n.tagName === 'DETAILS' && /^person-/.test(n.dataset?.openKey || '')) all.push(n.dataset.openKey.replace(/^person-n:/, '')); (n.children || []).forEach(walk); }; walk(tabRoot);
+        console.log(`  rendered real payload ${path.basename(file)}: ${textOfTree(tabRoot).length} chars of panel text; folded people: ${all.join(', ') || 'none'}`);
     }
     for (const title of ['Quests', 'Gear', 'Agenda']) assert(rendered.includes(title), `panel "${title}" did not render`);
     assert(rendered.includes('Pack for the road'), 'quest objective rendered');

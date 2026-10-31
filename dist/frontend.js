@@ -555,6 +555,13 @@ button.rpgc-chip.intel:hover { border-color: var(--lumiverse-accent, #7aa2f7); }
 .rpgc-gear-item .name { font-weight: 600; }
 .rpgc-gear-item .meta, .rpgc-gear-group h4 .meta { color: var(--lumiverse-text-dim, #777); font-size: 11px; font-weight: normal; }
 .rpgc-gear-group > summary { margin: 6px 0 2px; font-size: 12px; font-weight: bold; cursor: pointer; }
+.rpgc-pfold > summary { list-style: none; cursor: pointer; display: flex; align-items: center; gap: 4px; }
+.rpgc-pfold > summary::-webkit-details-marker { display: none; }
+.rpgc-pfold > summary::before { content: '▸'; opacity: .6; font-size: 11px; }
+.rpgc-pfold[open] > summary::before { content: '▾'; }
+.rpgc-pfold > summary > .head { flex: 1; min-width: 0; }
+.rpgc-people-find { width: 100%; margin: 4px 0; }
+.rpgc-foldall { gap: 6px; }
 .rpgc-gear-group > summary .meta { color: var(--lumiverse-text-dim, #777); font-size: 11px; font-weight: normal; }
 .rpgc-gear-item.now .name { color: var(--lumiverse-accent, #7aa2f7); }
 .rpgc-gear-item .rpgc-gear-move { margin-left: auto; font-size: 11px; max-width: 120px; }
@@ -1451,7 +1458,7 @@ export function setup(ctx) {
         id: 'rpg-companion-hms',
         title: 'RPG Companion (HMS)',
         shortName: 'RPG',
-        headerTitle: 'RPG Companion HMS Edition 3.3.1 RC',
+        headerTitle: 'RPG Companion HMS Edition 3.3.2 RC',
         description: 'The side panel for HMS bots: the HUD as cards, people, quests, the map, fights, the Chronicle, and a guide',
         keywords: ['rpg', 'hms', 'tracker', 'hud', 'quests', 'dice', 'guide'],
         iconSvg: ICON_SVG
@@ -1916,6 +1923,18 @@ export function setup(ctx) {
         return h('div',{class:'rpgc-play-overlay',onclick:e=>{if(e.target===e.currentTarget)close();}},body);
     }
 
+    // Fold or open every card in the view at once; each card's own state is remembered as usual.
+    function foldAllRow() {
+        const set = (open) => (e) => {
+            const view = e.target.closest('.rpgc') || e.target.parentElement?.parentElement;
+            for (const d of view ? view.querySelectorAll('details.rpgc-sec') : []) if (d.dataset.openKey) state.open[d.dataset.openKey] = open;
+            render();
+        };
+        return h('div', { class: 'rpgc-row rpgc-foldall' },
+            h('button', { class: 'rpgc-btn', title: 'Fold every card', onclick: set(false) }, 'Collapse all'),
+            h('button', { class: 'rpgc-btn', title: 'Open every card', onclick: set(true) }, 'Expand all'));
+    }
+
     function topBar() {
         const s = S();
         const mode = !s ? '' : !s.enabled ? 'Paused' : s.generationMode === 'separate' ? 'Separate mode' : 'Together mode';
@@ -1972,6 +1991,7 @@ export function setup(ctx) {
                 ? 'No trackers yet. They fill in after the next reply, or press Refresh to generate them now.'
                 : 'No trackers yet. They fill in with the next reply. You can also set starting values below.'));
         }
+        out.push(foldAllRow());
         const story = storyRow();
         if (story) out.push(story);
         const immEl = renderImmersive();
@@ -3767,7 +3787,7 @@ export function setup(ctx) {
         const s = S();
         const snapshots = renderTrackerSnapshots();
         if (state.trackerSnapshots?.view) return [topBar(), snapshots];
-        const out = [topBar(), renderMobilePinned(), snapshots, h('button', {class:'rpgc-btn', onclick:exportCharacterSheet}, 'Export character sheet')];
+        const out = [topBar(), renderMobilePinned(), snapshots, h('button', {class:'rpgc-btn', onclick:exportCharacterSheet}, 'Export character sheet'), foldAllRow()];
         const warnings = state.hms?.consistency || [];
         if (warnings.length) out.push(h('details', {class:'rpgc-consistency'}, h('summary', null, T('Consistency warnings') + ' (' + warnings.length + ')'), h('ul', null, warnings.map(w => h('li', null, T(w.message), w.field ? `: ${w.field} (${w.expected} → ${w.actual})` : '', w.reason ? document.createTextNode(' — ' + w.reason) : null)))));
         const hint = worldHint();
@@ -5734,7 +5754,18 @@ export function setup(ctx) {
             const view = renderPeopleLayout(relOnly.map(x => x.rel), layout);
             if (view) out.push(view);
             if (rest.length) out.push(h('div', { class: 'rpgc-cards' }, rest.map(personMerged)));
-        } else out.push(h('div', { class: 'rpgc-cards' }, list.map(personMerged)));
+        } else {
+            const cards = h('div', { class: 'rpgc-cards' }, list.map(x => { const card = here(x) || f === 'here' ? personMerged(x) : foldPerson(personMerged(x), x);
+                card.dataset.find = String(x.name || '').toLowerCase(); return card; }));
+            // a name search once the cast is large; it only hides cards, nothing is re-read
+            if (list.length > 8) {
+                const findBox = h('input', { type: 'search', class: 'rpgc-people-find', placeholder: 'Find someone', 'aria-label': 'Find someone' });
+                findBox.addEventListener('input', () => { const q = findBox.value.trim().toLowerCase();
+                    for (const c of cards.children) c.hidden = !!q && !String(c.dataset.find || '').includes(q); });
+                out.push(findBox);
+            }
+            out.push(cards);
+        }
         if (partyOn) {
             const input = h('input', { type: 'text', placeholder: 'Add a party member', 'aria-label': 'Add a party member' });
             const add = () => { const v = input.value.trim(); if (!v) return; input.value = ''; send({ type: 'party_member', chatId: state.chatId, op: 'add', name: v }); };
@@ -5750,6 +5781,23 @@ export function setup(ctx) {
         const sec = section('people', 'People', state.open, alerts ? `${alerts} alert${alerts === 1 ? '' : 's'}` : all.length ? `${nHere} here \u00B7 ${all.length}` : null, ...out);
         if (high) sec.classList.add('alarm');
         return sec;
+    }
+
+    // A card folded to its header row (name, standing, bond); open it to see the rest. Remembered per person.
+    function foldPerson(card, x) {
+        const head = card && card.firstChild;
+        if (!head || !/\bhead\b/.test(head.className || '')) return card;
+        const key = 'person-' + x.key;
+        const det = h('details', { class: (card.className || '') + ' rpgc-pfold' });
+        const sum = h('summary', null);
+        sum.appendChild(head);
+        // buttons in the header keep doing their own thing instead of opening the card
+        sum.addEventListener('click', e => { if (e.target !== sum && e.target.closest && e.target.closest('button, a, input, select, textarea, label')) e.preventDefault(); });
+        det.appendChild(sum);
+        while (card.firstChild) det.appendChild(card.firstChild);
+        det.open = state.open[key] === true;
+        det.dataset.openKey = key; det.addEventListener('toggle', () => { state.open[key] = det.open; });
+        return det;
     }
 
     function personMerged(x) {
@@ -6882,7 +6930,7 @@ body{background:${bs ? bs.backgroundColor : '#111'};color:${bs ? bs.color : '#dd
             if (!popWin || popWin.closed) {
                 popWin = window.open('', 'rpgc_popout', 'width=460,height=860');
                 if (!popWin) { state.status = { kind: 'warning', text: 'The browser blocked the pop-out window. Allow pop-ups for Lumiverse and try again.' }; const s = S(); s.uiPanelMode = 'drawer'; return applyPanelMode(); }
-                popWin.document.title = 'RPG Companion HMS Edition 3.3.1 RC';
+                popWin.document.title = 'RPG Companion HMS Edition 3.3.2 RC';
                 syncPopoutLook(popWin);
                 try { if (!popLookObs) { popLookObs = new MutationObserver(() => syncPopoutLook(popWin)); popLookObs.observe(document.documentElement, { attributes: true }); if (document.body) popLookObs.observe(document.body, { attributes: true, attributeFilter: ['class'] }); } } catch { /* optional */ }
                 popWin.addEventListener('beforeunload', () => { popWin = null; if (panelMode() === 'popout') { const s = S(); s.uiPanelMode = 'drawer'; saveSettings(false); applyPanelMode(); render(); } });

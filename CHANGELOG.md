@@ -1,5 +1,12 @@
 # Changelog — RPG Companion HMS Edition
 
+## 3.3.2 RC — Easier navigation
+
+- People: someone who isn't in the current scene folds to their header row (name, standing, bond). Tap to see the full card; what you open or close is remembered per person. People in the scene, and everyone under the Here tab, stay as full cards.
+- People: a "Find someone" box appears once more than eight people are listed. It only hides non-matching cards.
+- Collapse all / Expand all at the top of the panel folds or opens every card at once; each card still remembers its own state afterwards.
+- Display only: tracking, saved data and the model request are unchanged.
+
 ## 3.3.1 RC — Collapsible containers in Gear
 
 - Each bag, pouch or other container in the Gear panel is a collapsible group with its item count ("👜 Inside reinforced travel satchel (3)"). Containers start open, as before; one you close stays closed. Display only: tracking, item movement and saved data are unchanged.
