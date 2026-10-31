@@ -1,5 +1,11 @@
 # Changelog — RPG Companion HMS Edition
 
+## 3.2.3 RC — Targeted tracking fixes
+
+- Keep confirmed active quest progress from regressing while preserving legacy resets, explicit stage/condition changes and reopening. Clarify whole-quest progress and per-reply Minds feelings in model instructions.
+- Match ability evidence below the HUD wall, conservatively link uniquely renamed plot threads, and retain Agenda kind/deadline continuity.
+- No-HUD story-state gating and relationship damping are deferred to preserve restore handling and existing cross-card behavior.
+
 ## 3.2.2 RC — Survival action evidence
 
 - Count reported ate, drank, slept and rested flags only when the same reply’s prose contains matching evidence. Unsupported flags remain available in `survival.unconfirmed`; old messages are filtered on read without migration. Manual logs still count.

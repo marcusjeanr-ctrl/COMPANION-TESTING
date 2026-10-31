@@ -2678,7 +2678,7 @@ async function pushState(chatId, snapshot = null) {
 // Demo mode plays scripted turns (no tokens); Live mode asks the model, with a small
 // world narrator standing in for a bot card.
 
-const RPGC_VERSION = '3.2.2';
+const RPGC_VERSION = '3.2.3';
 const diagLog = [];
 function diagPush(kind, m) { diagLog.push({ at: new Date().toISOString(), kind, text: String(m).slice(0, 400) }); if (diagLog.length > 60) diagLog.shift(); }
 function logW(m) { diagPush('warn', m); return spindle.log.warn(m); }
@@ -10365,16 +10365,42 @@ function objectivesNormalize(list) {
     }
     return out.length || !list.length ? out.slice(0, 6) : null;
 }
+const PLOT_THREAD_STOP_WORDS = new Set(['the','a','an','of','and','to','in','with','for']);
+function plotThreadWords(name) {
+    return new Set((String(name || '').toLowerCase().replace(/['’]s\b/g, '').match(/[\p{L}\p{N}]+/gu) || []).filter(w => !PLOT_THREAD_STOP_WORDS.has(w)));
+}
+function plotThreadContinuity(previous, current) {
+    if (!previous.length || !current.length) return current;
+    const words = new Map();
+    const wordsOf = t => {if (!words.has(t)) words.set(t, plotThreadWords(t.name)); return words.get(t);};
+    const labels = t => [t.name, ...(t.plotAliases || [])].map(lockKey);
+    const present = new Set(current.map(t => lockKey(t.name)));
+    const missing = previous.filter(t => t.state !== 'resolved' && !labels(t).some(k => present.has(k)));
+    const related = (a,b) => [...wordsOf(b)].filter(w => wordsOf(a).has(w)).length >= 2;
+    return current.map(t => {
+        const exact = previous.filter(p => labels(p).includes(lockKey(t.name)));
+        const matches = exact.length ? exact : missing.filter(p => related(p,t) && current.filter(n => related(p,n)).length === 1);
+        if (matches.length !== 1) return t;
+        const old = matches[0];
+        if (!old.plotAliases && lockKey(old.name) === lockKey(t.name)) return t;
+        return {...t,name:old.name,plotAliases:[...new Set([...(old.plotAliases || []),old.name,t.name])]};
+    });
+}
+
 /** The panel's view: the latest reading, the threads resolved along the way, and your own objectives. */
 function plotPanel(chat, st) {
     const c = plotCfg();
     if (!c.plot && !c.objectives) return null;
-    let plot = null, objectives = null;
+    let plot = null, objectives = null, previousThreads = [];
     const seen = new Map();
     for (const m of (chat || []).filter(x => x.role === 'assistant').slice(-80)) {
         const d = getSwipeData(m);
         if (!d) continue;
-        if (d.plot) { for (const t of d.plot.threads || []) seen.set(lockKey(t.name), t); plot = d.plot; }
+        if (d.plot) {
+            const threads = plotThreadContinuity(previousThreads, d.plot.threads || []);
+            for (const t of threads) seen.set(lockKey(t.name), t);
+            plot = {...d.plot,threads}; previousThreads = threads;
+        }
         if (d.objectives) objectives = d.objectives;
     }
     const current = new Set(plot ? plot.threads.map(t => lockKey(t.name)) : []);
@@ -10571,6 +10597,7 @@ function buildCompanionInstructionRead(committed, userName, locks, st = null, ch
     if (yc.on) s += `\n"you" also holds ${userName}'s own state at the end of this reply: mood, ${wantSurvival ? '' : 'stress (L), '}sanity (100 steady, 0 broken)${askXp ? ', and xp earned in this reply for a real accomplishment (0 if none) with why' : ''}. "got" and "lost": physical things ${userName} was handed, picked up, gave away, used up or lost — in their own last message or on screen in this reply — that the HUD does not list (a handout, a key, a note, a booklet), a few words each; [] when nothing changed hands. A message, a notice or news is not a thing.`;
     if (abilitiesSeen) s += '\n"you.abilities": one confirmed player spell/technique/skill per row; no ranks, casting labels, NPCs, catalog entries, instructions or hypotheticals. historical:true for past records, not new learning/current study. Attempts are not knowledge; reliability is not mastery. Exact quote required. Absence is not loss.';
     if (abilitiesSeen) s += '\nStudy requires practice begun now, not assigned/future lessons, demonstrations or failed combat alone. Never invent percentages. Omit empty study/learning.';
+    if (wantQuests) s += '\nQuest progress is for the whole quest, not the current step. Do not lower it unless the quest restarted.';
     if (wantQuests) s += '\n"quests": accepted goals only. Reuse a Known quest ID for the same assignment despite new titles, progress or stages; null for a genuinely separate assignment. Names are labels, not IDs. Progress requires a measured percentage, else null. Report ended scene-level goals even when omitted from the HUD; use closed if the scene ended without a confirmed success/failure. Preserve broader quests and future commitments. No rewards from completion alone.';
     if (wantQuests && chat) {
         const known = questIdentityContext(chat);
@@ -13690,7 +13717,7 @@ function agendaRead(chat, st) {
                 !r.moved && !moved && agendaDaypartContains(r.when, agendaBellClock(it.when) ?? agendaClockPart(it.when)));
             if (r.when || r.due) { if (r.when && !keepClock) it.when = r.when; if (dueAt !== null || r.moved || moved) it.dueAt = dueAt; if (dueAt === null && r.due && !keepClock) it.when = r.when || r.due; }
             if ((r.when || r.due) && !keepClock) { it.clockOnly = clockOnly; it.clockMinute = observation.clockMinute; }
-            if (r.kind) it.kind = r.kind;
+            if (r.kind && !it.kind) it.kind = r.kind;
             const state = agendaReportedState({ ...r, scheduleDay, ...(moved ? { moved: true } : {}) }, d, at, it.dueAt, it.state, m);
             if (state !== it.state) it.history.push({ from: it.state, to: state, at });
             it.state = state; it.idx = idx; it.changedIn = m.id;
@@ -15487,6 +15514,7 @@ function simRequest(fold, userName, skip = new Set()) {
         let r = `"minds" (FrankenSIM's Aether): one entry per named character present, never ${u}, for what goes on inside them by the end of this reply. Report only established card traits and inner states explicitly shown in the story; do not invent motives from a gesture, a possible interpretation or an imagined off-screen event. Omit unsupported readings; this report never decides what they do. "feel" is their emotion named by where it leads, as a Parrott path (love|joy|surprise|anger|sadness|fear > secondary > tertiary); "at" is who it is aimed at. "tfdy": only what this reply changed in their ambient feeling, T tenderness, F fury, D dread, Y yearning, each by 1 at most, and only for something that happened. "iw": how warm they show themselves (0 frostbound, 1 cool, 2 temperate, 3 warm, 4 fervent); 2 unless there is a reason. "facet": the side of them that leads right now; "mask": whether the face they wear holds.`;
         r += ` "toward": how they feel about ${u} ("you")${sc.pairs === 'all' ? ' and about anyone else present they deal with' : ''}. "moves": only the feelings this reply moved, each by ${sc.maxStep} at most: eros desire, ludus play, philia friendship, pragma partnership and reliance, storge belonging, agape selfless care, misos hate, eris strife, echthros enmity, stasis stuck and resisting, adiaphora indifference, phthonos envy. "gate" (dormant, attentive, aware, longing, open) moves one step at most, for an event, never for pressure. "E" and "L": whether the feeling shows in what they do and in what they say. "filters" hold the feeling back, soc (what others would think), val (their own values), comp (whether they fit), rel (ties they already have): "crack" loosens one, "strain" tightens it. "debt": a wrong done to them and not made good; it stays until "paid": true.`;
         r += ` Someone the minds state does not list yet also gets "temperament" (sanguine|choleric|melancholic|phlegmatic) and "facets" (5-7 words), from their card; a pair it does not list gets "start": all twelve feelings, 3-20, as their card and history put them. A minor, or family, never gets eros or a romantic mode.`;
+        r += ' Each reply, re-check every character\'s primary feeling against what happens in this reply. Keep it only if the scene still supports it. Do not repeat a feeling from an earlier reply by habit. Primary and tertiary feelings should not contradict each other.';
         rules.push(r);
     }
     if (sc.agendas) {
@@ -16411,10 +16439,13 @@ function abilityMasteryConfirmed(evidence) {
     return /\b(?:mastered|mastery|perfected)\b/i.test(text) &&
         !/\b(?:no|not|never|without|yet to|far from)\b.{0,40}\b(?:master(?:ed|y)|perfected)\b|\bmastery\b.{0,24}\b(?:not|unproven|incomplete|unattained)\b/i.test(text);
 }
+const ABILITY_STORY_WALL_RE = /(?:^|\n)[ \t]*\*\*\*[ \t]*(?:\r?\n|$)/;
 function abilityEvidenceRows(msg, data, playerName = '') {
     const rows = abilityEvidenceNormalize(data?.survival?.abilities);
     if (!rows.length) return [];
-    const source = stripCompanion(stripLeakedReasoning(textOf(msg.content))).replace(/\s+/g, ' ');
+    const clean = stripCompanion(stripLeakedReasoning(textOf(msg.content)));
+    const wall = clean.match(ABILITY_STORY_WALL_RE);
+    const source = (wall ? clean.slice(wall.index + wall[0].length) : clean).replace(/\s+/g, ' ');
     return rows.filter(row => source.includes(row.evidence.replace(/\s+/g, ' '))).map(row => {
         if (!['known', 'reliable', 'mastered'].includes(row.state)) return row;
         const text = row.evidence;
@@ -17425,6 +17456,15 @@ function questStageContinuation(rows, q, reported, getLines) {
     return quote ? { row: candidates[0], quote } : null;
 }
 
+const QUEST_STAGE_STARTED_RE = /\b(?:next|new|following)\s+(?:stage|phase)\b.{0,48}\b(?:begins|starts|began|started|begun|beginning|starting)\b|\b(?:began|started|entered|entering)\b.{0,24}\b(?:next|new|following)\s+(?:stage|phase)\b/i;
+const QUEST_CONDITION_CHANGED_RE = /\b(?:conditions?|requirements?)\s+(?:(?:has|have|is|are|was|were)\s+)?(?:been\s+)?changed\b/i;
+const QUEST_STAGE_FUTURE_RE = /\b(?:tomorrow|later|eventually|will|would|could|should|prepare|preparing|plans?)\b/i;
+function questProgressRead(previous, next, active, restarted, getLines) {
+    if (!active || restarted || !Number.isFinite(previous) || !Number.isFinite(next) || next >= previous) return next;
+    return getLines().some(line => trackingContinuityAsserted(line) &&
+        (QUEST_CONDITION_CHANGED_RE.test(line) || QUEST_STAGE_STARTED_RE.test(line) && !QUEST_STAGE_FUTURE_RE.test(line))) ? next : previous;
+}
+
 /** The latest quest details, each with the HUD clock of the reply that gave them: "08:40" said at 08:20 is that morning. */
 function questDetailsLatest(chat) {
     return memoRead(chat, 'quest-details', () => {
@@ -17490,6 +17530,8 @@ function questDetailsLatest(chat) {
                     trackingContinuityAsserted(line) && (' ' + questObjectiveKey(line) + ' ').includes(' ' + questObjectiveKey(q.objective) + ' '));
                 if (identityRefinement) row.identityHistory = [...(Array.isArray(row.identityHistory) ? row.identityHistory : []), { name: row.name, objective: row.objective,
                     progress: row.progress, state: row.state, reward: row.reward, msgId: stageSources.get(row) || null }].slice(-40);
+                const previousProgress = row?.progress;
+                const previousDone = row && (questReportedState(row.state)?.cls || row.cls) === 'done';
                 const deadlineChanged = !row || (q.deadline && q.deadline !== row.deadline);
                 if (!row) { let key = q.questId && !rows.some(x => lockKey(x.key) === lockKey(q.questId)) ? lockKey(q.questId) : q.key || questKey(q.name);
                     const base = key + ' :: ' + m.id;
@@ -17509,6 +17551,11 @@ function questDetailsLatest(chat) {
                 }
                 const lifecycle = questReportedState(q.state);
                 if (lifecycle) { Object.assign(row, lifecycle); delete row.lifecycleEvidence; }
+                // Preserve reset semantics for legacy records without lifecycle/identity metadata.
+                row.progress = questProgressRead(previousProgress, row.progress,
+                    !!(q.questId || q.key) && (questReportedState(row.state)?.cls || row.cls) === 'active',
+                    previousDone || row.continuationEvidence?.msgId === m.id,
+                    () => continuityLines ??= trackingContinuityLines(m));
                 stageSources.set(row, m.id);
                 contractSources.set(row, m);
                 // A deadline is anchored to the reply that actually supplied it, not a later partial report.
