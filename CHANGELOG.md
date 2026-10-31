@@ -1,5 +1,11 @@
 # Changelog — RPG Companion HMS Edition
 
+## 3.2.5 RC — Agenda duplicate fixes
+
+- Read compact `K417-04-14` / `K417-04-12T09:30` dates and "in N days", so one plan reported with different date wording stays one Agenda entry instead of splitting in two.
+- A kept, missed or cancelled report now closes the same-day entry already in progress, even when the time is worded differently, instead of adding a second Done copy.
+- The panel groups `K417, Month 4, Day 14` (and named-month) dates under Coming up / Today / Overdue instead of No set time.
+
 ## 3.2.4 RC — Every lorebook spell in the Magic catalog
 
 - Read spell entries whose `[SPELL — Name]` header comes after a fan-addition note, and treat `School (fan)` as that school.
