@@ -2724,5 +2724,7 @@
  "Save note": "Notu kaydet",
  "Clear note": "Notu temizle",
  "Accepted voice notes in context (opt-in)": "Kabul edilen konuşma notları bağlamda (isteğe bağlı)",
- "Note limit reached": "Not sınırına ulaşıldı"
+ "Note limit reached": "Not sınırına ulaşıldı",
+ "Completed ({0})": "Tamamlanan ({0})",
+ "Ended ({0})": "Sona eren ({0})"
 }

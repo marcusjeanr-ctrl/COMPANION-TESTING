@@ -1,5 +1,9 @@
 # Changelog — RPG Companion HMS Edition
 
+## Unreleased — 3.2.1
+
+- Keep active quest cards visible and place completed and other ended quests in separate, collapsed disclosure sections. Expansion is session-only and changes no tracking data.
+
 ## 3.2.0 RC — Selected play tools
 
 - Resolve objective quest IDs to titles for display.

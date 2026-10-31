@@ -2724,5 +2724,7 @@
  "Save note": "Guardar nota",
  "Clear note": "Borrar nota",
  "Accepted voice notes in context (opt-in)": "Notas de voz aceptadas en contexto (opcional)",
- "Note limit reached": "Límite de notas alcanzado"
+ "Note limit reached": "Límite de notas alcanzado",
+ "Completed ({0})": "Completadas ({0})",
+ "Ended ({0})": "Finalizadas ({0})"
 }
