@@ -2506,7 +2506,7 @@ function repetitionRows(rows) {
 }
 function playNoteKey(kind,name) {
     if(kind==='voice')return 'npc:'+String(name || '').normalize('NFKC').trim().toLowerCase().replace(/\s+/g,' ').slice(0,100);
-    if(kind==='journal'&&/^[^\x00-\x1f]{1,100}$/u.test(String(name || '')))return 'day:'+name;
+    if(kind==='journal'&&/^[\p{L}\p{N} ,./:—–·()_-]{1,100}$/u.test(String(name || '')))return 'day:'+name;
     return null;
 }
 function playNoteRead(st,kind,name) {
@@ -8438,15 +8438,13 @@ function chronicleBuild(chat, st, userName = null) {
         if (hud && hudCanRewind(hud)) rewindWorld = true;
         const prevHud = prevE ? prevE.hud : null;
         const when = chronWhen(hud || prevHud);
-        const calendar=mtCalendar((hud?.lines || []).slice(0,4).map(l=>l.text).join('\n'));
-        const recordedDay=calendar?'K'+calendar.year+', '+(calendar.month?'Month '+calendar.month+', ':'')+'Day '+calendar.day:(hud&&hmsClock(hud)?.dated?String(hud.lines[0]?.text || '').replace(/\s*(?:[|—–-]\s*)?Time\s*:.*/i,'').replace(/,?\s*\d{1,2}:\d{2}.*$/,'').trim():null);
         const placeNow = (hud || prevHud) && (hud || prevHud).location ? (hud || prevHud).location.filter(s => !/^\[/.test(s)).slice(-1)[0] || null : null;
         const settled = idxOf.get(m.id) < lastUser;
         const add = (kind, text, imp, extra = {}) => {
             const id = 'c' + hashStr(`${m.id}:${m.swipe_id ?? 0}:${kind}:${text}`).toString(36);
             if (seenIds.has(id)) return null;
             seenIds.add(id);
-            const x = { id, msgId: m.id, replyIndex: idxOf.get(m.id), kind, text, imp, when, recordedDay, loop: rewindWorld ? loop : null, arc, where: placeNow, who: [], settled, ...extra };
+            const x = { id, msgId: m.id, replyIndex: idxOf.get(m.id), kind, text, imp, when, loop: rewindWorld ? loop : null, arc, where: placeNow, who: [], settled, ...extra };
             if (ch.star[id]) { x.star = true; x.imp = CHRON_IMP.star; }
             if (ch.hide[id]) x.hidden = true;
             out.push(x);
@@ -9026,7 +9024,7 @@ function oocReference(chatId, chat, question, g) {
     return text;
 }
 
-async function oocAsk(chatId, question, guideName = '', options = {}) {
+async function oocAsk(chatId, question, guideName = '') {
     const q = String(question || '').replace(/\s+$/, '').slice(0, 1500);
     if (!q.trim()) return null;
     if (oocBusy.has(chatId)) return null;
@@ -9059,7 +9057,6 @@ async function oocAsk(chatId, question, guideName = '', options = {}) {
         const f = findHud(a);
         if (f) a = (a.slice(0, f.headStart) + a.slice(f.bodyEnd)).trim();        // the guide never prints a HUD
         if (!a) return null;
-        if(options?.ephemeral===true)return stripForDisplay(a).trim() || null;
         const st = await getChatState(chatId);
         if (!Array.isArray(st.ooc)) st.ooc = [];
         st.ooc.push({ q, a: a.slice(0, 6000), guide: g ? who || g.name : 'OOC', at: Date.now() });
@@ -17809,7 +17806,7 @@ for (const ev of ['MESSAGE_SWIPED', 'MESSAGE_DELETED', 'SWIPE_EDITED']) {
 const ACTIVE_ACTIONS = new Set([
     'refresh', 'world_moves', 'plot', 'generate_avatar', 'comms',
     'encounter_start', 'encounter_action', 'encounter_conclude', 'encounter_retry', 'immersive_start', 'chapter_summarize',
-    'newgame_start', 'ooc_ask', 'ooc_chat', 'play_journal_ask'
+    'newgame_start', 'ooc_ask', 'ooc_chat'
 ]);
 
 spindle.onFrontendMessage(async (payload, userId) => {
@@ -17834,16 +17831,6 @@ spindle.onFrontendMessage(async (payload, userId) => {
                 await pushState(payload.chatId || null);
                 break;
 
-            case 'play_journal_ask': {
-                if(!payload.chatId||!playNoteKey('journal',payload.day))return;
-                try {
-                    const question='Write a brief first-person journal for '+String(payload.day).slice(0,100)+'. Use only these recorded events; do not add facts, dialogue, rewards or outcomes. This is an editable OOC draft, not new gameplay.\n'+String(payload.text || '').slice(0,1100);
-                    const text=await oocAsk(payload.chatId,question,'',{ephemeral:true});
-                    toFrontend({type:'play_journal_draft',chatId:payload.chatId,day:payload.day,text:text?.slice(0,8000) || null,error:text?null:'Could not draft journal'});
-                }catch {toFrontend({type:'play_journal_draft',chatId:payload.chatId,day:payload.day,error:'Could not draft journal'});}
-                break;
-            }
-
             case 'play_note_view':
             case 'play_note_save': {
                 if(!payload.chatId||!playNoteKey(payload.kind,payload.name))return;
@@ -17852,7 +17839,7 @@ spindle.onFrontendMessage(async (payload, userId) => {
                     if(!playNoteEdit(st,payload.kind,payload.name,payload.text)){toFrontend({type:'play_note',chatId:payload.chatId,kind:payload.kind,name:payload.name,error:'Note limit reached'});break;}
                     await saveChatState(payload.chatId,st);
                 }
-                toFrontend({type:'play_note',chatId:payload.chatId,kind:payload.kind,name:payload.name,text:playNoteRead(st,payload.kind,payload.name),...(payload.kind==='journal'?{days:Object.keys(st.playNotes?.journal || {}).slice(0,30).map(k=>k.slice(4))}:{})});break;
+                toFrontend({type:'play_note',chatId:payload.chatId,kind:payload.kind,name:payload.name,text:playNoteRead(st,payload.kind,payload.name)});break;
             }
 
             case 'play_prose': {

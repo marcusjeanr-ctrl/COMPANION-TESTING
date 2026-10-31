@@ -102,23 +102,6 @@ class BrowserUi(unittest.TestCase):
         self.assertEqual(self.page.evaluate("sent.findLast(x=>x.type==='play_note_save').text"),'My accepted note')
 
 
-    def test_journal_load_does_not_ask_or_save(self):
-        payload,chron=self.recent_timeline_fixture()
-        chron['chronicle']['entries'].append({'id':'journal','kind':'milestone','text':'A recorded milestone','when':'K417 Month 4 Day 1, 09:00'})
-        self.receive(payload);self.receive(chron)
-        pane=self.page.locator('[data-open-key=play-journal]')
-        req=self.page.evaluate("sent.findLast(x=>x.type==='play_note_view'&&x.kind==='journal')")
-        self.assertIsNotNone(req)
-        self.page.evaluate('p=>receive(p)',{'type':'play_note','chatId':'test','kind':'journal','name':req['name'],'text':''})
-        self.assertIn('A recorded milestone',pane.get_by_role('textbox',name='Journal entry').input_value())
-        self.assertFalse(self.page.evaluate("sent.some(x=>x.type==='play_journal_ask'||x.type==='play_note_save')"))
-        pane.get_by_role('textbox',name='Journal entry').fill('An edited journal')
-        pane.get_by_role('button',name='Save journal',exact=True).click()
-        self.assertEqual(self.page.evaluate("sent.findLast(x=>x.type==='play_note_save').text"),'An edited journal')
-        pane.get_by_role('button',name='Ask the story to write this day in my voice',exact=True).click()
-        self.assertEqual(self.page.evaluate("sent.filter(x=>x.type==='play_journal_ask').length"),1)
-
-
     def test_calendar_birth_month_has_no_invented_day(self):
         payload=json.loads(json.dumps(FIXTURE['payload']))
         payload['userName']='Marcus'
