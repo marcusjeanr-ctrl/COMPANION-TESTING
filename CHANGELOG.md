@@ -1,5 +1,9 @@
 # Changelog — RPG Companion HMS Edition
 
+## 3.2.6 RC — Map follows room changes inside a building
+
+- When the HUD location stays the same (e.g. "Veyrath Hall") but you walk to another room, the map request now asks for the new room instead of keeping the last one drawn there.
+
 ## 3.2.5 RC — Agenda duplicate fixes
 
 - Read compact `K417-04-14` / `K417-04-12T09:30` dates and "in N days", so one plan reported with different date wording stays one Agenda entry instead of splitting in two.
