@@ -8379,7 +8379,7 @@ function chronicleBuild(chat, st, userName = null) {
             const id = 'c' + hashStr(`${m.id}:${m.swipe_id ?? 0}:${kind}:${text}`).toString(36);
             if (seenIds.has(id)) return null;
             seenIds.add(id);
-            const x = { id, msgId: m.id, kind, text, imp, when, loop: rewindWorld ? loop : null, arc, where: placeNow, who: [], settled, ...extra };
+            const x = { id, msgId: m.id, replyIndex: idxOf.get(m.id), kind, text, imp, when, loop: rewindWorld ? loop : null, arc, where: placeNow, who: [], settled, ...extra };
             if (ch.star[id]) { x.star = true; x.imp = CHRON_IMP.star; }
             if (ch.hide[id]) x.hidden = true;
             out.push(x);
@@ -8729,7 +8729,7 @@ async function chroniclePayload(chatId) {
     const min = CHRON_SEND[cc.cortex];
     return {
         version: chronVersion(chat, st),
-        entries: list.slice(-800).map(e => ({ id: e.id, kind: e.kind, text: e.text, when: e.when || '', loop: e.loop, arc: e.arc, who: e.who || [], where: e.where || null, imp: e.imp,
+        entries: list.slice(-800).map(e => ({ id: e.id, msgId: e.msgId, replyIndex: e.replyIndex, kind: e.kind, text: e.text, when: e.when || '', loop: e.loop, arc: e.arc, who: e.who || [], where: e.where || null, imp: e.imp,
             settled: !!e.settled, sent: sent.has(e.id), hidden: !!e.hidden, star: !!e.star, user: !!e.user, noteId: e.noteId || null, goes: e.imp >= min })),
         cortex: { mode: cc.cortex, on: cs.on, note: cs.note || '', sent: ch.sent.length, last: ch.last || null, busy: chronSyncing.has(chatId) },
         loops: list.some(e => e.loop)
@@ -15202,7 +15202,7 @@ function simMindView(fold, m) {
 }
 
 function simChekhovView(fold) {
-    const v = (b) => ({ id: b.id, what: b.what, w: b.w, age: b.age, ripe: !!b.ripe, locked: !!b.locked, lock: b.lock ? `${b.lock.kind}:${b.lock.arg}` : null, lockText: simLockText(b.lock), status: b.status });
+    const v = (b) => ({ id: b.id, what: b.what, w: b.w, age: b.age, readAt: b.atClock ?? null, ripe: !!b.ripe, locked: !!b.locked, lock: b.lock ? `${b.lock.kind}:${b.lock.arg}` : null, lockText: simLockText(b.lock), status: b.status });
     const live = fold.chekhov.filter(b => b.status === 'live');
     return {
         chamber: live.filter(b => !b.locked).sort((a, b) => (b.ripe - a.ripe) || (b.w - a.w) || (a.at - b.at)).map(v),

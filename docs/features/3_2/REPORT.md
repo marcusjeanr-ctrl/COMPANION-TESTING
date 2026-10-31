@@ -33,7 +33,43 @@ controlled matrix are phase-level checks, recorded after Phase A completes.
 
 ### 2. Display-only recent timeline deduplication
 
-Pending.
+The Chronicle renderer previously showed each stored entry independently, including
+near-identical consecutive descriptions. It now groups only display entries with
+matching participants, kind, status, loop/arc, date (when known), hidden/star flags
+and compatible wording within 12 source-message positions (at most six ordinary
+user/assistant exchanges). Matching is anchored to the earliest entry, not an
+unbounded chain. At most 64 recent candidate groups are compared per row.
+
+Approved narrow wording normalization covers altering/shifting. Promise descriptions
+can share an explicit named meeting target; conflicting explicit conditions remain
+separate, and ambiguous matches are not collapsed. Different actors, actions,
+directions, dates, recurrence words, user notes and unknown chronology remain
+separate. Unknown participant attribution is conservatively left ungrouped. This is
+not general semantic or multilingual paraphrase recognition.
+
+Earliest text/control ID stays visible with a ×N count and the original descriptions
+in its tooltip. Source reports, Chronicle/Cortex writes, IDs, tracking and planted
+payoff logic are unchanged. The additive optional setting `chronicle.collapseSimilar`
+(default on) restores the original individual display when off. The same presentation
+helper handles live and paid-off planted details, using existing ages for their
+bounded reply window and the existing source clock for day separation. Different
+days cannot collapse; if the source day is unknown, separate replies stay separate.
+
+Chronicle payloads add transient `msgId`/`replyIndex` display provenance, reusing
+the existing builder's index. Planted views expose additive `readAt` from their
+already-computed source clock; no report field is written. No new history pass is added. Closed Chronicle and
+paid-off details do not run matching; opening performs the computation. Closed
+Quests also skip the new live-planted matching. No new view, calls, polling or timers.
+
+Files: both runtime sources in `dist/`, `tools/test_recent_display_dedup.cjs`, suite
+registration, two Chromium cases, all four dictionaries plus embedded frontend
+translations, and this report. Focused tests cover all supplied examples and negative
+boundaries, immutable inputs, opt-out, lazy closed sections, counts and actual UI at
+320px in dark Space and light Mushoku themes. The historical 2.8.1 parity comparison verifies the new display clock against
+observed HUD clocks, then compares every original field unchanged; a dedicated
+regression also asserts the exact source clock and immutable metadata.
+Three new UI keys are translated to pt-BR/es/ru/tr (English source-key fallback).
+Full suite/browser and controlled performance are recorded at the phase gate.
 
 ### 3. Reliability — investigation only
 

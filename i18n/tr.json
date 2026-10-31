@@ -2689,5 +2689,8 @@
  "mode: not reported": "bildirilmedi",
  "Derived default; no mode reported": "Çıkarılan varsayılan; mod bildirilmedi",
  "Standing fell despite a positive stated reason": "Belirtilen olumlu nedene rağmen ilişki seviyesi düştü",
- "Standing moved multiple steps without an explicit event": "İlişki seviyesi açık bir olay olmadan birden fazla basamak değişti"
+ "Standing moved multiple steps without an explicit event": "İlişki seviyesi açık bir olay olmadan birden fazla basamak değişti",
+ "Collapse similar timeline entries": "Benzer zaman çizelgesi kayıtlarını grupla",
+ "Display only: nearby repeated Chronicle and planted descriptions. Source reports stay unchanged.": "Yalnızca görünüm: Kronik ve ekilmiş ayrıntılardaki yakın tekrarlar. Kaynak raporlar değişmez.",
+ "Similar descriptions: {0}": "Benzer açıklamalar: {0}"
 }

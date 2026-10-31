@@ -65,6 +65,53 @@ class BrowserUi(unittest.TestCase):
         self.assertLessEqual(bounds['x']+bounds['width'],viewport['width']+1)
         self.assertLessEqual(bounds['y']+bounds['height'],viewport['height']+1)
 
+    def recent_timeline_fixture(self):
+        payload=json.loads(json.dumps(FIXTURE['payload']))
+        payload['userName']='Marcus'
+        payload['chronicle']={'version':'recent-fixture'}
+        texts=["Aurelius's price: a meeting with the Greyrat boy in exchange for proving himself", "Aurelius's promise to arrange a meeting with the Greyrat boy", "Aurelius's promise to introduce Marcus to the Greyrat boy"]
+        payload['hms']['minds']['chekhov']={'chamber':[],'locked':[],'fired':[
+            {'id':'c'+str(i),'what':t,'status':'fired','age':3-i,'ago':2-i,'w':2,'readAt':540+i*10} for i,t in enumerate(texts)],'byYou':[]}
+        entries=[{'id':'e'+str(i),'msgId':'a'+str(i),'replyIndex':i*2,'kind':'moment','text':t,
+            'who':['Marcus','Cassian'],'when':'K417 Month 4 Day 1, 09:0'+str(i),'loop':1,'settled':True,'imp':7} for i,t in enumerate([
+            'Marcus decisively defeated Cassian in a duel, fundamentally altering their sibling dynamic',
+            'Marcus decisively defeated Cassian in a duel, fundamentally shifting their sibling dynamic'])]
+        chron={'type':'chronicle','chatId':payload['chatId'],'chronicle':{'version':'recent-fixture','entries':entries,'cortex':{'mode':'off'}}}
+        return payload,chron
+
+    def test_recent_timeline_display_groups_and_opt_out_at_320px(self):
+        payload,chron=self.recent_timeline_fixture()
+        for theme in ['space','mushoku']:
+            payload['settings']['uiTheme']=theme
+            payload['settings']['chronicle']['collapseSimilar']=True
+            self.receive(payload);self.receive(chron)
+            self.assertEqual(self.page.locator('.rpgc-chron-item.moment').count(),1)
+            self.assertEqual(self.page.locator('.rpgc-chron-item.moment .rpgc-repeat-count').inner_text(),'×2')
+            self.assertIn('altering',self.page.locator('.rpgc-chron-item.moment').inner_text())
+            self.assertEqual(self.page.locator('.rpgc-chekhov-fired li').count(),1)
+            self.assertEqual(self.page.locator('.rpgc-chekhov-fired .rpgc-repeat-count').inner_text(),'×3')
+            for row in self.page.locator('.rpgc-chron-item,.rpgc-chekhov-fired li').all():
+                self.assertTrue(row.evaluate('(e)=>e.scrollWidth<=e.clientWidth+1'))
+            payload['settings']['chronicle']['collapseSimilar']=False
+            self.receive(payload);self.receive(chron)
+            self.assertEqual(self.page.locator('.rpgc-chron-item.moment').count(),2)
+            self.assertEqual(self.page.locator('.rpgc-chekhov-fired li').count(),3)
+        self.assertEqual(self.page.evaluate("sent.filter(x=>/edit|sim_edit/.test(x.type))"),[])
+
+    def test_recent_timeline_is_lazy_when_chronicle_and_quests_are_closed(self):
+        payload,chron=self.recent_timeline_fixture()
+        self.receive(payload);self.receive(chron)
+        self.page.evaluate("document.querySelectorAll('details').forEach(e=>{e.open=false;e.dispatchEvent(new Event('toggle'))})")
+        self.page.wait_for_function("!document.querySelector('[data-open-key=chronicle]').open")
+        self.page.evaluate("window.dedupCalls=0;const original=recentTimelineRows;recentTimelineRows=(...args)=>{dedupCalls++;return original(...args)};undefined")
+        self.page.evaluate('(p)=>window.receive(p)',chron)
+        self.assertEqual(self.page.evaluate('dedupCalls'),0)
+        self.assertEqual(self.page.locator('.rpgc-chron-item').count(),0)
+        self.assertEqual(self.page.locator('.rpgc-chekhov-fired').count(),0)
+        self.page.locator('[data-open-key=chronicle] > summary').click()
+        self.page.wait_for_function('window.dedupCalls>0')
+        self.assertEqual(self.page.locator('.rpgc-chron-item.moment').count(),1)
+
     def test_objective_quest_references_display_titles_without_sending(self):
         payload=json.loads(json.dumps(FIXTURE['payload']))
         payload['hms']['systems']['quests']=[{'key':'assignment','questId':'q_greyrat_meet','name':'Meet the young adventurer'}]

@@ -2689,5 +2689,8 @@
  "mode: not reported": "no informado",
  "Derived default; no mode reported": "Valor predeterminado inferido; no se informó modo",
  "Standing fell despite a positive stated reason": "El nivel de relación bajó pese a un motivo declarado positivo",
- "Standing moved multiple steps without an explicit event": "El nivel de relación cambió varios pasos sin un evento explícito"
+ "Standing moved multiple steps without an explicit event": "El nivel de relación cambió varios pasos sin un evento explícito",
+ "Collapse similar timeline entries": "Agrupar entradas similares de la cronología",
+ "Display only: nearby repeated Chronicle and planted descriptions. Source reports stay unchanged.": "Solo visualización: descripciones cercanas y repetidas de la Crónica y detalles sembrados. Los informes originales no cambian.",
+ "Similar descriptions: {0}": "Descripciones similares: {0}"
 }

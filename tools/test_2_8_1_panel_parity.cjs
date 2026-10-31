@@ -68,6 +68,14 @@ if (process.argv[2] === '--capture') {
                 row.id = old[i].id;
             });
         }
+        // Additive display provenance: verify it is an observed source clock,
+        // then compare every pre-existing field with the historical fixture.
+        const clocks = new Set(sample.messages.map(m => rt.ctx.hmsClock(rt.ctx.parseHud(m.content))?.minutes));
+        for (const key of ['chamber','locked','fired']) for (const row of actual.hms.minds?.chekhov?.[key] || []) {
+            assert(Object.hasOwn(row,'readAt'));
+            assert(row.readAt === null || clocks.has(row.readAt), 'Planted display clock must come from a source HUD');
+            delete row.readAt;
+        }
         assert.deepEqual(actual, expected, `${sample.world}: existing 2.8.1 panels changed`);
     }
     console.log('2.8.1 panel parity passed: all four original demo worlds preserved except the explicit Mushoku calendar, observed-Atlas, omitted-standing corrections and source-bound money control IDs.');
