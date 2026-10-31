@@ -65,6 +65,18 @@ class BrowserUi(unittest.TestCase):
         self.assertLessEqual(bounds['x']+bounds['width'],viewport['width']+1)
         self.assertLessEqual(bounds['y']+bounds['height'],viewport['height']+1)
 
+    def test_objective_quest_references_display_titles_without_sending(self):
+        payload=json.loads(json.dumps(FIXTURE['payload']))
+        payload['hms']['systems']['quests']=[{'key':'assignment','questId':'q_greyrat_meet','name':'Meet the young adventurer'}]
+        payload['plotView']={'on':{'plot':False,'objectives':True},'objectives':[
+            {'text':'Speak to the sponsor','state':'active','quest':'q_greyrat_meet'},
+            {'text':'Prepare','state':'active','quest':'Meet the young adventurer'},
+            {'text':'Unknown reference','state':'active','quest':'q_unknown'}],'mine':[]}
+        self.receive(payload)
+        chips=self.page.locator('.rpgc-objectives .rpgc-checklist .rpgc-chip').all_text_contents()
+        self.assertEqual(chips,['Meet the young adventurer','Meet the young adventurer','q_unknown'])
+        self.assertEqual(self.page.evaluate("sent.filter(x=>/edit|objective_mine/.test(x.type))"),[])
+
     def test_long_spell_names_and_full_study_note(self):
         row = self.page.locator('.rpgc-spell-study .rpgc-spell-row').first
         self.assertEqual(row.locator('p').first.text_content(),FIXTURE['note'])

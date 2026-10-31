@@ -1125,6 +1125,15 @@ function trackerSnapshotCapture(hms) {
 }
 
 // Read-only export; reference catalogues never imply learned abilities.
+// Resolve a display reference only; tracker IDs remain untouched.
+function objectiveQuestLabel(reference, quests) {
+    if (!reference || !Array.isArray(quests)) return reference;
+    const key = value => String(value || '').normalize('NFKC').trim().toLowerCase();
+    const needle = key(reference);
+    const matches = quests.filter(q => q && [q.questId, q.key, q.questIdentityKey, q.name].some(v => v && key(v) === needle));
+    return matches.length === 1 && matches[0].name ? matches[0].name : reference;
+}
+
 function characterSheetMarkdown(view, tr = x => x) {
     const clean = value => String(value ?? '').replace(/[\r\n]+/g, ' ').replace(/[\x00-\x1f]/g, '').replace(/([\\`*_{}\[\]<>#])/g, '\\$1');
     const hms = view.hms || {}, out = ['# ' + tr('Character sheet'), '', tr('Recorded tracker data; not a gameplay update.'), ''];
@@ -5008,7 +5017,7 @@ export function setup(ctx) {
             input.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); add(); } });
             out.push(h('div', { class: 'rpgc-set rpgc-objectives' }, h('h4', null, 'Objectives'),
                 pv.objectives.length ? h('ul', { class: 'rpgc-checklist' }, pv.objectives.map(o => h('li', { class: o.state === 'done' ? 'met' : o.state === 'active' ? 'active' : o.state === 'failed' ? 'failed' : '' },
-                    h('span', { 'aria-hidden': 'true' }, ICON[o.state] || '\u25B8'), ` ${o.text}`, o.state === 'abandoned' ? h('span', { class: 'rpgc-chip' }, 'Abandoned') : null, o.quest ? h('span', { class: 'rpgc-chip' }, o.quest) : null))) : null,
+                    h('span', { 'aria-hidden': 'true' }, ICON[o.state] || '\u25B8'), ` ${o.text}`, o.state === 'abandoned' ? h('span', { class: 'rpgc-chip' }, 'Abandoned') : null, o.quest ? h('span', { class: 'rpgc-chip' }, objectiveQuestLabel(o.quest, state.hms?.systems?.quests)) : null))) : null,
                 pv.mine.length ? h('ul', { class: 'rpgc-checklist mine' }, pv.mine.map(o => h('li', { class: o.done ? 'met' : '' },
                     (() => { const cb = h('input', { type: 'checkbox', 'aria-label': `Done: ${o.text}` }); cb.checked = !!o.done; cb.addEventListener('change', () => send({ type: 'objective_mine', chatId: state.chatId, op: 'toggle', id: o.id })); return cb; })(),
                     ` ${o.text} `, h('button', { class: 'rpgc-mini', 'aria-label': `Remove: ${o.text}`, onclick: () => send({ type: 'objective_mine', chatId: state.chatId, op: 'remove', id: o.id }) }, '\u2715')))) : null,
