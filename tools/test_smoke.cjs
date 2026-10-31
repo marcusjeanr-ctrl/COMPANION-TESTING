@@ -106,7 +106,9 @@ globalThis.__hooks = (chat, lore, user) => {
     // ── frontend: render every view from that payload ──
     class El {
         constructor(tag) { this.tagName = String(tag).toUpperCase(); this.children = []; this.dataset = {}; this.attributes = {}; this.style = { setProperty() {}, removeProperty() {} };
-            this.classList = { add() {}, remove() {}, toggle() {}, contains: () => false }; this.textContent = ''; this.open = false; }
+            this.classList = { add() {}, remove() {}, toggle() {}, contains: () => false }; this.textContent = ''; this._open = false; this._ls = {}; }
+        get open() { return this._open; }
+        set open(v) { v = !!v; if (v === this._open) return; this._open = v; Promise.resolve().then(() => (this._ls.toggle || []).forEach(fn => fn({ target: this }))); }
         get childNodes() { return this.children; }
         appendChild(c) { if (c) { if (c.parentElement && c.parentElement.children) c.parentElement.children = c.parentElement.children.filter(x => x !== c); this.children.push(c); c.parentElement = this; } return c; } // moves, like the DOM
         append(...c) { c.forEach(x => this.appendChild(typeof x === 'string' ? { textContent: x } : x)); }
@@ -115,9 +117,11 @@ globalThis.__hooks = (chat, lore, user) => {
         insertBefore(c) { return this.appendChild(c); }
         removeChild(c) { this.children = this.children.filter(x => x !== c); return c; }
         replaceWith() {} remove() {} before() {} after() {}
-        setAttribute(k, v) { this.attributes[k] = v; } getAttribute(k) { return this.attributes[k] ?? null; } removeAttribute(k) { delete this.attributes[k]; } hasAttribute(k) { return k in this.attributes; }
-        addEventListener() {} removeEventListener() {} dispatchEvent() { return true; }
-        querySelector() { return null; } querySelectorAll() { return []; } closest() { return null; } contains() { return false; }
+        setAttribute(k, v) { this.attributes[k] = v; if (/^data-/.test(k)) this.dataset[k.slice(5).replace(/-(\w)/g, (_, c) => c.toUpperCase())] = String(v); } getAttribute(k) { return this.attributes[k] ?? null; } removeAttribute(k) { delete this.attributes[k]; } hasAttribute(k) { return k in this.attributes; }
+        addEventListener(t, fn) { (this._ls[t] ||= []).push(fn); } removeEventListener() {} dispatchEvent(e) { (this._ls[e.type] || []).forEach(fn => fn(e)); return true; }
+        querySelectorAll(sel) { const m = String(sel).match(/^(\w+)?\.([\w-]+)$/); const out = []; if (!m) return out;
+            const walk = n => (n.children || []).forEach(c => { if (c.tagName && (!m[1] || c.tagName === m[1].toUpperCase()) && String(c.className || '').split(/\s+/).includes(m[2])) out.push(c); walk(c); }); walk(this); return out; }
+        querySelector(sel) { return this.querySelectorAll(sel)[0] || null; } closest() { return null; } contains() { return false; }
         getBoundingClientRect() { return { top: 0, left: 0, width: 300, height: 20, right: 300, bottom: 20 }; }
         focus() {} blur() {} click() {} scrollIntoView() {} getContext() { return null; }
         get innerHTML() { return ''; } set innerHTML(v) { this.children = []; }
@@ -159,6 +163,28 @@ globalThis.__hooks = (chat, lore, user) => {
     assert.equal(folded.open, false, 'folded people start closed');
     assert(textOfTree(folded.children[0]).includes('Old Mentor'), 'the folded header shows the name');
     assert(rendered.includes('Collapse all') && rendered.includes('Expand all'), 'collapse/expand all controls render');
+    // Magic: rows fold to their header, studying stays visible, no "No retained evidence" noise
+    const spellRow = name => find(tabRoot, n => n.tagName === 'DETAILS' && n.dataset && n.dataset.foldKey === 'spell-' + name.toLowerCase());
+    const ice = spellRow('Ice Blade'), water = spellRow('Water Ball');
+    assert(ice && water, 'spell rows fold');
+    assert.equal(water.open, false, 'spell rows start folded');
+    assert(textOfTree(ice.children[0]).includes('\uD83D\uDCD6'), 'a spell being studied keeps its study marker on the folded header');
+    assert(!rendered.includes('No retained evidence'), 'no "No retained evidence" labels');
+    // search opens matches without overwriting what you opened; clearing it restores your state
+    const stored = () => JSON.parse(storage.get('rpgc-open-sections') || '{}');
+    const tick = () => new Promise(r => setTimeout(r, 0));
+    water.open = true; await tick(); await new Promise(r => setTimeout(r, 350));
+    assert.equal(stored()['spell-water ball'], true, 'opening a spell is remembered');
+    const box = find(tabRoot, n => n.tagName === 'INPUT' && n.attributes && n.attributes.placeholder === 'Find a spell');
+    assert(box, 'spell search box');
+    box.value = 'ice'; box.dispatchEvent({ type: 'input' }); await tick();
+    assert.equal(ice.open, true, 'search opens a match');
+    assert.equal(water.open, false, 'search folds a non-match while searching');
+    box.value = ''; box.dispatchEvent({ type: 'input' }); await tick(); await new Promise(r => setTimeout(r, 350));
+    assert.equal(water.open, true, 'clearing the search restores what you had open');
+    assert.equal(ice.open, false, 'clearing the search folds what only the search opened');
+    assert.equal(stored()['spell-water ball'], true, 'search never overwrote the remembered state');
+    assert.equal(stored()['spell-ice blade'], undefined, 'search-opened rows are not remembered');
     // Optional, local only: also render real payloads (never committed), e.g. SMOKE_PAYLOADS=a.json,b.json
     for (const file of (process.env.SMOKE_PAYLOADS || '').split(',').filter(Boolean)) {
         const real = JSON.parse(fs.readFileSync(file, 'utf8'));
