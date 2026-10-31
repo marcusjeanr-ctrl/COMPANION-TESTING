@@ -2678,7 +2678,7 @@ async function pushState(chatId, snapshot = null) {
 // Demo mode plays scripted turns (no tokens); Live mode asks the model, with a small
 // world narrator standing in for a bot card.
 
-const RPGC_VERSION = '3.2.5';
+const RPGC_VERSION = '3.2.6';
 const diagLog = [];
 function diagPush(kind, m) { diagLog.push({ at: new Date().toISOString(), kind, text: String(m).slice(0, 400) }); if (diagLog.length > 60) diagLog.shift(); }
 function logW(m) { diagPush('warn', m); return spindle.log.warn(m); }
@@ -4778,7 +4778,7 @@ function posRequest(chat, st, userName) {
     if (!room && hud && hud.location && chatIdOf(chat)) { try { const at = atlasFor(chatIdOf(chat), null, worldOf(worldLines(hud))); brief = at ? atlasRoomBrief(at, atlasLocate(at, hud.location)) : null; } catch { brief = null; } }
     if (!room) { try { bld = bldKnownNames(st, hud, chatIdOf(chat)); } catch { bld = null; } }
     let rules = room
-        ? `The map: ${roomSummary(room)} (squares of about 1.5 m, x east, y south, from the north-west corner). Add "room" again only if ${userName} went somewhere else or the room itself changed (a wall broke, a table went over).`
+        ? `The map: ${roomSummary(room)} (squares of about 1.5 m, x east, y south, from the north-west corner). If ${userName} is now in a different room, corridor or area, add "room" again for the new place, even inside the same building and even if the HUD location line did not change. Otherwise add "room" only if the room itself changed (a wall broke, a table went over).`
         : `"room" is the place ${userName} is in, as squares of about 1.5 m (5 ft): x runs east and y south from the north-west corner. ${brief ? `Draw it from the location book: ${brief}` : 'Take its size, furniture and ways out from the location\'s lorebook entry when one is in your context, otherwise from the story;'} Only what matters for moving around, at most 12 features. A window lies along its wall (x 0 or w-1, y 0 or h-1) and is drawn into the wall. Sizes in squares: a bed 1x2 (a double 2x2), a couch or bench 2x1, a desk, chair, shelf or cabinet 1x1, a fireplace 2x1, a pillar or statue 1x1. "floor" is the storey: 0 ground, 1 one up, -1 below.${bld && bld.names.length ? ` Rooms of ${bld.building} already drawn: ${bld.names.join(', ')}. An exit that leads into one of them names it exactly in "to".` : ''}`;
     rules += ` "pos" is where everyone in the scene stands at the end of this reply, ${userName} included (side "you"), in those squares; people move only as far as the story moved them, and "note" says how they stand or what they hold.`;
     if (last) rules += ` Positions before this reply: ${last.map(p => `${p.name} ${p.x},${p.y}`).join('; ')}.`;
