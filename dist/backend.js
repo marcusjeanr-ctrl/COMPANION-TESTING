@@ -2678,7 +2678,7 @@ async function pushState(chatId, snapshot = null) {
 // Demo mode plays scripted turns (no tokens); Live mode asks the model, with a small
 // world narrator standing in for a bot card.
 
-const RPGC_VERSION = '3.2.14';
+const RPGC_VERSION = '3.3.0';
 const diagLog = [];
 function diagPush(kind, m) { diagLog.push({ at: new Date().toISOString(), kind, text: String(m).slice(0, 400) }); if (diagLog.length > 60) diagLog.shift(); }
 function logW(m) { diagPush('warn', m); return spindle.log.warn(m); }
@@ -4913,7 +4913,6 @@ function hmsMapPanel(chat, st) {
 
 const BLD_WORDS_RE = /\b(building|mansion|manor|house|hall|tower|castle|palace|dorm(itory)?|inn|tomb|church|temple|cathedral|academy|school|estate|lodge|keep|fort(ress)?|villa|shop|store|tavern|guild|library|barracks|hospital|station|complex|residence|cottage|cabin|warehouse|arena|colosseum|embassy|apartments?|hotel|museum|prison|jail|monastery|abbey|shrine|chateau|château|hideout|base|ship)\b/i;
 const BLD_FLOOR_WORDS = { basement: -1, cellar: -1, undercroft: -1, crypt: -1, dungeon: -1, ground: 0, first: 1, second: 2, third: 3, fourth: 4, fifth: 5, sixth: 6, seventh: 7, eighth: 8, ninth: 9, tenth: 10 };
-const BLD_SIDES = { N: [0, -1], S: [0, 1], E: [1, 0], W: [-1, 0] };
 const BLD_OPP = { N: 'S', S: 'N', E: 'W', W: 'E' };
 // FrankenSIM's locked footprints, in squares of about 1.5 m: a feature named just this is never drawn larger
 const BLD_FOOTPRINT = [[/^(single )?bed$/i, 1, 2], [/^double bed$|^(queen|king)( size)? bed$/i, 2, 2], [/^(couch|sofa|settee|bench)$/i, 2, 1], [/^(desk|chair|armchair|stool|nightstand|bedside table)$/i, 1, 1],
@@ -13305,7 +13304,6 @@ async function hmsGearEdit(chatId, p) {
 
 const AGENDA_KINDS = ['meeting', 'promise', 'deadline', 'event', 'errand'];
 const AGENDA_STATES = ['open', 'in_progress', 'kept', 'missed', 'cancelled'];
-const AGENDA_DAYPART = { dawn: 6 * 60, sunrise: 6 * 60, morning: 8 * 60, noon: 12 * 60, midday: 12 * 60, lunch: 12 * 60, afternoon: 15 * 60, evening: 18 * 60, sunset: 18 * 60, dusk: 19 * 60, dinner: 19 * 60, tonight: 21 * 60, night: 21 * 60, midnight: 24 * 60 };
 const AGENDA_NUM = { a: 1, an: 1, one: 1, two: 2, three: 3, four: 4, five: 5, six: 6, seven: 7, eight: 8, nine: 9, ten: 10, eleven: 11, twelve: 12, couple: 2, few: 3 };
 
 function agendaCfg(cfg) {
@@ -14572,8 +14570,6 @@ const SIM_TFDY_LV = ['depleted', 'simmering', 'baseline', 'active', 'consuming']
 const SIM_IW = ['frostbound', 'cool', 'temperate', 'warm', 'fervent'];
 const SIM_TEMPER = { sanguine: 'T', choleric: 'F', melancholic: 'D', phlegmatic: 'Y' };
 const SIM_HOW = { saw: 'saw it', heard: 'overheard it', told: 'was told', evidence: 'worked it out from evidence', message: 'got word by message', common: 'common knowledge', gossip: 'heard it as gossip', guessed: 'guessed' };
-const SIM_SURE = ['certain', 'partly', 'unsure', 'wrong'];
-const SIM_LEVELS = ['low', 'med', 'high'];
 const SIM_YOU = '@you';
 // Parrott's tree (2001): primary → secondary → tertiary. Emotions are named by where they lead.
 const SIM_PARROTT = {
@@ -16652,6 +16648,17 @@ function spellStudyActive(chat, st, fold = null, chatId = null, knownMap = null)
     return [...active.values()].slice(-8);
 }
 
+/** A reported study percentage, clamped to 0–100, or null when the story gave none. */
+function spellPercent(pr) { return pr && pr.progress !== null && pr.progress !== undefined && Number.isFinite(Number(pr.progress)) ? Math.max(0, Math.min(100, Math.round(Number(pr.progress)))) : null; }
+
+/** Progress and note on a spell or technique card: while studying it, or while practising one already known. */
+function spellRowPractice(status, key, fold, known) {
+    const pr = fold.progress.get(key);
+    const practicing = status === 'known' && spellOngoingPractice(fold, known, key);
+    return { progress: status === 'study' || practicing ? spellPercent(pr) : null,
+        note: status === 'study' && pr ? pr.note : (practicing ? pr?.note : null) || known.get(key)?.note || null };
+}
+
 const SPELL_STATUS_ORDER = { mastered: 0, known: 1, study: 2, reach: 3, next: 4, unranked: 5, open: 6, special: 7, locked: 8 };
 
 /** The spell list for the Magic card: each spell with where it stands for you. Null when the lorebook has none. */
@@ -16700,12 +16707,9 @@ function spellListPanel(chatId, chat, st, sys) {
         else if (r.step <= sch.step) status = 'reach';
         else if (r.step === sch.step + 1) { status = 'next'; why = needs(r); }
         else { status = 'locked'; why = needs(r); }
-        const pr = fold.progress.get(r.key);
         const evidence = known.has(r.key) ? known.get(r.key).evidence || null : fold.abilityEvidence?.get(r.key) || null;
-        const practicing = status === 'known' && spellOngoingPractice(fold, known, r.key);   // improving a spell already known
         return { name: r.name, key: r.key, school: r.school, rank: r.rank, step: r.step, status, why, who: r.who, effect: r.effect, chant: r.chant, fan: !!r.fan,
-            progress: (status === 'study' || practicing) && pr && pr.progress !== null && pr.progress !== undefined && Number.isFinite(Number(pr.progress)) ? Math.max(0, Math.min(100, Math.round(Number(pr.progress)))) : null,
-            note: status === 'study' && pr ? pr.note : (practicing ? pr?.note : null) || known.get(r.key)?.note || null, ...(evidence ? { evidence } : {}) };
+            ...spellRowPractice(status, r.key, fold, known), ...(evidence ? { evidence } : {}) };
     });
     // a known spell the lorebook does not have still shows, under its own heading
     const catKeys = cat.map(r => r.key);
@@ -16740,7 +16744,7 @@ function spellListPanel(chatId, chat, st, sys) {
         const row = spells.find(x => x.key === k || spellSame(x.key, k));
         const pr = fold.progress.get(k);
         return { name: s.name, school: row ? row.school : s.school || null, rank: row ? row.rank : s.rank || null, done: !spellOngoingPractice(fold, known, k) && (!!(row && ['known', 'mastered'].includes(row.status)) || isKnown(k)),
-            progress: pr && pr.progress !== null && pr.progress !== undefined && Number.isFinite(Number(pr.progress)) ? Math.max(0, Math.min(100, Math.round(Number(pr.progress)))) : null, note: [pr?.note, !classify.reference(s.name) ? 'Not found in loaded spell references' : null].filter(Boolean).join(' · ') || null, why: row ? row.why : null };
+            progress: spellPercent(pr), note: [pr?.note, !classify.reference(s.name) ? 'Not found in loaded spell references' : null].filter(Boolean).join(' · ') || null, why: row ? row.why : null };
     });
     return { total: cat.length, ladder: stand.ladder, gate: stand.gate, casting: stand.casting, voiceless: stand.voiceless,
         mine: [...stand.schools.values()], schools, studying, news };
@@ -17005,10 +17009,8 @@ function techListPanel(chatId, chat, st, sys) {
         else if (r.step <= sch.step) status = 'reach';
         else if (r.step === sch.step + 1) { status = 'next'; why = `Needs ${MT_MARTIAL[r.step]}`; }
         else { status = 'locked'; why = `Needs ${MT_MARTIAL[r.step]}`; }
-        const pr = fold.progress.get(r.key);
         return { name: r.name, key: r.key, school: r.style, rank: r.rank, step: r.step, status, why, who: r.who, effect: r.effect, chant: null, requires: r.requires, fan: !!r.fan,
-            progress: status === 'study' && pr && pr.progress !== null && pr.progress !== undefined && Number.isFinite(Number(pr.progress)) ? Math.max(0, Math.min(100, Math.round(Number(pr.progress)))) : null,
-            note: status === 'study' && pr ? pr.note : null, ...((known.has(r.key) ? known.get(r.key).evidence : fold.abilityEvidence?.get(r.key)) ? { evidence: known.has(r.key) ? known.get(r.key).evidence : fold.abilityEvidence.get(r.key) } : {}) };
+            ...spellRowPractice(status, r.key, fold, known), ...((known.has(r.key) ? known.get(r.key).evidence : fold.abilityEvidence?.get(r.key)) ? { evidence: known.has(r.key) ? known.get(r.key).evidence : fold.abilityEvidence.get(r.key) } : {}) };
     });
     const byStyle = new Map();
     for (const s of items) { const k = techStyleKey(s.school); if (!byStyle.has(k)) byStyle.set(k, { key: k, name: s.school, spells: [] }); byStyle.get(k).spells.push(s); }
@@ -17038,7 +17040,7 @@ function techListPanel(chatId, chat, st, sys) {
         const row = items.find(x => x.key === k);
         const pr = fold.progress.get(k);
         return { name: s.name, school: row ? row.school : null, rank: row ? row.rank : null, done: !spellOngoingPractice(fold, known, spellKey(s.name)) && !!(row && ['known', 'mastered'].includes(row.status)),
-            progress: pr && pr.progress !== null && pr.progress !== undefined && Number.isFinite(Number(pr.progress)) ? Math.max(0, Math.min(100, Math.round(Number(pr.progress)))) : null,
+            progress: spellPercent(pr),
             note: pr ? pr.note : null, why: row ? row.why : null };
     });
     return { kind: 'tech', total: cat.length, mine: [...stand.values()], schools, studying, news };

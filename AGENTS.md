@@ -33,8 +33,8 @@
 - No extra model/API calls, polling, redundant refreshes, unbounded scans or writes.
   Preserve caches and token overhead. Measure changes with existing panel/pipeline
   benchmarks using the same runtime, fixtures and alternating comparison order.
-- Standard checks: Node 22; `node tools/check_release.cjs` and
-  `node tools/run_tests.cjs`. Python 3 is used by documentation/embedding tools.
+- Standard checks: Node 22; `node tools/run_tests.cjs` (release identity, syntax,
+  regressions, smoke test). Python 3 is used by documentation/embedding tools.
   In the cloud activate `export PATH=/workspace/.companion-tools/node_modules/.bin:$PATH`.
 - Run relevant existing suites plus new defect regressions. Report failures,
   skipped tests and fixture mismatches separately. Do not claim unrun checks.

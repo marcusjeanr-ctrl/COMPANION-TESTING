@@ -9,7 +9,7 @@ on:
         default: stage
         required: true
       source_commit:
-        description: Exact reviewed commit with successful validation and browser CI
+        description: Exact reviewed commit with a successful validation run
         required: true
         type: string
       package_sha256:
@@ -18,7 +18,7 @@ on:
         type: string
       version:
         description: Expected RC manifest version
-        default: 2.9.11
+        default: 3.3.0
         required: true
         type: string
 permissions:

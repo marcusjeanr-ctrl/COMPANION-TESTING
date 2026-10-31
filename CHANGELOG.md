@@ -1,5 +1,23 @@
 # Changelog — RPG Companion HMS Edition
 
+## 3.3.0 RC — Clean build
+
+A review of the whole codebase against 3.2.14, the Six-Sided World card and seven Lumiverse exports. Tracking behavior is unchanged except the fix below; everything else is cleanup, and release checks that work again.
+
+**Fixed**
+- Practice on a technique you already know now shows on its card (note, and progress when the story gives a percentage). Techniques used their own copy of the spell-card logic and missed the 3.2.8 spell fix.
+
+**Cleaned up**
+- Spells and techniques share one card helper (`spellRowPractice`) and one percentage helper (`spellPercent`) instead of four copies of the same logic, so a fix to one can no longer miss the other.
+- Removed four unused constants. No other dead code was found: every other declaration is in use.
+- The in-panel Guide (all five languages) now names 3.3 instead of "2.9 beta".
+
+**Release checks restored (lightweight)**
+- `node tools/run_tests.cjs` runs release identity, syntax, the tracking regressions and a new end-to-end smoke test: the backend builds the panel and model request from a synthetic Six-Sided chat, the request is injected exactly once, and the real frontend renders every panel.
+- `.github/workflows/validate.yml` runs those checks and the package build in one quick job. The manual publish script required a validation run with `validate` and `browser` jobs, but that workflow had been removed, so no RC could be published; it now requires the `validate` job only (the browser tests were removed with the cleanup).
+
+**Verified against 3.2.14**: identical panel payload and identical model request on all seven exports; identical requests for normal, swipe, regenerate, continue and OOC turns (the side-panel request is injected once; nothing on continue/OOC); all real payloads render in the real frontend; same speed.
+
 ## 3.2.14 RC — Tracking audit fixes
 
 - A quest reported under its own Quest ID now takes the reported objective as its current stage. A rule that kept the longer of two objectives blocked every shorter new stage, and the stale objective was then sent back to the model as quest context, which echoed it. Reworded titles without a Quest ID keep the existing rule.

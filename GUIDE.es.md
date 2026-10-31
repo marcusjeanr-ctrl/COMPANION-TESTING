@@ -1,6 +1,6 @@
 # Guía HMS
 
-**RPG Companion HMS Edition 2.9 beta** y **HMS Reporter beta**
+**RPG Companion HMS Edition 3.3** y **HMS Reporter beta**
 
 Esta guía explica cómo funciona una partida HMS, cómo configurarla y qué hace cada parte.
 Lee primero **Empieza aquí**. Usa las demás partes cuando las necesites.
@@ -15,7 +15,7 @@ Una partida HMS tiene tres partes. Cada parte tiene una tarea.
 | --- | --- | --- |
 | **El bot** | La tarjeta del personaje y sus lorebooks: Re:Zero, Mushoku Tensei, Classroom of the Elite u Overlord | El mundo y sus reglas. Escribe el **HUD del WORLD STATE** al principio de cada respuesta. |
 | **HMS Reporter beta** | Un preset: el prompt que envía Lumiverse | Cómo se escribe la historia bajo el HUD: estilo, voces, longitud, razonamiento. |
-| **RPG Companion HMS Edition 2.9 beta** | Una extensión: el panel lateral | Lee el HUD y lo muestra en tarjetas. Sigue personas, lo que sienten y lo que saben, misiones, combates y más. Te ayuda a empezar una partida y a hacer preguntas. |
+| **RPG Companion HMS Edition 3.3** | Una extensión: el panel lateral | Lee el HUD y lo muestra en tarjetas. Sigue personas, lo que sienten y lo que saben, misiones, combates y más. Te ayuda a empezar una partida y a hacer preguntas. |
 
 ### Quién manda
 
