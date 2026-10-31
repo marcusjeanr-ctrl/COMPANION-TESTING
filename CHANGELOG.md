@@ -1,5 +1,9 @@
 # Changelog — RPG Companion HMS Edition
 
+## 3.2.10 RC — Sessions left in practice notes
+
+- When the story states how much practice is left ("4 more sessions"), the study note ends with it ("4 sessions left"), so the spell card's latest note shows the countdown. No new field and no extra calls.
+
 ## 3.2.9 RC — Gear named two ways stays one item
 
 - An item described further ("leather pouch" → "leather pouch of allowance coins", "sealed scroll" → "sealed scroll of arrangements") is the same item, shown under the fuller name. Applies across replies and when one reply names it both ways.
