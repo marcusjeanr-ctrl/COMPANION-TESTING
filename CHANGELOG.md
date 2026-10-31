@@ -1,5 +1,13 @@
 # Changelog — RPG Companion HMS Edition
 
+## 3.2.14 RC — Tracking audit fixes
+
+- A quest reported under its own Quest ID now takes the reported objective as its current stage. A rule that kept the longer of two objectives blocked every shorter new stage, and the stale objective was then sent back to the model as quest context, which echoed it. Reworded titles without a Quest ID keep the existing rule.
+- A new objective under the same Quest ID restarts progress; progress on an unchanged objective still never regresses.
+- A relationship bond ending with a copy of the row's own standing ("…, Close") drops the copy. Bonds set by the player are untouched.
+- A martial observation reported once is counted once (the saved learning and the assessment could be the same event).
+- Added `tools/test_tracking_audit.cjs` (synthetic regressions for each fix).
+
 ## 3.2.13 RC — Tracking review fixes
 
 - Gear reported "on body" (slung/strapped) with a desk, shelf or other furniture as its place is shown as left there, not carried. "In hand" at a desk is unchanged (held while seated there).
