@@ -2713,5 +2713,8 @@
  "Ability evidence": "Yetenek kanıtları",
  "Retained observations: {0}": "Saklanan gözlemler: {0}",
  "Historical evidence: {0}": "Geçmiş kanıtlar: {0}",
- "No retained evidence": "Saklanan kanıt yok"
+ "No retained evidence": "Saklanan kanıt yok",
+ "What changed": "Neler değişti",
+ "No tracked changes": "İzlenen değişiklik yok",
+ "No prior reply snapshot": "Önceki yanıt görüntüsü yok"
 }

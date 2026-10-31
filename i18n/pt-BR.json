@@ -2713,5 +2713,8 @@
  "Ability evidence": "Evidências de habilidades",
  "Retained observations: {0}": "Observações retidas: {0}",
  "Historical evidence: {0}": "Evidências históricas: {0}",
- "No retained evidence": "Nenhuma evidência retida"
+ "No retained evidence": "Nenhuma evidência retida",
+ "What changed": "O que mudou",
+ "No tracked changes": "Nenhuma mudança rastreada",
+ "No prior reply snapshot": "Nenhum retrato da resposta anterior"
 }

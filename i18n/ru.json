@@ -2713,5 +2713,8 @@
  "Ability evidence": "Основания оценки способностей",
  "Retained observations: {0}": "Сохранённые наблюдения: {0}",
  "Historical evidence: {0}": "Исторические свидетельства: {0}",
- "No retained evidence": "Нет сохранённых свидетельств"
+ "No retained evidence": "Нет сохранённых свидетельств",
+ "What changed": "Что изменилось",
+ "No tracked changes": "Нет отмеченных изменений",
+ "No prior reply snapshot": "Нет снимка предыдущего ответа"
 }

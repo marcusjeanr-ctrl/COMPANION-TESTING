@@ -65,6 +65,18 @@ class BrowserUi(unittest.TestCase):
         self.assertLessEqual(bounds['x']+bounds['width'],viewport['width']+1)
         self.assertLessEqual(bounds['y']+bounds['height'],viewport['height']+1)
 
+    def test_change_strip_is_lazy_and_uses_two_replies(self):
+        pane=self.page.locator('[data-open-key=play-changes]')
+        pane.evaluate("e=>{e.open=false;e.dispatchEvent(new Event('toggle'))}")
+        payload=json.loads(json.dumps(FIXTURE['payload']))
+        payload['hms']['messageId']='next-reply'
+        payload['hms']['hud']['location']=['New town']
+        self.page.evaluate('(p)=>window.receive(p)',payload)
+        self.assertEqual(self.page.locator('.rpgc-change-line').count(),0)
+        pane.locator('summary').click()
+        self.assertIn('Location:',self.page.locator('.rpgc-change-line').inner_text())
+        self.assertIn('New town',self.page.locator('.rpgc-change-line').inner_text())
+
     def test_ability_evidence_retained_and_historical_are_distinct(self):
         payload=json.loads(json.dumps(FIXTURE['payload']))
         obs=[{'msgId':str(i),'state':'Reliable','evidence':'You execute the cut.','at':i,'historical':False} for i in range(3)]
