@@ -39,3 +39,34 @@ Release/syntax, **65 JS suites + 12 gate tests**, **54 Chromium UI tests** and
 **5 visibility tests** pass before measurement. Step 2's unchanged 20-pair gate
 must PASS before proceeding. Steps 3 and 4 have not yet been applied here.
 No live Lumiverse testing.
+
+## Step 2 result
+
+The 20-pair gate for `d2411e0` **PASSES** against frozen main `01c3df9`:
+2,000 warm wall **147.88 → 142.33 ms (-3.75%)**, CPU
+**216.02 → 207.53 ms (-3.93%)**. Raw observations and all IQRs/spreads are in
+[SURVIVAL_3_2_2_READERS_GATE.json](SURVIVAL_3_2_2_READERS_GATE.json) and
+[the raw archive](SURVIVAL_3_2_2_READERS_RAW.json.gz). Earlier failed and
+inconclusive matrices remain historical; none was discarded. These timings
+establish the configured gate result, not a live-host speedup claim.
+
+## Steps 3 and 4
+
+Generic English break/recover forms and generic recovery equivalents were
+removed from rest evidence. Explicit resting, sitting down, taking a short break
+and catching breath remain supported. New positive/negative examples, including
+combat balance recovery and guard breaking, pass without changing the original
+inputs or expected results. The helper remains lexical rather than a full NLP
+system; broad claims of language or narrative accuracy are not made.
+
+The re-save regression keeps the rejected original claim in `unconfirmed`, edits
+the reply to include real eating, rejects the old signed report before re-save,
+then explicitly saves the preserved report. It confirms eating again, clears the
+rejection list, retains mood, leaves the prior raw object untouched, and verifies
+both the actual row and clock event. No runtime change was needed for Step 4;
+this recoverability already exists in the acceptance filter.
+
+The combined Step 3/4 source passes **65 JS suites + 12 gate tests, 54 Chromium UI
+cases and 5 visibility cases**, the release/syntax checks and the supplied
+39-message fixture. The final 20-pair gate follows on that exact backend source;
+Step 4 changes tests only. No merge is authorized without its PASS result.

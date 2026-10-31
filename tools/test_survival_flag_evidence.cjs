@@ -57,6 +57,19 @@ assert.equal(sv.events.filter(e=>e.src==='you').length,4);for(const t of sv.trac
  await c.setSwipeData('test',r.messages[0],{survival:{ate:true,mood:'calm'}});
  const saved=r.messages[0].metadata.rpg_companion.swipes[0].survival;
  assert.equal(saved.ate,false);assert.deepEqual(Array.from(saved.unconfirmed),['ate']);assert.equal(saved.mood,'calm');
+ // The original true claim remains recoverable from unconfirmed on an explicit re-save.
+ const oldReport=r.messages[0].metadata.rpg_companion.swipes[0],oldBytes=JSON.stringify(oldReport);
+ r.messages[0].content=r.messages[0].content.replace('You speak.','You ate soup.');
+ assert.equal(c.getSwipeData(r.messages[0]),null,'Edited content rejects the stale signed report before re-save');
+ await c.setSwipeData('test',r.messages[0],oldReport);
+ const recovered=c.getSwipeData(r.messages[0]);
+ assert.equal(recovered.survival.ate,true);assert.deepEqual(Array.from(recovered.survival.unconfirmed),[]);
+ assert.equal(recovered.survival.mood,'calm');assert.equal(JSON.stringify(oldReport),oldBytes);
+ c.statesFill('reconfirmed',[r.messages[0]]);
+ const recoveredState=await c.getStatesFor('reconfirmed',r.messages[0].id);
+ assert(/This reply<\/span><span>[^<]*\bate\b/.test(c.statesPanelHtml(recoveredState,c.parseHud(r.messages[0].content),r.messages[0].id)));
+ assert(c.hmsSurvival(c.hmsTimeline(r.messages),{},cfg,null).events.some(e=>e.kind==='ate'&&e.src==='story'));
+
  for(const kind of flags) await c.hmsSurvivalLog('test',{op:'add',kind});
  const st=await c.getChatState('test');assert.equal(st.survival.log.length,4);
  const file=process.argv[2];if(file){
