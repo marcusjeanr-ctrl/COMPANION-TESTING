@@ -1,4 +1,4 @@
-// Regression checks for the 3.2.14 tracking-audit fixes. Synthetic chats only; no private text.
+// Regression checks for the 3.2.14 tracking-audit fixes and the 3.3.0 technique fix. Synthetic chats only; no private text.
 // Run: node tools/test_tracking_audit.cjs
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
@@ -15,7 +15,7 @@ const ctx = {
 };
 ctx.globalThis = ctx;
 vm.createContext(ctx);
-vm.runInContext(source.slice(0, startup) + '\nglobalThis.__t = { questDetailsLatest, relGuard, relCfg, martialAbilityItems };', ctx);
+vm.runInContext(source.slice(0, startup) + '\nglobalThis.__t = { questDetailsLatest, relGuard, relCfg, martialAbilityItems, techListPanel, setPool: p => { loreCatalogPool = () => p; } };', ctx);
 const t = ctx.__t;
 
 let n = 0;
@@ -63,6 +63,21 @@ check('a martial observation is not counted twice', () => {
     const item = t.martialAbilityItems('c1', chat, {}).find(x => /sword god/i.test(x.name));
     assert(item, 'martial ability missing');
     assert.equal(item.observations.length, 1);
+});
+
+// 5. (3.3.0) Practice on a technique already known shows on its card, as it does for spells.
+check('practice on a known technique shows on its card', () => {
+    t.setPool({ entries: [{ id: 't1', comment: '[Technique] Sword of Light', key: ['Sword of Light'],
+        content: '[TECHNIQUE — Sword of Light]\nStyle: Sword God Style · Rank: Intermediate\nEffect: A single explosive cut.' }] });
+    const learn = { survival: { spells: [], learned: [], mastered: [], study: [],
+        abilities: [{ name: 'Sword of Light', owner: 'you', state: 'known', historical: false, evidence: 'you cut with the Sword of Light' }] } };
+    const drill = { survival: { spells: [], learned: [], mastered: [], abilities: [], study: [{ spell: 'Sword of Light', progress: 40, note: 'drilled the opening stance' }] } };
+    const chat = [user('train'), reply(learn, 'In the yard you cut with the Sword of Light.'), user('again'), reply(drill, 'You drill the opening stance.')];
+    const row = t.techListPanel('c1', chat, {}, { _lines: ['Sword Style: Sword God (Advanced)'] }).schools.flatMap(g => g.spells).find(x => x.name === 'Sword of Light');
+    assert(row, 'technique missing from the catalog');
+    assert.equal(row.status, 'known');
+    assert.equal(row.note, 'drilled the opening stance');
+    assert.equal(row.progress, 40);
 });
 
 console.log(`tracking audit regressions: ${results.length} passed, ${failed.length} failed`);

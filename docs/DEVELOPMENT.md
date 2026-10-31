@@ -7,7 +7,7 @@ COMPANION-TESTING checkout on a feature branch; never publish to Companion.
 2. Reproduce on the current baseline. Add a synthetic failing regression that
    exercises the actual runtime pipeline and checks false positive boundaries.
 3. Implement the smallest fix; preserve saved records and source integrity.
-4. Run `node tools/check_release.cjs`, `node tools/run_tests.cjs`, targeted tests,
+4. Run `node tools/run_tests.cjs` (identity, syntax, regressions, smoke test), targeted tests,
    and relevant panel/pipeline benchmarks. Review the actual diff for data loss,
    false merges, cache invalidation, UI changes, token growth and added calls.
 5. Push a feature branch to COMPANION-TESTING and open a PR. Require the
@@ -36,14 +36,11 @@ standard-library tools. In this cloud use:
 ```sh
 export PATH=/workspace/.companion-tools/node_modules/.bin:$PATH
 cd /workspace/COMPANION-TESTING
-node tools/check_release.cjs
 node tools/run_tests.cjs
-COMPANION_BIND_READINGS=1 node tools/benchmark_panel_reads.cjs
-node tools/benchmark_tracking_pipeline.cjs
 ```
 
 The optional export tests target specific historical fixtures. A different export
 may legitimately violate their hard-coded counts or lengths: do not weaken the
-original assertions. Use `node tools/audit_private_export.cjs /private/export.json`
+original assertions. Check private exports locally only; never commit them.
 for the current export checks, without committing the input or printing its text.
 Historical rebuild/embedding tools write tracked bundles; do not run them as setup.

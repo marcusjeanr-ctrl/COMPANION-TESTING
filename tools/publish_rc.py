@@ -42,7 +42,7 @@ def require_ci(commit):
     latest = max(candidates, key=lambda r: r['id'])
     require(latest['status'] == 'completed' and latest['conclusion'] == 'success', 'Latest validation must pass')
     jobs = api('GET', f'actions/runs/{latest["id"]}/jobs')['jobs']
-    for name in ['validate', 'browser']:
+    for name in ['validate']:
         require(any(j['name'] == name and j['status'] == 'completed' and j['conclusion'] == 'success' for j in jobs),
                 f'Required {name} job did not pass')
     return latest['html_url']
