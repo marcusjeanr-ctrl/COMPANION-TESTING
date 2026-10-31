@@ -2067,12 +2067,13 @@ const SURVIVAL_FLAG_EVIDENCE = Object.freeze({
     rested: /(?<![\p{L}])(?:rest|rests|rested|resting|sat down|break|catch (?:his |her |their |your )?breath|recover|recovered|recovering|descansou|descansar|descansando|sentou|pausa|recuperou|descansó|descansar|descansando|se sentó|descanso|recuperó|отдохнул|отдохнула|отдых|передышка|сел|села|восстановился|dinlendi|dinleniyor|dinlenmek|oturdu|mola|toparlandı)(?![\p{L}])/giu
 });
 const SURVIVAL_EVIDENCE_NEGATION = /(?<![\p{L}])(?:didn't|didn’t|did not|doesn't|does not|don't|do not|hasn't|has not|hadn't|had not|never|not|without|refused|skipped|não|sem|recusou|pulou|no|sin|rechazó|omitió|не|без|отказался|отказалась|пропустил|пропустила)(?:\s+(?!(?:but|however|instead)\b)[\p{L}'’]+){0,3}\s*$/iu;
+const SURVIVAL_FLAG_KEYS = Object.freeze(Object.keys(SURVIVAL_FLAG_EVIDENCE));
 const survivalEvidenceCache = new WeakMap();
 function survivalFlagReading(msg, data) {
     const y = data?.survival;
     if (!isPlainObject(y)) return data;
     if (y.ate !== true && y.drank !== true && y.slept !== true && y.rested !== true && !y.unconfirmed?.length) return data;
-    const keys = Object.keys(SURVIVAL_FLAG_EVIDENCE);
+    const keys = SURVIVAL_FLAG_KEYS;
     const reported = keys.filter(k => y[k] === true || (Array.isArray(y.unconfirmed) && y.unconfirmed.includes(k)));
     if (!reported.length) return data;
     const text = textOf(msg.content), signature = keys.map(k => y[k] === true ? '1' : '0').join('') + ':' + reported.join(',');
@@ -2083,7 +2084,7 @@ function survivalFlagReading(msg, data) {
     const prose = (frame ? clean.slice(frame.bodyEnd) : clean).replace(/\*+/g, '').normalize('NFC');
     const unconfirmed = [], survival = {...y};
     for (const k of reported) {
-        const pattern = new RegExp(SURVIVAL_FLAG_EVIDENCE[k].source, 'giu');
+        const pattern = SURVIVAL_FLAG_EVIDENCE[k];
         let confirmed = false;
         for (const m of prose.matchAll(pattern)) {
             const prefix = prose.slice(Math.max(0, m.index - 90), m.index).split(/[.!?;,\n]/).pop();
