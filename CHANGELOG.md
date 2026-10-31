@@ -1,5 +1,11 @@
 # Changelog — RPG Companion HMS Edition
 
+## 3.2.1 RC — Quest and Agenda display fixes
+
+- Keep active quest cards visible and place completed and other ended quests in separate, collapsed disclosure sections. Expansion is session-only and changes no tracking data.
+
+- Group Agenda rows using their displayed countdown; date-only deadlines use day-level grouping while retaining the saved wording. Resolver, stored data and model hints remain unchanged.
+
 ## 3.2.0 RC — Selected play tools
 
 - Resolve objective quest IDs to titles for display.

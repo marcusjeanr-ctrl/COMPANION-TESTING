@@ -65,6 +65,110 @@ class BrowserUi(unittest.TestCase):
         self.assertLessEqual(bounds['x']+bounds['width'],viewport['width']+1)
         self.assertLessEqual(bounds['y']+bounds['height'],viewport['height']+1)
 
+    def test_agenda_groups_share_row_timing_and_day_precision(self):
+        clock=216318795
+        base={'key':'display-appointment','what':'Display appointment','with':'Guard','where':'Gate','when':'In two days','state':'open','status':'unset','dueAt':None,'dueIn':None,'kind':'meeting'}
+        cases=[({'dueAt':clock+240},'upcoming',False),({'dueAt':clock+40},'soon',False),({'dueAt':clock-61},'overdue',False),
+            ({'dueIn':40},'soon',False),({'displayDueDate':'K417-04-14'},'upcoming',True),
+            ({'displayDueDate':'K417-04-12'},'soon',True),({'displayDueDate':'K417-04-11'},'overdue',True),
+            ({'displayDueDate':'unknown'},'unset',True),({'when':None},'unset',True),
+            ({'state':'in_progress','status':'in_progress','displayDueDate':'K417-04-14'},'in_progress',False),
+            ({'state':'kept','status':'kept','displayDueDate':'K417-04-14'},'done',False)]
+        for changes,group,literal in cases:
+            with self.subTest(changes=changes):
+                payload=json.loads(json.dumps(FIXTURE['payload']));item=dict(base,**changes)
+                payload['hms']['systems']['clock']=clock
+                payload['hms']['hud']['lines'][0]['text']='Armored Dragon Calendar: K417, Month 4, Day 12 | Time: 09:15'
+                payload['hms']['agenda']={'items':[item],'clock':False,'ask':True,'tell':True}
+                self.page.evaluate('(p)=>{window.agendaInput=p;window.receive(p)}',payload)
+                row=self.page.locator(f'.rpgc-agenda-group.{group} .rpgc-agenda-item')
+                self.assertEqual(row.count(),1)
+                text=row.locator('.due').text_content()
+                if literal:self.assertEqual(text,item['when'] or 'no set time')
+                elif item['state']=='in_progress':self.assertEqual(text,'In progress')
+                elif item['state']=='kept':self.assertEqual(text,'kept')
+                elif group=='overdue':self.assertIn('overdue',text)
+                else:self.assertTrue(text.startswith('in '))
+                self.assertEqual(self.page.evaluate('agendaInput.hms.agenda.items[0]'),item)
+        self.assertEqual(self.page.evaluate("sent.filter(x=>x.type==='agenda')"),[])
+
+    def test_terminal_quest_partition_defaults_and_empty_cases(self):
+        def quest(name,state=None,cls='active'):
+            return {'name':name,'key':name.lower(),'questId':'q_'+name,'questAliases':['Earlier '+name],'state':state,'cls':cls,'progress':100}
+        active=quest('Active','active');done=quest('Finished','completed','done');second=quest('Second finished','done','active')
+        cases=[([],0,0,0),([active],1,0,0),([active,done,second],1,2,0),([done],0,1,0),
+               ([done,quest('Failed','failed','failed'),quest('Abandoned',None,'abandoned'),quest('Closed','closed')],0,1,3)]
+        for quests,opened,completed,ended in cases:
+            with self.subTest(count=len(quests),completed=completed,ended=ended):
+                payload=json.loads(json.dumps(FIXTURE['payload']));payload['hms']['systems']['quests']=quests
+                self.page.evaluate('(p)=>{window.questInput=p;window.receive(p)}',payload)
+                pane=self.page.locator('[data-open-key=quests]')
+                self.assertEqual(pane.locator('.rpgc-body > .rpgc-cards > .rpgc-qcard').count(),opened)
+                for key,label,count in [('quests-completed','Completed',completed),('quests-ended','Ended',ended)]:
+                    det=pane.locator(f'[data-open-key={key}]')
+                    self.assertEqual(det.count(),int(count>0))
+                    if count:
+                        self.assertEqual(det.locator('summary').inner_text(),f'{label} ({count})')
+                        self.assertFalse(det.evaluate('(e)=>e.open'))
+                        self.assertEqual(det.locator('.rpgc-qcard').count(),0)
+                self.assertEqual(self.page.evaluate('questInput.hms.systems.quests'),quests)
+        self.assertIn('Your notes',pane.inner_text())
+
+    def test_terminal_quest_disclosure_keyboard_session_and_objective_label(self):
+        payload=json.loads(json.dumps(FIXTURE['payload']))
+        payload['hms']['systems']['quests']=[{'name':'Still active','key':'active','state':'active','cls':'active'},
+            {'name':'Finished introduction','key':'done','questId':'q_done','state':'completed','cls':'done'},
+            {'name':'Second completion','key':'done2','state':'done','cls':'done'},
+            {'name':'Failed job','key':'failed','state':'failed','cls':'failed'}]
+        payload['plotView']={'on':{'plot':False,'objectives':True},'objectives':[{'text':'Review the introduction','state':'active','quest':'q_done'}],'mine':[]}
+        self.page.evaluate('(p)=>window.receive(p)',payload)
+        completed=self.page.locator('[data-open-key=quests-completed]');ended=self.page.locator('[data-open-key=quests-ended]')
+        self.assertFalse(completed.evaluate('(e)=>e.open'));self.assertFalse(ended.evaluate('(e)=>e.open'))
+        self.assertEqual(self.page.locator('.rpgc-objectives .rpgc-checklist .rpgc-chip').inner_text(),'Finished introduction')
+        self.page.evaluate('sent=[]')
+        completed.locator('summary').focus();self.page.keyboard.press('Enter')
+        completed.locator('.rpgc-qcard').first.wait_for(state='visible')
+        self.assertEqual(completed.locator('.rpgc-qcard').count(),2)
+        style=completed.locator('.rpgc-quest .st.done').first.evaluate('(e)=>({opacity:getComputedStyle(e).opacity,decoration:getComputedStyle(e).textDecorationLine})')
+        self.assertEqual(style['opacity'],'0.5');self.assertIn('line-through',style['decoration'])
+        self.page.evaluate('(p)=>window.receive(p)',payload)
+        self.assertTrue(completed.evaluate('(e)=>e.open'));self.assertEqual(completed.locator('.rpgc-qcard').count(),2)
+        completed.locator('summary').focus();self.page.keyboard.press('Space')
+        self.page.wait_for_function("!document.querySelector('[data-open-key=quests-completed]').open")
+        self.page.evaluate('(p)=>window.receive(p)',payload)
+        self.assertFalse(completed.evaluate('(e)=>e.open'));self.assertEqual(completed.locator('.rpgc-qcard').count(),0)
+        ended.locator('summary').click();ended.locator('.rpgc-qcard.failed').wait_for(state='visible')
+        self.assertFalse(completed.evaluate('(e)=>e.open'))
+        self.assertEqual(self.page.evaluate("sent.filter(x=>/^(quest_|save_|refresh|gen_ended)/.test(x.type))"),[])
+
+    def test_terminal_quest_disclosure_translations(self):
+        labels={'pt-BR':['Concluídas (1)','Encerradas (1)'],'es':['Completadas (1)','Finalizadas (1)'],
+                'ru':['Завершённые (1)','Прекращённые (1)'],'tr':['Tamamlanan (1)','Sona eren (1)']}
+        for lang,expected in labels.items():
+            payload=json.loads(json.dumps(FIXTURE['payload']));payload['settings']['uiLanguage']=lang
+            payload['hms']['systems']['quests']=[{'name':'Complete','state':'completed','cls':'done'},{'name':'Failed','state':'failed','cls':'failed'}]
+            self.page.evaluate('(p)=>window.receive(p)',payload)
+            self.assertEqual(self.page.locator('[data-open-key=quests-completed] > summary').inner_text(),expected[0])
+            self.assertEqual(self.page.locator('[data-open-key=quests-ended] > summary').inner_text(),expected[1])
+
+    @unittest.skipUnless(os.environ.get('COMPANION_COMPLETED_QUEST_EXPORT'),'Private 37-message export is not present in CI')
+    def test_private_completed_quest_export(self):
+        fixture=json.loads(subprocess.check_output(['node',str(ROOT/'tools/test_completed_quest_display.cjs'),os.environ['COMPANION_COMPLETED_QUEST_EXPORT'],'--payload'],text=True))
+        self.assertEqual(fixture['messageCount'],37)
+        payload=json.loads(json.dumps(FIXTURE['payload']));payload['hms']['systems']['quests']=fixture['quests']
+        payload['hms']['agenda']=fixture['agenda'];payload['hms']['systems']['clock']=fixture['clock'];payload['hms']['hud']=fixture['hud']
+        self.page.evaluate('(p)=>window.receive(p)',payload)
+        pane=self.page.locator('[data-open-key=quests]');completed=pane.locator('[data-open-key=quests-completed]')
+        self.assertEqual(completed.locator('summary').inner_text(),'Completed (1)');self.assertFalse(completed.evaluate('(e)=>e.open'))
+        self.assertEqual(pane.locator('.rpgc-body > .rpgc-cards .name').all_text_contents(),['The Greyrat Connection'])
+        completed.locator('summary').click();completed.get_by_text("The Prodigy's Meeting",exact=True).wait_for(state='visible')
+        self.assertEqual(completed.locator('.rpgc-qcard').count(),1)
+        self.assertEqual(completed.locator('.name').inner_text(),"The Prodigy's Meeting")
+        self.assertTrue(completed.evaluate('(e)=>e.scrollWidth<=e.clientWidth+1'))
+        departure=self.page.locator('.rpgc-agenda-group.upcoming .rpgc-agenda-item').filter(has_text='Depart for Greyrat meeting')
+        self.assertEqual(departure.count(),1);self.assertEqual(departure.locator('.due').inner_text(),'In two days')
+        self.assertEqual(self.page.locator('.rpgc-agenda-group.unset .rpgc-agenda-item').filter(has_text='Depart for Greyrat meeting').count(),0)
+
     def test_voice_suggestion_needs_explicit_acceptance(self):
         self.assertFalse(self.page.evaluate("sent.some(x=>x.type==='voice_dialogue')"))
         self.page.locator('button.rpgc-npc-name').first.click()
@@ -117,6 +221,7 @@ class BrowserUi(unittest.TestCase):
         payload['hms']['systems']['quests']=[dict(base,key='q_old',name='Find the teacher',state='completed',cls='done',giver='Guild',reward='Audience with the prince'),
             dict(base,key='q_new',name='The audience',state='active',cls='active',giver='Guild',reward='Audience with the prince')]
         self.receive(payload)
+        self.page.locator('[data-open-key=quests-completed] .rpgc-qcard').wait_for(state='visible')
         text=' '.join(self.page.locator('.rpgc-quest-chain').all_text_contents())
         self.assertIn('Continues from Find the teacher',text)
         self.assertIn('Continued in The audience',text)
@@ -580,6 +685,7 @@ class BrowserUi(unittest.TestCase):
         payload['hms']['systems']['questFocus']='original assignment'
         self.receive(payload)
         row=self.page.locator('.rpgc-qcard.failed')
+        row.wait_for(state='visible')
         self.assertIn('Revised assignment',row.inner_text())
         self.assertIn('failed',row.inner_text())
         self.page.get_by_label('Unfocus this quest',exact=True).click()
@@ -731,7 +837,16 @@ class BrowserUi(unittest.TestCase):
         self.assertNotIn('Past location: Observatory',self.page.locator('.rpgc').inner_text())
 
     def test_31_relationship_web_lazy_bounded_mobile_and_float(self):
+        # setUp opens disclosures programmatically. Wait for the native close
+        # toggle (and its session-state listener) before replacing the payload.
+        self.page.evaluate("""() => {
+            window.webClosed = false;
+            const web = document.querySelector('.rpgc-relationship-web');
+            const closed = () => { if (!web.open) { window.webClosed = true; web.removeEventListener('toggle', closed); } };
+            web.addEventListener('toggle', closed);
+        }""")
         self.page.locator('.rpgc-relationship-web > summary').click()
+        self.page.wait_for_function('window.webClosed === true')
         payload=json.loads(json.dumps(FIXTURE['payload']))
         payload['hms']['minds']={'people':[{'key':'p'+str(i),'name':'Person '+str(i),'pairs':[{'to':'p'+str((i+1)%30),'toName':'Person '+str((i+1)%30),'axes':[],'you':False}],'feel':None} for i in range(30)]}
         # Avoid person-card fields: graph consumes the existing Minds payload directly.
