@@ -2716,5 +2716,10 @@
  "No retained evidence": "Nenhuma evidência retida",
  "What changed": "O que mudou",
  "No tracked changes": "Nenhuma mudança rastreada",
- "No prior reply snapshot": "Nenhum retrato da resposta anterior"
+ "No prior reply snapshot": "Nenhum retrato da resposta anterior",
+ "Open loops": "Pendências",
+ "Promise": "Promessa",
+ "Secret": "Segredo",
+ "Open thread": "Trama aberta",
+ "No open loops": "Nenhuma pendência"
 }

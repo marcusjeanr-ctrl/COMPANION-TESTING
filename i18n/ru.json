@@ -2716,5 +2716,10 @@
  "No retained evidence": "Нет сохранённых свидетельств",
  "What changed": "Что изменилось",
  "No tracked changes": "Нет отмеченных изменений",
- "No prior reply snapshot": "Нет снимка предыдущего ответа"
+ "No prior reply snapshot": "Нет снимка предыдущего ответа",
+ "Open loops": "Незавершённые дела",
+ "Promise": "Обещание",
+ "Secret": "Тайна",
+ "Open thread": "Открытая сюжетная линия",
+ "No open loops": "Нет незавершённых дел"
 }

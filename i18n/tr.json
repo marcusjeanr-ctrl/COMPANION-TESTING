@@ -2716,5 +2716,10 @@
  "No retained evidence": "Saklanan kanıt yok",
  "What changed": "Neler değişti",
  "No tracked changes": "İzlenen değişiklik yok",
- "No prior reply snapshot": "Önceki yanıt görüntüsü yok"
+ "No prior reply snapshot": "Önceki yanıt görüntüsü yok",
+ "Open loops": "Açık konular",
+ "Promise": "Söz",
+ "Secret": "Sır",
+ "Open thread": "Açık hikâye konusu",
+ "No open loops": "Açık konu yok"
 }
