@@ -1,0 +1,51 @@
+const assert=require('node:assert/strict');
+const {runtime,hud,seed}=require('./test_panel_tracking.cjs');
+const r=runtime(),c=r.ctx;seed(r);
+function msg(id,fields,body='The same scene continues.'){
+ const content=hud('Guild','07:15')+'\n'+body;
+ const d=c.parseCompanion('<rpg_companion>'+JSON.stringify({characters:[],...fields})+'</rpg_companion>');
+ return{id,role:'assistant',swipe_id:0,content,metadata:{rpg_companion:{swipes:{0:d},sources:{0:c.readingSource(content)}}}};
+}
+const root={id:'guild-job',name:'Guild commission',objective:'Deliver the parcels',giver:'Dispatcher',where:'Guild',reward:'Fee',state:'active'};
+const seq=(values,bodies=[])=>values.map((progress,i)=>msg('q'+i,{quests:[{...root,progress}]},bodies[i]));
+const chat=seq([80,50,20,0]),before=JSON.stringify(chat);
+assert.equal(c.questDetailsLatest(chat)[0].progress,80);
+assert.equal(c.hmsPanelState('simple',chat,c.emptyChatState()).systems.quests.find(q=>q.questId==='guild-job').progress,80);
+assert.equal(JSON.stringify(chat),before);
+assert.equal(c.questDetailsLatest(seq([80,50,90]))[0].progress,90);
+const legacy=seq([40,0]);for(const m of legacy){const q=m.metadata.rpg_companion.swipes[0].quests[0];delete q.state;delete q.cls;}
+assert.equal(c.questDetailsLatest(legacy)[0].progress,0,'Unknown legacy lifecycle retains existing reset semantics');
+const unkeyed=seq([40,0]);for(const m of unkeyed){const q=m.metadata.rpg_companion.swipes[0].quests[0];delete q.key;delete q.questId;}
+assert.equal(c.questDetailsLatest(unkeyed)[0].progress,0,'Unkeyed legacy stages retain existing reset semantics');
+assert.equal(c.questDetailsLatest(seq([80,0],['Work continues.','Prepare for the next stage tomorrow.']))[0].progress,80);
+assert.equal(c.questDetailsLatest(seq([80,0],['Work continues.','A new phase begins now.']))[0].progress,0);
+assert.equal(c.questDetailsLatest(seq([80,0],['The assignment continues.','The next stage of the same assignment begins.']))[0].progress,0);
+assert.equal(c.questDetailsLatest(seq([80,0],['The assignment continues.','The condition has changed: deliver the parcels.']))[0].progress,0);
+const reopened=[msg('a',{quests:[{...root,progress:80}]}),msg('b',{quests:[{...root,state:'completed',progress:100}]}),msg('c',{quests:[{...root,state:'reopened',progress:10}]})];
+assert.equal(c.questDetailsLatest(reopened)[0].progress,10);
+const renamed=[msg('a',{quests:[{...root,progress:80}]}),msg('b',{quests:[{...root,name:'Parcel dispatch',progress:20}]})];
+assert.equal(c.questDetailsLatest(renamed)[0].progress,80);
+const instr=c.buildCompanionInstruction({},'Marcus',{},c.emptyChatState(),chat,true);
+assert(instr.includes('Quest progress is for the whole quest, not the current step. Do not lower it unless the quest restarted.'));
+const minds=c.simRequest(c.simFold(chat,c.emptyChatState()),'Marcus');
+assert(minds.rules.includes("Each reply, re-check every character's primary feeling against what happens in this reply."));
+assert(minds.rules.includes('Primary and tertiary feelings should not contradict each other.'));
+const assessment=evidence=>({survival:{abilities:[{name:'Touki',owner:'you',state:'practiced',historical:false,evidence}]}});
+assert.equal(c.abilityEvidenceRows({content:hud()},assessment('Touki (Battle Aura): Active'),'Marcus').length,0);
+assert.equal(c.abilityEvidenceRows({content:hud()+'\nMarcus uses Touki.'},assessment('Marcus uses Touki.'),'Marcus').length,1);
+assert.equal(c.abilityEvidenceRows({content:'Marcus uses Touki.'},assessment('Marcus uses Touki.'),'Marcus').length,1);
+const thread=(name,state='open')=>({name,state,note:'Recorded'});
+const old=[thread('The northern relay route')],next=[thread('Northern relay route investigation')];
+const projected=c.plotThreadContinuity(old,next);assert.equal(projected[0].name,old[0].name);assert(projected[0].plotAliases.includes(next[0].name));assert.equal(next[0].name,'Northern relay route investigation');
+assert.equal(c.plotThreadContinuity([thread('Relay repairs')],[thread('Relay departure')])[0].name,'Relay departure');
+assert.equal(c.plotThreadContinuity([thread('Northern relay route'),thread('Northern relay repairs')],next)[0].name,next[0].name);
+const story=[msg('p1',{plot:{now:'Working',threads:old}}),msg('p2',{plot:{now:'Working',threads:next}})];
+assert.equal(c.plotPanel(story,c.emptyChatState()).threads[0].name,old[0].name);
+const event={what:'Meet the instructor',with:'Instructor',where:'Guild',when:'09:00',due:'K417-02-08T09:00',kind:'event',state:'open'};
+const a=msg('t1',{agenda:[event]}),b=msg('t2',{agenda:[{...event,when:null,due:null,kind:'meeting'}]});
+const first=c.agendaRead([a],{}).items[0],later=c.agendaRead([a,b],{}).items[0];
+assert.equal(later.dueAt,first.dueAt);assert.equal(later.kind,'event');
+const moved=msg('t3',{agenda:[{...event,state:'moved',when:'11:00',due:'K417-02-08T11:00',kind:'promise'}]},'The meeting is postponed to 11:00.');
+assert.notEqual(c.agendaRead([a,b,moved],{}).items[0].dueAt,first.dueAt);
+assert.equal(r.writes.length,0);
+console.log('3.2.3: quest floors/reset exceptions, instructions, prose-only ability evidence, conservative plot renames and Agenda continuity passed');

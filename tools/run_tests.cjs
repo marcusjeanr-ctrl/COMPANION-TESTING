@@ -3,6 +3,7 @@ const path = require('node:path');
 const { spawnSync } = require('node:child_process');
 const root = path.resolve(__dirname, '..');
 const suites = [
+    'test_simple_3_2_3.cjs',
     'test_survival_flag_evidence.cjs', 'test_survival_evidence_cache.cjs',
     'test_agenda_display_grouping.cjs', 'test_completed_quest_display.cjs', 'test_play_tools.cjs',
     'test_objective_quest_labels.cjs', 'test_recent_display_dedup.cjs', 'test_reliability_3_2_investigation.cjs',
