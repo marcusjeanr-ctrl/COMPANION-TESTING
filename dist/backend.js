@@ -2476,6 +2476,40 @@ function trackerSnapshotEdit(st, payload) {
     return true;
 }
 
+// Bounded visible prose, requested only by an open play view or explicit opt-in.
+function playProse(chat) {
+    const rows=[];
+    for(let i=(chat || []).length-1;i>=Math.max(0,chat.length-40)&&rows.length<10;i--) {
+        const m=chat[i];if(m.role!=='assistant'||!trackingMessageVisible(m)||(m._rpgcPurpose&&m._rpgcPurpose!=='story'))continue;
+        const raw=stripLeakedReasoning(textOf(m.content)),wall=/^\s*\*\*\*\s*$/m.exec(raw);
+        if(!wall)continue;
+        const text=stripTrackerBlocks(stripCompanion(raw.slice(wall.index+wall[0].length)))
+            .replace(/<(?:think|thinking|analysis|reasoning)\b[^>]*>[\s\S]*?(?:<\/(?:think|thinking|analysis|reasoning)>|$)/gi,'')
+            .replace(/```[\s\S]*?```/g,'').trim().slice(0,12000);
+        if(text)rows.push({id:m.id,swipe:m.swipe_id??0,text});
+    }
+    return rows.reverse();
+}
+function repetitionRows(rows) {
+    const stop=new Set(('the and that this with from into onto have has had was were are his her their them they you your yours she him its for but not then than when what who how why will would could should been being just said says some very only there here these those each once about after before through while where which also more most much even still upon over under out off one two back down like can did does don get got').split(' '));
+    const counts=new Map(),sample=(rows || []).slice(-10);
+    for(const row of sample){
+        const seen=new Set();
+        for(const sentence of String(row.text || '').replace(/\[D:[^\]]+\]/gi,'').toLowerCase().split(/[.!?\n]+/)) {
+            const words=sentence.match(/\p{L}+(?:['’]\p{L}+)?/gu) || [];
+            words.forEach((w,i)=>{if(w.length>=4&&w.length<=40&&!stop.has(w))seen.add(w);const tri=words.slice(i,i+3);if(tri.length===3&&tri.some(x=>x.length>=4&&!stop.has(x)))seen.add(tri.join(' '));});
+        }
+        for(const word of seen)counts.set(word,(counts.get(word)||0)+1);
+    }
+    const threshold=Math.max(3,Math.ceil(sample.length*.6));
+    return [...counts].filter(([,n])=>n>=threshold).sort((a,b)=>b[1]-a[1]||a[0].localeCompare(b[0])).slice(0,8).map(([text,count])=>({text,count,total:sample.length}));
+}
+function appendPlayHints(context, hints, remaining) {
+    if(!context||!Number.isFinite(remaining))return context;
+    for(const hint of hints){const line=String(hint || '').replace(/[\r\n]+/g,' ').slice(0,240);if(line&&line.length+1<=remaining){context.content+='\n'+line;remaining-=line.length+1;}}
+    return context;
+}
+
 async function pushState(chatId, snapshot = null) {
     trimChatCaches(chatId);
     if (!chatId) {
@@ -3130,6 +3164,12 @@ registerInterceptorKeep(async (messages, context) => {
             if (contextMsg) contextMsg.content += '\n\n' + loreGrounding.text;
             else contextMsg = { role: 'system', content: loreGrounding.text };
             contextName += ' + lore references';
+        }
+
+        if (gt !== 'continue' && settings.playTools?.repetitionHint === true && contextMsg) {
+            const words=repetitionRows(playProse(chat)).slice(0,5).map(x=>x.text);
+            const remaining=Math.max(0,Math.min(6000,Number(loreCfg().maxChars)||0)-grounding.text.length-loreGrounding.text.length-4);
+            appendPlayHints(contextMsg,words.length?['Avoid overusing: '+words.join(', ')]:[],remaining);
         }
 
         if (gt !== 'continue' && chapCfg().inPrompt) {
@@ -17765,6 +17805,15 @@ spindle.onFrontendMessage(async (payload, userId) => {
                 if (payload.characterId) await autoApplyPreset(payload.characterId);
                 await pushState(payload.chatId || null);
                 break;
+
+            case 'play_prose': {
+                if(!payload.chatId)return;
+                const chat=await chatApi.getMessages(payload.chatId),last=lastAssistant(chat);
+                if(last?.id!==payload.replyId)return;
+                const rows=playProse(chat);
+                toFrontend({type:'play_prose',chatId:payload.chatId,replyId:last.id,requestKey:payload.requestKey,rows,repetition:repetitionRows(rows)});
+                break;
+            }
 
             case 'tracker_snapshot': {
                 if (!payload.chatId) return;

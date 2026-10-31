@@ -65,6 +65,14 @@ class BrowserUi(unittest.TestCase):
         self.assertLessEqual(bounds['x']+bounds['width'],viewport['width']+1)
         self.assertLessEqual(bounds['y']+bounds['height'],viewport['height']+1)
 
+    def test_repetition_is_lazy_read_only_and_default_hint_off(self):
+        pane=self.page.locator('[data-open-key=play-repetition]')
+        self.page.wait_for_function("sent.some(x=>x.type==='play_prose')")
+        self.page.evaluate("p=>receive(p)",{'type':'play_prose','chatId':'test','requestKey':self.page.evaluate("sent.findLast(x=>x.type==='play_prose').requestKey"),'replyId':FIXTURE['payload']['hms']['messageId'],'rows':[],'repetition':[{'text':'sharp','count':8,'total':10}]})
+        self.assertIn('sharp · 8/10',pane.inner_text())
+        pane.locator('summary').click();self.assertFalse(pane.locator('li').first.is_visible())
+
+
     def test_calendar_birth_month_has_no_invented_day(self):
         payload=json.loads(json.dumps(FIXTURE['payload']))
         payload['userName']='Marcus'

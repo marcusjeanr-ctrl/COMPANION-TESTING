@@ -2730,5 +2730,9 @@
  "Turns {0} in K{1}, Month {2}": "Faz {0} anos em K{1}, mês {2}",
  "Exact birthday not reported": "Dia exato do aniversário não informado",
  "Day {0}": "Dia {0}",
- "Canon timing not exact": "Data canônica não exata"
+ "Canon timing not exact": "Data canônica não exata",
+ "Overused words": "Palavras repetidas",
+ "No repeated wording flagged": "Nenhuma repetição sinalizada",
+ "Avoid repeated wording in context (opt-in)": "Evitar repetições no contexto (opcional)",
+ "Prose style is normally the preset's job. Off by default; uses spare context budget only.": "O estilo normalmente cabe à predefinição. Desativado por padrão; usa apenas espaço livre no contexto."
 }

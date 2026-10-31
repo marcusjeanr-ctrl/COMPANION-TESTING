@@ -2730,5 +2730,9 @@
  "Turns {0} in K{1}, Month {2}": "K{1}, {2}. ayda {0} yaşına girer",
  "Exact birthday not reported": "Kesin doğum günü bildirilmedi",
  "Day {0}": "Gün {0}",
- "Canon timing not exact": "Kanon zamanlaması kesin değil"
+ "Canon timing not exact": "Kanon zamanlaması kesin değil",
+ "Overused words": "Sık tekrarlanan kelimeler",
+ "No repeated wording flagged": "Tekrarlanan ifade bulunamadı",
+ "Avoid repeated wording in context (opt-in)": "Bağlamda tekrarları azalt (isteğe bağlı)",
+ "Prose style is normally the preset's job. Off by default; uses spare context budget only.": "Üslubu normalde önayar belirler. Varsayılan kapalıdır; yalnızca boş bağlam bütçesini kullanır."
 }

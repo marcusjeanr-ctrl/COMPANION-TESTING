@@ -2730,5 +2730,9 @@
  "Turns {0} in K{1}, Month {2}": "Исполняется {0} в K{1}, месяц {2}",
  "Exact birthday not reported": "Точный день рождения не указан",
  "Day {0}": "День {0}",
- "Canon timing not exact": "Нет точной даты канонических событий"
+ "Canon timing not exact": "Нет точной даты канонических событий",
+ "Overused words": "Частые повторы",
+ "No repeated wording flagged": "Повторы не отмечены",
+ "Avoid repeated wording in context (opt-in)": "Избегать повторов в контексте (по выбору)",
+ "Prose style is normally the preset's job. Off by default; uses spare context budget only.": "Стиль обычно задаёт пресет. По умолчанию выключено; используется только свободный бюджет контекста."
 }
