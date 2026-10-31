@@ -2678,7 +2678,7 @@ async function pushState(chatId, snapshot = null) {
 // Demo mode plays scripted turns (no tokens); Live mode asks the model, with a small
 // world narrator standing in for a bot card.
 
-const RPGC_VERSION = '3.2.9';
+const RPGC_VERSION = '3.2.10';
 const diagLog = [];
 function diagPush(kind, m) { diagLog.push({ at: new Date().toISOString(), kind, text: String(m).slice(0, 400) }); if (diagLog.length > 60) diagLog.shift(); }
 function logW(m) { diagPush('warn', m); return spindle.log.warn(m); }
@@ -10535,7 +10535,7 @@ function buildCompanionInstructionRead(committed, userName, locks, st = null, ch
         if (magicSeen) yf.push('"spells": ["one individual magical spell name per entry; no physical/Touki maneuvers; include confirmed prior knowledge; no grouped lists, school/style ranks, casting methods, NPC, hypothetical or failed-only mentions"]');
         if (abilitiesSeen) yf.push('"abilities": [{"name":"individual ability", "owner":"you", "state":"known|practiced|attempted|reliable|mastered|forgotten", "historical":false, "evidence":"short exact quote from this reply, <=160 chars"}]');
         const studying = magicSeen ? spellStudyActive(chat, st).map(x => x.name).slice(0, 8) : [];
-        if (abilitiesSeen || studying.length) yf.push(`"learned": ["explicitly earned player learning this turn under the card rules; practice success alone is not learning; not historical knowledge"], "study": [{"spell": "${abilitiesSeen ? 'ability deliberately practiced/taught now' : `one of: ${studying.join(', ')}`}", "progress": "explicit measured percentage or null", "note": "practice evidence or null"}]`);
+        if (abilitiesSeen || studying.length) yf.push(`"learned": ["explicitly earned player learning this turn under the card rules; practice success alone is not learning; not historical knowledge"], "study": [{"spell": "${abilitiesSeen ? 'ability deliberately practiced/taught now' : `one of: ${studying.join(', ')}`}", "progress": "explicit measured percentage or null", "note": "practice evidence or null; when the story states what is left (e.g. 4 more sessions), end with it as \\"4 sessions left\\""}]`);
         if (abilitiesSeen)
             yf.push(`"mastered": ["explicit mastery by ${userName}, not mere success or reliability; otherwise empty"]`);
         parts.push(`"you": {${yf.join(', ')}}`);
