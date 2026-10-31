@@ -2678,7 +2678,7 @@ async function pushState(chatId, snapshot = null) {
 // Demo mode plays scripted turns (no tokens); Live mode asks the model, with a small
 // world narrator standing in for a bot card.
 
-const RPGC_VERSION = '3.2.13';
+const RPGC_VERSION = '3.2.14';
 const diagLog = [];
 function diagPush(kind, m) { diagLog.push({ at: new Date().toISOString(), kind, text: String(m).slice(0, 400) }); if (diagLog.length > 60) diagLog.shift(); }
 function logW(m) { diagPush('warn', m); return spindle.log.warn(m); }
@@ -12468,6 +12468,11 @@ function relGuard(r, pin, rc) {
         if (pin.bond) out.bond = pin.bond;
         if (pin.minor !== undefined) out.minor = !!pin.minor;
     }
+    // The standing is its own field: a bond ending with a copy of it ("…, Close") shows it twice.
+    if (out.bond && out.standing && !pin?.bond) {
+        const trimmed = out.bond.replace(new RegExp(`\\s*(?:[,;/–—-]\\s*\\(?|\\()${out.standing.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\)?\\s*$`, 'i'), '').trim();
+        if (trimmed) out.bond = trimmed;
+    }
     const family = REL_FAMILY_RE.test(out.bond || '');
     if (out.minor || family) {
         if (out.bond && REL_ROMANCE_RE.test(out.bond)) out.bond = out.bond.replace(REL_ROMANCE_RE, '').replace(/\s*[,;/–—-]\s*$|^\s*[,;/–—-]\s*/g, '').trim() || (family ? 'family' : 'close');
@@ -16775,7 +16780,9 @@ function martialAbilityItems(chatId, chat, st) {
                 ...(saved ? [{ name: saved.name, state: earnedState || (verified ? states[verified.state] || state : state), at: latestKnowledge, msgId: saved.msgId, evidence: saved.evidence?.evidence || (typeof saved.evidence==='string'?saved.evidence:undefined), historical:saved.historical ?? saved.evidence?.historical }] : []),
                 ...(assessment ? [{ name: assessment.name, state: states[assessment.state] || state, at: assessment.at, msgId: assessment.msgId, evidence: assessment.evidence, historical:assessment.historical }] : [])
             ];
-            const after = retractions.get(martialIdentity(event.name)) ?? -1, retained = observations.filter(x => x.at > after);
+            const after = retractions.get(martialIdentity(event.name)) ?? -1, seenObs = new Set();
+            // The saved learning and the assessment can be the same event: count it once.
+            const retained = observations.filter(x => x.at > after && !seenObs.has(`${x.msgId}|${x.state}|${x.evidence || ''}|${x.note || ''}`) && seenObs.add(`${x.msgId}|${x.state}|${x.evidence || ''}|${x.note || ''}`));
             if (retained.length) out.push({ name: event.name, state: after >= 0 ? retained.at(-1).state : state, level: null, label: null, src: null, observations: retained });
         }
     }
@@ -17600,8 +17607,10 @@ function questDetailsLatest(chat) {
                     trackingContinuityAsserted(line) && (' ' + questObjectiveKey(line) + ' ').includes(' ' + questObjectiveKey(q.objective) + ' '));
                 if (identityRefinement) row.identityHistory = [...(Array.isArray(row.identityHistory) ? row.identityHistory : []), { name: row.name, objective: row.objective,
                     progress: row.progress, state: row.state, reward: row.reward, msgId: stageSources.get(row) || null }].slice(-40);
-                const previousProgress = row?.progress;
+                const previousProgress = row?.progress, previousObjective = row?.objective;
                 const previousDone = row && (questReportedState(row.state)?.cls || row.cls) === 'done';
+                // Reported under this quest's own Quest ID: its objective is the current stage, as reported.
+                const idLinked = !!(row && q.questId && lockKey(q.questId) === lockKey(row.key));
                 const deadlineChanged = !row || (q.deadline && q.deadline !== row.deadline);
                 if (!row) { let key = q.questId && !rows.some(x => lockKey(x.key) === lockKey(q.questId)) ? lockKey(q.questId) : q.key || questKey(q.name);
                     const base = key + ' :: ' + m.id;
@@ -17613,7 +17622,7 @@ function questDetailsLatest(chat) {
                 for (const [key, value] of Object.entries(q)) {
                     if (key === 'questAliases') continue;
                     if (key === 'identityHistory' && Array.isArray(row.identityHistory)) continue;
-                    if (key === 'objective' && identityRefinement && !explicitObjective && row.objective && value && row.objective.length > value.length) continue;
+                    if (key === 'objective' && identityRefinement && !idLinked && !explicitObjective && row.objective && value && row.objective.length > value.length) continue;
                     if (key === 'key' && row.key) continue;
                     if (key === 'where' && row.where && value && row.where.length > value.length &&
                         !(contractLink && questStageReferenceCue(continuityLines || []))) continue;
@@ -17622,9 +17631,11 @@ function questDetailsLatest(chat) {
                 const lifecycle = questReportedState(q.state);
                 if (lifecycle) { Object.assign(row, lifecycle); delete row.lifecycleEvidence; }
                 // Preserve reset semantics for legacy records without lifecycle/identity metadata.
+                // A new objective under the same Quest ID is a new stage: its progress starts over.
+                const stageMoved = idLinked && !!previousObjective && !!q.objective && questObjectiveKey(previousObjective) !== questObjectiveKey(q.objective);
                 row.progress = questProgressRead(previousProgress, row.progress,
                     !!(q.questId || q.key) && (questReportedState(row.state)?.cls || row.cls) === 'active',
-                    previousDone || row.continuationEvidence?.msgId === m.id,
+                    previousDone || stageMoved || row.continuationEvidence?.msgId === m.id,
                     () => continuityLines ??= trackingContinuityLines(m));
                 stageSources.set(row, m.id);
                 contractSources.set(row, m);
