@@ -2758,14 +2758,5 @@
  "Save journal": "Сохранить дневник",
  "Ask the story to write this day in my voice": "Попросить историю описать этот день моим голосом",
  "Note limit reached": "Достигнут лимит заметок",
- "Could not draft journal": "Не удалось составить дневник",
- "Reputation": "Репутация",
- "No reported reputation": "Нет сведений о репутации",
- "I prepare for: {0}.": "Я готовлюсь к: {0}.",
- "I speak to {0}.": "Я говорю с {0}.",
- "I consider my objective: {0}.": "Я обдумываю свою цель: {0}.",
- "I consider the unresolved lead: {0}.": "Я обдумываю незавершённую зацепку: {0}.",
- "I go to {0}.": "Я иду в {0}.",
- "Generated draft ready": "Созданный черновик готов",
- "Use generated draft": "Использовать созданный черновик"
+ "Could not draft journal": "Не удалось составить дневник"
 }

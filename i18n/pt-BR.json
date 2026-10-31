@@ -2758,14 +2758,5 @@
  "Save journal": "Salvar diário",
  "Ask the story to write this day in my voice": "Pedir à história para escrever este dia na minha voz",
  "Note limit reached": "Limite de notas atingido",
- "Could not draft journal": "Não foi possível redigir o diário",
- "Reputation": "Reputação",
- "No reported reputation": "Nenhuma reputação relatada",
- "I prepare for: {0}.": "Eu me preparo para: {0}.",
- "I speak to {0}.": "Eu falo com {0}.",
- "I consider my objective: {0}.": "Eu considero meu objetivo: {0}.",
- "I consider the unresolved lead: {0}.": "Eu considero a pista pendente: {0}.",
- "I go to {0}.": "Eu vou para {0}.",
- "Generated draft ready": "Rascunho gerado pronto",
- "Use generated draft": "Usar rascunho gerado"
+ "Could not draft journal": "Não foi possível redigir o diário"
 }

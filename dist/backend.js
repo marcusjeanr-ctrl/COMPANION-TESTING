@@ -2481,7 +2481,7 @@ function playProse(chat) {
     const rows=[];
     for(let i=(chat || []).length-1;i>=Math.max(0,chat.length-40)&&rows.length<10;i--) {
         const m=chat[i];if(m.role!=='assistant'||!trackingMessageVisible(m)||(m._rpgcPurpose&&m._rpgcPurpose!=='story'))continue;
-        const raw=stripLeakedReasoning(textOf(m.content).slice(0,64000)),wall=/^\s*\*\*\*\s*$/m.exec(raw);
+        const raw=stripLeakedReasoning(textOf(m.content)),wall=/^\s*\*\*\*\s*$/m.exec(raw);
         if(!wall)continue;
         const text=stripTrackerBlocks(stripCompanion(raw.slice(wall.index+wall[0].length)))
             .replace(/<(?:think|thinking|analysis|reasoning)\b[^>]*>[\s\S]*?(?:<\/(?:think|thinking|analysis|reasoning)>|$)/gi,'')
@@ -17859,15 +17859,9 @@ spindle.onFrontendMessage(async (payload, userId) => {
                 if(!payload.chatId)return;
                 const chat=await chatApi.getMessages(payload.chatId),last=lastAssistant(chat);
                 if(last?.id!==payload.replyId)return;
-                const view=payload.view || 'repetition';if(!['repetition','voice','room'].includes(view))return;
-                const data={};
-                if(view==='room'){
-                    const reported=getSwipeData(last,true)?.room;
-                    data.room=reported?{exits:(reported.exits || []).filter(x=>x.to&&!x.hidden&&!x.secret&&x.known!==false).slice(0,6).map(x=>({to:String(x.to).slice(0,120)}))}:null;
-                } else {
-                    data.rows=playProse(chat);if(view==='repetition')data.repetition=repetitionRows(data.rows);
-                }
-                toFrontend({type:'play_prose',chatId:payload.chatId,replyId:last.id,requestKey:payload.requestKey,view,...data});
+                const rows=playProse(chat),reported=getSwipeData(last,true)?.room;
+                const room=reported?{exits:(reported.exits || []).filter(x=>x.to&&!x.hidden&&!x.secret&&x.known!==false).slice(0,6).map(x=>({to:String(x.to).slice(0,120)}))}:null;
+                toFrontend({type:'play_prose',chatId:payload.chatId,replyId:last.id,requestKey:payload.requestKey,rows,room,repetition:repetitionRows(rows)});
                 break;
             }
 
