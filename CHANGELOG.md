@@ -5,6 +5,7 @@
 - Gear reported "on body" (slung/strapped) with a desk, shelf or other furniture as its place is shown as left there, not carried. "In hand" at a desk is unchanged (held while seated there).
 - A spell you already know is listed under Studying only while the latest study report names it; one past review keeps its note on the spell card instead of staying under Studying.
 - Study notes keep what is left in the story's own words ("4 more study sessions or practical casts left") instead of a fixed "N sessions left" that dropped alternatives.
+- Relationship standing is described to the model as the lasting relationship: it keeps the previous standing unless the reply changes the relationship itself, then moves one step. A strict, demanding or testing manner that fits the character goes in mood, not standing. The read-only consistency warning is unchanged.
 
 ## 3.2.12 RC — Panels remember open and closed
 
