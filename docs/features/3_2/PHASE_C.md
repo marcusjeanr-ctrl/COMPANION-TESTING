@@ -43,23 +43,6 @@ stable/rising/falling/flip-flop, unknown data and point cap; real SVG fits 320px
 The chart's x-axis is observation order, not a fabricated precise time scale.
 No backend, prompt or persistent-data change.
 
-## 13. Supported world calendar
-
-The lazy calendar is scoped to explicitly parsed Armored Dragon Calendar K-year,
-month/day fields (12 months × 30 days). Other calendars render no calendar section.
-Exact Agenda dueIn values and explicit current clock map to days; vague times do
-not. Explicit dated canon records are placed with their reported status; undated
-canon timing is listed separately rather than assigned a day. Month-only births
-are month banners, never day 1. Browsing K418 Month 2 for born K404 Month 2 displays
-turning 14, without changing age, HUD time or reports. Known exact birthday days
-can be placed; missing days are never invented. Month browsing is bounded ±12.
-
-Files: frontend, shared tests, Chromium case and four dictionaries. Tests verify
-appointments/canon dates, undated records, exact age arithmetic, unknown birth day,
-unsupported world and immutable input. Chromium checks 30-day layout at 320px,
-browsing to the next birth month and no unsupported-calendar view. No backend,
-prompt, timer, automatic refresh or source-data writes.
-
 ## 14. Model report card — deferred
 
 No generating-model attribution is present in the existing panel message payload
