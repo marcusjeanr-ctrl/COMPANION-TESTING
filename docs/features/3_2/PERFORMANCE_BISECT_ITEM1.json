@@ -1,0 +1,468 @@
+{
+  "baselineRef": "540df20f602bd475b9149c1ab28aa705e391f72d",
+  "candidateRef": "80baa8b",
+  "checkoutHead": "a4894b6729f2c48bc482322ce94ee15cb964b29e",
+  "node": "v22.22.2",
+  "pairsPerCase": 10,
+  "sourceHashes": {
+    "baseline": "ae5043c69318b95fd8e1e6af95dc8a50d6cf5d313bfd27599a3a0191df8498fa",
+    "candidate": "513f4b4f52f4daec0b2f814ef693f887a73b45373c8b4d7842ad30bfb327e910"
+  },
+  "method": "Fresh process per source/run; AB then BA pair order; cold first panel read, 3 warmups, median of 10 warm reads. Ten runs per source per case. No concurrent local test/benchmark workload. Host/cotenant scheduling cannot be controlled.",
+  "records": [
+    {
+      "source": "baseline",
+      "pair": 0,
+      "position": 0,
+      "messages": 600,
+      "coldMs": 13303.29,
+      "medianMs": 86.18,
+      "warnings": 0
+    },
+    {
+      "source": "candidate",
+      "pair": 0,
+      "position": 1,
+      "messages": 600,
+      "coldMs": 272.94,
+      "medianMs": 73.65,
+      "warnings": 0
+    },
+    {
+      "source": "candidate",
+      "pair": 1,
+      "position": 0,
+      "messages": 600,
+      "coldMs": 397.28,
+      "medianMs": 64.25,
+      "warnings": 0
+    },
+    {
+      "source": "baseline",
+      "pair": 1,
+      "position": 1,
+      "messages": 600,
+      "coldMs": 1206.8,
+      "medianMs": 78.92,
+      "warnings": 0
+    },
+    {
+      "source": "baseline",
+      "pair": 2,
+      "position": 0,
+      "messages": 600,
+      "coldMs": 248.8,
+      "medianMs": 86.36,
+      "warnings": 0
+    },
+    {
+      "source": "candidate",
+      "pair": 2,
+      "position": 1,
+      "messages": 600,
+      "coldMs": 251.97,
+      "medianMs": 64.59,
+      "warnings": 0
+    },
+    {
+      "source": "candidate",
+      "pair": 3,
+      "position": 0,
+      "messages": 600,
+      "coldMs": 398.52,
+      "medianMs": 75.55,
+      "warnings": 0
+    },
+    {
+      "source": "baseline",
+      "pair": 3,
+      "position": 1,
+      "messages": 600,
+      "coldMs": 254.18,
+      "medianMs": 68.49,
+      "warnings": 0
+    },
+    {
+      "source": "baseline",
+      "pair": 4,
+      "position": 0,
+      "messages": 600,
+      "coldMs": 209.69,
+      "medianMs": 51.84,
+      "warnings": 0
+    },
+    {
+      "source": "candidate",
+      "pair": 4,
+      "position": 1,
+      "messages": 600,
+      "coldMs": 238.29,
+      "medianMs": 120.23,
+      "warnings": 0
+    },
+    {
+      "source": "candidate",
+      "pair": 5,
+      "position": 0,
+      "messages": 600,
+      "coldMs": 267.62,
+      "medianMs": 68.66,
+      "warnings": 0
+    },
+    {
+      "source": "baseline",
+      "pair": 5,
+      "position": 1,
+      "messages": 600,
+      "coldMs": 288.77,
+      "medianMs": 72.5,
+      "warnings": 0
+    },
+    {
+      "source": "baseline",
+      "pair": 6,
+      "position": 0,
+      "messages": 600,
+      "coldMs": 214.3,
+      "medianMs": 52.29,
+      "warnings": 0
+    },
+    {
+      "source": "candidate",
+      "pair": 6,
+      "position": 1,
+      "messages": 600,
+      "coldMs": 252.62,
+      "medianMs": 71.12,
+      "warnings": 0
+    },
+    {
+      "source": "candidate",
+      "pair": 7,
+      "position": 0,
+      "messages": 600,
+      "coldMs": 212.15,
+      "medianMs": 63.06,
+      "warnings": 0
+    },
+    {
+      "source": "baseline",
+      "pair": 7,
+      "position": 1,
+      "messages": 600,
+      "coldMs": 251.56,
+      "medianMs": 68.1,
+      "warnings": 0
+    },
+    {
+      "source": "baseline",
+      "pair": 8,
+      "position": 0,
+      "messages": 600,
+      "coldMs": 273.16,
+      "medianMs": 89.92,
+      "warnings": 0
+    },
+    {
+      "source": "candidate",
+      "pair": 8,
+      "position": 1,
+      "messages": 600,
+      "coldMs": 224.59,
+      "medianMs": 58.11,
+      "warnings": 0
+    },
+    {
+      "source": "candidate",
+      "pair": 9,
+      "position": 0,
+      "messages": 600,
+      "coldMs": 341.15,
+      "medianMs": 59.11,
+      "warnings": 0
+    },
+    {
+      "source": "baseline",
+      "pair": 9,
+      "position": 1,
+      "messages": 600,
+      "coldMs": 225.57,
+      "medianMs": 61.31,
+      "warnings": 0
+    },
+    {
+      "source": "baseline",
+      "pair": 0,
+      "position": 0,
+      "messages": 2000,
+      "coldMs": 558.93,
+      "medianMs": 163.92,
+      "warnings": 0
+    },
+    {
+      "source": "candidate",
+      "pair": 0,
+      "position": 1,
+      "messages": 2000,
+      "coldMs": 538.15,
+      "medianMs": 141.87,
+      "warnings": 0
+    },
+    {
+      "source": "candidate",
+      "pair": 1,
+      "position": 0,
+      "messages": 2000,
+      "coldMs": 526.41,
+      "medianMs": 141.44,
+      "warnings": 0
+    },
+    {
+      "source": "baseline",
+      "pair": 1,
+      "position": 1,
+      "messages": 2000,
+      "coldMs": 540.18,
+      "medianMs": 143.97,
+      "warnings": 0
+    },
+    {
+      "source": "baseline",
+      "pair": 2,
+      "position": 0,
+      "messages": 2000,
+      "coldMs": 520.58,
+      "medianMs": 171.15,
+      "warnings": 0
+    },
+    {
+      "source": "candidate",
+      "pair": 2,
+      "position": 1,
+      "messages": 2000,
+      "coldMs": 521.5,
+      "medianMs": 142.99,
+      "warnings": 0
+    },
+    {
+      "source": "candidate",
+      "pair": 3,
+      "position": 0,
+      "messages": 2000,
+      "coldMs": 483.08,
+      "medianMs": 127.26,
+      "warnings": 0
+    },
+    {
+      "source": "baseline",
+      "pair": 3,
+      "position": 1,
+      "messages": 2000,
+      "coldMs": 545.8,
+      "medianMs": 171.11,
+      "warnings": 0
+    },
+    {
+      "source": "baseline",
+      "pair": 4,
+      "position": 0,
+      "messages": 2000,
+      "coldMs": 585.34,
+      "medianMs": 153.82,
+      "warnings": 0
+    },
+    {
+      "source": "candidate",
+      "pair": 4,
+      "position": 1,
+      "messages": 2000,
+      "coldMs": 477.67,
+      "medianMs": 140.85,
+      "warnings": 0
+    },
+    {
+      "source": "candidate",
+      "pair": 5,
+      "position": 0,
+      "messages": 2000,
+      "coldMs": 555.21,
+      "medianMs": 157.5,
+      "warnings": 0
+    },
+    {
+      "source": "baseline",
+      "pair": 5,
+      "position": 1,
+      "messages": 2000,
+      "coldMs": 828.28,
+      "medianMs": 218.73,
+      "warnings": 0
+    },
+    {
+      "source": "baseline",
+      "pair": 6,
+      "position": 0,
+      "messages": 2000,
+      "coldMs": 484.01,
+      "medianMs": 142.2,
+      "warnings": 0
+    },
+    {
+      "source": "candidate",
+      "pair": 6,
+      "position": 1,
+      "messages": 2000,
+      "coldMs": 506.76,
+      "medianMs": 137.86,
+      "warnings": 0
+    },
+    {
+      "source": "candidate",
+      "pair": 7,
+      "position": 0,
+      "messages": 2000,
+      "coldMs": 478.55,
+      "medianMs": 261.5,
+      "warnings": 0
+    },
+    {
+      "source": "baseline",
+      "pair": 7,
+      "position": 1,
+      "messages": 2000,
+      "coldMs": 795.9,
+      "medianMs": 143.05,
+      "warnings": 0
+    },
+    {
+      "source": "baseline",
+      "pair": 8,
+      "position": 0,
+      "messages": 2000,
+      "coldMs": 700.06,
+      "medianMs": 156.33,
+      "warnings": 0
+    },
+    {
+      "source": "candidate",
+      "pair": 8,
+      "position": 1,
+      "messages": 2000,
+      "coldMs": 468.01,
+      "medianMs": 129.67,
+      "warnings": 0
+    },
+    {
+      "source": "candidate",
+      "pair": 9,
+      "position": 0,
+      "messages": 2000,
+      "coldMs": 476.36,
+      "medianMs": 129.2,
+      "warnings": 0
+    },
+    {
+      "source": "baseline",
+      "pair": 9,
+      "position": 1,
+      "messages": 2000,
+      "coldMs": 477.37,
+      "medianMs": 133.78,
+      "warnings": 0
+    }
+  ],
+  "results": {
+    "600": {
+      "coldMs": {
+        "baseline": {
+          "median": 252.87,
+          "min": 209.69,
+          "q1": 231.3775,
+          "q3": 284.8675,
+          "max": 13303.29
+        },
+        "candidate": {
+          "median": 260.12,
+          "min": 212.15,
+          "q1": 241.71,
+          "q3": 324.09749999999997,
+          "max": 398.52
+        },
+        "percentChange": 2.8670858543915934,
+        "pairedPercentMedian": -3.0250261336835282
+      },
+      "medianMs": {
+        "baseline": {
+          "median": 70.495,
+          "min": 51.84,
+          "q1": 63.0075,
+          "q3": 84.36500000000001,
+          "max": 89.92
+        },
+        "candidate": {
+          "median": 66.625,
+          "min": 58.11,
+          "q1": 63.3575,
+          "q3": 73.01750000000001,
+          "max": 120.23
+        },
+        "percentChange": -5.489751046173497,
+        "pairedPercentMedian": -6.348716390703324
+      }
+    },
+    "2000": {
+      "coldMs": {
+        "baseline": {
+          "median": 552.365,
+          "min": 477.37,
+          "q1": 525.48,
+          "q3": 671.38,
+          "max": 828.28
+        },
+        "candidate": {
+          "median": 494.91999999999996,
+          "min": 468.01,
+          "q1": 477.89,
+          "q3": 525.1825,
+          "max": 555.21
+        },
+        "percentChange": -10.399826201877394,
+        "pairedPercentMedian": -7.604603380364838
+      },
+      "medianMs": {
+        "baseline": {
+          "median": 155.075,
+          "min": 133.78,
+          "q1": 143.28,
+          "q3": 169.3125,
+          "max": 218.73
+        },
+        "candidate": {
+          "median": 141.14499999999998,
+          "min": 127.26,
+          "q1": 131.7175,
+          "q3": 142.71,
+          "max": 261.5
+        },
+        "percentChange": -8.982750282121554,
+        "pairedPercentMedian": -10.941808588426355
+      }
+    }
+  },
+  "hostLoadStart": [
+    0.5673828125,
+    1.0869140625,
+    0.6787109375
+  ],
+  "elapsedSeconds": 212.46395280499974,
+  "hostLoadEnd": [
+    1.2939453125,
+    1.17626953125,
+    0.80029296875
+  ],
+  "mergeGate": {
+    "thresholdPercent": 5,
+    "metric": "ratio of medians of the ten 2000-message warm medians",
+    "passed": true
+  }
+}

@@ -1,5 +1,18 @@
 # Changelog — RPG Companion HMS Edition
 
+## 3.2.0 RC — Selected play tools
+
+- Resolve objective quest IDs to titles for display.
+- Conservatively collapse nearby duplicate Chronicle and planted-detail descriptions without changing reports or control IDs.
+- Add optional NPC dossiers with source-qualified locations, knowledge, appointments and recent Chronicle observations.
+- Add Chronicle Highlights and expandable daily bond folds; preserve the default All view.
+- Show appointment countdowns, advisory quest-chain links and retained ability evidence.
+- Add bounded standing-history charts inside NPC dossiers.
+- Add explicitly accepted NPC voice notes and a separate default-off context reminder within the existing budget.
+- Keep the single-action Reliable findings as investigation only; model report cards remain deferred without verified provenance.
+- Use the revised 20-pair CPU/wall gate against frozen main, with historical 3.0.10 comparisons informational.
+- RC only: no live Lumiverse acceptance. See the selected-candidate report.
+
 ## 3.1.0 RC — Panel tools and diagnostics
 
 - Derive unreported Minds modes from People standing or kin without altering saved reports or guessed flags.

@@ -65,6 +65,184 @@ class BrowserUi(unittest.TestCase):
         self.assertLessEqual(bounds['x']+bounds['width'],viewport['width']+1)
         self.assertLessEqual(bounds['y']+bounds['height'],viewport['height']+1)
 
+    def test_voice_suggestion_needs_explicit_acceptance(self):
+        self.assertFalse(self.page.evaluate("sent.some(x=>x.type==='voice_dialogue')"))
+        self.page.locator('button.rpgc-npc-name').first.click()
+        name=self.page.locator('.rpgc-play-modal h3').inner_text()
+        req=self.page.evaluate("sent.findLast(x=>x.type==='voice_dialogue')")
+        self.page.evaluate('p=>receive(p)',{'type':'voice_dialogue','chatId':'test','replyId':req['replyId'],'requestKey':req['requestKey'],'rows':[{'text':f'[D:{name}]"Wait."\n[D:{name}]"Good morning."'}]})
+        self.page.evaluate('p=>receive(p)',{'type':'play_note','chatId':'test','kind':'voice','name':name,'text':''})
+        pane=self.page.locator('.rpgc-voice-note')
+        self.assertIn('Suggestion — not accepted',pane.inner_text())
+        self.assertFalse(self.page.evaluate("sent.some(x=>x.type==='play_note_save')"))
+        pane.get_by_role('textbox').fill('My accepted note')
+        pane.get_by_role('button',name='Accept or save edit').click()
+        self.assertEqual(self.page.evaluate("sent.findLast(x=>x.type==='play_note_save').text"),'My accepted note')
+        self.page.evaluate('p=>receive(p)',{'type':'play_note','chatId':'test','kind':'voice','name':name,'error':'Note limit reached'})
+        self.assertEqual(self.page.locator('.rpgc-voice-note input').input_value(),'My accepted note')
+
+
+    def test_standing_history_is_in_lazy_npc_dossier(self):
+        payload=json.loads(json.dumps(FIXTURE['payload']))
+        person=payload['hms']['relations']['people'][0]
+        person.update(standing='Close',events=['Wary → Friendly','Friendly → Close'])
+        self.receive(payload)
+        self.assertEqual(self.page.locator('.rpgc-standing-history').count(),0)
+        self.page.locator('button.rpgc-npc-name').first.click()
+        graph=self.page.locator('.rpgc-standing-history svg')
+        self.assertEqual(graph.count(),1)
+        self.assertTrue(graph.evaluate('(e)=>e.getBoundingClientRect().width<=innerWidth'))
+        self.assertIn('Wary → Friendly → Close',self.page.locator('.rpgc-standing-history').inner_text())
+
+    def test_ability_evidence_retained_and_historical_are_distinct(self):
+        payload=json.loads(json.dumps(FIXTURE['payload']))
+        obs=[{'msgId':str(i),'state':'Reliable','evidence':'You execute the cut.','at':i,'historical':False} for i in range(3)]
+        item={'name':'Compact diagonal cut','state':'Reliable','observations':obs}
+        payload['hms']['systems']['abilities']=[{'category':'Martial','items':[item]}]
+        self.receive(payload)
+        pane=self.page.locator('[data-open-key=abilities]')
+        self.assertIn('Retained observations: 3',pane.inner_text())
+        for row in obs: row['historical']=True
+        self.receive(payload)
+        self.assertIn('Historical evidence: 3',pane.inner_text())
+        item['observations']=[];self.receive(payload)
+        self.assertIn('No retained evidence',pane.inner_text())
+        payload['settings']['playTools']={'abilityEvidence':False}
+        self.receive(payload)
+        self.assertEqual(pane.locator('.rpgc-ability-evidence').count(),0)
+
+    def test_quest_chain_labels_keep_separate_cards_and_opt_out(self):
+        payload=json.loads(json.dumps(FIXTURE['payload']))
+        base=payload['hms']['systems']['quests'][0]
+        payload['hms']['systems']['quests']=[dict(base,key='q_old',name='Find the teacher',state='completed',cls='done',giver='Guild',reward='Audience with the prince'),
+            dict(base,key='q_new',name='The audience',state='active',cls='active',giver='Guild',reward='Audience with the prince')]
+        self.receive(payload)
+        text=' '.join(self.page.locator('.rpgc-quest-chain').all_text_contents())
+        self.assertIn('Continues from Find the teacher',text)
+        self.assertIn('Continued in The audience',text)
+        payload['settings']['playTools']={'questChains':False}
+        self.receive(payload)
+        self.assertEqual(self.page.locator('.rpgc-quest-chain').count(),0)
+        self.assertEqual(self.page.evaluate("sent.filter(x=>/quest_end|quest_restore/.test(x.type))"),[])
+
+    def test_countdown_pinned_agenda_missing_and_overdue(self):
+        payload=json.loads(json.dumps(FIXTURE['payload']))
+        payload['settings']['compactMobile']=True
+        item=payload['hms']['agenda']['items'][0]
+        item.update(what='Study with Aurelius',state='open',status='soon',dueIn=40,when='at the bell')
+        payload['hms']['agenda']['items']=[item]
+        self.receive(payload)
+        self.assertIn('Study with Aurelius — in 40m',self.page.locator('.rpgc-pinned-appointment').inner_text())
+        self.assertEqual(self.page.locator('.rpgc-agenda-item .due').inner_text(),'in 40m')
+        item['dueIn']=-10;self.receive(payload)
+        self.assertIn('overdue',self.page.locator('.rpgc-agenda-item .due').inner_text())
+        item['dueIn']=None;self.receive(payload)
+        self.assertEqual(self.page.locator('.rpgc-pinned-appointment').count(),0)
+        self.assertEqual(self.page.locator('.rpgc-agenda-item .due').inner_text(),'at the bell')
+
+    def test_quieter_chronicle_all_highlights_and_lazy_daily_bonds(self):
+        payload,chron=self.recent_timeline_fixture()
+        chron['chronicle']['entries'] += [{'id':'b'+str(i),'kind':'bond','text':text,'who':['Clerk'],
+            'replyIndex':8+i*2,'when':'K417 Month 4 Day 1, 10:0'+str(i),'settled':True,'imp':3} for i,text in enumerate(['Wary to friendly','Friendly to close'])]
+        self.receive(payload);self.receive(chron)
+        section=self.page.locator('[data-open-key=chronicle]')
+        filters=section.locator('.rpgc-filters')
+        self.assertEqual(section.locator('.rpgc-chron-item.bond').count(),2)
+        filters.get_by_role('button',name='Highlights',exact=True).click()
+        self.assertEqual(section.locator('.rpgc-chron-item.bond').count(),0)
+        self.assertEqual(section.locator('.rpgc-chron-item.moment').count(),1)
+        filters.get_by_role('button',name='💞 Bonds',exact=True).click()
+        self.assertEqual(section.locator('.rpgc-daily-bond').count(),1)
+        self.assertEqual(section.locator('.rpgc-chron-item.bond').count(),0)
+        section.locator('.rpgc-daily-bond > summary').click()
+        section.locator('.rpgc-chron-item.bond').first.wait_for(state='visible')
+        self.assertEqual(section.locator('.rpgc-chron-item.bond').count(),2)
+        filters.get_by_role('button',name='All',exact=True).click()
+        self.assertEqual(section.locator('.rpgc-daily-bond').count(),0)
+        self.assertEqual(section.locator('.rpgc-chron-item.bond').count(),2)
+
+    def test_npc_dossier_is_lazy_read_only_and_mobile(self):
+        self.assertEqual(self.page.locator('[role=dialog][aria-label="NPC dossier"]').count(),0)
+        button=self.page.locator('button.rpgc-npc-name').first
+        button.click()
+        modal=self.page.locator('[role=dialog][aria-label="NPC dossier"]')
+        self.assertEqual(modal.count(),1)
+        self.assertIn('Aurelius',modal.inner_text())
+        self.assertTrue(modal.evaluate('(e)=>e.scrollWidth<=e.clientWidth+1'))
+        modal.get_by_role('button',name='Close',exact=True).click()
+        self.assertEqual(modal.count(),0)
+        self.assertEqual(self.page.evaluate("sent.filter(x=>/edit|rel_pin|family$|sim_edit/.test(x.type))"),[])
+        payload=json.loads(json.dumps(FIXTURE['payload']))
+        payload['settings'].update(uiTheme='mushoku',uiPanelMode='float')
+        self.receive(payload)
+        self.page.locator('button.rpgc-npc-name').first.click()
+        modal=self.page.locator('[role=dialog][aria-label="NPC dossier"]')
+        self.assertTrue(modal.evaluate('(e)=>e.getBoundingClientRect().width<=innerWidth'))
+        self.assertEqual(modal.evaluate('(e)=>getComputedStyle(e).backgroundColor'),'rgb(253, 247, 234)')
+        modal.get_by_role('button',name='Close',exact=True).click()
+        payload['settings']['playTools']={'npcDossier':False}
+        self.receive(payload)
+        self.assertEqual(self.page.locator('button.rpgc-npc-name').count(),0)
+
+    def recent_timeline_fixture(self):
+        payload=json.loads(json.dumps(FIXTURE['payload']))
+        payload['userName']='Marcus'
+        payload['chronicle']={'version':'recent-fixture'}
+        texts=["Aurelius's price: a meeting with the Greyrat boy in exchange for proving himself", "Aurelius's promise to arrange a meeting with the Greyrat boy", "Aurelius's promise to introduce Marcus to the Greyrat boy"]
+        payload['hms']['minds']['chekhov']={'chamber':[],'locked':[],'fired':[
+            {'id':'c'+str(i),'what':t,'status':'fired','age':3-i,'ago':2-i,'w':2,'readAt':540+i*10} for i,t in enumerate(texts)],'byYou':[]}
+        entries=[{'id':'e'+str(i),'msgId':'a'+str(i),'replyIndex':i*2,'kind':'moment','text':t,
+            'who':['Marcus','Cassian'],'when':'K417 Month 4 Day 1, 09:0'+str(i),'loop':1,'settled':True,'imp':7} for i,t in enumerate([
+            'Marcus decisively defeated Cassian in a duel, fundamentally altering their sibling dynamic',
+            'Marcus decisively defeated Cassian in a duel, fundamentally shifting their sibling dynamic'])]
+        chron={'type':'chronicle','chatId':payload['chatId'],'chronicle':{'version':'recent-fixture','entries':entries,'cortex':{'mode':'off'}}}
+        return payload,chron
+
+    def test_recent_timeline_display_groups_and_opt_out_at_320px(self):
+        payload,chron=self.recent_timeline_fixture()
+        for theme in ['space','mushoku']:
+            payload['settings']['uiTheme']=theme
+            payload['settings']['chronicle']['collapseSimilar']=True
+            self.receive(payload);self.receive(chron)
+            self.assertEqual(self.page.locator('.rpgc-chron-item.moment').count(),1)
+            self.assertEqual(self.page.locator('.rpgc-chron-item.moment .rpgc-repeat-count').inner_text(),'×2')
+            self.assertIn('altering',self.page.locator('.rpgc-chron-item.moment').inner_text())
+            self.assertEqual(self.page.locator('.rpgc-chekhov-fired li').count(),1)
+            self.assertEqual(self.page.locator('.rpgc-chekhov-fired .rpgc-repeat-count').inner_text(),'×3')
+            for row in self.page.locator('.rpgc-chron-item,.rpgc-chekhov-fired li').all():
+                self.assertTrue(row.evaluate('(e)=>e.scrollWidth<=e.clientWidth+1'))
+            payload['settings']['chronicle']['collapseSimilar']=False
+            self.receive(payload);self.receive(chron)
+            self.assertEqual(self.page.locator('.rpgc-chron-item.moment').count(),2)
+            self.assertEqual(self.page.locator('.rpgc-chekhov-fired li').count(),3)
+        self.assertEqual(self.page.evaluate("sent.filter(x=>/edit|sim_edit/.test(x.type))"),[])
+
+    def test_recent_timeline_is_lazy_when_chronicle_and_quests_are_closed(self):
+        payload,chron=self.recent_timeline_fixture()
+        self.receive(payload);self.receive(chron)
+        self.page.evaluate("document.querySelectorAll('details').forEach(e=>{e.open=false;e.dispatchEvent(new Event('toggle'))})")
+        self.page.wait_for_function("!document.querySelector('[data-open-key=chronicle]').open")
+        self.page.evaluate("window.dedupCalls=0;const original=recentTimelineRows;recentTimelineRows=(...args)=>{dedupCalls++;return original(...args)};undefined")
+        self.page.evaluate('(p)=>window.receive(p)',chron)
+        self.assertEqual(self.page.evaluate('dedupCalls'),0)
+        self.assertEqual(self.page.locator('.rpgc-chron-item').count(),0)
+        self.assertEqual(self.page.locator('.rpgc-chekhov-fired').count(),0)
+        self.page.locator('[data-open-key=chronicle] > summary').click()
+        self.page.wait_for_function('window.dedupCalls>0')
+        self.assertEqual(self.page.locator('.rpgc-chron-item.moment').count(),1)
+
+    def test_objective_quest_references_display_titles_without_sending(self):
+        payload=json.loads(json.dumps(FIXTURE['payload']))
+        payload['hms']['systems']['quests']=[{'key':'assignment','questId':'q_greyrat_meet','name':'Meet the young adventurer'}]
+        payload['plotView']={'on':{'plot':False,'objectives':True},'objectives':[
+            {'text':'Speak to the sponsor','state':'active','quest':'q_greyrat_meet'},
+            {'text':'Prepare','state':'active','quest':'Meet the young adventurer'},
+            {'text':'Unknown reference','state':'active','quest':'q_unknown'}],'mine':[]}
+        self.receive(payload)
+        chips=self.page.locator('.rpgc-objectives .rpgc-checklist .rpgc-chip').all_text_contents()
+        self.assertEqual(chips,['Meet the young adventurer','Meet the young adventurer','q_unknown'])
+        self.assertEqual(self.page.evaluate("sent.filter(x=>/edit|objective_mine/.test(x.type))"),[])
+
     def test_long_spell_names_and_full_study_note(self):
         row = self.page.locator('.rpgc-spell-study .rpgc-spell-row').first
         self.assertEqual(row.locator('p').first.text_content(),FIXTURE['note'])

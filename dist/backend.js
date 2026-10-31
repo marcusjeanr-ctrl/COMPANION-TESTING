@@ -2476,6 +2476,49 @@ function trackerSnapshotEdit(st, payload) {
     return true;
 }
 
+// Bounded visible dialogue source, requested only by an open NPC voice editor.
+function voiceDialogueRows(chat) {
+    const rows=[];
+    for(let i=(chat || []).length-1;i>=Math.max(0,chat.length-40)&&rows.length<10;i--) {
+        const m=chat[i];if(m.role!=='assistant'||!trackingMessageVisible(m)||(m._rpgcPurpose&&m._rpgcPurpose!=='story'))continue;
+        const raw=stripLeakedReasoning(textOf(m.content).slice(0,64000)),wall=/^\s*\*\*\*\s*$/m.exec(raw);
+        if(!wall)continue;
+        const text=stripTrackerBlocks(stripCompanion(raw.slice(wall.index+wall[0].length)))
+            .replace(/<(?:think|thinking|analysis|reasoning)\b[^>]*>[\s\S]*?(?:<\/(?:think|thinking|analysis|reasoning)>|$)/gi,'')
+            .replace(/```[\s\S]*?```/g,'').trim().slice(0,12000);
+        if(text)rows.push({id:m.id,swipe:m.swipe_id??0,text});
+    }
+    return rows.reverse();
+}
+function playNoteKey(kind,name) {
+    if(kind==='voice')return 'npc:'+String(name || '').normalize('NFKC').trim().toLowerCase().replace(/\s+/g,' ').slice(0,100);
+    return null;
+}
+function playNoteRead(st,kind,name) {
+    const key=playNoteKey(kind,name);return key?String(st.playNotes?.[kind]?.[key] || ''):'';
+}
+function playNoteEdit(st,kind,name,text) {
+    const key=playNoteKey(kind,name);if(!key||key==='npc:')return false;
+    const value=String(text || '').replace(/[\r\n]+/g,' ').trim().slice(0,240),store=isPlainObject(st.playNotes)?st.playNotes:{};
+    const notes=isPlainObject(store[kind])?store[kind]:{};
+    if(!Object.hasOwn(notes,key)&&value&&Object.keys(notes).length>=60)return false;
+    if(value)notes[key]=value;else delete notes[key];store[kind]=notes;st.playNotes=store;return true;
+}
+function acceptedVoiceHint(st,characters) {
+    const lines=[];
+    for(const person of (characters || []).slice(0,20)){
+        const note=playNoteRead(st,'voice',person.name).replace(/[\r\n]+/g,' ');
+        if(note)lines.push(String(person.name).slice(0,60)+': '+note);
+    }
+    return lines.length?'Accepted voice notes: '+lines.join('; ').slice(0,210):'';
+}
+
+function appendPlayHints(context, hints, remaining) {
+    if(!context||!Number.isFinite(remaining))return context;
+    for(const hint of hints){const line=String(hint || '').replace(/[\r\n]+/g,' ').slice(0,240);if(line&&line.length+1<=remaining){context.content+='\n'+line;remaining-=line.length+1;}}
+    return context;
+}
+
 async function pushState(chatId, snapshot = null) {
     trimChatCaches(chatId);
     if (!chatId) {
@@ -2570,7 +2613,7 @@ async function pushState(chatId, snapshot = null) {
 // Demo mode plays scripted turns (no tokens); Live mode asks the model, with a small
 // world narrator standing in for a bot card.
 
-const RPGC_VERSION = '3.1.0';
+const RPGC_VERSION = '3.2.0';
 const diagLog = [];
 function diagPush(kind, m) { diagLog.push({ at: new Date().toISOString(), kind, text: String(m).slice(0, 400) }); if (diagLog.length > 60) diagLog.shift(); }
 function logW(m) { diagPush('warn', m); return spindle.log.warn(m); }
@@ -3130,6 +3173,12 @@ registerInterceptorKeep(async (messages, context) => {
             if (contextMsg) contextMsg.content += '\n\n' + loreGrounding.text;
             else contextMsg = { role: 'system', content: loreGrounding.text };
             contextName += ' + lore references';
+        }
+
+        if (gt !== 'continue' && settings.playTools?.voiceHint === true && contextMsg) {
+            const remaining=Math.max(0,Math.min(6000,Number(loreCfg().maxChars)||0)-grounding.text.length-loreGrounding.text.length-4);
+            const voice=acceptedVoiceHint(await getChatState(chatId),committed.characters);
+            appendPlayHints(contextMsg,[voice],remaining);
         }
 
         if (gt !== 'continue' && chapCfg().inPrompt) {
@@ -8373,13 +8422,15 @@ function chronicleBuild(chat, st, userName = null) {
         if (hud && hudCanRewind(hud)) rewindWorld = true;
         const prevHud = prevE ? prevE.hud : null;
         const when = chronWhen(hud || prevHud);
+        const calendar=mtCalendar((hud?.lines || []).slice(0,4).map(l=>l.text).join('\n'));
+        const recordedDay=calendar?'K'+calendar.year+', '+(calendar.month?'Month '+calendar.month+', ':'')+'Day '+calendar.day:(hud&&hmsClock(hud)?.dated?String(hud.lines[0]?.text || '').replace(/\s*(?:[|—–-]\s*)?Time\s*:.*/i,'').replace(/,?\s*\d{1,2}:\d{2}.*$/,'').trim():null);
         const placeNow = (hud || prevHud) && (hud || prevHud).location ? (hud || prevHud).location.filter(s => !/^\[/.test(s)).slice(-1)[0] || null : null;
         const settled = idxOf.get(m.id) < lastUser;
         const add = (kind, text, imp, extra = {}) => {
             const id = 'c' + hashStr(`${m.id}:${m.swipe_id ?? 0}:${kind}:${text}`).toString(36);
             if (seenIds.has(id)) return null;
             seenIds.add(id);
-            const x = { id, msgId: m.id, kind, text, imp, when, loop: rewindWorld ? loop : null, arc, where: placeNow, who: [], settled, ...extra };
+            const x = { id, msgId: m.id, replyIndex: idxOf.get(m.id), kind, text, imp, when, recordedDay, loop: rewindWorld ? loop : null, arc, where: placeNow, who: [], settled, ...extra };
             if (ch.star[id]) { x.star = true; x.imp = CHRON_IMP.star; }
             if (ch.hide[id]) x.hidden = true;
             out.push(x);
@@ -8729,7 +8780,7 @@ async function chroniclePayload(chatId) {
     const min = CHRON_SEND[cc.cortex];
     return {
         version: chronVersion(chat, st),
-        entries: list.slice(-800).map(e => ({ id: e.id, kind: e.kind, text: e.text, when: e.when || '', loop: e.loop, arc: e.arc, who: e.who || [], where: e.where || null, imp: e.imp,
+        entries: list.slice(-800).map(e => ({ id: e.id, msgId: e.msgId, replyIndex: e.replyIndex, kind: e.kind, text: e.text, when: e.when || '', loop: e.loop, arc: e.arc, who: e.who || [], where: e.where || null, imp: e.imp,
             settled: !!e.settled, sent: sent.has(e.id), hidden: !!e.hidden, star: !!e.star, user: !!e.user, noteId: e.noteId || null, goes: e.imp >= min })),
         cortex: { mode: cc.cortex, on: cs.on, note: cs.note || '', sent: ch.sent.length, last: ch.last || null, busy: chronSyncing.has(chatId) },
         loops: list.some(e => e.loop)
@@ -14047,7 +14098,7 @@ async function hmsMoneyEdit(chatId, p) {
 // ("factions"), the HUD's Faction/Guild/Affiliation/Bounty lines, and by hand.
 
 const FACTION_LADDER = ['hunted', 'hostile', 'unfriendly', 'neutral', 'friendly', 'trusted', 'allied', 'member'];
-const FACTION_HUD_LABELS = ['Faction', 'Factions', 'Guild', 'Guilds', 'Affiliation', 'Affiliations', 'Allegiance', 'Organization', 'Organisation', 'Membership', 'Order', 'House', 'Clan', 'Bounty', 'Bounties', 'Reputation', 'Renown'];
+const FACTION_HUD_LABELS = ['Faction', 'Factions', 'Guild', 'Guilds', 'Affiliation', 'Affiliations', 'Allegiance', 'Organization', 'Organisation', 'Membership', 'Order', 'House', 'Clan', 'Bounty', 'Bounties', 'reputation', 'Renown'];
 
 function factionCfg(cfg) {
     const c = (cfg || hmsCfg()).factions || {};
@@ -15202,7 +15253,7 @@ function simMindView(fold, m) {
 }
 
 function simChekhovView(fold) {
-    const v = (b) => ({ id: b.id, what: b.what, w: b.w, age: b.age, ripe: !!b.ripe, locked: !!b.locked, lock: b.lock ? `${b.lock.kind}:${b.lock.arg}` : null, lockText: simLockText(b.lock), status: b.status });
+    const v = (b) => ({ id: b.id, what: b.what, w: b.w, age: b.age, readAt: b.atClock ?? null, ripe: !!b.ripe, locked: !!b.locked, lock: b.lock ? `${b.lock.kind}:${b.lock.arg}` : null, lockText: simLockText(b.lock), status: b.status });
     const live = fold.chekhov.filter(b => b.status === 'live');
     return {
         chamber: live.filter(b => !b.locked).sort((a, b) => (b.ripe - a.ripe) || (b.w - a.w) || (a.at - b.at)).map(v),
@@ -16547,8 +16598,8 @@ function martialAbilityItems(chatId, chat, st) {
         if (state) {
             const observations = [
                 ...(practice ? [{ name: practice.name, state: 'Training', progress: practice.progress, note: practice.note, at: practice.at, msgId: practice.msgId }] : []),
-                ...(saved ? [{ name: saved.name, state: earnedState || (verified ? states[verified.state] || state : state), at: latestKnowledge, msgId: saved.msgId, evidence: saved.evidence?.evidence }] : []),
-                ...(assessment ? [{ name: assessment.name, state: states[assessment.state] || state, at: assessment.at, msgId: assessment.msgId, evidence: assessment.evidence }] : [])
+                ...(saved ? [{ name: saved.name, state: earnedState || (verified ? states[verified.state] || state : state), at: latestKnowledge, msgId: saved.msgId, evidence: saved.evidence?.evidence || (typeof saved.evidence==='string'?saved.evidence:undefined), historical:saved.historical ?? saved.evidence?.historical }] : []),
+                ...(assessment ? [{ name: assessment.name, state: states[assessment.state] || state, at: assessment.at, msgId: assessment.msgId, evidence: assessment.evidence, historical:assessment.historical }] : [])
             ];
             const after = retractions.get(martialIdentity(event.name)) ?? -1, retained = observations.filter(x => x.at > after);
             if (retained.length) out.push({ name: event.name, state: after >= 0 ? retained.at(-1).state : state, level: null, label: null, src: null, observations: retained });
@@ -17765,6 +17816,26 @@ spindle.onFrontendMessage(async (payload, userId) => {
                 if (payload.characterId) await autoApplyPreset(payload.characterId);
                 await pushState(payload.chatId || null);
                 break;
+
+            case 'play_note_view':
+            case 'play_note_save': {
+                if(!payload.chatId||!playNoteKey(payload.kind,payload.name))return;
+                const st=await getChatState(payload.chatId);
+                if(payload.type==='play_note_save') {
+                    if(!playNoteEdit(st,payload.kind,payload.name,payload.text)){toFrontend({type:'play_note',chatId:payload.chatId,kind:payload.kind,name:payload.name,error:'Note limit reached'});break;}
+                    await saveChatState(payload.chatId,st);
+                }
+                toFrontend({type:'play_note',chatId:payload.chatId,kind:payload.kind,name:payload.name,text:playNoteRead(st,payload.kind,payload.name)});break;
+            }
+
+            case 'voice_dialogue': {
+                if(!payload.chatId)return;
+                const chat=await chatApi.getMessages(payload.chatId),last=lastAssistant(chat);
+                if(last?.id!==payload.replyId)return;
+                const rows=voiceDialogueRows(chat);
+                toFrontend({type:'voice_dialogue',chatId:payload.chatId,replyId:last.id,requestKey:payload.requestKey,rows});
+                break;
+            }
 
             case 'tracker_snapshot': {
                 if (!payload.chatId) return;
