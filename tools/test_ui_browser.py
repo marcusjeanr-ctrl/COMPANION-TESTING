@@ -65,6 +65,21 @@ class BrowserUi(unittest.TestCase):
         self.assertLessEqual(bounds['x']+bounds['width'],viewport['width']+1)
         self.assertLessEqual(bounds['y']+bounds['height'],viewport['height']+1)
 
+    def test_countdown_pinned_agenda_missing_and_overdue(self):
+        payload=json.loads(json.dumps(FIXTURE['payload']))
+        payload['settings']['compactMobile']=True
+        item=payload['hms']['agenda']['items'][0]
+        item.update(what='Study with Aurelius',state='open',status='soon',dueIn=40,when='at the bell')
+        payload['hms']['agenda']['items']=[item]
+        self.receive(payload)
+        self.assertIn('Study with Aurelius — in 40m',self.page.locator('.rpgc-pinned-appointment').inner_text())
+        self.assertEqual(self.page.locator('.rpgc-agenda-item .due').inner_text(),'in 40m')
+        item['dueIn']=-10;self.receive(payload)
+        self.assertIn('overdue',self.page.locator('.rpgc-agenda-item .due').inner_text())
+        item['dueIn']=None;self.receive(payload)
+        self.assertEqual(self.page.locator('.rpgc-pinned-appointment').count(),0)
+        self.assertEqual(self.page.locator('.rpgc-agenda-item .due').inner_text(),'at the bell')
+
     def test_quieter_chronicle_all_highlights_and_lazy_daily_bonds(self):
         payload,chron=self.recent_timeline_fixture()
         chron['chronicle']['entries'] += [{'id':'b'+str(i),'kind':'bond','text':text,'who':['Clerk'],

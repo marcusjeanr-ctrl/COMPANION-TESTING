@@ -57,3 +57,20 @@ Quieter Chronicle setting restores the old filters/Bonds view when off.
 Files: frontend, shared pure tests, Chromium test and four dictionaries. Tests cover
 filter membership, folding and negative pair/day cases, empty input, immutability,
 All preservation, lazy expand and original entries. No backend or prompt changes.
+
+## 7. Appointment countdown
+
+Frontend-only rendering reuses the Agenda engine's authoritative `dueIn` at the
+latest HUD clock; optional absolute dueAt/clock input is also supported. There is
+no duplicate calendar parser or tick. The pinned compact summary shows the nearest
+future appointment (or most recent overdue one if none future); the Agenda shows
+past-due labels without marking it missed or changing stored status. Missing or
+unsupported precision keeps the original wording. In-progress/completed states
+retain their existing labels. The display has its own on/off setting.
+
+Shared tests cover missing/past/now times, midnight, K-year rollover, 12×30 month
+boundaries and another world's explicit relative tomorrow timing via the existing
+clock resolver. Unsupported absolute formats are not interpreted as invented dates.
+Chromium checks pinned/Agenda output, 40 minutes, overdue and missing due data.
+Files: frontend, shared tests, Chromium case and four dictionaries. No backend,
+prompt, source-report or processing-frequency changes; phase benchmarks follow.

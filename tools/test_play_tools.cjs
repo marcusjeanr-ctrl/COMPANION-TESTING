@@ -18,3 +18,15 @@ const bonds=[{kind:'bond',who:['Clerk'],when:'K417 Month 4 Day 1, 09:00',text:'W
 assert.equal(c.dailyBondGroups(bonds).length,1);assert.equal(c.dailyBondGroups(bonds)[0].members.length,2);
 assert.equal(c.dailyBondGroups([bonds[0],{...bonds[1],who:['Someone else']}]).length,2);assert.equal(c.dailyBondGroups([bonds[0],{...bonds[1],when:'K417 Month 4 Day 2, 09:10'}]).length,2);assert.equal(c.dailyBondGroups([]).length,0);assert.equal(JSON.stringify(bonds),bondOriginal);
 console.log('Quieter Chronicle: Highlights membership, daily same-pair folding, distinct pairs/days and immutable empty input passed');
+assert.equal(c.appointmentDelta({state:'open',dueAt:940},900),40);assert.equal(c.appointmentDelta({state:'open',dueIn:-10},900),-10);assert.equal(c.appointmentDelta({state:'open',when:'when the bell rings'},900),null);assert.equal(c.appointmentDelta({state:'kept',dueIn:40},900),null);assert.equal(c.appointmentDelta({state:'open',dueAt:1470},1430),40);
+assert.equal(c.nextAppointment([{state:'open',what:'Later',dueIn:80},{state:'open',what:'Study',dueIn:40},{state:'open',what:'Old',dueIn:-10}]).what,'Study');
+const {runtime:playRuntime,hud:playHud}=require('./test_panel_tracking.cjs');const clockRuntime=playRuntime();
+function clock(date,time){return clockRuntime.ctx.hmsClock(clockRuntime.ctx.parseHud(playHud('Yard',time).replace('K417, Thawmoon (Month 2), Day 8',date))).minutes;}
+assert.equal(c.appointmentDelta({state:'open',dueAt:clock('K418, Month 1, Day 1','00:30')},clock('K417, Month 12, Day 30','23:50')),40);
+assert.equal(c.appointmentDelta({state:'open',dueAt:clock('K417, Month 3, Day 1','00:30')},clock('K417, Month 2, Day 30','23:50')),40);
+assert.equal(c.appointmentDelta({state:'open',dueIn:null}),null);
+console.log('Countdown: missing/overdue/now, rollover, K year and 12×30 month boundaries reuse existing clock minutes');
+const generic=playHud('School','23:50').replace(playHud('School','23:50').split('\n')[1],'Date: 2026-01-31 | Time: 23:50');
+const genericHud=clockRuntime.ctx.parseHud(generic),genericNow=clockRuntime.ctx.hmsClock(genericHud).minutes;
+const genericDue=clockRuntime.ctx.agendaWhen(null,'tomorrow at 00:30',genericNow,genericHud);
+assert.equal(c.appointmentDelta({state:'open',dueAt:genericDue},genericNow),40);
