@@ -837,7 +837,16 @@ class BrowserUi(unittest.TestCase):
         self.assertNotIn('Past location: Observatory',self.page.locator('.rpgc').inner_text())
 
     def test_31_relationship_web_lazy_bounded_mobile_and_float(self):
+        # setUp opens disclosures programmatically. Wait for the native close
+        # toggle (and its session-state listener) before replacing the payload.
+        self.page.evaluate("""() => {
+            window.webClosed = false;
+            const web = document.querySelector('.rpgc-relationship-web');
+            const closed = () => { if (!web.open) { window.webClosed = true; web.removeEventListener('toggle', closed); } };
+            web.addEventListener('toggle', closed);
+        }""")
         self.page.locator('.rpgc-relationship-web > summary').click()
+        self.page.wait_for_function('window.webClosed === true')
         payload=json.loads(json.dumps(FIXTURE['payload']))
         payload['hms']['minds']={'people':[{'key':'p'+str(i),'name':'Person '+str(i),'pairs':[{'to':'p'+str((i+1)%30),'toName':'Person '+str((i+1)%30),'axes':[],'you':False}],'feel':None} for i in range(30)]}
         # Avoid person-card fields: graph consumes the existing Minds payload directly.

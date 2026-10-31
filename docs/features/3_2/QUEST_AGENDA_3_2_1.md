@@ -127,3 +127,13 @@ frozen combined worktree, with runtime hashes checked before and after.
 inconclusive also blocks it. All 120 fresh-process observations are retained.
 Shared-host scheduling is uncontrolled; these are backend projection measurements,
 not live WebView/provider latency. None of this was tested in live Lumiverse.
+
+## CI browser synchronization follow-up
+
+One initial GitHub browser job failed the existing relationship-web lazy-render
+assertion while the other job passed on identical source. The test clicked a
+disclosure closed and replaced its payload before the native `toggle` handler
+had recorded the closed session state. The test now waits for that close event
+before replacement; the zero-SVG assertion and all graph bounds remain intact.
+This follow-up changes only the browser test and this report. Runtime hashes and
+the combined performance-gate candidate remain unchanged.
