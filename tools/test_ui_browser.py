@@ -91,18 +91,6 @@ class BrowserUi(unittest.TestCase):
         self.assertTrue(graph.evaluate('(e)=>e.getBoundingClientRect().width<=innerWidth'))
         self.assertIn('Wary → Friendly → Close',self.page.locator('.rpgc-standing-history').inner_text())
 
-    def test_open_loops_excludes_paid_off_and_resolved_sources(self):
-        payload=json.loads(json.dumps(FIXTURE['payload']))
-        payload['hms']['minds']['chekhov']={'chamber':[{'id':'live','what':'Aurelius promises a meeting','w':2,'age':1,'readAt':540,'status':'live'}],
-            'locked':[],'fired':[{'id':'paid','what':'Paid-off promise must stay out','w':2,'age':2,'ago':0,'status':'fired'}],'byYou':[]}
-        self.receive(payload)
-        pane=self.page.locator('[data-open-key=play-open-loops]')
-        self.assertIn('Aurelius promises a meeting',pane.inner_text())
-        self.assertNotIn('Paid-off promise must stay out',pane.inner_text())
-        pane.locator('summary').click()
-        self.page.evaluate('(p)=>window.receive(p)',payload)
-        self.assertEqual(pane.locator('.rpgc-open-loops').count(),0)
-
     def test_change_strip_is_lazy_and_uses_two_replies(self):
         pane=self.page.locator('[data-open-key=play-changes]')
         pane.evaluate("e=>{e.open=false;e.dispatchEvent(new Event('toggle'))}")

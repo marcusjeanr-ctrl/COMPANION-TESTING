@@ -20,17 +20,6 @@ Files: frontend, shared tests, Chromium case and four dictionaries. Tests cover
 first snapshot, no change, multiple changes, normal countdown advancement, an old
 Chronicle cache arriving late, and lazy expand. No backend/prompt change.
 
-## 11. Open loops
-
-A lazy read-only list uses current live/locked planted details, active stored secrets
-and open/advanced plot threads. Paid-off/public/resolved entries are excluded only
-when explicitly marked; outcomes are never inferred. The Phase A display matcher
-is reused with source participant/chronology guards and separate types. Uncertain
-or undated matches stay separate. Feature off hides it without extracting data.
-Files: frontend helper/view, shared tests, Chromium case and four dictionaries.
-Tests cover promised-detail grouping, paid-off/resolved exclusion, empty input,
-immutable state and closed-view laziness. No backend, prompt or new request.
-
 ## 12. Per-NPC standing history
 
 The dossier can show a bounded 12-point step chart from existing standing events

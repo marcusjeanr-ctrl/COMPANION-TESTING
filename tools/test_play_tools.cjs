@@ -53,9 +53,6 @@ assert.equal(c.snapshotChanges(null,changeAfter).length,0);assert.equal(c.snapsh
 console.log('What changed: two snapshots only, first reply, no changes and multiple source changes passed');
 assert.equal(c.snapshotChanges({hms:{systems:{clock:100},agenda:{items:[{key:'a',what:'Study',state:'open',when:'at noon',dueIn:40}]}}},{hms:{systems:{clock:110},agenda:{items:[{key:'a',what:'Study',state:'open',when:'at noon',dueIn:30}]}}}).length,0);
 assert.equal(c.snapshotChanges({hms:{},chronicle:null},{hms:{},chronicle:[{id:'old',text:'Old record just fetched'}]}).length,0);
-const loopView={userName:'Marcus',hms:{relations:{people:[{name:'Aurelius'}]},minds:{chekhov:{chamber:[{id:'c1',what:"Aurelius's promise to arrange a meeting with the Greyrat boy",age:2,readAt:540,status:'live'},{id:'c2',what:"Aurelius's promise to introduce Marcus to the Greyrat boy",age:1,readAt:550,status:'live'}],locked:[],fired:[{what:'Already paid off'}]}},secrets:{yours:[{text:'An unresolved secret'},{text:'A public secret',status:'public'}]}},plotView:{threads:[{name:'An open thread',state:'open'},{name:'Resolved thread',state:'resolved'}]}};
-const loopsOriginal=JSON.stringify(loopView),loops=c.openLoopRows(loopView);assert.equal(loops.length,3);assert.equal(loops.find(x=>x.entry.kind==='promise').count,2);assert(!loops.some(x=>x.entry.text.includes('paid off')||x.entry.text.includes('public secret')));assert.equal(JSON.stringify(loopView),loopsOriginal);assert.equal(c.openLoopRows({}).length,0);
-console.log('Open loops: existing live promises/secrets/threads, shared conservative dedup, paid-off/resolved exclusion and immutability passed');
 const standingLadder=['Hostile','Wary','Friendly','Close'];
 assert.equal(c.standingHistory({standing:'Friendly',events:[]},standingLadder).points.length,1);
 assert.equal(c.standingHistory({standing:'Close',events:['Wary → Friendly','Friendly → Close']},standingLadder).points.at(-1).value,3);
