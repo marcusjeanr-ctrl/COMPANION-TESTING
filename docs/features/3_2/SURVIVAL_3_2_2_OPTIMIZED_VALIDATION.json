@@ -1,0 +1,22 @@
+{
+  "version": "3.2.2 RC \u2014 not merged or published",
+  "baseline": "01c3df9e37d707dcdecb7ced2cd401b66d6be513",
+  "runtimeSuites": 65,
+  "gateTests": 12,
+  "chromiumUiTests": 54,
+  "visibilityTests": 5,
+  "privateFixtureMessages": 39,
+  "originalSurvivalTestsUnchanged": true,
+  "existingTestAssertionsChanged": false,
+  "gateFilesUnchanged": true,
+  "sourceHashes": {
+    "dist/backend.js": "b57a5529280e4fe4b113df01baeab0e53c99b7cb473abdd7394962d075e4a496",
+    "dist/frontend.js": "ba58c77c674723c7f7a5f98c0d22815b09203295f010940fbf03706088a26623",
+    "spindle.json": "72e5622e2319db5d0fe6460d4efbbfa25967c510333d09b764aadba3154229d6"
+  },
+  "gateStatus": "inconclusive",
+  "mergeAllowed": false,
+  "fallback": "Not applied: write-time-only behavior contradicts unchanged legacy-read regression",
+  "parts2And3Started": false,
+  "liveLumiverse": false
+}

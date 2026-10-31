@@ -1,0 +1,64 @@
+{
+  "version": "3.2.2 RC \u2014 blocked, not published",
+  "baseline": "01c3df9e37d707dcdecb7ced2cd401b66d6be513",
+  "runtimeSuites": 64,
+  "gateTests": 12,
+  "chromiumUiTests": 54,
+  "visibilityTests": 5,
+  "fixture": {
+    "messages": 39,
+    "report": [
+      {
+        "reply": 4,
+        "ate": false,
+        "unconfirmed": [
+          "ate",
+          "slept",
+          "rested"
+        ]
+      },
+      {
+        "reply": 8,
+        "ate": true,
+        "unconfirmed": []
+      },
+      {
+        "reply": 10,
+        "ate": false,
+        "unconfirmed": [
+          "ate"
+        ]
+      },
+      {
+        "reply": 12,
+        "ate": false,
+        "unconfirmed": [
+          "ate"
+        ]
+      },
+      {
+        "reply": 28,
+        "ate": false,
+        "unconfirmed": [
+          "ate"
+        ]
+      },
+      {
+        "reply": 38,
+        "ate": false,
+        "unconfirmed": [
+          "ate"
+        ]
+      }
+    ],
+    "inputUnchanged": true
+  },
+  "sourceHashes": {
+    "dist/backend.js": "78ba177f7cfdb62a17554deb57de141c11496780a3e82e22fde65b5bb7ecda28",
+    "dist/frontend.js": "ba58c77c674723c7f7a5f98c0d22815b09203295f010940fbf03706088a26623",
+    "spindle.json": "72e5622e2319db5d0fe6460d4efbbfa25967c510333d09b764aadba3154229d6"
+  },
+  "gateStatus": "fail",
+  "mergeAllowed": false,
+  "liveLumiverse": false
+}

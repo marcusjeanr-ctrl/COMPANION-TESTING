@@ -1,6 +1,6 @@
-# RPG Companion HMS Edition 3.2.1 — Release Candidate
+# RPG Companion HMS Edition 3.2.2 — Release Candidate
 
-> 3.2.1 RC: [quest disclosures and Agenda display grouping](docs/features/3_2/QUEST_AGENDA_3_2_1.md). No live Lumiverse acceptance performed.
+> 3.2.2 RC: [survival flag evidence checks](docs/features/3_2/SURVIVAL_3_2_2_READERS.md). No live Lumiverse acceptance performed.
 
 > 3.2.0 RC selected review candidate: [included features, verification and limitations](docs/features/3_2/REPORT.md). Branch `release/3.2.0-rc-selected`; no live Lumiverse acceptance or stable-release claim.
 

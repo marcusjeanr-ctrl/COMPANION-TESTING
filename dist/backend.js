@@ -2059,6 +2059,70 @@ function messageSource(msg) {
 function trackingMessageVisible(msg) {
     return !!msg && !['save', 'help'].includes(msg._rpgcPurpose) && msg.hidden !== true && msg.is_hidden !== true && msg.metadata?.hidden !== true && msg.extra?.hidden !== true;
 }
+// Lexical evidence only: en, pt-BR, es, ru and tr. Water alone is not drinking.
+const SURVIVAL_FLAG_EVIDENCE = Object.freeze({
+    ate: /(?<![\p{L}])(?:eat|eats|ate|eating|eaten|meal|breakfast|lunch|dinner|supper|feast|snack|food|bread|stew|soup|porridge|fruit|comer|comeu|comendo|comida|refeição|café da manhã|almoço|jantar|pão|sopa|comió|comiendo|desayuno|almuerzo|cena|pan|есть|ел|ела|ели|ест|поел|поела|завтрак|обед|ужин|еда|хлеб|суп|каша|yedi|yemek|yiyor|kahvaltı|öğle yemeği|akşam yemeği|ekmek|çorba)(?![\p{L}])/giu,
+    drank: /(?<![\p{L}])(?:drink|drinks|drank|drunk|drinking|sip|sips|sipped|sipping|gulp|gulped|tea|wine|ale|milk|bebeu|beber|bebendo|chá|vinho|leite|bebió|beber|bebiendo|sorbo|té|vino|leche|пил|пила|пили|пьёт|выпил|выпила|глоток|чай|вино|молоко|içti|içiyor|içmek|yudum|çay|şarap|süt)(?![\p{L}])/giu,
+    slept: /(?<![\p{L}])(?:sleep|sleeps|slept|sleeping|asleep|nap|napped|dozed|bed|bedtime|rest overnight|dormiu|dormir|dormindo|adormeceu|cochilo|cama|durmió|dormir|durmiendo|dormido|siesta|cama|спал|спала|спали|уснул|уснула|сон|кровать|uyudu|uyuyor|uyumak|uyku|yatak)(?![\p{L}])/giu,
+    rested: /(?<![\p{L}])(?:rest|rests|rested|resting|sat down|(?:take|takes|taking|took|taken) (?:a )?(?:(?:short|brief) )?break|(?:catch|caught|catching) (?:his |her |their |your )?breath|descansou|descansar|descansando|sentou|pausa|descansó|descansar|descansando|se sentó|descanso|отдохнул|отдохнула|отдых|передышка|сел|села|dinlendi|dinleniyor|dinlenmek|oturdu|mola)(?![\p{L}])/giu
+});
+const SURVIVAL_EVIDENCE_NEGATION = /(?<![\p{L}])(?:didn't|didn’t|did not|doesn't|does not|don't|do not|hasn't|has not|hadn't|had not|never|not|without|refused|skipped|não|sem|recusou|pulou|no|sin|rechazó|omitió|не|без|отказался|отказалась|пропустил|пропустила)(?:\s+(?!(?:but|however|instead)\b)[\p{L}'’]+){0,3}\s*$/iu;
+const SURVIVAL_FLAG_KEYS = Object.freeze(Object.keys(SURVIVAL_FLAG_EVIDENCE));
+const SURVIVAL_FENCED_REPORT_RE = /```json\b[\s\S]*?(?:```|$)/gi;
+const SURVIVAL_EMPHASIS_RE = /\*+/g;
+const SURVIVAL_CLAUSE_RE = /[.!?;,\n]/;
+const survivalEvidenceCache = new WeakMap();
+function survivalFlagSource(msg, data) {
+    const key = msg.swipe_id ?? 0;
+    const live = msg.metadata?.[META_KEY];
+    if (live?.swipes?.[key] === data) return live.sources?.[key] || null;
+    const exported = msg.extra?.spindle_metadata?.[META_KEY];
+    if (exported?.swipes?.[key] === data) return exported.sources?.[key] || null;
+    const nested = msg.metadata?.spindle_metadata?.[META_KEY];
+    return nested?.swipes?.[key] === data ? nested.sources?.[key] || null : null;
+}
+function survivalSourceDescriptor(msg, data) {
+    const y = data?.survival;
+    if (!y || (y.ate !== true && y.drank !== true && y.slept !== true && y.rested !== true && !y.unconfirmed?.length)) return null;
+    return {id:msg.id, swipe_id:msg.swipe_id ?? 0, content:msg.content, sourceHash:survivalFlagSource(msg, data)};
+}
+function survivalFlagReading(msg, data, boundSource = null) {
+    const y = data?.survival;
+    if (!isPlainObject(y)) return data;
+    const flags = (y.ate === true ? 1 : 0) | (y.drank === true ? 2 : 0) | (y.slept === true ? 4 : 0) | (y.rested === true ? 8 : 0);
+    let rejected = 0;
+    if (Array.isArray(y.unconfirmed)) for (let i = 0; i < SURVIVAL_FLAG_KEYS.length; i++) if (y.unconfirmed.includes(SURVIVAL_FLAG_KEYS[i])) rejected |= 1 << i;
+    if (!(flags | rejected)) return data;
+    const signature = flags | (rejected << 4), cached = survivalEvidenceCache.get(data);
+    // Signed consumers have already passed getSwipeData's source validation.
+    const source = boundSource || survivalFlagSource(msg, data);
+    if (source && cached?.source === source && cached.y === y && cached.signature === signature) return cached.value;
+    // Unsigned legacy reports have no stored hash: retain exact edit invalidation.
+    // No prose normalization or regex matching occurs on their cache hits.
+    const text = textOf(msg.content);
+    const key = source ? null : `${msg.id ?? ''}:${msg.swipe_id ?? 0}:${text.length}`;
+    if (!source && cached?.source === null && cached.key === key && cached.text === text && cached.y === y && cached.signature === signature) return cached.value;
+    const reported = SURVIVAL_FLAG_KEYS.filter((k, i) => ((flags | rejected) & (1 << i)) !== 0);
+    const clean = stripCompanion(stripThink(text)).replace(SURVIVAL_FENCED_REPORT_RE, '');
+    const frame = findHud(clean);
+    const prose = (frame ? clean.slice(frame.bodyEnd) : clean).replace(SURVIVAL_EMPHASIS_RE, '').normalize('NFC');
+    const unconfirmed = [], survival = {...y};
+    for (const k of reported) {
+        const pattern = SURVIVAL_FLAG_EVIDENCE[k];
+        let confirmed = false;
+        for (const m of prose.matchAll(pattern)) {
+            const prefix = prose.slice(Math.max(0, m.index - 90), m.index).split(SURVIVAL_CLAUSE_RE).pop();
+            if (!SURVIVAL_EVIDENCE_NEGATION.test(prefix)) { confirmed = true; break; }
+        }
+        survival[k] = confirmed;
+        if (!confirmed) unconfirmed.push(k);
+    }
+    if (unconfirmed.length || Array.isArray(y.unconfirmed)) survival.unconfirmed = unconfirmed;
+    const value = {...data, survival};
+    survivalEvidenceCache.set(data, {y, source, key, text:source ? null : text, signature, value});
+    return value;
+}
+
 function getSwipeData(msg, allowSnapshot = false) {
     const continuation = msg?._rpgcPurpose === 'continue';
     if (!trackingMessageVisible(msg) || (continuation && !allowSnapshot)) return null;
@@ -2093,6 +2157,7 @@ async function setSwipeData(chatId, msg, data, extraPatch = {}) {
             const previous = getSwipeData(fresh);
             snapshot.quests = questRefreshReport(snapshot.quests, previous?.quests, fresh, snapshot);
         }
+        if (snapshot.survival) snapshot.survival = survivalFlagReading({id:fresh.id, swipe_id:swipe, content: patch.content ?? fresh.content}, snapshot).survival;
         const metadata = { ...(fresh.metadata || {}) };
         const mine = { ...(metadata[META_KEY] || fresh.extra?.spindle_metadata?.[META_KEY] || {}) };
         const key = String(swipe);
@@ -2102,7 +2167,7 @@ async function setSwipeData(chatId, msg, data, extraPatch = {}) {
         await chatApi.updateMessage(chatId, msg.id, { ...patch, metadata });
         msg.metadata = metadata;
         if (patch.content !== undefined) msg.content = patch.content;
-        statesNote(chatId, msg.id, snapshot);
+        statesNote(chatId, msg.id, snapshot, msg);
         const tc = thoughtsCache.get(chatId);
         if (tc) {
             if (Array.isArray(snapshot.characters) && snapshot.characters.length) tc.set(msg.id, snapshot.characters);
@@ -2613,7 +2678,7 @@ async function pushState(chatId, snapshot = null) {
 // Demo mode plays scripted turns (no tokens); Live mode asks the model, with a small
 // world narrator standing in for a bot card.
 
-const RPGC_VERSION = '3.2.1';
+const RPGC_VERSION = '3.2.2';
 const diagLog = [];
 function diagPush(kind, m) { diagLog.push({ at: new Date().toISOString(), kind, text: String(m).slice(0, 400) }); if (diagLog.length > 60) diagLog.shift(); }
 function logW(m) { diagPush('warn', m); return spindle.log.warn(m); }
@@ -3774,7 +3839,7 @@ function statesReading(msg) {
 }
 
 function statesFill(chatId, chat, thoughts = null) {
-    const order = [], data = new Map();
+    const order = [], data = new Map(), survivalSources = new Map();
     for (const msg of chat) {
         if (msg.role !== 'assistant') continue;
         const regular = thoughts ? getSwipeData(msg) : null;
@@ -3782,15 +3847,21 @@ function statesFill(chatId, chat, thoughts = null) {
         const d = regular || statesReading(msg);
         if (!d) continue;
         order.push(msg.id); data.set(msg.id, d);
+        const source = survivalSourceDescriptor(msg, d);
+        if (source) survivalSources.set(msg.id, source);
     }
     messagePanelLoads.delete(chatId); // A completed current snapshot supersedes pending loads.
-    statesCache.set(chatId, { order, data });
+    statesCache.set(chatId, { order, data, survivalSources });
 }
-function statesNote(chatId, msgId, d) {
+function statesNote(chatId, msgId, d, msg = null) {
     const c = statesCache.get(chatId);
     if (!c) return;
     if (!c.data.has(msgId)) c.order.push(msgId);
     c.data.set(msgId, d);
+    if (!c.survivalSources) c.survivalSources = new Map();
+    const source = msg ? survivalSourceDescriptor(msg, d) : null;
+    if (source) c.survivalSources.set(msgId, source);
+    else c.survivalSources.delete(msgId);
 }
 function statesDrop(chatId) {
     if (chatId) { statesCache.delete(chatId); messagePanelLoads.delete(chatId); }
@@ -3828,7 +3899,7 @@ async function getStatesFor(chatId, msgId) {
         const pd = c.data.get(c.order[i]);
         for (const r of (pd && Array.isArray(pd.relations) ? pd.relations : [])) if (r && want.has(r.key)) { prevRel.set(r.key, r); want.delete(r.key); }
     }
-    return { d, prevRel };
+    return { d, prevRel, survivalSource: c.survivalSources?.get(msgId) };
 }
 
 const STATES_CSS = `
@@ -3910,7 +3981,7 @@ function statesPanelHtml(state, hud, msgId, cfg = chatDisplayCfg(), colours = nu
         if (w) rows.push(`<span class="rs-row"><span class="rs-k">Weather</span><span>${escapeHtml(w)}</span></span>`);
         const here = (Array.isArray(d.characters) ? d.characters : []).map(c => c && c.name).filter(Boolean);
         if (here.length) rows.push(`<span class="rs-row"><span class="rs-k">Here</span><span>${here.map(n => `<span class="rs-chip">${escapeHtml(n)}</span>`).join(' ')}</span></span>`);
-        const y = d.survival;
+        const y = state.survivalSource ? survivalFlagReading(state.survivalSource, d, state.survivalSource.sourceHash).survival : d.survival;
         if (y) {
             const bits = [y.mood, y.mind && y.mind !== y.mood ? y.mind : null].filter(Boolean);
             const did = ['slept', 'ate', 'drank', 'rested'].filter(k => y[k] === true);
@@ -10496,7 +10567,7 @@ function buildCompanionInstructionRead(committed, userName, locks, st = null, ch
     if (com) s += '\n' + com.rules;
     if (fight) s += '\n' + fight.rules;
     if (posReq) s += '\n' + posReq.rules;
-    if (wantSurvival) s += `\nIn "you", set a flag to true only if ${userName} actually did it in this reply's events: a proper sleep counts as slept; a short break or sitting down counts as rested; a real meal counts as ate. Set "mind" to ${userName}'s state of mind at the end of this reply, as one of the listed words.`;
+    if (wantSurvival) s += `\nIn "you", set a flag to true only if ${userName} actually did it in this reply's events: a proper sleep counts as slept; a short break or sitting down counts as rested; a real meal counts as ate. If the reply does not describe the action, leave all four flags false. Do not carry a flag over from an earlier reply. Set "mind" to ${userName}'s state of mind at the end of this reply, as one of the listed words.`;
     if (yc.on) s += `\n"you" also holds ${userName}'s own state at the end of this reply: mood, ${wantSurvival ? '' : 'stress (L), '}sanity (100 steady, 0 broken)${askXp ? ', and xp earned in this reply for a real accomplishment (0 if none) with why' : ''}. "got" and "lost": physical things ${userName} was handed, picked up, gave away, used up or lost — in their own last message or on screen in this reply — that the HUD does not list (a handout, a key, a note, a booklet), a few words each; [] when nothing changed hands. A message, a notice or news is not a thing.`;
     if (abilitiesSeen) s += '\n"you.abilities": one confirmed player spell/technique/skill per row; no ranks, casting labels, NPCs, catalog entries, instructions or hypotheticals. historical:true for past records, not new learning/current study. Attempts are not knowledge; reliability is not mastery. Exact quote required. Absence is not loss.';
     if (abilitiesSeen) s += '\nStudy requires practice begun now, not assigned/future lessons, demonstrations or failed combat alone. Never invent percentages. Omit empty study/learning.';
@@ -10711,7 +10782,7 @@ async function hmsHandleReplyInner(chatId, chat, msg, generationType) {
         // Reuse the completed message, without another read or transaction extraction.
         if (statesCache.has(chatId)) {
             const data = statesReading(msg);
-            if (data) statesNote(chatId, msg.id, data);
+            if (data) statesNote(chatId, msg.id, data, msg);
         }
         return null;
     }
@@ -11774,7 +11845,7 @@ function hmsSurvival(timeline, st, cfg, sys) {
     for (const e of timeline) {
         if (e.clock === null || e.clock < base) continue;
         const d = getSwipeData(e.msg);
-        const y = d && d.survival;
+        const y = d && survivalFlagReading(e.msg, d).survival;
         if (!y) continue;
         for (const k of ['slept', 'ate', 'drank', 'rested']) if (y[k]) events.push({ kind: k, at: e.clock, src: 'story' });
         if (y.mind) events.push({ kind: 'mind', value: y.mind, at: e.clock, src: 'story' });
