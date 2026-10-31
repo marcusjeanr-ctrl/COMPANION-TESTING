@@ -1,5 +1,14 @@
 # Changelog — RPG Companion HMS Edition
 
+## Unreleased — 3.2 Phase A staging (performance gate held)
+
+- Resolve objective quest IDs to unique existing quest titles for display; unknown or ambiguous references remain unchanged.
+- Optionally collapse nearby repeated Chronicle and planted-detail descriptions in the UI, preserving source reports and earliest control identities.
+- Keep different participants, outcomes, occurrences and uncertain matches separate; show duplicate counts and support lazy closed views.
+- Investigate single-action Reliable assessments and martial routing without changing progression or ownership rules.
+- Later phases and the 3.2.0 RC identity bump remain blocked by the performance gate; see the staging report.
+
+
 ## 3.1.0 RC — Panel tools and diagnostics
 
 - Derive unreported Minds modes from People standing or kin without altering saved reports or guessed flags.
