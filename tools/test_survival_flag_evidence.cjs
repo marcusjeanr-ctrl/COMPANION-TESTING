@@ -30,6 +30,9 @@ const excluded=msg('You speak quietly.\n<rpg_companion>{"you":{"mood":"ate food"
 excluded.content='<think>You ate breakfast.</think>\n'+excluded.content.replace('Equipment:','Breakfast: food\nEquipment:');
 excluded.extra={reasoning:'You ate breakfast.'};assert.equal(read(excluded).ate,false);
 check('You speak.\n```json\n{"you":{"mood":"ate food"}}\n```','ate',false);
+for(const prose of ['You break his guard.','You recover your balance.','You recovered your footing.','You are recovering your balance.','Você recuperou o equilíbrio.','Recuperó el equilibrio.','Он восстановился после удара.','Toparlandı.']) check(prose,'rested',false);
+for(const prose of ['You sat down.','You rested.','You took a short break.','You take a break.','You caught your breath.']) check(prose,'rested',true);
+
 const cached=msg('You speak.');const first=evidence(cached);assert.equal(evidence(cached),first);
 cached.content=cached.content.replace('You speak.','You ate soup.');assert.equal(read(cached).ate,true);
 cached.swipe_id=1;cached.metadata.rpg_companion.swipes[1]={survival:{ate:true}};cached.content=cached.content.replace('You ate soup.','You speak.');assert.equal(read(cached).ate,false);
