@@ -1,5 +1,10 @@
 # 3.2 staging — phased verification
 
+**Gate policy update:** the user superseded the original historical wall-only hold.
+The revised 20-pair wall/CPU three-way check **passes Phase A**; see
+[GATE_REVISION.md](GATE_REVISION.md). The earlier report below is retained as the
+historical Phase A record. Phase B now proceeds on the review branch only.
+
 Authorized repository: `marcusjeanr-ctrl/COMPANION-TESTING` only.
 Branch: `staging/features-3.2`, starting main `e07830acbfe3e7a9d84185d7d19b067d247d39b1`.
 Frozen comparison baseline: 3.0.10 `540df20f602bd475b9149c1ab28aa705e391f72d`.

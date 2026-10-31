@@ -18,6 +18,8 @@ function run(args) {
 }
 for (const file of ['dist/backend.js', 'dist/frontend.js']) run(['--check', path.join(root, file)]);
 for (const file of suites) run([path.join(__dirname, file)]);
+const gateTests = spawnSync('python3', [path.join(__dirname, 'test_benchmark_gate.py')], {cwd:root,stdio:'inherit'});
+if (gateTests.status !== 0) process.exit(gateTests.status || 1);
 if (process.env.COMPANION_PRIVATE_EXPORT) run([path.join(__dirname, 'test_export_tracking_2_9_0.cjs'), path.resolve(process.env.COMPANION_PRIVATE_EXPORT)]);
 if (process.env.COMPANION_TRACKING_EXPORT) run([path.join(__dirname, 'test_export_tracking_2_9_3.cjs'), path.resolve(process.env.COMPANION_TRACKING_EXPORT)]);
 console.log(`All ${suites.length} baseline, card-compatibility, and regression suites plus both bundle syntax checks passed.`);
