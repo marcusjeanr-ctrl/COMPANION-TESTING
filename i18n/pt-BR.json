@@ -2738,5 +2738,16 @@
  "What could I do next?": "O que posso fazer agora?",
  "Draft only — review and send yourself.": "Apenas rascunho — revise e envie você.",
  "Chat composer unavailable": "Campo de mensagem indisponível",
- "No supported next actions": "Nenhuma ação baseada nos dados"
+ "No supported next actions": "Nenhuma ação baseada nos dados",
+ "NPC voice note": "Nota de voz do NPC",
+ "NPC voice notes": "Notas de voz dos NPCs",
+ "Short dialogue lines": "Falas curtas",
+ "Long dialogue lines": "Falas longas",
+ "Accepted note": "Nota aceita",
+ "Suggestion — not accepted": "Sugestão — não aceita",
+ "No accepted voice note": "Nenhuma nota de voz aceita",
+ "Accept or save edit": "Aceitar ou salvar edição",
+ "Save note": "Salvar nota",
+ "Clear note": "Limpar nota",
+ "Accepted voice notes in context (opt-in)": "Notas de voz aceitas no contexto (opcional)"
 }

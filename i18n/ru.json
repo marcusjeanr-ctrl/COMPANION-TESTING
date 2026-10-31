@@ -2738,5 +2738,16 @@
  "What could I do next?": "Что я могу сделать дальше?",
  "Draft only — review and send yourself.": "Только черновик — проверьте и отправьте сами.",
  "Chat composer unavailable": "Поле ввода чата недоступно",
- "No supported next actions": "Нет действий на основе данных"
+ "No supported next actions": "Нет действий на основе данных",
+ "NPC voice note": "Заметка о речи NPC",
+ "NPC voice notes": "Заметки о речи NPC",
+ "Short dialogue lines": "Короткие реплики",
+ "Long dialogue lines": "Длинные реплики",
+ "Accepted note": "Принятая заметка",
+ "Suggestion — not accepted": "Предложение — не принято",
+ "No accepted voice note": "Нет принятой заметки о речи",
+ "Accept or save edit": "Принять или сохранить правку",
+ "Save note": "Сохранить заметку",
+ "Clear note": "Удалить заметку",
+ "Accepted voice notes in context (opt-in)": "Принятые заметки о речи в контексте (по выбору)"
 }

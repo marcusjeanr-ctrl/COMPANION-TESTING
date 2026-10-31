@@ -2504,6 +2504,30 @@ function repetitionRows(rows) {
     const threshold=Math.max(3,Math.ceil(sample.length*.6));
     return [...counts].filter(([,n])=>n>=threshold).sort((a,b)=>b[1]-a[1]||a[0].localeCompare(b[0])).slice(0,8).map(([text,count])=>({text,count,total:sample.length}));
 }
+function playNoteKey(kind,name) {
+    if(kind==='voice')return 'npc:'+String(name || '').normalize('NFKC').trim().toLowerCase().replace(/\s+/g,' ').slice(0,100);
+    if(kind==='journal'&&/^[\p{L}\p{N} ,./:—–·()_-]{1,100}$/u.test(String(name || '')))return 'day:'+name;
+    return null;
+}
+function playNoteRead(st,kind,name) {
+    const key=playNoteKey(kind,name);return key?String(st.playNotes?.[kind]?.[key] || ''):'';
+}
+function playNoteEdit(st,kind,name,text) {
+    const key=playNoteKey(kind,name);if(!key||key==='npc:')return false;
+    const value=(kind==='voice'?String(text || '').replace(/[\r\n]+/g,' '):String(text || '')).trim().slice(0,kind==='voice'?240:8000),store=isPlainObject(st.playNotes)?st.playNotes:{};
+    const notes=isPlainObject(store[kind])?store[kind]:{};
+    if(!Object.hasOwn(notes,key)&&value&&Object.keys(notes).length>=(kind==='voice'?60:30))return false;
+    if(value)notes[key]=value;else delete notes[key];store[kind]=notes;st.playNotes=store;return true;
+}
+function acceptedVoiceHint(st,characters) {
+    const lines=[];
+    for(const person of (characters || []).slice(0,20)){
+        const note=playNoteRead(st,'voice',person.name).replace(/[\r\n]+/g,' ');
+        if(note)lines.push(String(person.name).slice(0,60)+': '+note);
+    }
+    return lines.length?'Accepted voice notes: '+lines.join('; ').slice(0,210):'';
+}
+
 function appendPlayHints(context, hints, remaining) {
     if(!context||!Number.isFinite(remaining))return context;
     for(const hint of hints){const line=String(hint || '').replace(/[\r\n]+/g,' ').slice(0,240);if(line&&line.length+1<=remaining){context.content+='\n'+line;remaining-=line.length+1;}}
@@ -3166,10 +3190,11 @@ registerInterceptorKeep(async (messages, context) => {
             contextName += ' + lore references';
         }
 
-        if (gt !== 'continue' && settings.playTools?.repetitionHint === true && contextMsg) {
-            const words=repetitionRows(playProse(chat)).slice(0,5).map(x=>x.text);
+        if (gt !== 'continue' && (settings.playTools?.repetitionHint === true || settings.playTools?.voiceHint === true) && contextMsg) {
+            const words=settings.playTools?.repetitionHint===true?repetitionRows(playProse(chat)).slice(0,5).map(x=>x.text):[];
             const remaining=Math.max(0,Math.min(6000,Number(loreCfg().maxChars)||0)-grounding.text.length-loreGrounding.text.length-4);
-            appendPlayHints(contextMsg,words.length?['Avoid overusing: '+words.join(', ')]:[],remaining);
+            const voice=settings.playTools?.voiceHint===true?acceptedVoiceHint(await getChatState(chatId),committed.characters):'';
+            appendPlayHints(contextMsg,[words.length?'Avoid overusing: '+words.join(', '):'',voice],remaining);
         }
 
         if (gt !== 'continue' && chapCfg().inPrompt) {
@@ -17805,6 +17830,17 @@ spindle.onFrontendMessage(async (payload, userId) => {
                 if (payload.characterId) await autoApplyPreset(payload.characterId);
                 await pushState(payload.chatId || null);
                 break;
+
+            case 'play_note_view':
+            case 'play_note_save': {
+                if(!payload.chatId||!playNoteKey(payload.kind,payload.name))return;
+                const st=await getChatState(payload.chatId);
+                if(payload.type==='play_note_save') {
+                    if(!playNoteEdit(st,payload.kind,payload.name,payload.text)){toFrontend({type:'play_note',chatId:payload.chatId,kind:payload.kind,name:payload.name,error:'Note limit reached'});break;}
+                    await saveChatState(payload.chatId,st);
+                }
+                toFrontend({type:'play_note',chatId:payload.chatId,kind:payload.kind,name:payload.name,text:playNoteRead(st,payload.kind,payload.name)});break;
+            }
 
             case 'play_prose': {
                 if(!payload.chatId)return;

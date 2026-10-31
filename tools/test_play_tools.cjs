@@ -96,3 +96,26 @@ assert(!c.nextActionRows({hms:{secrets:{yours:[{text:'Private NPC information'}]
 console.log('Next actions: every supported source, no data, stable ordering, five cap and no state mutation passed');
 
 assert.equal(c.nextActionRows({plotView:{objectives:[{text:'An abandoned objective',state:'abandoned'}]}}).length,0);
+
+assert.equal(c.voiceSuggestion([],'Clerk'),'');
+const dialogue=[{text:'[D:Clerk]"Wait, friend."\n[D:Someone]"I speak at length."'},{text:'[D:Clerk]"Good morning."'}];
+assert.equal(c.voiceSuggestion(dialogue,'Clerk'),'Short dialogue lines');assert.equal(c.voiceSuggestion(dialogue,'Someone'),'');assert.equal(c.voiceSuggestion([{text:'Clerk is clipped.'}],'Clerk'),'');
+const noteState={v:2,seed:{unchanged:true}},noteCopy=JSON.stringify(noteState);
+assert.equal(pc.playNoteRead(noteState,'voice','Clerk'),'');assert.equal(JSON.stringify(noteState),noteCopy);
+assert(pc.playNoteEdit(noteState,'voice','Clerk','Clipped, calls you friend.'));assert.equal(pc.playNoteRead(noteState,'voice','Clerk'),'Clipped, calls you friend.');assert(pc.acceptedVoiceHint(noteState,[{name:'Clerk'}]).includes('Clipped'));assert.equal(pc.acceptedVoiceHint(noteState,[{name:'Other'}]),'');
+pc.playNoteEdit(noteState,'voice','Clerk','Revised note');assert.equal(pc.playNoteRead(noteState,'voice','Clerk'),'Revised note');pc.playNoteEdit(noteState,'voice','Clerk','');assert.equal(pc.playNoteRead(noteState,'voice','Clerk'),'');assert.equal(noteState.seed.unchanged,true);
+assert.equal(pc.appendPlayHints({content:'context'},['Accepted voice notes: Clerk: brief'],5).content,'context');
+(async()=>{const rt=playRuntime(),disk=new Map();rt.ctx.spindle.storage.setJson=async(k,v)=>disk.set(k,structuredClone(v));rt.ctx.spindle.storage.getJson=async(k)=>structuredClone(disk.get(k)??null);
+ const st=await rt.ctx.getChatState('notes');rt.ctx.playNoteEdit(st,'voice','Clerk','Accepted by user');await rt.ctx.saveChatState('notes',st);rt.run('chatStateCache.clear()');const loaded=await rt.ctx.getChatState('notes');assert.equal(rt.ctx.playNoteRead(loaded,'voice','Clerk'),'Accepted by user');assert.equal(rt.writes.length,0);
+ console.log('Voice notes: own dialogue only, suggestions unaccepted, explicit edit/clear, current-cast reminder, spare budget and save/reload passed');
+})().catch(e=>{console.error(e);process.exitCode=1;});
+
+assert.equal(c.voiceSuggestion(dialogue,'Clerk King',['Clerk King']),'Short dialogue lines');assert.equal(c.voiceSuggestion(dialogue,'Clerk King',['Clerk King','Clerk Brown']),'');
+(async()=>{
+ const rt=playRuntime();rt.messages.push({id:'u1',role:'user',content:'I greet the clerk.'},{id:'a1',role:'assistant',content:playHud(),metadata:{rpg_companion:{swipes:{0:{characters:[{name:'Clerk',details:{appearance:'red coat'}}]}}}}},{id:'u2',role:'user',content:'I wait.'});
+ rt.run("settings.hmsMode='on';settings.hmsPinReminder=true;const st=emptyChatState();st.pins={mode:{text:'Narrative Mode: Strict Agency'}};playNoteEdit(st,'voice','Clerk','Clipped dialogue');chatStateCache.set('test',st)");
+ rt.ctx.input=[{role:'user',content:'I wait.',__isChatHistory:true}];
+ const prompt=async()=>JSON.stringify(await rt.run("rpgcInterceptor(input.map(x=>({...x})),{chatId:'test',generationType:'normal'})"));
+ const off=await prompt();assert(!off.includes('Accepted voice notes:'));rt.run('settings.playTools={voiceHint:true}');const on=await prompt();assert(on.includes('Accepted voice notes: Clerk: Clipped dialogue'));assert(on.length-off.length<=241);
+ rt.run('settings.playTools={voiceHint:false}');assert.equal(await prompt(),off);
+})().catch(e=>{console.error(e);process.exitCode=1;});

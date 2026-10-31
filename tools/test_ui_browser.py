@@ -88,6 +88,20 @@ class BrowserUi(unittest.TestCase):
         self.assertTrue(pane.evaluate('(e)=>e.scrollWidth<=e.clientWidth+1'))
 
 
+    def test_voice_suggestion_needs_explicit_acceptance(self):
+        self.page.locator('button.rpgc-npc-name').first.click()
+        name=self.page.locator('.rpgc-play-modal h3').inner_text()
+        req=self.page.evaluate("sent.findLast(x=>x.type==='play_prose')")
+        self.page.evaluate('p=>receive(p)',{'type':'play_prose','chatId':'test','replyId':req['replyId'],'requestKey':req['requestKey'],'rows':[{'text':f'[D:{name}]"Wait."\n[D:{name}]"Good morning."'}],'repetition':[]})
+        self.page.evaluate('p=>receive(p)',{'type':'play_note','chatId':'test','kind':'voice','name':name,'text':''})
+        pane=self.page.locator('.rpgc-voice-note')
+        self.assertIn('Suggestion — not accepted',pane.inner_text())
+        self.assertFalse(self.page.evaluate("sent.some(x=>x.type==='play_note_save')"))
+        pane.get_by_role('textbox').fill('My accepted note')
+        pane.get_by_role('button',name='Accept or save edit').click()
+        self.assertEqual(self.page.evaluate("sent.findLast(x=>x.type==='play_note_save').text"),'My accepted note')
+
+
     def test_calendar_birth_month_has_no_invented_day(self):
         payload=json.loads(json.dumps(FIXTURE['payload']))
         payload['userName']='Marcus'
