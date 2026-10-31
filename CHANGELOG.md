@@ -1,5 +1,11 @@
 # Changelog — RPG Companion HMS Edition
 
+## 3.2.4 RC — Every lorebook spell in the Magic catalog
+
+- Read spell entries whose `[SPELL — Name]` header comes after a fan-addition note, and treat `School (fan)` as that school.
+- Read entries the lorebook files under `[Spell]` even when written loosely (`Name [School - Rank]: …`, `Name [School Magic]: …` or `Name: …`). Spells without a stated rank appear as rank unknown.
+- Six-Sided World: the Magic catalog now lists all 144 spells (was 111). Existing spells, saved progress and other cards are unchanged.
+
 ## 3.2.3 RC — Targeted tracking fixes
 
 - Keep confirmed active quest progress from regressing while preserving legacy resets, explicit stage/condition changes and reopening. Clarify whole-quest progress and per-reply Minds feelings in model instructions.

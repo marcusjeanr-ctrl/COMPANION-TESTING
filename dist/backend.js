@@ -2678,7 +2678,7 @@ async function pushState(chatId, snapshot = null) {
 // Demo mode plays scripted turns (no tokens); Live mode asks the model, with a small
 // world narrator standing in for a bot card.
 
-const RPGC_VERSION = '3.2.3';
+const RPGC_VERSION = '3.2.4';
 const diagLog = [];
 function diagPush(kind, m) { diagLog.push({ at: new Date().toISOString(), kind, text: String(m).slice(0, 400) }); if (diagLog.length > 60) diagLog.shift(); }
 function logW(m) { diagPush('warn', m); return spindle.log.warn(m); }
@@ -16079,11 +16079,13 @@ function spellsFromEntry(e, out) {
         const step = spellMtStep(row.rank);
         out.push({ name: row.name, school: row.school, parent: null, ladder: 'mt', step, rank: row.rank, kind: row.school === 'Melded' ? 'melded' : 'ranked', who: null, needs: row.needs, effect: spellClip(row.effect, 240), chant: null, fan: row.fan, src: e.id });
     }
-    const head = text.match(/^\s*\[SPELL\s*[—–-]\s*([^\]]+)\]/i);
+    const before = out.length;
+    // The header may follow a "[FAN ADDITION — NOT CANON]" note, so it is matched on any line.
+    const head = text.match(/^[ \t]*\[SPELL\s*[—–-]\s*([^\]]+)\]/im);
     if (head) {
         const name = head[1].trim();
         const sr = text.match(/School:\s*([^\n·|]+?)\s*(?:[·|]\s*|\n\s*)Rank:\s*([^\n]+)/i) || text.match(/School:\s*([^\n]+)/i);
-        const raw = sr ? sr[1].trim() : '';
+        const raw = sr ? sr[1].replace(/\s*\(fan\)\s*$/i, '').trim() : '';   // "Space (fan)" is the Space school
         const rankRaw = sr && sr[2] ? sr[2].trim() : '';
         const eff = text.match(/^Effect:\s*(.+)$/im), ch = text.match(/^(?:Chant|Incantation):\s*(.+)$/im);
         const row = { name, school: 'Other', parent: null, ladder: 'mt', step: spellMtStep(rankRaw), rank: rankRaw && !/^(not stated|unknown|[—–-]|melded)$/i.test(rankRaw) ? rankRaw.replace(/\s*\(.*$/, '') : null,
@@ -16107,6 +16109,21 @@ function spellsFromEntry(e, out) {
         out.push({ name: m[1].trim(), school: spellSchoolName(m[2]), parent: null, ladder: 'mt', step, rank: step === null ? null : m[3].trim(), kind: step === null ? 'free' : 'ranked',
             who: null, needs: [], effect: spellClip(m[4], 240), chant: null, fan, src: e.id });
     }
+    // An entry the lorebook files under [Spell] is a spell even when written loosely:
+    // "Name [School - Rank]: …", "Name [School Magic]: …" or just "Name: …".
+    const title = String(e.comment || '').match(/\[Spell\]\s*(.+)$/i)?.[1]?.trim();
+    if (out.length > before || !title || /\b(?:catalog(?:ue)?|index)\b/i.test(title)) return;
+    for (const raw of text.split('\n')) {
+        const m = raw.match(/^\s*\**\s*([^\[\n*:]{2,60}?)\s*\**\s*\[([A-Za-z][\w ]*?)(?:\s+Magic)?\s*(?:[-–—]\s*([A-Za-z]+))?\]\s*\**\s*:\s*(.+)$/);
+        if (!m) continue;
+        const step = spellMtStep(m[3]);
+        out.push({ name: m[1].trim(), school: spellSchoolName(m[2]), parent: null, ladder: 'mt', step, rank: step === null ? null : m[3].trim(), kind: step === null ? 'free' : 'ranked',
+            aliases: Array.isArray(e.key) ? e.key : [], who: null, needs: [], effect: spellClip(m[4], 240), chant: null, fan, src: e.id });
+        return;
+    }
+    const line = text.match(new RegExp('^\\s*' + title.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '\\s*:\\s*(.+)$', 'im'));
+    out.push({ name: title, school: 'Other', parent: null, ladder: 'mt', step: null, rank: null, kind: 'free',
+        aliases: Array.isArray(e.key) ? e.key : [], who: null, needs: [], effect: line ? spellClip(line[1], 240) : null, chant: null, fan, src: e.id });
 }
 
 /** A spell index ("### SCHOOL" › "**Series**" › "* **Spell** – …") or an element entry ("## X Magic – Core Definition" › "## Series" › bullets). */
