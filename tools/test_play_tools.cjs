@@ -56,3 +56,10 @@ assert.equal(c.snapshotChanges({hms:{},chronicle:null},{hms:{},chronicle:[{id:'o
 const loopView={userName:'Marcus',hms:{relations:{people:[{name:'Aurelius'}]},minds:{chekhov:{chamber:[{id:'c1',what:"Aurelius's promise to arrange a meeting with the Greyrat boy",age:2,readAt:540,status:'live'},{id:'c2',what:"Aurelius's promise to introduce Marcus to the Greyrat boy",age:1,readAt:550,status:'live'}],locked:[],fired:[{what:'Already paid off'}]}},secrets:{yours:[{text:'An unresolved secret'},{text:'A public secret',status:'public'}]}},plotView:{threads:[{name:'An open thread',state:'open'},{name:'Resolved thread',state:'resolved'}]}};
 const loopsOriginal=JSON.stringify(loopView),loops=c.openLoopRows(loopView);assert.equal(loops.length,3);assert.equal(loops.find(x=>x.entry.kind==='promise').count,2);assert(!loops.some(x=>x.entry.text.includes('paid off')||x.entry.text.includes('public secret')));assert.equal(JSON.stringify(loopView),loopsOriginal);assert.equal(c.openLoopRows({}).length,0);
 console.log('Open loops: existing live promises/secrets/threads, shared conservative dedup, paid-off/resolved exclusion and immutability passed');
+const standingLadder=['Hostile','Wary','Friendly','Close'];
+assert.equal(c.standingHistory({standing:'Friendly',events:[]},standingLadder).points.length,1);
+assert.equal(c.standingHistory({standing:'Close',events:['Wary → Friendly','Friendly → Close']},standingLadder).points.at(-1).value,3);
+assert.equal(c.standingHistory({standing:'Hostile',events:['Close → Wary','Wary → Hostile']},standingLadder).points.at(-1).value,0);
+assert.equal(c.standingHistory({standing:'Wary',events:['Wary → Close','Close → Wary']},standingLadder).points.length,3);
+assert(c.standingHistory({events:Array(20).fill('Wary → Close')},standingLadder).points.length<=12);assert.equal(c.standingHistory({},standingLadder).points.length,0);
+console.log('Standing history: stable/rising/falling/flip-flop, unknown ranks and bounded observations passed');

@@ -65,6 +65,18 @@ class BrowserUi(unittest.TestCase):
         self.assertLessEqual(bounds['x']+bounds['width'],viewport['width']+1)
         self.assertLessEqual(bounds['y']+bounds['height'],viewport['height']+1)
 
+    def test_standing_history_is_in_lazy_npc_dossier(self):
+        payload=json.loads(json.dumps(FIXTURE['payload']))
+        person=payload['hms']['relations']['people'][0]
+        person.update(standing='Close',events=['Wary → Friendly','Friendly → Close'])
+        self.receive(payload)
+        self.assertEqual(self.page.locator('.rpgc-standing-history').count(),0)
+        self.page.locator('button.rpgc-npc-name').first.click()
+        graph=self.page.locator('.rpgc-standing-history svg')
+        self.assertEqual(graph.count(),1)
+        self.assertTrue(graph.evaluate('(e)=>e.getBoundingClientRect().width<=innerWidth'))
+        self.assertIn('Wary → Friendly → Close',self.page.locator('.rpgc-standing-history').inner_text())
+
     def test_open_loops_excludes_paid_off_and_resolved_sources(self):
         payload=json.loads(json.dumps(FIXTURE['payload']))
         payload['hms']['minds']['chekhov']={'chamber':[{'id':'live','what':'Aurelius promises a meeting','w':2,'age':1,'readAt':540,'status':'live'}],

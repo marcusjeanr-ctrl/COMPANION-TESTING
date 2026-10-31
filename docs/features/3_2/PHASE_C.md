@@ -30,3 +30,15 @@ or undated matches stay separate. Feature off hides it without extracting data.
 Files: frontend helper/view, shared tests, Chromium case and four dictionaries.
 Tests cover promised-detail grouping, paid-off/resolved exclusion, empty input,
 immutable state and closed-view laziness. No backend, prompt or new request.
+
+## 12. Per-NPC standing history
+
+The dossier can show a bounded 12-point step chart from existing standing events
+and the latest reported standing, using the configured ladder. It does not parse
+bond-kind changes as standings or infer dates for undated observations. One known
+standing is one point, not invented historical samples. Graph construction occurs
+only in an open dossier with the feature enabled. Source events are never edited.
+Files: frontend, shared tests, Chromium case and four dictionaries. Tests cover
+stable/rising/falling/flip-flop, unknown data and point cap; real SVG fits 320px.
+The chart's x-axis is observation order, not a fabricated precise time scale.
+No backend, prompt or persistent-data change.
