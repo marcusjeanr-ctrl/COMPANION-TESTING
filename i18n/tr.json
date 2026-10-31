@@ -2749,5 +2749,14 @@
  "Accept or save edit": "Kabul et veya düzenlemeyi kaydet",
  "Save note": "Notu kaydet",
  "Clear note": "Notu temizle",
- "Accepted voice notes in context (opt-in)": "Kabul edilen konuşma notları bağlamda (isteğe bağlı)"
+ "Accepted voice notes in context (opt-in)": "Kabul edilen konuşma notları bağlamda (isteğe bağlı)",
+ "Daily journal": "Günlük",
+ "No dated journal events": "Günlük için tarihli olay yok",
+ "Journal day": "Günlük günü",
+ "Journal entry": "Günlük kaydı",
+ "Only Save writes your edited journal.": "Düzenlenen günlük yalnızca Kaydet ile saklanır.",
+ "Save journal": "Günlüğü kaydet",
+ "Ask the story to write this day in my voice": "Hikâyeden bu günü benim ağzımdan yazmasını iste",
+ "Note limit reached": "Not sınırına ulaşıldı",
+ "Could not draft journal": "Günlük taslağı oluşturulamadı"
 }

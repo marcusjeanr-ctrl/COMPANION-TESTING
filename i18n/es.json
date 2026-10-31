@@ -2749,5 +2749,14 @@
  "Accept or save edit": "Aceptar o guardar edición",
  "Save note": "Guardar nota",
  "Clear note": "Borrar nota",
- "Accepted voice notes in context (opt-in)": "Notas de voz aceptadas en contexto (opcional)"
+ "Accepted voice notes in context (opt-in)": "Notas de voz aceptadas en contexto (opcional)",
+ "Daily journal": "Diario",
+ "No dated journal events": "No hay eventos fechados para el diario",
+ "Journal day": "Día del diario",
+ "Journal entry": "Entrada del diario",
+ "Only Save writes your edited journal.": "Solo Guardar escribe tu diario editado.",
+ "Save journal": "Guardar diario",
+ "Ask the story to write this day in my voice": "Pedir a la historia que escriba este día con mi voz",
+ "Note limit reached": "Límite de notas alcanzado",
+ "Could not draft journal": "No se pudo redactar el diario"
 }

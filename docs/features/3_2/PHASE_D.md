@@ -70,3 +70,37 @@ settings/suggestion helper; tests/Chromium; four dictionaries. Tests cover no/ow
 and ambiguous dialogue, unaccepted suggestions, edit/clear, sparse old stores,
 current-cast ownership, save/reload, actual interceptor off/on/off identity and
 spare-budget rejection. No automatic model request or generated note persistence.
+
+## 18. Daily journal
+
+The lazy view assembles recorded moments/milestones/plot-quest changes by known
+in-game day from the existing Chronicle cache, reusing Phase A display deduplication.
+Missing dated evidence yields an empty state; different loops and months stay
+separate. Investigation found `chronWhen` intentionally emits only Day N / HH:MM.
+The on-demand Chronicle builder now adds an optional full `recordedDay` from its
+already-read HUD date (existing calendar parser); its old visible `when` label is
+unchanged. The shared display grouping prefers that full anchor, so Day 8 in two
+months cannot collapse. This is ephemeral projection data, never a report rewrite.
+No new history pass, calendar rule or inferred date is introduced.
+
+Only explicit Save writes the edited text to optional `playNotes.journal`.
+Thirty accepted entries / 8,000 characters each are supported; capacity rejects a
+new entry without deleting an old one. Saved-date keys remain selectable even when
+outside the recent 30 assembled days, so accepted entries can still be edited or
+cleared. Old stores need no migration. Generated assembly and unsaved edits are
+not persisted. Refreshes preserve the current unsaved draft in memory.
+
+The optional story-draft button invokes the existing OOC route ONLY on a user
+click. Its ephemeral option returns a draft without saving the OOC log, journal
+or chat. Ordinary OOC behavior is unchanged. The user must review/edit and Save;
+no automatic model call, gameplay transaction or narrator message is produced.
+Default prompt sizes are unchanged. An explicit manual OOC request has its existing
+route/cost; this exception is the manual button authorized in the master task.
+
+Files: backend Chronicle date projection, additive note RPC and OOC ephemeral path;
+frontend journal helper/lazy editor/settings; shared tests; Chromium; dictionaries.
+Tests cover no/one/multiple days, real parsed K-calendar months with identical day
+numbers, unknown dates, immutable messages, edit/reload, no request/save on load,
+exactly one manual OOC draft and no OOC/chat write. Browser verifies editing/save
+and that the model button runs only after a click. Actual generated draft quality
+and host provider behavior have not been tested; fixtures use a stub, never paid API.

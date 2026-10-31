@@ -2749,5 +2749,14 @@
  "Accept or save edit": "Принять или сохранить правку",
  "Save note": "Сохранить заметку",
  "Clear note": "Удалить заметку",
- "Accepted voice notes in context (opt-in)": "Принятые заметки о речи в контексте (по выбору)"
+ "Accepted voice notes in context (opt-in)": "Принятые заметки о речи в контексте (по выбору)",
+ "Daily journal": "Дневник",
+ "No dated journal events": "Нет датированных событий для дневника",
+ "Journal day": "День дневника",
+ "Journal entry": "Запись дневника",
+ "Only Save writes your edited journal.": "Только сохранение записывает отредактированный дневник.",
+ "Save journal": "Сохранить дневник",
+ "Ask the story to write this day in my voice": "Попросить историю описать этот день моим голосом",
+ "Note limit reached": "Достигнут лимит заметок",
+ "Could not draft journal": "Не удалось составить дневник"
 }

@@ -119,3 +119,17 @@ assert.equal(c.voiceSuggestion(dialogue,'Clerk King',['Clerk King']),'Short dial
  const off=await prompt();assert(!off.includes('Accepted voice notes:'));rt.run('settings.playTools={voiceHint:true}');const on=await prompt();assert(on.includes('Accepted voice notes: Clerk: Clipped dialogue'));assert(on.length-off.length<=241);
  rt.run('settings.playTools={voiceHint:false}');assert.equal(await prompt(),off);
 })().catch(e=>{console.error(e);process.exitCode=1;});
+
+const journalView={chronData:{entries:[{id:'a',kind:'moment',text:'Won a duel',who:['Clerk'],when:'K417 Month 4 Day 1, 09:00',replyIndex:1},{id:'b',kind:'milestone',text:'Earned a title',when:'K417 Month 4 Day 2, 10:00'},{id:'c',kind:'moment',text:'Undated event'}]}};
+assert.equal(c.dailyJournalRows(journalView).length,2);assert.equal(c.dailyJournalRows({}).length,0);assert(!c.dailyJournalRows(journalView).some(x=>x.text.includes('Undated')));
+(async()=>{const rt=playRuntime(),disk=new Map();let calls=0;rt.ctx.spindle.storage.setJson=async(k,v)=>disk.set(k,structuredClone(v));rt.ctx.spindle.storage.getJson=async(k)=>structuredClone(disk.get(k)??null);rt.quiet(()=>{calls++});
+ const st=await rt.ctx.getChatState('diary');assert.equal(calls,0);rt.ctx.playNoteEdit(st,'journal','K417 Month 4 Day 1','My edited day');await rt.ctx.saveChatState('diary',st);rt.run('chatStateCache.clear()');assert.equal(rt.ctx.playNoteRead(await rt.ctx.getChatState('diary'),'journal','K417 Month 4 Day 1'),'My edited day');
+ rt.ctx.spindle.generate.quiet=async()=>{calls++;return {content:'My recorded day.'}};await rt.ctx.oocAsk('diary','Write this recorded day in first person.','',{ephemeral:true});assert.equal(calls,1);assert.equal((await rt.ctx.getChatState('diary')).ooc,undefined);assert.equal(rt.writes.length,0);
+ console.log('Journal: dated days/empty/undated, explicit saved edit reload, no automatic call and ephemeral OOC without chat writes passed');
+})().catch(e=>{console.error(e);process.exitCode=1;});
+const diaryRt=playRuntime(),diaryChat=[{id:'day-a',role:'assistant',content:playHud()},{id:'day-b',role:'assistant',content:playHud('New Town').replace('Thawmoon (Month 2)','Month 3'),metadata:{rpg_companion:{swipes:{0:{moments:[{text:'Won the second-month spar',who:['Aurelius']}]}}}}}],diarySource=JSON.stringify(diaryChat);
+const diaryChron=diaryRt.ctx.chronicleBuild(diaryChat,diaryRt.ctx.emptyChatState());
+assert(diaryChron.some(x=>x.recordedDay==='K417, Month 2, Day 8'));assert(diaryChron.some(x=>x.recordedDay==='K417, Month 3, Day 8'));assert.equal(JSON.stringify(diaryChat),diarySource);assert.equal(diaryRt.writes.length,0);
+assert.equal(c.dailyJournalRows({chronData:{entries:diaryChron}}).length,2);
+assert.equal(c.dailyBondGroups([{...bonds[0],recordedDay:'K417, Month 2, Day 1'},{...bonds[1],recordedDay:'K417, Month 3, Day 1'}]).length,2);
+assert.equal(c.dailyJournalRows({chronData:{entries:[{kind:'moment',when:'Day 1, 09:00',recordedDay:null,text:'No current dated HUD'}]}}).length,0);
