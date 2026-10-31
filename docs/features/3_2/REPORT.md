@@ -234,3 +234,7 @@ reviewing/deferring item 2 is a decision for the next acceptance step.
 **None of this has been tested in a live Lumiverse instance**, Android WebView or
 live provider. Browser bridge tests, synthetic card fixtures and JSON checks do not
 establish live campaign acceptance. No paid API tests were run.
+
+## Current Phase B update
+
+Items 4–9 are implemented, one commit per item. [Files, tests, limitations and passing revised gate](PHASE_B.md). All original Phase A measurements remain above; their historical stop language is superseded by GATE_REVISION.md. Phase C proceeds under the new rule; no main merge or release is authorized.

@@ -2709,5 +2709,9 @@
  "Appointment countdown": "Randevu geri sayımı",
  "Quest chains": "Görev zincirleri",
  "Continues from {0}": "{0} görevinden devam eder",
- "Continued in {0}": "{0} görevinde devam eder"
+ "Continued in {0}": "{0} görevinde devam eder",
+ "Ability evidence": "Yetenek kanıtları",
+ "Retained observations: {0}": "Saklanan gözlemler: {0}",
+ "Historical evidence: {0}": "Geçmiş kanıtlar: {0}",
+ "No retained evidence": "Saklanan kanıt yok"
 }

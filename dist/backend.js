@@ -16547,8 +16547,8 @@ function martialAbilityItems(chatId, chat, st) {
         if (state) {
             const observations = [
                 ...(practice ? [{ name: practice.name, state: 'Training', progress: practice.progress, note: practice.note, at: practice.at, msgId: practice.msgId }] : []),
-                ...(saved ? [{ name: saved.name, state: earnedState || (verified ? states[verified.state] || state : state), at: latestKnowledge, msgId: saved.msgId, evidence: saved.evidence?.evidence }] : []),
-                ...(assessment ? [{ name: assessment.name, state: states[assessment.state] || state, at: assessment.at, msgId: assessment.msgId, evidence: assessment.evidence }] : [])
+                ...(saved ? [{ name: saved.name, state: earnedState || (verified ? states[verified.state] || state : state), at: latestKnowledge, msgId: saved.msgId, evidence: saved.evidence?.evidence || (typeof saved.evidence==='string'?saved.evidence:undefined), historical:saved.historical ?? saved.evidence?.historical }] : []),
+                ...(assessment ? [{ name: assessment.name, state: states[assessment.state] || state, at: assessment.at, msgId: assessment.msgId, evidence: assessment.evidence, historical:assessment.historical }] : [])
             ];
             const after = retractions.get(martialIdentity(event.name)) ?? -1, retained = observations.filter(x => x.at > after);
             if (retained.length) out.push({ name: event.name, state: after >= 0 ? retained.at(-1).state : state, level: null, label: null, src: null, observations: retained });

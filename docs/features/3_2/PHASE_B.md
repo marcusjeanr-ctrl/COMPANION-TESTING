@@ -91,3 +91,34 @@ Tests cover unique overlap, explicit references, two unrelated same-giver tasks,
 ambiguous candidates, completed-only boundaries, immutability, reciprocal labels
 and zero quest-control writes. Heuristic links are display suggestions, not proof
 of a card-defined quest dependency. No backend or prompt change.
+
+## 9. Evidence behind ability labels
+
+Only retained source-backed observations are counted, once per reply ID; rejected
+assessments and unsourced legacy notes are not promoted to evidence. Historical
+records are labeled separately, not counted as current uses. The latest retained
+quote is available in the tooltip. This deliberately does not invent a lifetime
+use count from repeated spell lists: current projections retain a limited set of
+observations, so the label says Retained observations rather than claiming all uses.
+No level, learning, mastery, attribution or retraction rule changed.
+
+Files: frontend badge/helper, two additive historical/quote projection fields in
+backend `martialAbilityItems`, shared tests, Chromium case and four dictionaries.
+No new history pass/cache is created. Existing accepted source data is reused;
+counts are assembled only when the relevant card is open and the setting enabled.
+Tests cover one/several/duplicate observations, no evidence, rejected claims,
+historical-only evidence, real parser/fold projection and unchanged metadata, plus
+browser labels and opt-out. Existing classification tests pass. No prompt change.
+
+## Phase B acceptance
+
+Node 22 release identity and both syntax checks pass; **61** runtime suites plus **12** gate tests pass. Real Chromium/mock bridge: **48 UI + 5 visibility** tests pass. Source hashes match the frozen tested runtime after local commit cleanup. No live Lumiverse instance was tested.
+
+[Corrected three-way summary](REVISED_PHASE_B.json), [complete raw observations](REVISED_PHASE_B_RAW.json.gz), and [original individual-read-noise analysis](REVISED_PHASE_B_ORIGINAL_SAMPLE_NOISE.json.gz) are retained. No observations were rerun or discarded for the noise-statistic correction. Main is frozen at the phase-start e07830a.
+
+| Case | Wall median baseline → candidate, ms | CPU median baseline → candidate, ms | Gate |
+| --- | --- | --- | --- |
+| 600 warm | 68.13 → 68.82 (+1.01%) | 132.01 → 139.58 (+5.74%) | informational |
+| 2000 warm | 165.56 → 158.25 (-4.42%) | 248.03 → 233.83 (-5.72%) | pass |
+
+**Phase B passes** the revised main-relative rule. Run medians, IQRs, min/max, spreads, MADs and cold/whole-process CPU readings are in the linked artifacts. 3.0.10 comparisons remain informational. Phase C may proceed. No per-item speed improvement is inferred from this backend-only synthetic gate; new UI views are functionally tested and lazy, not live-certified.

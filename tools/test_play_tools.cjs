@@ -39,3 +39,11 @@ assert.equal(c.questChainLinks([chainQuests[0],{...chainQuests[0],key:'alternati
 console.log('Quest chains: completed predecessor, meaningful overlap, explicit reference, unrelated same giver and ambiguity passed without merging');
 
 assert.equal(c.questChainLinks([{key:'training',name:'Training',state:'completed',giver:'A'},{key:'another',name:'Training at home',state:'active',giver:'B'}]).length,0);
+const evidenceItem={observations:[{msgId:'1',state:'Reliable',evidence:'You execute the cut.',at:1},{msgId:'1',state:'Reliable',evidence:'You execute the cut.',at:1},{msgId:'2',state:'Known',evidence:'You execute it again.',at:2},{msgId:'3',state:'Known',evidence:'You practice in the spar.',at:3}]},evidenceOriginal=JSON.stringify(evidenceItem);
+assert.equal(c.abilityEvidenceSummary({observations:[evidenceItem.observations[0]]}).current,1);assert.equal(c.abilityEvidenceSummary(evidenceItem).current,3);assert.equal(c.abilityEvidenceSummary(evidenceItem).last.msgId,'3');
+assert.equal(c.abilityEvidenceSummary({}).current,0);assert.equal(c.abilityEvidenceSummary({observations:[{...evidenceItem.observations[0],historical:true}]}).historical,1);assert.equal(c.abilityEvidenceSummary({observations:[{...evidenceItem.observations[0],state:'unverified'}]}).current,0);assert.equal(JSON.stringify(evidenceItem),evidenceOriginal);
+console.log('Ability evidence: one/several/deduplicated observations, empty, rejected and historical-only without progression changes passed');
+const evidenceRuntime=playRuntime(),bc=evidenceRuntime.ctx,quote='You knew the compact diagonal cut long ago.';
+const historicalData=bc.parseCompanion('<rpg_companion>'+JSON.stringify({you:{abilities:[{name:'Compact diagonal cut',owner:'you',historical:true,state:'known',evidence:quote}]}})+'</rpg_companion>');
+const historyMsg={id:'past-evidence',role:'assistant',content:playHud()+'\n'+quote,metadata:{rpg_companion:{swipes:{0:{...historicalData,survival:historicalData.you}}}}},historyBefore=JSON.stringify(historyMsg);
+const ability=bc.martialAbilityItems('test',[historyMsg],bc.emptyChatState())[0];assert.equal(c.abilityEvidenceSummary(ability).historical,1);assert.equal(c.abilityEvidenceSummary(ability).current,0);assert.equal(JSON.stringify(historyMsg),historyBefore);assert.equal(evidenceRuntime.writes.length,0);

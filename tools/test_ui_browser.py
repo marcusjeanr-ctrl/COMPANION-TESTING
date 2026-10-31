@@ -65,6 +65,23 @@ class BrowserUi(unittest.TestCase):
         self.assertLessEqual(bounds['x']+bounds['width'],viewport['width']+1)
         self.assertLessEqual(bounds['y']+bounds['height'],viewport['height']+1)
 
+    def test_ability_evidence_retained_and_historical_are_distinct(self):
+        payload=json.loads(json.dumps(FIXTURE['payload']))
+        obs=[{'msgId':str(i),'state':'Reliable','evidence':'You execute the cut.','at':i,'historical':False} for i in range(3)]
+        item={'name':'Compact diagonal cut','state':'Reliable','observations':obs}
+        payload['hms']['systems']['abilities']=[{'category':'Martial','items':[item]}]
+        self.receive(payload)
+        pane=self.page.locator('[data-open-key=abilities]')
+        self.assertIn('Retained observations: 3',pane.inner_text())
+        for row in obs: row['historical']=True
+        self.receive(payload)
+        self.assertIn('Historical evidence: 3',pane.inner_text())
+        item['observations']=[];self.receive(payload)
+        self.assertIn('No retained evidence',pane.inner_text())
+        payload['settings']['playTools']={'abilityEvidence':False}
+        self.receive(payload)
+        self.assertEqual(pane.locator('.rpgc-ability-evidence').count(),0)
+
     def test_quest_chain_labels_keep_separate_cards_and_opt_out(self):
         payload=json.loads(json.dumps(FIXTURE['payload']))
         base=payload['hms']['systems']['quests'][0]
