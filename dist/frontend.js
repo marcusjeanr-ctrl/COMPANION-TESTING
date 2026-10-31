@@ -1188,7 +1188,8 @@ function agendaDisplayTiming(item, clock, hud) {
     const unknown = {delta:null,status:'unset',dayOnly:false};
     if (item.dueAt != null || item.dueIn != null) return unknown;
     const raw = String(item.displayDueDate || item.due || item.when || '').trim();
-    const k = raw.match(/^K\.?\s*(\d{3,4})-(\d{1,2})-(\d{1,2})$/i);
+    // "K417-04-14", or the HUD's own "K417, Month 4, Day 14" / "K417, Bloomtide (Month 4), Day 14".
+    const k = raw.match(/^K\.?\s*(\d{3,4})-(\d{1,2})-(\d{1,2})$/i) || raw.match(/^K\.?\s*(\d{3,4})\s*,\s*(?:[^,(]*\(\s*)?Month\s*(\d{1,2})\s*\)?\s*,\s*Day\s*(\d{1,2})$/i);
     const iso = raw.match(/^(\d{4})-(\d{2})-(\d{2})$/);
     if (!k && !iso) return unknown;
     const lines = (hud?.lines || []).map(l => l.text || '');
@@ -1430,7 +1431,7 @@ export function setup(ctx) {
         id: 'rpg-companion-hms',
         title: 'RPG Companion (HMS)',
         shortName: 'RPG',
-        headerTitle: 'RPG Companion HMS Edition 3.2.4 RC',
+        headerTitle: 'RPG Companion HMS Edition 3.2.5 RC',
         description: 'The side panel for HMS bots: the HUD as cards, people, quests, the map, fights, the Chronicle, and a guide',
         keywords: ['rpg', 'hms', 'tracker', 'hud', 'quests', 'dice', 'guide'],
         iconSvg: ICON_SVG
@@ -6856,7 +6857,7 @@ body{background:${bs ? bs.backgroundColor : '#111'};color:${bs ? bs.color : '#dd
             if (!popWin || popWin.closed) {
                 popWin = window.open('', 'rpgc_popout', 'width=460,height=860');
                 if (!popWin) { state.status = { kind: 'warning', text: 'The browser blocked the pop-out window. Allow pop-ups for Lumiverse and try again.' }; const s = S(); s.uiPanelMode = 'drawer'; return applyPanelMode(); }
-                popWin.document.title = 'RPG Companion HMS Edition 3.2.4 RC';
+                popWin.document.title = 'RPG Companion HMS Edition 3.2.5 RC';
                 syncPopoutLook(popWin);
                 try { if (!popLookObs) { popLookObs = new MutationObserver(() => syncPopoutLook(popWin)); popLookObs.observe(document.documentElement, { attributes: true }); if (document.body) popLookObs.observe(document.body, { attributes: true, attributeFilter: ['class'] }); } } catch { /* optional */ }
                 popWin.addEventListener('beforeunload', () => { popWin = null; if (panelMode() === 'popout') { const s = S(); s.uiPanelMode = 'drawer'; saveSettings(false); applyPanelMode(); render(); } });

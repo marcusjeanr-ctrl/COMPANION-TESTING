@@ -2678,7 +2678,7 @@ async function pushState(chatId, snapshot = null) {
 // Demo mode plays scripted turns (no tokens); Live mode asks the model, with a small
 // world narrator standing in for a bot card.
 
-const RPGC_VERSION = '3.2.4';
+const RPGC_VERSION = '3.2.5';
 const diagLog = [];
 function diagPush(kind, m) { diagLog.push({ at: new Date().toISOString(), kind, text: String(m).slice(0, 400) }); if (diagLog.length > 60) diagLog.shift(); }
 function logW(m) { diagPush('warn', m); return spindle.log.warn(m); }
@@ -13297,8 +13297,15 @@ function agendaCfg(cfg) {
 }
 
 /** When something falls due, in HUD-clock minutes: the HUD's own format first, then plain words ("tomorrow at dawn", "in three days"). */
+/** "K417-04-14" or "K417-04-12T09:30" (a compact date some models write) in the HUD's own words. */
+function agendaKDate(value) {
+    return typeof value !== 'string' ? value : value.replace(/\bK\.?\s*(\d{3,4})-(\d{1,2})-(\d{1,2})(?:T(\d{1,2}:\d{2}))?\b/i,
+        (_, y, mo, d, t) => `K${y}, Month ${Number(mo)}, Day ${Number(d)}${t ? `, ${t}` : ''}`);
+}
+
 function agendaScheduleDay(due, when, at, hud = null) {
     if (at === null || at === undefined) return null;
+    due = agendaKDate(due);
     const text = String(due || when || '');
     if (/\b(?:Day\s*:?\s*\d+|Month\s*\d+|Year\s*:|Armored Dragon Calendar)\b/i.test(text)) {
         const parsed = hmsParseWhen(text, at, hud);
@@ -13306,10 +13313,13 @@ function agendaScheduleDay(due, when, at, hud = null) {
     }
     const t = String(when || '');
     if (!t) return null;
+    const days = t.match(/\bin\s+(\d+|one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|an?)\s+days?\b/i);
+    if (days) return Math.floor(at / 1440) + (/^\d+$/.test(days[1]) ? Number(days[1]) : AGENDA_NUM[days[1].toLowerCase()]);
     return Math.floor(at / 1440) + (/\bday after tomorrow\b/i.test(t) ? 2 : /\btomorrow\b/i.test(t) ? 1 : /\bnext week\b/i.test(t) ? 7 : 0);
 }
 
 function agendaWhen(due, when, at, hud = null, source = null) {
+    due = agendaKDate(due);
     if (/^\s*(?:right now|now|immediately)\s*$/i.test(when || due || '')) return at ?? null;
     const relative = String(when || due || '').match(/^\s*in\s+(\d+|one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|an?)\s+(minutes?|hours?)\s*$/i);
     if (relative && at !== null && at !== undefined) {
@@ -17308,6 +17318,8 @@ function agendaScheduleCompatible(a, b, dueAt, refine = false) {
     if (agendaPacketClockOutcome(a, b, dueAt)) return true;
     if (agendaRepeatedClock(a, b, refine)) return true;
     if (a.scheduleDay !== null && a.scheduleDay !== undefined && b.scheduleDay !== null && b.scheduleDay !== undefined && a.scheduleDay !== b.scheduleDay) return false;
+    // A kept/missed/cancelled report closes the same-day occurrence already under way, however its time is worded.
+    if (a.state === 'in_progress' && ['kept', 'missed', 'cancelled'].includes(b.state) && a.scheduleDay != null && a.scheduleDay === b.scheduleDay) return true;
     if (refine && b.continuing && a.scheduleDay != null && a.scheduleDay === b.scheduleDay) {
         const validState = ['open', 'in_progress', 'kept', 'missed', 'cancelled'].includes(b.state);
         const linked = ['open', 'in_progress'].includes(a.state) || b.continuing === 'terminal' && ['kept', 'missed', 'cancelled'].includes(a.state);
