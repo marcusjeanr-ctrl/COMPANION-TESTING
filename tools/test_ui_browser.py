@@ -65,19 +65,11 @@ class BrowserUi(unittest.TestCase):
         self.assertLessEqual(bounds['x']+bounds['width'],viewport['width']+1)
         self.assertLessEqual(bounds['y']+bounds['height'],viewport['height']+1)
 
-    def test_repetition_is_lazy_read_only_and_default_hint_off(self):
-        pane=self.page.locator('[data-open-key=play-repetition]')
-        self.page.wait_for_function("sent.some(x=>x.type==='play_prose')")
-        self.page.evaluate("p=>receive(p)",{'type':'play_prose','chatId':'test','requestKey':self.page.evaluate("sent.findLast(x=>x.type==='play_prose').requestKey"),'replyId':FIXTURE['payload']['hms']['messageId'],'rows':[],'repetition':[{'text':'sharp','count':8,'total':10}]})
-        self.assertIn('sharp · 8/10',pane.inner_text())
-        pane.locator('summary').click();self.assertFalse(pane.locator('li').first.is_visible())
-
-
     def test_voice_suggestion_needs_explicit_acceptance(self):
         self.page.locator('button.rpgc-npc-name').first.click()
         name=self.page.locator('.rpgc-play-modal h3').inner_text()
-        req=self.page.evaluate("sent.findLast(x=>x.type==='play_prose')")
-        self.page.evaluate('p=>receive(p)',{'type':'play_prose','chatId':'test','replyId':req['replyId'],'requestKey':req['requestKey'],'rows':[{'text':f'[D:{name}]"Wait."\n[D:{name}]"Good morning."'}],'repetition':[]})
+        req=self.page.evaluate("sent.findLast(x=>x.type==='voice_dialogue')")
+        self.page.evaluate('p=>receive(p)',{'type':'voice_dialogue','chatId':'test','replyId':req['replyId'],'requestKey':req['requestKey'],'rows':[{'text':f'[D:{name}]"Wait."\n[D:{name}]"Good morning."'}],'repetition':[]})
         self.page.evaluate('p=>receive(p)',{'type':'play_note','chatId':'test','kind':'voice','name':name,'text':''})
         pane=self.page.locator('.rpgc-voice-note')
         self.assertIn('Suggestion — not accepted',pane.inner_text())

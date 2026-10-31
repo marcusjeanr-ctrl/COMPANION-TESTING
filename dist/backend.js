@@ -2477,11 +2477,11 @@ function trackerSnapshotEdit(st, payload) {
 }
 
 // Bounded visible prose, requested only by an open play view or explicit opt-in.
-function playProse(chat) {
+function voiceDialogueRows(chat) {
     const rows=[];
     for(let i=(chat || []).length-1;i>=Math.max(0,chat.length-40)&&rows.length<10;i--) {
         const m=chat[i];if(m.role!=='assistant'||!trackingMessageVisible(m)||(m._rpgcPurpose&&m._rpgcPurpose!=='story'))continue;
-        const raw=stripLeakedReasoning(textOf(m.content)),wall=/^\s*\*\*\*\s*$/m.exec(raw);
+        const raw=stripLeakedReasoning(textOf(m.content).slice(0,64000)),wall=/^\s*\*\*\*\s*$/m.exec(raw);
         if(!wall)continue;
         const text=stripTrackerBlocks(stripCompanion(raw.slice(wall.index+wall[0].length)))
             .replace(/<(?:think|thinking|analysis|reasoning)\b[^>]*>[\s\S]*?(?:<\/(?:think|thinking|analysis|reasoning)>|$)/gi,'')
@@ -2490,23 +2490,8 @@ function playProse(chat) {
     }
     return rows.reverse();
 }
-function repetitionRows(rows) {
-    const stop=new Set(('the and that this with from into onto have has had was were are his her their them they you your yours she him its for but not then than when what who how why will would could should been being just said says some very only there here these those each once about after before through while where which also more most much even still upon over under out off one two back down like can did does don get got').split(' '));
-    const counts=new Map(),sample=(rows || []).slice(-10);
-    for(const row of sample){
-        const seen=new Set();
-        for(const sentence of String(row.text || '').replace(/\[D:[^\]]+\]/gi,'').toLowerCase().split(/[.!?\n]+/)) {
-            const words=sentence.match(/\p{L}+(?:['’]\p{L}+)?/gu) || [];
-            words.forEach((w,i)=>{if(w.length>=4&&w.length<=40&&!stop.has(w))seen.add(w);const tri=words.slice(i,i+3);if(tri.length===3&&tri.some(x=>x.length>=4&&!stop.has(x)))seen.add(tri.join(' '));});
-        }
-        for(const word of seen)counts.set(word,(counts.get(word)||0)+1);
-    }
-    const threshold=Math.max(3,Math.ceil(sample.length*.6));
-    return [...counts].filter(([,n])=>n>=threshold).sort((a,b)=>b[1]-a[1]||a[0].localeCompare(b[0])).slice(0,8).map(([text,count])=>({text,count,total:sample.length}));
-}
 function playNoteKey(kind,name) {
     if(kind==='voice')return 'npc:'+String(name || '').normalize('NFKC').trim().toLowerCase().replace(/\s+/g,' ').slice(0,100);
-    if(kind==='journal'&&/^[\p{L}\p{N} ,./:—–·()_-]{1,100}$/u.test(String(name || '')))return 'day:'+name;
     return null;
 }
 function playNoteRead(st,kind,name) {
@@ -2514,9 +2499,9 @@ function playNoteRead(st,kind,name) {
 }
 function playNoteEdit(st,kind,name,text) {
     const key=playNoteKey(kind,name);if(!key||key==='npc:')return false;
-    const value=(kind==='voice'?String(text || '').replace(/[\r\n]+/g,' '):String(text || '')).trim().slice(0,kind==='voice'?240:8000),store=isPlainObject(st.playNotes)?st.playNotes:{};
+    const value=(kind==='voice'?String(text || '').replace(/[\r\n]+/g,' '):String(text || '')).trim().slice(0,240),store=isPlainObject(st.playNotes)?st.playNotes:{};
     const notes=isPlainObject(store[kind])?store[kind]:{};
-    if(!Object.hasOwn(notes,key)&&value&&Object.keys(notes).length>=(kind==='voice'?60:30))return false;
+    if(!Object.hasOwn(notes,key)&&value&&Object.keys(notes).length>=60)return false;
     if(value)notes[key]=value;else delete notes[key];store[kind]=notes;st.playNotes=store;return true;
 }
 function acceptedVoiceHint(st,characters) {
@@ -3190,11 +3175,10 @@ registerInterceptorKeep(async (messages, context) => {
             contextName += ' + lore references';
         }
 
-        if (gt !== 'continue' && (settings.playTools?.repetitionHint === true || settings.playTools?.voiceHint === true) && contextMsg) {
-            const words=settings.playTools?.repetitionHint===true?repetitionRows(playProse(chat)).slice(0,5).map(x=>x.text):[];
+        if (gt !== 'continue' && settings.playTools?.voiceHint === true && contextMsg) {
             const remaining=Math.max(0,Math.min(6000,Number(loreCfg().maxChars)||0)-grounding.text.length-loreGrounding.text.length-4);
-            const voice=settings.playTools?.voiceHint===true?acceptedVoiceHint(await getChatState(chatId),committed.characters):'';
-            appendPlayHints(contextMsg,[words.length?'Avoid overusing: '+words.join(', '):'',voice],remaining);
+            const voice=acceptedVoiceHint(await getChatState(chatId),committed.characters);
+            appendPlayHints(contextMsg,[voice],remaining);
         }
 
         if (gt !== 'continue' && chapCfg().inPrompt) {
@@ -17842,12 +17826,12 @@ spindle.onFrontendMessage(async (payload, userId) => {
                 toFrontend({type:'play_note',chatId:payload.chatId,kind:payload.kind,name:payload.name,text:playNoteRead(st,payload.kind,payload.name)});break;
             }
 
-            case 'play_prose': {
+            case 'voice_dialogue': {
                 if(!payload.chatId)return;
                 const chat=await chatApi.getMessages(payload.chatId),last=lastAssistant(chat);
                 if(last?.id!==payload.replyId)return;
-                const rows=playProse(chat);
-                toFrontend({type:'play_prose',chatId:payload.chatId,replyId:last.id,requestKey:payload.requestKey,rows,repetition:repetitionRows(rows)});
+                const rows=voiceDialogueRows(chat);
+                toFrontend({type:'voice_dialogue',chatId:payload.chatId,replyId:last.id,requestKey:payload.requestKey,rows});
                 break;
             }
 

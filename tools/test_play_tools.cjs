@@ -68,27 +68,7 @@ const calendar=c.worldCalendarData(calendarView);assert.equal(calendar.events.fi
 const futureBirthday=c.worldCalendarData(calendarView,10).birthdays[0];assert.equal(futureBirthday.age,14);assert.equal(futureBirthday.year,418);assert.equal(futureBirthday.month,2);assert.equal(futureBirthday.day,null);assert.equal(c.worldCalendarData(calendarView,10).events.filter(x=>x.kind==='birthday').length,0);assert.equal(c.worldCalendarData({hms:{hud:{lines:[{text:'Date: 2026-10-30'}]}}}),null);assert.equal(JSON.stringify(calendarView),calendarBefore);
 console.log('Calendar: supported 12×30 dates, known appointments/canon, undated canon, month-only birthday age 14 and unsupported world passed');
 
-const proseRt=playRuntime(),pc=proseRt.ctx;
-const proseChat=Array.from({length:5},(_,i)=>({id:'p'+i,role:'assistant',_rpgcPurpose:'story',content:'### WORLD STATE ###\nHUDOnly: glittering\n***\n'+(i<3?'A sharp sharp shape. A sharp shape.':'A quiet garden.')+'\n<think>reasononly reasononly</think>\n<rpg_companion>{"note":"trackeronly"}</rpg_companion>\n```json\n{"note":"fenceonly"}\n```'}));
-const proseBefore=JSON.stringify(proseChat),prose=pc.playProse(proseChat),repeated=pc.repetitionRows(prose);
-assert.equal(repeated.find(x=>x.text==='sharp').count,3);assert(repeated.find(x=>x.text==='a sharp shape'));assert(!repeated.some(x=>/glittering|reasononly|trackeronly|fenceonly/.test(x.text)));assert.equal(JSON.stringify(proseChat),proseBefore);
-assert.equal(pc.repetitionRows([{text:'Sharp sharp sharp.'}]).length,0);assert.equal(pc.playProse([...proseChat,{role:'assistant',hidden:true,content:'***\nsecret'}]).length,5);assert.equal(pc.playProse([{role:'assistant',content:'No wall, no prose analysis'}]).length,0);assert.equal(pc.playProse(Array(100).fill(proseChat[0])).length,10);
-assert.equal(pc.appendPlayHints({content:'context'},['Avoid overusing: sharp'],10).content,'context');assert.equal(pc.appendPlayHints({content:'context'},['Avoid overusing: sharp'],30).content,'context\nAvoid overusing: sharp');assert.equal(pc.appendPlayHints(null,['hint'],100),null);
-assert.equal(pc.playProse([...proseChat,{role:'assistant',_rpgcPurpose:'continue',content:'***\nignored continuation'}]).length,5);
-(async()=>{
- const rt=playRuntime();rt.messages.push(...proseChat,{id:'u',role:'user',content:'I wait.'});rt.ctx.userNameCache?.set?.('test','Marcus');rt.run("settings.hmsMode='on';settings.hmsPinReminder=true;settings.lore.maxChars=6000;chatStateCache.set('test',{...emptyChatState(),pins:{Touki:{text:'Touki: Inactive'}}})");
- await rt.frontendHandlers[0]({type:'play_prose',chatId:'test',replyId:'p4',requestKey:'read'});assert.equal(rt.events.at(-1).rows.length,5);
- rt.ctx.input=[{role:'user',content:'I wait.',__isChatHistory:true}];
- const output=async()=>{const r=await rt.run("rpgcInterceptor(input.map(x=>({...x})),{chatId:'test',generationType:'normal'})");return JSON.stringify(r);};
- const off=await output();assert(!off.includes('Avoid overusing:'));
- rt.run('settings.playTools={repetitionHint:true}');const on=await output();
- // A reminder may only append to an existing context; no extra message is created.
- assert(on.includes('Avoid overusing:'));assert(on.length-off.length<=241);
- rt.run('settings.playTools={repetitionHint:false}');assert.equal(await output(),off);
- assert.equal(rt.writes.length,0);
- console.log('Repetition: bounded visible prose, once per reply, hidden/HUD/tracker exclusions, opt-in default and spare prompt budget passed');
-})().catch(e=>{console.error(e);process.exitCode=1;});
-
+const voiceRt=playRuntime(),pc=voiceRt.ctx;
 assert.equal(c.voiceSuggestion([],'Clerk'),'');
 const dialogue=[{text:'[D:Clerk]"Wait, friend."\n[D:Someone]"I speak at length."'},{text:'[D:Clerk]"Good morning."'}];
 assert.equal(c.voiceSuggestion(dialogue,'Clerk'),'Short dialogue lines');assert.equal(c.voiceSuggestion(dialogue,'Someone'),'');assert.equal(c.voiceSuggestion([{text:'Clerk is clipped.'}],'Clerk'),'');
