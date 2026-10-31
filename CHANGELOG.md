@@ -1,5 +1,10 @@
 # Changelog — RPG Companion HMS Edition
 
+## 3.2.9 RC — Gear named two ways stays one item
+
+- An item described further ("leather pouch" → "leather pouch of allowance coins", "sealed scroll" → "sealed scroll of arrangements") is the same item, shown under the fuller name. Applies across replies and when one reply names it both ways.
+- Two different items reported in the same reply ("leather pouch" and "leather pouch of herbs") stay separate, and only a single unambiguous match is merged.
+
 ## 3.2.8 RC — Practice on spells you already know
 
 - Studying or practising a spell that is already Known now shows the latest practice note (and progress, when the story gives a percentage) on its Magic card.
