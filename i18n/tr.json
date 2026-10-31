@@ -2706,5 +2706,8 @@
  "Quieter Chronicle": "Daha sade Kronik",
  "Highlights": "Öne çıkanlar",
  "Bond entries: {0}": "Bağ kaydı: {0}",
- "Appointment countdown": "Randevu geri sayımı"
+ "Appointment countdown": "Randevu geri sayımı",
+ "Quest chains": "Görev zincirleri",
+ "Continues from {0}": "{0} görevinden devam eder",
+ "Continued in {0}": "{0} görevinde devam eder"
 }

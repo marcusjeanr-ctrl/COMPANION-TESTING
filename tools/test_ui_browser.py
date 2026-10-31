@@ -65,6 +65,20 @@ class BrowserUi(unittest.TestCase):
         self.assertLessEqual(bounds['x']+bounds['width'],viewport['width']+1)
         self.assertLessEqual(bounds['y']+bounds['height'],viewport['height']+1)
 
+    def test_quest_chain_labels_keep_separate_cards_and_opt_out(self):
+        payload=json.loads(json.dumps(FIXTURE['payload']))
+        base=payload['hms']['systems']['quests'][0]
+        payload['hms']['systems']['quests']=[dict(base,key='q_old',name='Find the teacher',state='completed',cls='done',giver='Guild',reward='Audience with the prince'),
+            dict(base,key='q_new',name='The audience',state='active',cls='active',giver='Guild',reward='Audience with the prince')]
+        self.receive(payload)
+        text=' '.join(self.page.locator('.rpgc-quest-chain').all_text_contents())
+        self.assertIn('Continues from Find the teacher',text)
+        self.assertIn('Continued in The audience',text)
+        payload['settings']['playTools']={'questChains':False}
+        self.receive(payload)
+        self.assertEqual(self.page.locator('.rpgc-quest-chain').count(),0)
+        self.assertEqual(self.page.evaluate("sent.filter(x=>/quest_end|quest_restore/.test(x.type))"),[])
+
     def test_countdown_pinned_agenda_missing_and_overdue(self):
         payload=json.loads(json.dumps(FIXTURE['payload']))
         payload['settings']['compactMobile']=True

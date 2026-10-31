@@ -74,3 +74,20 @@ clock resolver. Unsupported absolute formats are not interpreted as invented dat
 Chromium checks pinned/Agenda output, 40 minutes, overdue and missing due data.
 Files: frontend, shared tests, Chromium case and four dictionaries. No backend,
 prompt, source-report or processing-frequency changes; phase benchmarks follow.
+
+## 8. Quest chains
+
+Frontend-only advisory links connect a unique completed predecessor to a new
+separate quest when an explicit reference names it, or when the same giver and
+meaningful objective/reward overlap support the relationship. Currency amounts
+alone, ambiguous predecessors, future observations and live predecessors do not
+link. Both quest IDs, objectives, rewards, stages and completion states stay intact;
+no completion, merge or dependency rule is introduced. Links render only when the
+Quests panel is open and the setting is enabled; the old Journal can show a link
+when its source key/name is unambiguous.
+
+Files: frontend, shared pure tests, Chromium opt-out test and four dictionaries.
+Tests cover unique overlap, explicit references, two unrelated same-giver tasks,
+ambiguous candidates, completed-only boundaries, immutability, reciprocal labels
+and zero quest-control writes. Heuristic links are display suggestions, not proof
+of a card-defined quest dependency. No backend or prompt change.

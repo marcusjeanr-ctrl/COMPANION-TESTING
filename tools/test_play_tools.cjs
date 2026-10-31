@@ -30,3 +30,12 @@ const generic=playHud('School','23:50').replace(playHud('School','23:50').split(
 const genericHud=clockRuntime.ctx.parseHud(generic),genericNow=clockRuntime.ctx.hmsClock(genericHud).minutes;
 const genericDue=clockRuntime.ctx.agendaWhen(null,'tomorrow at 00:30',genericNow,genericHud);
 assert.equal(c.appointmentDelta({state:'open',dueAt:genericDue},genericNow),40);
+const chainQuests=[{key:'q_a',questId:'q_a',name:'Find a teacher',state:'completed',giver:'Guild',reward:'An audience with the prince',readAt:1},{key:'q_b',name:'The audience',state:'active',giver:'Guild',reward:'An audience with the prince',readAt:2}],chainCopy=JSON.stringify(chainQuests);
+assert.equal(c.questChainLinks(chainQuests).length,1);assert.equal(c.questChainLinks(chainQuests)[0].from,'q_a');assert.equal(JSON.stringify(chainQuests),chainCopy);
+assert.equal(c.questChainLinks([{...chainQuests[0],reward:'10 gold',objective:'Deliver a letter'},{...chainQuests[1],reward:'10 gold',objective:'Hunt wild boars'}]).length,0);
+assert.equal(c.questChainLinks([chainQuests[0],{key:'other',name:'New task',objective:'Continue q_a after the introduction',giver:'Another person'}]).length,1);
+assert.equal(c.questChainLinks([{...chainQuests[0],state:'active'},chainQuests[1]]).length,0);
+assert.equal(c.questChainLinks([chainQuests[0],{...chainQuests[0],key:'alternative'},chainQuests[1]]).length,0);
+console.log('Quest chains: completed predecessor, meaningful overlap, explicit reference, unrelated same giver and ambiguity passed without merging');
+
+assert.equal(c.questChainLinks([{key:'training',name:'Training',state:'completed',giver:'A'},{key:'another',name:'Training at home',state:'active',giver:'B'}]).length,0);
