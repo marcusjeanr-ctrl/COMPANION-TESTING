@@ -1,5 +1,14 @@
 # Changelog — RPG Companion HMS Edition
 
+## 3.4.0 RC — One appointment, one entry; the Now card
+
+**Fixed**
+- Agenda no longer shows the same appointment twice when the story re-reports it with a changed detail. While an appointment is still open or under way, a later report with the same title updates it ("shortly" → "now", "House Guards" → "Four Veyrath guards") instead of starting a second entry. A separate occurrence still needs the first to be finished, an explicit "another/second…" cue, or two rows of that title in one report. Existing chats heal on the next refresh; nothing saved is rewritten.
+- An appointment whose day the story named but not its hour ("in two days", "tomorrow", "Day 14") now counts down in days ("in 2 days", "tomorrow", "today") and sits under Coming up instead of "No set time". The story's reminder line uses the same countdown, so "in two days" no longer stays "in two days" after a day has passed. Vague times ("shortly", "this evening") are still never turned into a date.
+
+**New**
+- **Now card** at the top of the panel: where you are and the time, what is in progress, the next appointment, the active quest step and progress, the plot's current line, ripe planted details, and what changed this turn. Built from what the panel already tracks; no extra model calls and nothing added to the request. Off switch: Settings → Play tools → Now card. Hidden in compact mobile mode, which has its own pinned summary.
+
 ## 3.3.4 RC — Room changes inside a building
 
 - When your own message completes a move ("I enter my bedroom", "I walk to my room", "I return to the library"), the map request asks for the room you are now in instead of re-sending the last room saved for that HUD place. Before, moving between rooms of one building (HUD still "Veyrath Hall") kept sending the dining hall to the narrator.

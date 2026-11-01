@@ -2678,7 +2678,7 @@ async function pushState(chatId, snapshot = null) {
 // Demo mode plays scripted turns (no tokens); Live mode asks the model, with a small
 // world narrator standing in for a bot card.
 
-const RPGC_VERSION = '3.3.4';
+const RPGC_VERSION = '3.4.0';
 const diagLog = [];
 function diagPush(kind, m) { diagLog.push({ at: new Date().toISOString(), kind, text: String(m).slice(0, 400) }); if (diagLog.length > 60) diagLog.shift(); }
 function logW(m) { diagPush('warn', m); return spindle.log.warn(m); }
@@ -13354,6 +13354,14 @@ function agendaScheduleDay(due, when, at, hud = null) {
     return Math.floor(at / 1440) + (/\bday after tomorrow\b/i.test(t) ? 2 : /\btomorrow\b/i.test(t) ? 1 : /\bnext week\b/i.test(t) ? 7 : 0);
 }
 
+// 3.4.0: does the wording name a calendar day ("in two days", "tomorrow", "Day 14", "K417-04-14")?
+// Only then is the resolved day shown as a countdown; "shortly" or "this evening" never become a date.
+function agendaNamesDay(text) {
+    return /\b(?:in\s+(?:\d+|one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|an?)\s+days?|tomorrow|day after tomorrow|next week|Day\s*:?\s*\d+|Month\s*\d+)\b|\bK\.?\s*\d{3,4}-\d{1,2}-\d{1,2}\b/i.test(String(text || ''));
+}
+// A wording with no day of its own ("at dawn", "morning") keeps a day named earlier.
+function keepDayOf(text) { return /^(?:at\s+)?(?:dawn|sunrise|morning|noon|midday|afternoon|evening|dusk|sunset|night)$/i.test(String(text || '').trim()); }
+
 function agendaWhen(due, when, at, hud = null, source = null) {
     due = agendaKDate(due);
     if (/^\s*(?:right now|now|immediately)\s*$/i.test(when || due || '')) return at ?? null;
@@ -13703,7 +13711,13 @@ function agendaRead(chat, st) {
         if (!aliases.has(key)) aliases.set(key, new Set());
         aliases.get(key).add(item);
     };
-    const compatible = (x, row, dueAt = null, refines = !!row && agendaTitleRefines(x, row)) => (!row?.moved || ['open', 'in_progress'].includes(x.state)) &&
+    // 3.4.0: an appointment the story keeps reporting under the same title, while it is still open
+    // or under way, is the same appointment with updated details ("shortly" -> "now", "House Guards" ->
+    // "Four Veyrath guards"), not a second one. A separate occurrence needs the first to be finished,
+    // an explicit "another/second..." cue (checked by the caller), or two rows of that title in one report.
+    const continues = (x, row) => !!row && row.soleTitle && !!row.reportedIn && row.reportedIn !== x.changedIn &&
+        ['open', 'in_progress'].includes(x.state) && lockKey(x.what) === lockKey(row.what);
+    const compatible = (x, row, dueAt = null, refines = !!row && agendaTitleRefines(x, row)) => continues(x, row) || (!row?.moved || ['open', 'in_progress'].includes(x.state)) &&
         (!row?.with || !x.with || row.moved || refines || agendaPeopleSame(row.with, x.with)) &&
         (!row?.where || !x.where || row.moved || refines || agendaPlaceCompatible(x.where, row.where, !!row.reportedIn && row.reportedIn !== x.changedIn, { before: x.scenePlace, after: row.scenePlace })) &&
         (!row || agendaScheduleCompatible(x, row, dueAt, !!row.reportedIn && row.reportedIn !== x.changedIn));
@@ -13736,7 +13750,8 @@ function agendaRead(chat, st) {
             const immediate = /^(?:now|right now|immediately)$/i.test(String(r.when || r.due || '').trim());
             const relative = /^in\s+(?:\d+|\w+)\s+(?:minutes?|hours?)$/i.test(String(r.when || r.due || '').trim());
             const continuing = (immediate || relative) && agendaContinuationCue(r, continuityLines ??= trackingContinuityLines(m));
-            const observation = { ...r, scheduleDay, reportedIn: m.id, scenePlace, continuing, clockOnly,
+            const soleTitle = (d.agenda || []).filter(x => x && lockKey(x.what || '') === lockKey(r.what)).length === 1;
+            const observation = { ...r, scheduleDay, reportedIn: m.id, scenePlace, continuing, clockOnly, soleTitle,
                 clockMinute: clockOnly ? agendaClockPart(r.when || r.due) : null, observedDay: at === null ? null : Math.floor(at / 1440),
                 allowClockRepeat: clockOnly ? () => { const lines = continuityLines ??= trackingContinuityLines(m); return m._rpgcPurpose !== 'continue' &&
                     !agendaNewOccurrence(lines) && !lines.some(line => /\b(?:tomorrow|next day|next week|next bell|day after tomorrow)\b/i.test(line)); } : null };
@@ -13771,6 +13786,7 @@ function agendaRead(chat, st) {
             if (scenePlace) it.scenePlace = scenePlace;
             it.what = r.what; // The first key remains stable; show the latest confirmed description.
             if (scheduleDay !== null) it.scheduleDay = scheduleDay;
+            if (r.when || r.due) it.dayNamed = agendaNamesDay(r.due) || agendaNamesDay(r.when) || (it.dayNamed && !!keepDayOf(r.when));
             if (r.with) it.with = r.with;
             if (r.where) it.where = r.moved || moved ? r.where : agendaPlaceDetail(it.where, r.where);
             const keepClock = dueAt === null && (it.dueAt != null && agendaBellClock(r.when) !== null && agendaBellClock(r.when) === agendaClockPart(it.when) ||
@@ -13820,6 +13836,8 @@ function hmsAgendaPanel(chat, st, cfg, forDisplay = false) {
         const dueIn = it.dueAt !== null && it.dueAt !== undefined && now !== null ? it.dueAt - now : null;
         const status = it.state !== 'open' ? it.state : dueIn === null ? 'unset' : dueIn < -60 ? 'overdue' : dueIn <= 180 ? 'soon' : 'upcoming';
         const row = { key: it.key, what: it.what, with: it.with, where: it.where, when: it.when, dueIn, kind: it.kind, state: it.state, status, from: it.from, mine: !!it.mine, isNew: it.changedIn === lastId && !!lastId };
+        // Days until a commitment whose day the story named but not its hour ("in two days"), counted from today's HUD date.
+        if (dueIn === null && it.dayNamed && Number.isFinite(it.scheduleDay) && now !== null) row.dayIn = it.scheduleDay - Math.floor(now / 1440);
         // UI-only source reference. Never resolve a time or add this field to model hints.
         if (forDisplay && it.state === 'open' && it.dueAt == null && dueIn === null) {
             const index = continuityReadIndex(chat).order.get(it.changedIn);
@@ -13834,6 +13852,8 @@ function hmsAgendaPanel(chat, st, cfg, forDisplay = false) {
     return { items: out.slice(0, 60), ask: ac.ask, tell: ac.tell, clock: now !== null };
 }
 
+function agendaDayText(n) { return n < 0 ? `${-n === 1 ? 'a day' : `${-n} days`} overdue` : n === 0 ? 'today' : n === 1 ? 'tomorrow' : `in ${n} days`; }
+
 function agendaRequest(chat, st, userName, cfg) {
     const ac = agendaCfg(cfg);
     if (!ac.on || !ac.ask) return null;
@@ -13842,7 +13862,7 @@ function agendaRequest(chat, st, userName, cfg) {
     if (ac.tell && chat && st) {
         let open = [];
         try { open = hmsAgendaPanel(chat, st).items.filter(x => x.state === 'open' || x.state === 'in_progress'); } catch { open = []; }
-        if (open.length) rules += `\nAgenda now — ${open.slice(0, 8).map(x => `${x.what}${x.with ? ` (with ${x.with})` : ''}${x.where ? ` at ${x.where}` : ''}: ${x.state === 'in_progress' ? 'in progress' : x.dueIn === null ? (x.when || 'no set time') : x.dueIn < -60 ? `${hmsSpan(-x.dueIn)} overdue` : x.dueIn <= 0 ? 'due now' : `due in ${hmsSpan(x.dueIn)}`}`).join('; ')}.`;
+        if (open.length) rules += `\nAgenda now — ${open.slice(0, 8).map(x => `${x.what}${x.with ? ` (with ${x.with})` : ''}${x.where ? ` at ${x.where}` : ''}: ${x.state === 'in_progress' ? 'in progress' : x.dueIn === null ? (Number.isFinite(x.dayIn) ? agendaDayText(x.dayIn) : (x.when || 'no set time')) : x.dueIn < -60 ? `${hmsSpan(-x.dueIn)} overdue` : x.dueIn <= 0 ? 'due now' : `due in ${hmsSpan(x.dueIn)}`}`).join('; ')}.`;
     }
     return { json, rules };
 }

@@ -811,6 +811,12 @@ button.rpgc-chip.intel:hover { border-color: var(--lumiverse-accent, #7aa2f7); }
 .rpgc-compact-mobile .rpgc-mobile-pinned>div{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 }
 @media(min-width:481px){.rpgc-mobile-pinned{display:none}}
+.rpgc-now{border:1px solid color-mix(in srgb,currentColor 25%,transparent);border-radius:8px;padding:8px 10px;margin:6px 0;display:grid;gap:4px;font-size:12px;line-height:1.35}
+.rpgc-now>div{display:flex;gap:6px;align-items:baseline;min-width:0}
+.rpgc-now .k{flex:0 0 auto;width:1.4em;text-align:center}
+.rpgc-now .v{min-width:0;overflow-wrap:anywhere}
+.rpgc-now .rpgc-note{opacity:.75}
+.rpgc-now .chg{opacity:.85;font-size:11px}
 `;
 
 // The guide, embedded from GUIDE.md so it ships inside the extension (tools/embed_guide.py refreshes it).
@@ -1220,6 +1226,7 @@ function agendaDisplayTiming(item, clock, hud) {
     if (delta !== null) return {delta,status:delta < -60 ? 'overdue' : delta <= 180 ? 'soon' : 'upcoming',dayOnly:false};
     const unknown = {delta:null,status:'unset',dayOnly:false};
     if (item.dueAt != null || item.dueIn != null) return unknown;
+    if (Number.isFinite(item.dayIn)) return {delta:null,status:item.dayIn > 0 ? 'upcoming' : item.dayIn < 0 ? 'overdue' : 'soon',dayOnly:true,dayIn:item.dayIn};
     const raw = String(item.displayDueDate || item.due || item.when || '').trim();
     // "K417-04-14", or the HUD's own "K417, Month 4, Day 14" / "K417, Bloomtide (Month 4), Day 14" / "K417 Month 4 Day 14 morning".
     const k = raw.match(/^K\.?\s*(\d{3,4})-(\d{1,2})-(\d{1,2})$/i) || raw.match(/^K\.?\s*(\d{3,4})\s*,?\s*(?:[^,(]*\(\s*)?Month\s*(\d{1,2})\s*\)?\s*,?\s*Day\s*(\d{1,2})\b/i);
@@ -1464,7 +1471,7 @@ export function setup(ctx) {
         id: 'rpg-companion-hms',
         title: 'RPG Companion (HMS)',
         shortName: 'RPG',
-        headerTitle: 'RPG Companion HMS Edition 3.3.4 RC',
+        headerTitle: 'RPG Companion HMS Edition 3.4.0 RC',
         description: 'The side panel for HMS bots: the HUD as cards, people, quests, the map, fights, the Chronicle, and a guide',
         keywords: ['rpg', 'hms', 'tracker', 'hud', 'quests', 'dice', 'guide'],
         iconSvg: ICON_SVG
@@ -1858,7 +1865,7 @@ export function setup(ctx) {
         updateWeather();
     }
 
-    const PLAY_FEATURES = [['npcDossier','NPC dossier'],['quietChronicle','Quieter Chronicle'],['appointmentCountdown','Appointment countdown'],['questChains','Quest chains'],['abilityEvidence','Ability evidence'],['standingHistory','Standing history'],['voiceNotes','NPC voice notes']];
+    const PLAY_FEATURES = [['nowCard','Now card'],['npcDossier','NPC dossier'],['quietChronicle','Quieter Chronicle'],['appointmentCountdown','Appointment countdown'],['questChains','Quest chains'],['abilityEvidence','Ability evidence'],['standingHistory','Standing history'],['voiceNotes','NPC voice notes']];
     const playOn = key => S()?.playTools?.[key] !== false;
     function renderPlaySettings() {
         const s=S(); if (!s.playTools) s.playTools={};
@@ -3753,6 +3760,37 @@ export function setup(ctx) {
         return det;
     }
 
+    // 3.4.0 — the Now card: one glance at where the story stands, built from what the panel already
+    // tracks (HUD, Agenda, Quests, plot, planted details, Gear). Display only; nothing is sent to the model.
+    function renderNow() {
+        if (!playOn('nowCard') || !state.hms || !state.hms.hud || S()?.compactMobile) return null; // compact mobile has its own pinned summary
+        const rows = [];
+        const row = (icon, label, ...v) => rows.push(h('div', null, h('span', { class: 'k', 'aria-hidden': 'true', title: label }, icon), h('span', { class: 'v' }, ...v)));
+        const hud = state.hms.hud;
+        const place = (hud.location || []).map(x => typeof x === 'string' ? x : x.text || '').filter(Boolean).slice(-2).join(' › ');
+        if (place || hud.time) row('📍', T('Where'), place || '', place && hud.time ? h('span', { class: 'rpgc-note' }, ' · ' + hud.time) : (!place ? hud.time : null));
+        const ag = (state.hms.agenda?.items || []).map(x => ({ ...x, agendaTiming: agendaDisplayTiming(x, state.hms?.systems?.clock, state.hms?.hud) }));
+        const doing = ag.filter(x => x.state === 'in_progress');
+        for (const x of doing.slice(0, 2)) row('▶', T('In progress'), h('b', null, x.what), x.with ? h('span', { class: 'rpgc-note' }, ' · ' + x.with) : null);
+        const open = ag.filter(x => x.state === 'open');
+        const rank = x => x.agendaTiming.delta !== null ? x.agendaTiming.delta : Number.isFinite(x.agendaTiming.dayIn) ? x.agendaTiming.dayIn * 1440 : 1e12;
+        const next = open.filter(x => rank(x) < 1e12).sort((a, b) => rank(a) - rank(b))[0] || (!doing.length ? open[0] : null);
+        if (next) row('⏭', T('Next'), h('b', null, next.what), h('span', { class: 'rpgc-note' }, ' · ' + agendaDue(next)));
+        const quests = (state.hms.systems?.quests || []).filter(q => !['done', 'completed', 'closed', 'failed', 'abandoned', 'ended', 'hidden'].includes(q.cls || q.state));
+        const q = quests.find(x => x.category === 'main') || quests[0];
+        if (q) row('🎯', T('Quest'), h('b', null, q.name), q.objective ? ' — ' + q.objective : '', Number.isFinite(q.progress) ? h('span', { class: 'rpgc-note' }, ` (${q.progress}%)`) : null, quests.length > 1 ? h('span', { class: 'rpgc-note' }, TT(' +{0} more', quests.length - 1)) : null);
+        const pv = state.plotView;
+        if (pv && pv.on?.plot && pv.now) row('📖', T('Story'), pv.now);
+        const ripe = (mindsOf()?.chekhov?.chamber || []).filter(b => b.ripe).sort((a, b) => (b.w || 0) - (a.w || 0));
+        if (ripe.length) row('🔫', T('Planted details'), ripe.slice(0, 2).map(b => b.what).join(' · '), ripe.length > 2 ? h('span', { class: 'rpgc-note' }, TT(' +{0} more', ripe.length - 2)) : null);
+        const changed = [];
+        for (const x of ag) if (x.isNew) changed.push((x.state === 'open' ? '📅 ' : x.state === 'in_progress' ? '▶ ' : '✓ ') + x.what);
+        for (const g of (state.hms.gear?.items || [])) if (g.changedNow) changed.push('🎒 ' + g.name + (g.state ? ` (${g.state})` : ''));
+        if (changed.length) row('✨', T('This turn'), h('span', { class: 'chg' }, changed.slice(0, 5).join(' · '), changed.length > 5 ? TT(' +{0} more', changed.length - 5) : ''));
+        if (!rows.length) return null;
+        return h('div', { class: 'rpgc-now', role: 'region', 'aria-label': T('Now') }, ...rows);
+    }
+
     function renderMobilePinned() {
         if (!S()?.compactMobile || !state.hms) return null;
         const current = state.data?.characters || [];
@@ -3806,6 +3844,8 @@ export function setup(ctx) {
         if (songEl) out.push(songEl);
         const danger = renderDanger();
         if (danger) out.push(danger);
+        const nowEl = renderNow();
+        if (nowEl) out.push(nowEl);
         out.push(renderWorldState());
         for (const el of [renderWorldCard(), renderMap(), renderAtlas(), renderAgenda(), renderYou(), renderGear(), renderHoldings(), renderMoney(), renderDnd(), renderPeopleAll(), renderRelationshipWeb(), renderFamily(), renderFactions(), renderSecrets(), renderPhone(), renderBody(), renderInjuries(), renderMind(), renderSurvival(), renderMagic(), renderTechniques(), renderAbilities()]) if (el) out.push(el);
         if (s.showQuests) out.push(renderHmsQuests());
@@ -4511,6 +4551,7 @@ export function setup(ctx) {
         if (x.state === 'in_progress') return T('In progress');
         if (x.state !== 'open') return { kept: 'kept', missed: 'missed', cancelled: 'called off' }[x.state] || x.state;
         const timing=x.agendaTiming || agendaDisplayTiming(x,state.hms?.systems?.clock,state.hms?.hud);
+        if (timing.dayOnly && Number.isFinite(timing.dayIn)) { const d=timing.dayIn; return d===0?T('today'):d===1?T('tomorrow'):d>1?TT('in {0} days',d):TT('{0} days late',-d); }
         if (timing.dayOnly) return x.when || x.displayDueDate || x.due;
         if(playOn('appointmentCountdown')){const text=countdownText(x);if(text)return text;}
         if (timing.delta === null) return x.when || 'no set time';
@@ -6964,7 +7005,7 @@ body{background:${bs ? bs.backgroundColor : '#111'};color:${bs ? bs.color : '#dd
             if (!popWin || popWin.closed) {
                 popWin = window.open('', 'rpgc_popout', 'width=460,height=860');
                 if (!popWin) { state.status = { kind: 'warning', text: 'The browser blocked the pop-out window. Allow pop-ups for Lumiverse and try again.' }; const s = S(); s.uiPanelMode = 'drawer'; return applyPanelMode(); }
-                popWin.document.title = 'RPG Companion HMS Edition 3.3.4 RC';
+                popWin.document.title = 'RPG Companion HMS Edition 3.4.0 RC';
                 syncPopoutLook(popWin);
                 try { if (!popLookObs) { popLookObs = new MutationObserver(() => syncPopoutLook(popWin)); popLookObs.observe(document.documentElement, { attributes: true }); if (document.body) popLookObs.observe(document.body, { attributes: true, attributeFilter: ['class'] }); } } catch { /* optional */ }
                 popWin.addEventListener('beforeunload', () => { popWin = null; if (panelMode() === 'popout') { const s = S(); s.uiPanelMode = 'drawer'; saveSettings(false); applyPanelMode(); render(); } });
