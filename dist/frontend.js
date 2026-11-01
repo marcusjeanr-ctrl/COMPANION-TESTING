@@ -4409,27 +4409,37 @@ export function setup(ctx) {
     }
     function renderFind() {
         if (!state.find) return null;
+        // Typing and the arrow keys update only the result list: the box itself is never rebuilt, so fast
+        // typing cannot lose a letter while the panel redraws (1.0.0 release fix).
         const close = () => { state.find = null; render(); };
-        const words = playNameKey(state.find.q).split(' ').filter(Boolean);
         const all = findIndex();
-        const hits = words.length ? all.filter(x => words.every(w => x.key.includes(w))).slice(0, 40) : all.filter(x => ['👤', '🎯', '📅'].includes(x.icon)).slice(0, 12);
-        const sel = Math.min(state.find.sel, Math.max(0, hits.length - 1));
+        let hits = [];
         const pick = x => { state.find = null; x.go(); };
+        const list = h('ul', { id: 'rpgc-find-list', role: 'listbox', class: 'rpgc-find-list' });
+        const foot = h('div', { class: 'rpgc-find-foot' });
+        const paint = () => {
+            const words = playNameKey(state.find.q).split(' ').filter(Boolean);
+            hits = words.length ? all.filter(x => words.every(w => x.key.includes(w))).slice(0, 40) : all.filter(x => ['👤', '🎯', '📅'].includes(x.icon)).slice(0, 12);
+            state.find.sel = Math.min(state.find.sel, Math.max(0, hits.length - 1));
+            list.replaceChildren(...(hits.length ? hits.map((x, i) => h('li', { role: 'option', 'aria-selected': i === state.find.sel ? 'true' : 'false', class: i === state.find.sel ? 'sel' : '', onclick: () => pick(x),
+                    onmouseenter: () => { state.find.sel = i; mark(); } },
+                h('span', { class: 'ic', 'aria-hidden': 'true' }, x.icon), h('span', { class: 'tx' }, h('b', null, x.label), x.sub ? h('small', null, x.sub) : null), h('span', { class: 'kd' }, x.kind)))
+                : [h('li', { class: 'none' }, T('Nothing tracked matches.'))]));
+            foot.replaceChildren(document.createTextNode(`${words.length ? TT('{0} found', hits.length) : T('Type to search everything the panel tracks')} · ↑↓ ${T('to move')} · Enter ${T('to open')}`));
+        };
+        const mark = () => { [...list.children].forEach((li, i) => { const on = i === state.find.sel; li.classList.toggle('sel', on); li.setAttribute('aria-selected', on ? 'true' : 'false'); if (on) li.scrollIntoView?.({ block: 'nearest' }); }); };
         const input = h('input', { type: 'search', value: state.find.q, placeholder: T('Find a person, quest, item, spell, place, moment…'), 'aria-label': T('Find anything'), 'aria-controls': 'rpgc-find-list', autocomplete: 'off' });
-        input.addEventListener('input', () => { state.find.q = input.value; state.find.sel = 0; render(); setTimeout(() => { const i = root.querySelector('.rpgc-find input'); if (i) { i.focus(); i.setSelectionRange(i.value.length, i.value.length); } }, 0); });
+        input.addEventListener('input', () => { state.find.q = input.value; state.find.sel = 0; paint(); });
         input.addEventListener('keydown', e => {
             if (e.key === 'Escape') { e.preventDefault(); close(); }
-            else if (e.key === 'ArrowDown' || e.key === 'ArrowUp') { e.preventDefault(); state.find.sel = Math.max(0, Math.min(hits.length - 1, sel + (e.key === 'ArrowDown' ? 1 : -1))); render(); setTimeout(() => root.querySelector('.rpgc-find input')?.focus(), 0); }
-            else if (e.key === 'Enter' && hits[sel]) { e.preventDefault(); pick(hits[sel]); }
+            else if (e.key === 'ArrowDown' || e.key === 'ArrowUp') { e.preventDefault(); state.find.sel = Math.max(0, Math.min(hits.length - 1, state.find.sel + (e.key === 'ArrowDown' ? 1 : -1))); mark(); }
+            else if (e.key === 'Enter' && hits[state.find.sel]) { e.preventDefault(); pick(hits[state.find.sel]); }
         });
+        paint();
         return h('div', { class: 'rpgc-find-overlay', onclick: e => { if (e.target === e.currentTarget) close(); } },
             h('div', { class: 'rpgc-find', role: 'dialog', 'aria-modal': 'true', 'aria-label': T('Find anything') },
                 h('div', { class: 'rpgc-find-box' }, h('span', { class: 'mag', 'aria-hidden': 'true' }, '⌕'), input, h('kbd', null, 'Esc')),
-                h('ul', { id: 'rpgc-find-list', role: 'listbox', class: 'rpgc-find-list' },
-                    hits.length ? hits.map((x, i) => h('li', { role: 'option', 'aria-selected': i === sel ? 'true' : 'false', class: i === sel ? 'sel' : '', onclick: () => pick(x), onmouseenter: () => { state.find.sel = i; } },
-                        h('span', { class: 'ic', 'aria-hidden': 'true' }, x.icon), h('span', { class: 'tx' }, h('b', null, x.label), x.sub ? h('small', null, x.sub) : null), h('span', { class: 'kd' }, x.kind)))
-                        : h('li', { class: 'none' }, T('Nothing tracked matches.'))),
-                h('div', { class: 'rpgc-find-foot' }, words.length ? TT('{0} found', hits.length) : T('Type to search everything the panel tracks'), ' · ↑↓ ', T('to move'), ' · Enter ', T('to open'))));
+                list, foot));
     }
 
     // ─────────── 3.5.0: views ───────────

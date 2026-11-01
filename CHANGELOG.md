@@ -1,5 +1,9 @@
 # Changelog — RPG Companion HMS Edition
 
+## Release fix — Find keeps every letter you type
+
+- Find (⌕ / Ctrl+K) redrew the whole panel on every keystroke and replaced its own search box. In a large chat the redraw takes ~50 ms, and letters typed meanwhile went into the old box and were lost. Typing and the arrow keys now update only the result list. Found by the release stress test (very long names, 60-item inventory); display only.
+
 ## Fix (experiment: magic disciplines) — schools are not spells
 
 Branch `experiment/magic-discipline-classification`, from `staging/3.6.0-ui` at `bf80da9`.
