@@ -1,5 +1,11 @@
 # Changelog — RPG Companion HMS Edition
 
+## 1.0.1 — The purse on the HUD
+
+- **Finances shows the money the HUD shows on a holdings line.** A HUD line such as `Resources: 12 Gold, 45 Silver` was not read, because only lines labelled Gold, Money, Funds, Balance, Wallet, Bank, Credits, Coins or Private Points counted as the balance. Now a holdings line (Resources, Purse, Wealth, Currency, Cash, Savings, Treasury, Coffers, Pouch) counts too, when every part of it is an amount with a unit and at least one unit is a currency word from the balance labels. `Resources: 3 rations, 2 torches` and `Reward: 50 Gold` still do not.
+- The balance is shown exactly as the HUD writes it (12 Gold, 45 Silver: no conversion between coins) and is read from the newest HUD, so seeing it again never adds money, and nothing is entered in the ledger as income. Payments, purchases and debts are recorded as before.
+- Display only for Finances: the model's request, the Phone and every other card are unchanged.
+
 ## 1.0.0 — RPG Companion HMS Edition 1.0 (first official release)
 
 The first official release, built from the 3.4–3.6 development line (those numbers stay in the history below). Versions from here: 1.0.x maintenance fixes, 1.x backward-compatible additions, 2.0 for compatibility-changing work.
