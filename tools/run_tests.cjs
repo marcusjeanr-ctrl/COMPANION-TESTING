@@ -9,6 +9,7 @@ const steps = [
     ['backend syntax', ['--check', 'dist/backend.js']],
     ['frontend syntax', ['--check', 'dist/frontend.js']],
     ['tracking regressions', ['tools/test_tracking_audit.cjs']],
+    ['Six-Sided World v1.1 HUD', ['tools/test_six_sided_v11.cjs']],
     ['smoke (payload, request, render)', ['tools/test_smoke.cjs']],
 ];
 let failed = 0;

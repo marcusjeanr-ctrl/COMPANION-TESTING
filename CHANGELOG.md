@@ -1,5 +1,41 @@
 # Changelog — RPG Companion HMS Edition
 
+## 1.1.0 RC — Six-Sided World v1.1
+
+Compatibility with the Mushoku Tensei RPG "Six-Sided World" v1.1 card and its four HUD styles (Classic, Visual, Compact, Panel). Release candidate: automated checks pass; live Lumiverse acceptance is still to do. Report: `docs/release/1.1.0-RC-REPORT.md`.
+
+**Deeper integration (second RC pass, from live play)**
+- **A HUD with a blank line inside it is read to the end.** GLM 5.3 and DeepSeek sometimes leave a blank line mid-HUD; the Companion used to stop there (it read 17 of 23 lines of a real GLM reply, and 2 of 22 of a DeepSeek one). The HUD now goes on when the `***` wall follows and every line before it looks like a HUD line; prose after a blank line is still never read as HUD.
+- **Training**: the world card shows each `Training:` line as a progress bar (Sword God → Saint · 12/60), and the Chronicle records when training begins and when the sessions are done ("the rank now needs its proof"). The rank-up itself was already a milestone.
+- **Bonds**: each person shows the HUD's own bond stage beside the Companion's standing (`HUD: Trusted`), its steps are in the person's history, and the Chronicle records them ("HUD bond — Eris: Friend → Trusted"). The two are kept side by side, not merged: the HUD stage is the card's, the standing is the Companion's closeness ladder.
+- **Standing and family politics**: the world card shows the Standing line as class, rank, house (nation) and birth (House Head, Heir, Younger Child…), the Faction, and the **family plots** from your start command (Arranged Marriage, Feud with House Dravenmoor).
+- **Compact and style switches in the Chronicle**: rank-ups written in Compact's `Skills:` row are milestones too, and a rank-up on the same turn as a style switch is still recorded; a switch alone records nothing.
+- **Panel**: when your start command says `HUD: Panel` (or you switch with `[HUD = PANEL]`), the Companion's HUD card steps aside so the card's own Panel scripts draw the HUD. `[HUD = CLASSIC]` brings the Companion card back. The Settings switch still turns the card off everywhere.
+- **Label drift**: a HUD that writes `Magic:` / `Martial:` instead of `Magic Tiers:` / `Sword Style:` still fills the world card (Re:Zero's `Magic: … | Gate:` is unchanged).
+- A stray closing tag a model leaves alone on a line (such as `</ofilter>`) is hidden in the chat; the saved reply is untouched.
+
+**Every HUD style reads the same**
+- **Compact**: the merged `Skills:` row (💧Water Saint · ⚔️Sword God Int · 🤫 Voiceless) now gives magic schools, sword styles and Voiceless Casting to the world card, the Spellbook and the technique list. `Mana Capacity: Vast | Half | Rested · Touki (Battle Aura): Locked` reads as mana, reserve and Touki. The spot-first place (`◆ Boreas Manor, Roa, Asura Kingdom (Central Continent)`) reads in the same order as Classic, so the current place, the map and "First time at…" agree across styles.
+- **Visual**: the two ━━━ divider rules no longer turn the stat rows between them into an inline block, so those rows are tracked like any other line (dropped-line check, Chronicle ranks, pins). Condition, wounds and sword-style reach read through the icons and bold labels.
+- **All styles**: a `·` followed by a label separates two slots on one row (`Standing: … · Faction: …`, `Renown: … · Guild: F`). A `·` with no label after it stays in its value, so lines like `Skills: One-Handed 52 · Block 41` are unchanged.
+- `Era / Arc:` is read as the arc line (story start and new-arc entries in the Chronicle). Languages keep `(Fluent, reads)` whole. The period comes from `Time: 09:20 (Morning)`. Imperial and Divine magic tiers have a rank step on the world card.
+
+**Wounds stay the card's**
+- v1.1 keeps wounds on the Condition line (`Condition: Cracked rib — Treated, Fatigued`). An entry tagged Raw, Treated or Healing is now a wound (Healing shows as past treatment); states such as Fatigued stay conditions.
+- Because the card keeps wounds itself (its HUD shows one, or its rules carry `Condition: [wound or state] — …`), the extension no longer adds its own `injuries` request to the model for this card (about 170 fewer tokens per turn).
+
+**Factions and the Chronicle**
+- `Faction: Boreas Household (Tutor)` is a membership with its rank. `Guild: F` is your guild rank, not a faction called "F". A rank in brackets on a membership label (Faction, Guild, Order, Clan…) now means member for every card — Skyrim's `Factions: Companions (Whelp)` shows as member instead of neutral.
+- Steps in Sword Style, Magic Tiers, Touki, Guild and Faction are Chronicle milestones (`Magic Tiers: … Healing (Intermediate) → … Healing (Advanced)`).
+
+**Dropped-line check**
+- Switching HUD style (Classic ↔ Visual ↔ Compact) is a template change, not a list of dropped lines. Compact leaving out Memory and Equipment on turns they did not change is not a drop. Training, Present, Active Paths, the canon-clock lines and a Turning Point end by their own rules and show as cleared, not dropped. A line really dropped within one style is still reported.
+- The HUD copy under "Show the HUD as text" in the Companion card can no longer be redrawn by the card's "HMS Panel" display scripts.
+
+Unchanged: extension identifier, saved settings and chat data (no migration; pins keep their keys), no extra model calls, polling or stored data. On Re:Zero, Overlord, COTE, Mushoku Living World, Undertale, Dark Souls and the older Six-Sided format the panel data, narrator request and Chronicle are identical to 1.0.1 apart from the settings default above; Skyrim differs only in the faction standing noted above.
+
+**Checks**: `tools/test_six_sided_v11.cjs` (29 checks, in `run_tests.cjs`) and `tools/sim_six_sided_v11.cjs` (a synthetic 60-reply v1.1 session for `replay_check.cjs` and `compare_backends.cjs`).
+
 ## 1.0.1 — The purse on the HUD
 
 - **Finances shows the money the HUD shows on a holdings line.** A HUD line such as `Resources: 12 Gold, 45 Silver` was not read, because only lines labelled Gold, Money, Funds, Balance, Wallet, Bank, Credits, Coins or Private Points counted as the balance. Now a holdings line (Resources, Purse, Wealth, Currency, Cash, Savings, Treasury, Coffers, Pouch) counts too, when every part of it is an amount with a unit and at least one unit is a currency word from the balance labels. `Resources: 3 rations, 2 torches` and `Reward: 50 Gold` still do not.
