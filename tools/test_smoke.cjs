@@ -142,7 +142,7 @@ globalThis.__hooks = (chat, lore, user) => {
         sendToBackend() {}, onBackendMessage: fn => { receive = fn; return () => {}; },
         getActiveChat: () => ({ chatId: 'c1', characterId: 'x' }), events: { on: () => () => {} },
     };
-    const storage = new Map();
+    const storage = new Map([['rpgc-view', 'all']]); // 3.5.0: the panel opens on Scene; the checks below cover every card, so use All
     const fctx = vm.createContext({ console: quiet, document: doc, window: {}, navigator: { language: 'en' }, ctx: hostCtx, URL, Blob: class {},
         localStorage: { getItem: k => storage.get(k) ?? null, setItem: (k, v) => storage.set(k, String(v)), removeItem: k => storage.delete(k) },
         setTimeout: (fn) => { try { fn(); } catch (e) { throw e; } return 1; }, clearTimeout() {}, setInterval: () => 1, clearInterval() {}, requestAnimationFrame: fn => 1,

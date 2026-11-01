@@ -1,5 +1,27 @@
 # Changelog — RPG Companion HMS Edition
 
+## 3.5.0 RC (staging) — Views, the journal look, a living Now card
+
+Display only. Tracking, saved data and the model request are unchanged (no extra calls, same request).
+
+**Navigation**
+- **Views**: a sticky bar switches between Scene (Now, World State, the world card, Map), You (your character, Gear, Magic, Body, Mind…), People (people, family, factions, secrets, phone), Journey (Agenda, Quests and plot, Chronicle, Chapters, Atlas) and All (the classic full list). Only the chosen view is built, so the panel is lighter to draw. Arrow keys move between views; the choice is remembered. Badges show active quests and people in the scene, a dot marks a view with something new this turn, and a red dot means something is late.
+- **Tools tray**: Panel placement, Test zone, Read again, Export character sheet, Collapse/Expand all and snapshots now sit in one folded "🧰 Tools" row instead of above the story.
+- The Move the world / fight buttons show on Scene and All.
+
+**Now card, reworked**
+- The top of the card is a sky that follows the story's clock: dawn, morning, day, afternoon, dusk and night colours, with the sun or moon on an arc by the hour and stars at night. The place is set large with its region under it; the time sits in a badge.
+- Every line links to its card: tap the appointment to open Agenda, the quest or plot line to open Quests, the place to open the Map.
+
+**People**
+- A name-tinted monogram stands in for a missing portrait on every person card (dimmed for people not in the scene).
+- The dossier (tap a name) lists every open appointment with that person and the quests they are part of, and has an "Open in People" button.
+
+**The journal look**
+- Each card has a medallion icon and a serif small-caps title, with a gilded rule under an open card's header. Softer, rounder cards with a light top sheen.
+- Agenda is drawn as a timeline: a rail with a node per appointment; the one in progress glows, late ones are red, new ones are highlighted.
+- Works with every existing theme (built on the theme's own colours) and respects reduced-motion.
+
 ## 3.4.0 RC — One appointment, one entry; the Now card
 
 **Fixed**

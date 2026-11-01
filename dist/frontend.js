@@ -811,7 +811,100 @@ button.rpgc-chip.intel:hover { border-color: var(--lumiverse-accent, #7aa2f7); }
 .rpgc-compact-mobile .rpgc-mobile-pinned>div{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 }
 @media(min-width:481px){.rpgc-mobile-pinned{display:none}}
-.rpgc-now{border:1px solid color-mix(in srgb,currentColor 25%,transparent);border-radius:8px;padding:8px 10px;margin:6px 0;display:grid;gap:4px;font-size:12px;line-height:1.35}
+.rpgc-views{position:sticky;top:0;z-index:9;display:grid;grid-template-columns:repeat(5,1fr);gap:3px;padding:4px;margin:0 -2px;border-radius:12px;
+  background:color-mix(in srgb,var(--rpgc-card-bg,var(--lumiverse-bg,#15151b)) 88%,transparent);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
+  border:1px solid var(--lumiverse-border,#333);box-shadow:0 4px 14px -8px #000a}
+.rpgc-viewtab{appearance:none;position:relative;display:flex;flex-direction:column;align-items:center;gap:1px;padding:5px 2px 4px;border:0;border-radius:9px;background:transparent;color:var(--lumiverse-text-muted,#aaa);font:inherit;font-size:11px;cursor:pointer;min-width:0;transition:background .15s,color .15s}
+.rpgc-viewtab .i{font-size:16px;line-height:1.1;filter:grayscale(.5);transition:filter .15s,transform .15s}
+.rpgc-viewtab .l{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+.rpgc-viewtab:hover{color:var(--lumiverse-text,#eee);background:color-mix(in srgb,currentColor 8%,transparent)}
+.rpgc-viewtab.on{background:var(--rpgc-tab-bg,var(--lumiverse-accent,#7aa2f7));color:var(--rpgc-tab-fg,var(--lumiverse-accent-fg,#111));font-weight:600}
+.rpgc-viewtab.on .i{filter:none;transform:scale(1.08)}
+.rpgc-viewtab:focus-visible{outline:2px solid var(--lumiverse-accent,#7aa2f7);outline-offset:1px}
+.rpgc-viewtab .n{position:absolute;top:2px;right:4px;font-size:9px;line-height:1;padding:2px 4px;border-radius:99px;background:color-mix(in srgb,currentColor 18%,transparent);font-variant-numeric:tabular-nums}
+.rpgc-viewtab .dot{position:absolute;top:4px;left:calc(50% + 9px);width:6px;height:6px;border-radius:50%;background:var(--lumiverse-accent,#7aa2f7)}
+.rpgc-viewtab.on .dot{background:currentColor}
+.rpgc-viewtab .dot.alarm{background:#ff8c87}
+.rpgc-view{display:flex;flex-direction:column;gap:12px;animation:rpgc-in .18s ease-out}
+@keyframes rpgc-in{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+.rpgc-tools-row{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.rpgc-tools{font-size:12px;color:var(--lumiverse-text-muted,#aaa)}
+.rpgc-tools>summary{cursor:pointer;list-style:none;padding:2px 4px;border-radius:6px;width:max-content}
+.rpgc-tools>summary::-webkit-details-marker{display:none}
+.rpgc-tools>summary:hover{color:var(--lumiverse-text,#eee)}
+.rpgc-tools[open]{display:flex;flex-direction:column;gap:8px;padding:8px;border:1px dashed var(--lumiverse-border,#333);border-radius:10px}
+.rpgc-sec{transition:border-color .2s,box-shadow .2s}
+.rpgc-sec[open]{box-shadow:0 2px 10px -8px #000c}
+.rpgc-sec>summary{border-radius:inherit}
+.rpgc-sec>summary:hover{background:color-mix(in srgb,currentColor 5%,transparent)}
+.rpgc-sec>summary:focus-visible{outline:2px solid var(--lumiverse-accent,#7aa2f7);outline-offset:-2px}
+.rpgc-flash{border-color:var(--lumiverse-accent,#7aa2f7)!important;box-shadow:0 0 0 2px color-mix(in srgb,var(--lumiverse-accent,#7aa2f7) 40%,transparent)!important}
+.rpgc-now-title{font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--lumiverse-text-muted,#999);font-weight:700;margin-bottom:2px}
+.rpgc-now>div.go{cursor:pointer;border-radius:6px;margin:0 -4px;padding:2px 4px;transition:background .12s}
+.rpgc-now>div.go:hover,.rpgc-now>div.go:focus-visible{background:color-mix(in srgb,currentColor 7%,transparent);outline:none}
+.rpgc-now .go-arrow{margin-left:auto;padding-left:6px;opacity:.35}
+.rpgc-now>div.go:hover .go-arrow{opacity:.8}
+.rpgc-empty-view{text-align:center;padding:24px 8px}
+/* ── 3.5.0 visual identity: the journal ── */
+.rpgc{--rpgc-serif:'Iowan Old Style','Palatino Linotype',Palatino,'Book Antiqua',Georgia,serif;--rpgc-gold:color-mix(in srgb,var(--lumiverse-accent,#7aa2f7) 45%,#d8b25a);--rpgc-line:color-mix(in srgb,currentColor 13%,transparent)}
+.rpgc .rpgc-sec{border-radius:14px;border-color:var(--rpgc-line);background:linear-gradient(180deg,color-mix(in srgb,currentColor 3.5%,transparent),transparent 120px),var(--rpgc-card-bg,var(--lumiverse-fill-subtle,transparent))}
+.rpgc .rpgc-sec>summary{padding:9px 12px;gap:9px}
+.rpgc .rpgc-sec.has-sig>summary::before{order:9;margin-left:2px}
+.rpgc .rpgc-sec>summary .rpgc-sum-extra{order:8}
+.rpgc-sig{flex:0 0 auto;width:28px;height:28px;display:grid;place-items:center;font-size:14px;border-radius:50%;
+  background:radial-gradient(circle at 35% 30%,color-mix(in srgb,var(--rpgc-gold) 35%,transparent),color-mix(in srgb,var(--rpgc-gold) 10%,transparent) 70%);
+  box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--rpgc-gold) 55%,transparent),0 1px 6px -2px color-mix(in srgb,var(--rpgc-gold) 60%,transparent);transition:transform .2s}
+.rpgc-sec[open]>summary .rpgc-sig{transform:rotate(-8deg) scale(1.05)}
+.rpgc-sec-title{font-family:var(--rpgc-serif);font-variant:small-caps;letter-spacing:.06em;font-size:15px;font-weight:600}
+.rpgc-sec[open]>summary{border-bottom:1px solid transparent;border-image:linear-gradient(90deg,transparent,color-mix(in srgb,var(--rpgc-gold) 55%,transparent),transparent) 1;margin-bottom:6px}
+.rpgc h4{font-family:var(--rpgc-serif);font-variant:small-caps;letter-spacing:.05em;font-size:13.5px}
+.rpgc-mono{flex:0 0 auto;width:30px;height:30px;border-radius:50%;display:inline-grid;place-items:center;font:600 12px/1 var(--rpgc-serif);letter-spacing:.02em;color:#fff;
+  background:linear-gradient(140deg,hsl(var(--mono-h) 55% 52%),hsl(calc(var(--mono-h) + 40) 50% 32%));box-shadow:0 0 0 2px color-mix(in srgb,hsl(var(--mono-h) 60% 60%) 35%,transparent);text-shadow:0 1px 1px #0006}
+.rpgc-pcard.away .rpgc-mono,.rpgc-person.away .rpgc-mono{filter:saturate(.35) brightness(.85)}
+/* Agenda: a timeline rail */
+.rpgc .rpgc-agenda-group ul{position:relative;list-style:none;margin:0;padding:0 0 0 18px;display:flex;flex-direction:column;gap:6px}
+.rpgc .rpgc-agenda-group ul::before{content:'';position:absolute;left:6px;top:6px;bottom:6px;width:2px;border-radius:2px;background:linear-gradient(var(--rpgc-gold),color-mix(in srgb,var(--rpgc-gold) 10%,transparent))}
+.rpgc .rpgc-agenda-item{position:relative;border-left:0!important;padding:6px 8px;border-radius:10px;background:color-mix(in srgb,currentColor 4%,transparent)}
+.rpgc .rpgc-agenda-item::before{content:'';position:absolute;left:-16px;top:12px;width:10px;height:10px;border-radius:50%;background:var(--rpgc-card-bg,var(--lumiverse-bg,#15151b));box-shadow:0 0 0 2px var(--rpgc-gold)}
+.rpgc .rpgc-agenda-item.in_progress::before{background:#5fbf7f;box-shadow:0 0 0 2px #5fbf7f,0 0 10px #5fbf7f;animation:rpgc-pulse 2.4s ease-in-out infinite}
+.rpgc .rpgc-agenda-item.overdue::before{background:#ff8c87;box-shadow:0 0 0 2px #ff8c87}
+.rpgc .rpgc-agenda-item.new{background:color-mix(in srgb,var(--rpgc-gold) 12%,transparent)}
+@keyframes rpgc-pulse{50%{box-shadow:0 0 0 2px #5fbf7f,0 0 2px #5fbf7f}}
+/* Now: sky hero */
+.rpgc .rpgc-now{padding:0;overflow:hidden;gap:0;border-radius:16px}
+.rpgc-sky{position:relative;min-height:92px;padding:12px 14px 12px;display:flex;align-items:flex-end;gap:10px;color:#fff;isolation:isolate;
+  background:linear-gradient(180deg,var(--sky1),var(--sky2));text-shadow:0 1px 3px #0008;transition:background 1s}
+.rpgc-sky::after{content:'';position:absolute;inset:auto 0 0 0;height:26px;z-index:-1;background:linear-gradient(transparent,#0004)}
+.rpgc-sky.sky-none{--sky1:#2c3350;--sky2:#1a1d2c}
+.rpgc-sky.sky-night{--sky1:#0b1030;--sky2:#20264d}
+.rpgc-sky.sky-dawn{--sky1:#38306b;--sky2:#e98b6d}
+.rpgc-sky.sky-morning{--sky1:#3d7cc9;--sky2:#9cc9e8}
+.rpgc-sky.sky-day{--sky1:#2f78d0;--sky2:#7fb8ec}
+.rpgc-sky.sky-afternoon{--sky1:#3a6db8;--sky2:#e3b878}
+.rpgc-sky.sky-dusk{--sky1:#2a2459;--sky2:#d9655a}
+.rpgc-sky .orb{position:absolute;z-index:-1;width:22px;height:22px;margin:-11px 0 0 -11px;border-radius:50%}
+.rpgc-sky .orb.sun{background:radial-gradient(circle,#fff8d6,#ffd36b 55%,#ffb54700 72%);box-shadow:0 0 28px 10px #ffd36b66}
+.rpgc-sky .orb.moon{background:radial-gradient(circle at 38% 38%,#fbfbff,#cfd6f0 60%);box-shadow:0 0 22px 6px #c8d2ff40}
+.rpgc-sky .stars{position:absolute;inset:0;z-index:-1;opacity:.8;background-image:radial-gradient(1px 1px at 12% 22%,#fff,transparent),radial-gradient(1px 1px at 33% 64%,#fff,transparent),radial-gradient(1.5px 1.5px at 58% 18%,#fff,transparent),radial-gradient(1px 1px at 76% 46%,#fff,transparent),radial-gradient(1px 1px at 88% 14%,#fff,transparent),radial-gradient(1px 1px at 22% 80%,#fff,transparent),radial-gradient(1.5px 1.5px at 66% 76%,#fff,transparent);animation:rpgc-twinkle 5s ease-in-out infinite}
+@keyframes rpgc-twinkle{50%{opacity:.45}}
+.rpgc-sky-text{flex:1;min-width:0}
+.rpgc-sky .rpgc-now-title{color:#ffffffc8;margin:0}
+.rpgc-sky-place{display:flex;flex-direction:column;min-width:0}
+.rpgc-sky-place.go{cursor:pointer}
+.rpgc-sky-place .big{font:600 22px/1.15 var(--rpgc-serif);letter-spacing:.01em;overflow-wrap:anywhere}
+.rpgc-sky-place .trail{font-size:11.5px;opacity:.85}
+.rpgc-sky-place.go:hover .big,.rpgc-sky-place.go:focus-visible .big{text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:3px}
+.rpgc-sky-time{font:600 20px/1 var(--rpgc-serif);font-variant-numeric:tabular-nums;padding:6px 9px;border-radius:10px;background:#0003;backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px)}
+.rpgc .rpgc-now>.rpgc-now-rows{display:grid;gap:4px;padding:10px 12px 11px}
+.rpgc-now-rows>div{display:flex;gap:6px;align-items:baseline;min-width:0}
+.rpgc-now-rows>div.go{cursor:pointer;border-radius:6px;margin:0 -4px;padding:2px 4px;transition:background .12s}
+.rpgc-now-rows>div.go:hover,.rpgc-now-rows>div.go:focus-visible{background:color-mix(in srgb,currentColor 7%,transparent);outline:none}
+.rpgc-now-rows>div.go:hover .go-arrow{opacity:.8}
+@media (prefers-reduced-motion:reduce){.rpgc-sky .stars,.rpgc .rpgc-agenda-item.in_progress::before{animation:none}.rpgc-sig{transition:none}}
+@media (prefers-reduced-motion:reduce){.rpgc-view{animation:none}.rpgc-viewtab,.rpgc-viewtab .i,.rpgc-sec{transition:none}}
+.rpgc-compact-mobile .rpgc-views{top:auto}
+.rpgc-now{border:1px solid color-mix(in srgb,var(--lumiverse-accent,#7aa2f7) 35%,var(--lumiverse-border,#333));border-radius:12px;padding:10px 12px;
+  background:linear-gradient(160deg,color-mix(in srgb,var(--lumiverse-accent,#7aa2f7) 9%,transparent),transparent 60%),var(--rpgc-card-bg,transparent);margin:6px 0;display:grid;gap:4px;font-size:12px;line-height:1.35}
 .rpgc-now>div{display:flex;gap:6px;align-items:baseline;min-width:0}
 .rpgc-now .k{flex:0 0 auto;width:1.4em;text-align:center}
 .rpgc-now .v{min-width:0;overflow-wrap:anywhere}
@@ -1021,9 +1114,14 @@ function rememberedOpen(initial) {
     });
 }
 
+// 3.5.0: each card carries a medallion, so the eye finds a card by shape before reading it.
+const SECTION_SIGIL = { world: '🌍', worldcard: '📜', map: '🗺️', atlas: '🧭', agenda: '📅', you: '🧍', gear: '🎒', holdings: '🏰', money: '🪙', dnd: '🎲',
+    people: '👥', relweb: '🕸️', family: '🏡', factions: '⚜️', secrets: '🗝️', phone: '📱', body: '❤️', injuries: '🩹', mind: '🧠', survival: '🔥',
+    magic: '✨', techniques: '⚔️', abilities: '💠', quests: '🎯', chronicle: '📖', chapter: '🔖', party: '🛡️', danger: '⚠️' };
 function section(id, title, openState, extra, ...content) {
-    const d = h('details', { class: 'rpgc-sec' },
-        h('summary', null, title, extra ? h('span', { class: 'rpgc-sum-extra' }, extra) : null),
+    const sig = SECTION_SIGIL[id];
+    const d = h('details', { class: 'rpgc-sec' + (sig ? ' has-sig' : ''), 'data-sec': id },
+        h('summary', null, sig ? h('span', { class: 'rpgc-sig', 'aria-hidden': 'true' }, sig) : null, h('span', { class: 'rpgc-sec-title' }, title), extra ? h('span', { class: 'rpgc-sum-extra' }, extra) : null),
         h('div', { class: 'rpgc-body' }, ...content));
     // Settings sections start closed, so Settings opens as a short list of headings; cards start open.
     d.open = String(id).startsWith('s-') ? openState[id] === true : openState[id] !== false;
@@ -1296,7 +1394,8 @@ function npcDossierData(view, requested) {
         String(a.with||'').split(/[,;&]|\s+and\s+/i).some(n=>same(n)));
     appointments.sort((a,b)=>(a.dueIn>=0?a.dueIn:Infinity)-(b.dueIn>=0?b.dueIn:Infinity));
     return {name,person:p || null,family:f || null,mind:m || null,standing:p?.standing || null,bond:p?.bond || f?.relation || null,
-        mood:p?.mood || m?.feel?.text || m?.feel?.word || null,knowledge,appointment:appointments[0] || null,routine:m?.agenda || null,
+        mood:p?.mood || m?.feel?.text || m?.feel?.word || null,knowledge,appointment:appointments[0] || null,appointments,routine:m?.agenda || null,
+        quests:(h.systems?.quests || []).filter(q=>same(q.giver || '') || [q.name,q.objective,q.where].some(t=>{const k=' '+playNameKey(t||'')+' ';const nk=playNameKey(name);return nk.length>2&&k.includes(' '+nk+' ');})).slice(0,6),
         chronicle:(view.chronData?.entries || []).filter(e=>!e.hidden && (e.who || []).some(same)).slice(-5).reverse()};
 }
 
@@ -1471,7 +1570,7 @@ export function setup(ctx) {
         id: 'rpg-companion-hms',
         title: 'RPG Companion (HMS)',
         shortName: 'RPG',
-        headerTitle: 'RPG Companion HMS Edition 3.4.0 RC',
+        headerTitle: 'RPG Companion HMS Edition 3.5.0 RC',
         description: 'The side panel for HMS bots: the HUD as cards, people, quests, the map, fights, the Chronicle, and a guide',
         keywords: ['rpg', 'hms', 'tracker', 'hud', 'quests', 'dice', 'guide'],
         iconSvg: ICON_SVG
@@ -1862,6 +1961,12 @@ export function setup(ctx) {
         root.replaceChildren(...(state.view === 'settings' ? renderSettings() : state.view === 'guide' ? renderGuide() : state.view === 'sandbox' ? renderSandbox() : renderTrackers()).filter(Boolean));   // a switched-off card is simply absent
         const dossier=renderNpcDossier();if(dossier)root.appendChild(dossier);
         tab.root.scrollTop = scroll;
+        if (state.jumpTo) {
+            const id = state.jumpTo; state.jumpTo = null;
+            const el = id === '__top' ? null : [...root.querySelectorAll('details')].find(d => d.dataset.openKey === id);
+            if (el) { el.scrollIntoView?.({ block: 'start', behavior: 'smooth' }); el.classList.add('rpgc-flash'); setTimeout(() => el.classList.remove('rpgc-flash'), 1200); }
+            else tab.root.scrollTop = 0;
+        }
         updateWeather();
     }
 
@@ -1928,10 +2033,14 @@ export function setup(ctx) {
             else if(d.routine?.where)line('last known',d.routine.where);
             line('Current mind',d.mind?.feel?.text || d.mind?.feel?.word);
             if(d.knowledge.length)body.appendChild(h('div',null,h('h4',null,'What they know about you'),h('ul',null,d.knowledge.map(f=>h('li',null,f.fact,f.sure?' ('+f.sure+')':'')))));
-            line('Next appointment',d.appointment?[d.appointment.what,d.appointment.when].filter(Boolean).join(' — '):null);
+            if(d.appointments.length>1)body.appendChild(h('div',null,h('h4',null,'Appointments together'),h('ul',null,d.appointments.map(a=>h('li',null,[a.what,a.state==='in_progress'?'in progress':a.when].filter(Boolean).join(' — '))))));
+            else line('Next appointment',d.appointment?[d.appointment.what,d.appointment.when].filter(Boolean).join(' — '):null);
+            if(d.quests.length)body.appendChild(h('div',null,h('h4',null,'Quests they are part of'),h('ul',null,d.quests.map(q=>h('li',null,h('b',null,q.name),q.objective?' — '+q.objective:'',q.giver&&playNameKey(q.giver)===playNameKey(d.name)?h('span',{class:'rpgc-note'},' (gave it)'):'',['done','completed'].includes(q.cls||q.state)?h('span',{class:'rpgc-note'},' ✓'):'')))));
             line('Last reported activity',d.routine?.doing);
             if(d.chronicle.length)body.appendChild(h('div',null,h('h4',null,'Recent Chronicle'),h('ul',null,d.chronicle.map(e=>h('li',null,[e.when,e.text].filter(Boolean).join(' — '))))));
-            body.appendChild(h('button',{class:'rpgc-btn',onclick:()=>{state.chronWho=d.name;state.open.chronicle=true;state.dossierName=null;render();}},'Show timeline'));
+            body.appendChild(h('div',{class:'rpgc-row'},
+                h('button',{class:'rpgc-btn',onclick:()=>{state.chronWho=d.name;state.dossierName=null;goTo('journey','chronicle');}},'Show timeline'),
+                d.person||d.mind?h('button',{class:'rpgc-btn',onclick:()=>{state.dossierName=null;goTo('people','people');}},'Open in People'):null));
         }
         return h('div',{class:'rpgc-play-overlay',onclick:e=>{if(e.target===e.currentTarget)close();}},body);
     }
@@ -1962,16 +2071,8 @@ export function setup(ctx) {
             state.view === 'trackers' && !state.busy
                 ? h('button', { class: 'rpgc-btn', title: 'Generate trackers for the latest reply with a separate call', disabled: !state.chatId || !s?.enabled ? true : null, onclick: requestRefresh }, 'Refresh')
                 : null,
-            s ? (() => {
-                const pm = h('select', { class: 'rpgc-panelsel', 'aria-label': 'Where the panel lives', title: 'Where the panel lives', onchange: (e) => setPanelMode(e.target.value) },
-                    h('option', { value: 'drawer' }, 'Drawer'), h('option', { value: 'float' }, 'Floating'), h('option', { value: 'popout' }, 'Own window'));
-                pm.value = panelMode();
-                return pm;
-            })() : null,
-            S()?.uiTestZone === false && !state.sandbox ? null : h('button', {
-                class: 'rpgc-btn', 'aria-pressed': state.view === 'sandbox' ? 'true' : 'false', title: state.sandbox ? 'Back to your chat' : 'Try everything without a chat',
-                onclick: () => (state.sandbox ? leaveSandbox() : enterSandbox())
-            }, state.sandbox ? 'Leave test zone' : 'Test zone'),
+            s && !trayTools() ? panelModeSelect() : null,
+            S()?.uiTestZone === false && !state.sandbox || trayTools() ? null : testZoneButton(),
             h('button', {
                 class: 'rpgc-btn', 'aria-pressed': state.view === 'guide' ? 'true' : 'false', title: 'How everything works: the bot, the preset and this panel',
                 onclick: () => { state.view = state.view === 'guide' ? (state.sandbox ? 'sandbox' : 'trackers') : 'guide'; render(); }
@@ -1985,6 +2086,22 @@ export function setup(ctx) {
         wrap.appendChild(bar);
         wrap.appendChild(h('div', { class: 'rpgc-status ' + (st.kind || ''), role: 'status' }, st.text));
         return wrap;
+    }
+    // 3.5.0: on the HMS trackers view, rarely used controls live in the Tools tray.
+    function trayTools() { return state.view === 'trackers' && !state.sandbox && !!state.chatId && hmsOn() && !state.trackerSnapshots?.view; }
+    function panelModeSelect() {
+        return (() => {
+                const pm = h('select', { class: 'rpgc-panelsel', 'aria-label': 'Where the panel lives', title: 'Where the panel lives', onchange: (e) => setPanelMode(e.target.value) },
+                    h('option', { value: 'drawer' }, 'Drawer'), h('option', { value: 'float' }, 'Floating'), h('option', { value: 'popout' }, 'Own window'));
+                pm.value = panelMode();
+                return pm;
+            })();
+    }
+    function testZoneButton() {
+        return h('button', {
+                class: 'rpgc-btn', 'aria-pressed': state.view === 'sandbox' ? 'true' : 'false', title: state.sandbox ? 'Back to your chat' : 'Try everything without a chat',
+                onclick: () => (state.sandbox ? leaveSandbox() : enterSandbox())
+            }, state.sandbox ? 'Leave test zone' : 'Test zone');
     }
 
     function renderTrackers() {
@@ -2732,7 +2849,7 @@ export function setup(ctx) {
             btns.push(h('button', { class: 'rpgc-btn', title: 'Continue the last reply and push the story forward', disabled: state.plotBusy ? true : null, onclick: () => plot('natural') }, 'Move the story'));
         }
         btns.push(...fightButtons());
-        btns.push(rereadButton());
+        if (!trayTools()) btns.push(rereadButton());
         return btns.length ? h('div', { class: 'rpgc-story' }, btns) : null;
     }
 
@@ -3524,10 +3641,20 @@ export function setup(ctx) {
     }
     function avatarImg(name) {
         const url = avatarFor(name);
-        if (!S()?.enableAvatars || !url) return null;
+        if (!S()?.enableAvatars || !url) return monogram(name);
         return h('div', { class: 'rpgc-avatar-wrap' }, h('img', { class: 'rpgc-avatar', src: url, alt: `Portrait of ${name}`, loading: 'lazy' }));
     }
 
+
+    // 3.5.0: a name-tinted monogram stands in for a missing portrait, so every person has a face of sorts.
+    function monogram(name) {
+        const n = String(name || '').replace(/\(.*?\)/g, '').trim();
+        if (!n) return null;
+        const words = n.split(/\s+/).filter(w => /^\p{L}/u.test(w));
+        const ini = ((words[0] || n)[0] + (words.length > 1 ? words[words.length - 1][0] : '')).toUpperCase();
+        let hash = 0; for (const c of n.toLowerCase()) hash = (hash * 31 + c.codePointAt(0)) >>> 0;
+        return h('span', { class: 'rpgc-mono', 'aria-hidden': 'true', style: `--mono-h:${hash % 360}` }, ini);
+    }
 
     // ─────────── HMS: World State panel ───────────
 
@@ -3696,7 +3823,7 @@ export function setup(ctx) {
             } }, 'Move the world')
         ];
         btns.push(...fightButtons());
-        btns.push(rereadButton());
+        if (!trayTools()) btns.push(rereadButton());
         return h('div', { class: 'rpgc-story' }, btns);
     }
     // Reads the latest reply again \u2014 its HUD and its side-panel block \u2014 the same way a new reply is read.
@@ -3765,30 +3892,54 @@ export function setup(ctx) {
     function renderNow() {
         if (!playOn('nowCard') || !state.hms || !state.hms.hud || S()?.compactMobile) return null; // compact mobile has its own pinned summary
         const rows = [];
-        const row = (icon, label, ...v) => rows.push(h('div', null, h('span', { class: 'k', 'aria-hidden': 'true', title: label }, icon), h('span', { class: 'v' }, ...v)));
+        let link = null; // [view, card] for the next row
+        const row = (icon, label, ...v) => {
+            const to = link; link = null;
+            rows.push(h('div', to ? { class: 'go', role: 'button', tabindex: '0', title: TT('Open {0}', label), onclick: () => goTo(...to), onkeydown: e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); goTo(...to); } } } : null,
+                h('span', { class: 'k', 'aria-hidden': 'true', title: label }, icon), h('span', { class: 'v' }, ...v), to ? h('span', { class: 'go-arrow', 'aria-hidden': 'true' }, '›') : null));
+        };
         const hud = state.hms.hud;
-        const place = (hud.location || []).map(x => typeof x === 'string' ? x : x.text || '').filter(Boolean).slice(-2).join(' › ');
-        if (place || hud.time) row('📍', T('Where'), place || '', place && hud.time ? h('span', { class: 'rpgc-note' }, ' · ' + hud.time) : (!place ? hud.time : null));
+        const path = (hud.location || []).map(x => typeof x === 'string' ? x : x.text || '').filter(Boolean);
         const ag = (state.hms.agenda?.items || []).map(x => ({ ...x, agendaTiming: agendaDisplayTiming(x, state.hms?.systems?.clock, state.hms?.hud) }));
         const doing = ag.filter(x => x.state === 'in_progress');
-        for (const x of doing.slice(0, 2)) row('▶', T('In progress'), h('b', null, x.what), x.with ? h('span', { class: 'rpgc-note' }, ' · ' + x.with) : null);
+        for (const x of doing.slice(0, 2)) link = ['journey', 'agenda'], row('▶', T('In progress'), h('b', null, x.what), x.with ? h('span', { class: 'rpgc-note' }, ' · ' + x.with) : null);
         const open = ag.filter(x => x.state === 'open');
         const rank = x => x.agendaTiming.delta !== null ? x.agendaTiming.delta : Number.isFinite(x.agendaTiming.dayIn) ? x.agendaTiming.dayIn * 1440 : 1e12;
         const next = open.filter(x => rank(x) < 1e12).sort((a, b) => rank(a) - rank(b))[0] || (!doing.length ? open[0] : null);
-        if (next) row('⏭', T('Next'), h('b', null, next.what), h('span', { class: 'rpgc-note' }, ' · ' + agendaDue(next)));
+        if (next) link = ['journey', 'agenda'], row('⏭', T('Next'), h('b', null, next.what), h('span', { class: 'rpgc-note' }, ' · ' + agendaDue(next)));
         const quests = (state.hms.systems?.quests || []).filter(q => !['done', 'completed', 'closed', 'failed', 'abandoned', 'ended', 'hidden'].includes(q.cls || q.state));
         const q = quests.find(x => x.category === 'main') || quests[0];
-        if (q) row('🎯', T('Quest'), h('b', null, q.name), q.objective ? ' — ' + q.objective : '', Number.isFinite(q.progress) ? h('span', { class: 'rpgc-note' }, ` (${q.progress}%)`) : null, quests.length > 1 ? h('span', { class: 'rpgc-note' }, TT(' +{0} more', quests.length - 1)) : null);
+        if (q) link = ['journey', 'quests'], row('🎯', T('Quest'), h('b', null, q.name), q.objective ? ' — ' + q.objective : '', Number.isFinite(q.progress) ? h('span', { class: 'rpgc-note' }, ` (${q.progress}%)`) : null, quests.length > 1 ? h('span', { class: 'rpgc-note' }, TT(' +{0} more', quests.length - 1)) : null);
         const pv = state.plotView;
-        if (pv && pv.on?.plot && pv.now) row('📖', T('Story'), pv.now);
+        if (pv && pv.on?.plot && pv.now) link = ['journey', 'quests'], row('📖', T('Story'), pv.now);
         const ripe = (mindsOf()?.chekhov?.chamber || []).filter(b => b.ripe).sort((a, b) => (b.w || 0) - (a.w || 0));
-        if (ripe.length) row('🔫', T('Planted details'), ripe.slice(0, 2).map(b => b.what).join(' · '), ripe.length > 2 ? h('span', { class: 'rpgc-note' }, TT(' +{0} more', ripe.length - 2)) : null);
+        if (ripe.length) link = ['journey', 'quests'], row('🔫', T('Planted details'), ripe.slice(0, 2).map(b => b.what).join(' · '), ripe.length > 2 ? h('span', { class: 'rpgc-note' }, TT(' +{0} more', ripe.length - 2)) : null);
         const changed = [];
         for (const x of ag) if (x.isNew) changed.push((x.state === 'open' ? '📅 ' : x.state === 'in_progress' ? '▶ ' : '✓ ') + x.what);
         for (const g of (state.hms.gear?.items || [])) if (g.changedNow) changed.push('🎒 ' + g.name + (g.state ? ` (${g.state})` : ''));
         if (changed.length) row('✨', T('This turn'), h('span', { class: 'chg' }, changed.slice(0, 5).join(' · '), changed.length > 5 ? TT(' +{0} more', changed.length - 5) : ''));
-        if (!rows.length) return null;
-        return h('div', { class: 'rpgc-now', role: 'region', 'aria-label': T('Now') }, ...rows);
+        if (!rows.length && !path.length) return null;
+        return h('div', { class: 'rpgc-now', role: 'region', 'aria-label': T('Now') }, skyHero(hud, path), rows.length ? h('div', { class: 'rpgc-now-rows' }, ...rows) : null);
+    }
+    // The top of the Now card: the place, set large, under a sky that follows the story's clock.
+    function skyHero(hud, path) {
+        const m = String(hud.time || '').match(/\b(\d{1,2}):(\d{2})\b/);
+        const clock = Number.isFinite(state.hms?.systems?.clock) ? ((state.hms.systems.clock % 1440) + 1440) % 1440 : m ? (+m[1] % 24) * 60 + +m[2] : null;
+        const phase = clock === null ? 'none' : clock < 300 ? 'night' : clock < 420 ? 'dawn' : clock < 660 ? 'morning' : clock < 900 ? 'day' : clock < 1080 ? 'afternoon' : clock < 1230 ? 'dusk' : 'night';
+        const day = clock !== null && clock >= 360 && clock < 1170;
+        const t = clock === null ? 0.5 : day ? (clock - 360) / 810 : (((clock - 1170) + 1440) % 1440) / 630;
+        const x = Math.max(4, Math.min(96, t * 100)), y = 70 - Math.sin(Math.PI * Math.max(0, Math.min(1, t))) * 52;
+        const go = state.hms.map ? { class: 'rpgc-sky-place go', role: 'button', tabindex: '0', title: T('Open the map'), onclick: () => goTo('scene', 'map'),
+            onkeydown: e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); goTo('scene', 'map'); } } } : { class: 'rpgc-sky-place' };
+        const time = String(hud.time || '').replace(/\s*\(([^)]*)\)\s*$/, '');
+        const part = (String(hud.time || '').match(/\(([^)]*)\)/) || [])[1];
+        return h('div', { class: 'rpgc-sky sky-' + phase },
+            phase === 'night' ? h('span', { class: 'stars', 'aria-hidden': 'true' }) : null,
+            clock !== null ? h('span', { class: 'orb ' + (day ? 'sun' : 'moon'), 'aria-hidden': 'true', style: `left:${x.toFixed(1)}%;top:${y.toFixed(1)}%` }) : null,
+            h('div', { class: 'rpgc-sky-text' },
+                h('div', { class: 'rpgc-now-title' }, T('Now'), part ? ' · ' + part : ''),
+                h('div', go, h('span', { class: 'big' }, path.at(-1) || T('Unknown')), path.length > 1 ? h('span', { class: 'trail' }, path.slice(-3, -1).join(' › ')) : null)),
+            time ? h('div', { class: 'rpgc-sky-time' }, time) : null);
     }
 
     function renderMobilePinned() {
@@ -3831,12 +3982,17 @@ export function setup(ctx) {
         const s = S();
         const snapshots = renderTrackerSnapshots();
         if (state.trackerSnapshots?.view) return [topBar(), snapshots];
-        const out = [topBar(), renderMobilePinned(), snapshots, h('button', {class:'rpgc-btn', onclick:exportCharacterSheet}, 'Export character sheet'), foldAllRow()];
+        const view = currentView();
+        const out = [topBar(), renderMobilePinned(), viewBar(view),
+            h('details', {class:'rpgc-tools', 'data-open-key':'tools', open: state.open.tools === true ? '' : null, ontoggle: e => { state.open.tools = e.target.open; }},
+                h('summary', null, '🧰 ' + T('Tools')),
+                h('div', {class:'rpgc-row rpgc-tools-row'}, h('label', {class:'rpgc-note'}, T('Panel'), ' ', panelModeSelect()), S()?.uiTestZone === false ? null : testZoneButton(), rereadButton(), h('button', {class:'rpgc-btn', onclick:exportCharacterSheet}, 'Export character sheet')),
+                foldAllRow(), snapshots)];
         const warnings = state.hms?.consistency || [];
         if (warnings.length) out.push(h('details', {class:'rpgc-consistency'}, h('summary', null, T('Consistency warnings') + ' (' + warnings.length + ')'), h('ul', null, warnings.map(w => h('li', null, T(w.message), w.field ? `: ${w.field} (${w.expected} → ${w.actual})` : '', w.reason ? document.createTextNode(' — ' + w.reason) : null)))));
         const hint = worldHint();
         if (hint) out.push(hint);
-        const story = hmsStoryRow();
+        const story = view === 'scene' || view === 'all' ? hmsStoryRow() : null;
         if (story) out.push(story);
         const immEl = renderImmersive();
         if (immEl) out.push(immEl);
@@ -3844,15 +4000,60 @@ export function setup(ctx) {
         if (songEl) out.push(songEl);
         const danger = renderDanger();
         if (danger) out.push(danger);
-        const nowEl = renderNow();
-        if (nowEl) out.push(nowEl);
-        out.push(renderWorldState());
-        for (const el of [renderWorldCard(), renderMap(), renderAtlas(), renderAgenda(), renderYou(), renderGear(), renderHoldings(), renderMoney(), renderDnd(), renderPeopleAll(), renderRelationshipWeb(), renderFamily(), renderFactions(), renderSecrets(), renderPhone(), renderBody(), renderInjuries(), renderMind(), renderSurvival(), renderMagic(), renderTechniques(), renderAbilities()]) if (el) out.push(el);
-        if (s.showQuests) out.push(renderHmsQuests());
-        const chron = renderChronicle();
-        if (chron) out.push(chron);
-        out.push(renderChapter());
+        // 3.5.0: only the chosen view is built (All keeps the classic order).
+        const cards = [
+            ['scene', renderNow], ['scene', renderWorldState], ['scene', renderWorldCard], ['scene', renderMap], ['journey', renderAtlas], ['journey', renderAgenda],
+            ['you', renderYou], ['you', renderGear], ['you', renderHoldings], ['you', renderMoney], ['you', renderDnd],
+            ['people', renderPeopleAll], ['people', renderRelationshipWeb], ['people', renderFamily], ['people', renderFactions], ['people', renderSecrets], ['people', renderPhone],
+            ['you', renderBody], ['you', renderInjuries], ['you', renderMind], ['you', renderSurvival], ['you', renderMagic], ['you', renderTechniques], ['you', renderAbilities],
+            ['journey', () => s.showQuests ? renderHmsQuests() : null], ['journey', renderChronicle], ['journey', renderChapter]];
+        const order = view === 'journey' ? ['agenda', 'quests', 'chronicle', 'chapter', 'atlas'] : null;
+        const built = [];
+        for (const [group, fn] of cards) if (view === 'all' || view === group) { const el = fn(); if (el) built.push(el); }
+        if (order) built.sort((a, b) => order.indexOf(a.dataset?.openKey) - order.indexOf(b.dataset?.openKey));
+        if (!built.length) built.push(h('p', { class: 'rpgc-note rpgc-empty-view' }, T('Nothing here yet. Cards appear as the story reports them.')));
+        out.push(h('div', { class: 'rpgc-view rpgc-view-' + view }, ...built));
         return out;
+    }
+
+    // ─────────── 3.5.0: views ───────────
+    // Scene (what is around you now), You (your character), People, Journey (agenda, quests, story so far) and All.
+    const VIEWS = [['scene', '🎬', 'Scene'], ['you', '🧍', 'You'], ['people', '👥', 'People'], ['journey', '🧭', 'Journey'], ['all', '☰', 'All']];
+    const VIEW_KEY = 'rpgc-view';
+    function currentView() {
+        if (!state.viewTab) { try { state.viewTab = localStorage.getItem(VIEW_KEY) || ''; } catch { state.viewTab = ''; } }
+        return VIEWS.some(v => v[0] === state.viewTab) ? state.viewTab : 'scene';
+    }
+    // Switch view; with a card id, open that card and bring it into sight.
+    function goTo(view, cardId = null) {
+        state.viewTab = view; try { localStorage.setItem(VIEW_KEY, view); } catch { /* convenience only */ }
+        if (cardId) state.open[cardId] = true;
+        state.jumpTo = cardId || '__top';
+        render();
+    }
+    function viewBadges() {
+        const hms = state.hms || {}, b = {};
+        const ag = hms.agenda?.items || [];
+        const late = ag.filter(x => x.status === 'overdue').length;
+        const active = (hms.systems?.quests || []).filter(q => !['done','completed','closed','failed','abandoned','ended','hidden'].includes(q.cls || q.state)).length;
+        b.journey = { n: active || null, alarm: late > 0, fresh: ag.some(x => x.isNew) };
+        b.you = { fresh: (hms.gear?.items || []).some(g => g.changedNow) };
+        b.people = { n: (state.data?.characters || []).length || null };
+        return b;
+    }
+    function viewBar(view) {
+        const badges = viewBadges();
+        const btns = VIEWS.map(([id, icon, label], i) => {
+            const bd = badges[id] || {};
+            return h('button', { type: 'button', role: 'tab', class: 'rpgc-viewtab' + (id === view ? ' on' : ''), 'aria-selected': id === view ? 'true' : 'false', tabindex: id === view ? '0' : '-1',
+                title: T(label), 'data-view': id, onclick: () => goTo(id),
+                onkeydown: e => { const k = e.key === 'ArrowRight' ? 1 : e.key === 'ArrowLeft' ? -1 : 0; if (!k) return; e.preventDefault(); goTo(VIEWS[(i + k + VIEWS.length) % VIEWS.length][0]);
+                    setTimeout(() => root.querySelector('.rpgc-viewtab.on')?.focus(), 0); } },
+                h('span', { class: 'i', 'aria-hidden': 'true' }, icon), h('span', { class: 'l' }, T(label)),
+                bd.n ? h('span', { class: 'n' }, String(bd.n)) : null,
+                bd.alarm ? h('span', { class: 'dot alarm', title: T('Something is late') }) : bd.fresh ? h('span', { class: 'dot', title: T('Changed this turn') }) : null);
+        });
+        return h('div', { class: 'rpgc-views', role: 'tablist', 'aria-label': T('Panel views') }, ...btns);
     }
 
     function renderHmsQuests() {
@@ -7005,7 +7206,7 @@ body{background:${bs ? bs.backgroundColor : '#111'};color:${bs ? bs.color : '#dd
             if (!popWin || popWin.closed) {
                 popWin = window.open('', 'rpgc_popout', 'width=460,height=860');
                 if (!popWin) { state.status = { kind: 'warning', text: 'The browser blocked the pop-out window. Allow pop-ups for Lumiverse and try again.' }; const s = S(); s.uiPanelMode = 'drawer'; return applyPanelMode(); }
-                popWin.document.title = 'RPG Companion HMS Edition 3.4.0 RC';
+                popWin.document.title = 'RPG Companion HMS Edition 3.5.0 RC';
                 syncPopoutLook(popWin);
                 try { if (!popLookObs) { popLookObs = new MutationObserver(() => syncPopoutLook(popWin)); popLookObs.observe(document.documentElement, { attributes: true }); if (document.body) popLookObs.observe(document.body, { attributes: true, attributeFilter: ['class'] }); } } catch { /* optional */ }
                 popWin.addEventListener('beforeunload', () => { popWin = null; if (panelMode() === 'popout') { const s = S(); s.uiPanelMode = 'drawer'; saveSettings(false); applyPanelMode(); render(); } });
