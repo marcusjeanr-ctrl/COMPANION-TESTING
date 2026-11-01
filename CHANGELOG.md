@@ -1,5 +1,15 @@
 # Changelog — RPG Companion HMS Edition
 
+## 3.6.0 RC (experiment: gear containers) — contents under their bag
+
+Branch `experiment/3.6.0-gear-containers`, from `staging/3.6.0-ui` at `bf80da9`. Display only: `dist/backend.js` is unchanged.
+
+- A container's contents now sit **under the container's own row**, wherever that row is: worn, on you, dropped, left somewhere, or inside another bag. Before, the bag was listed in one place (e.g. under Dropped, by the door) and its contents in a separate "Inside …" group further up.
+- The bag row has a toggle with its count (▾ 4). Closed, it shows a one-line peek ("travel itinerary, sealed letter +2"). Each bag opens and closes on its own and stays as you left it (same remembered setting as before). Opening or closing is display only: nothing moves, nothing is sent.
+- Bags inside bags nest (a pouch in a pack), up to four levels.
+- Nothing is guessed: an item goes under a bag only when the tracker recorded that bag's exact name as where it is. A bag with no row of its own, or bags recorded inside each other in a loop, keep the older "Inside …" groups; an item in an unknown container stays under "Packed away". Anything not drawn otherwise shows under "Other", so no item can disappear.
+- Move menus and every other control are unchanged.
+
 ## 3.6.0 RC (UI staging) — one application
 
 Branched from `staging/3.5.0` at `0318b1a`. **Interface only**: `dist/backend.js` is byte-identical to 3.5.0 apart from the version number, and on the Six-Sided World export the two builds produce identical panel data, narrator requests and Chronicle at every one of 29 replies (`tools/compare_backends.cjs`). No new model calls, no polling, nothing new saved except your display choices.

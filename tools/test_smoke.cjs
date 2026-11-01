@@ -155,10 +155,13 @@ globalThis.__hooks = (chat, lore, user) => {
     receive(JSON.parse(JSON.stringify(state)));
     const rendered = textOfTree(tabRoot);
     const find = (node, pred) => !node ? null : pred(node) ? node : (node.children || []).reduce((hit, c) => hit || find(c, pred), null);
-    const bag = find(tabRoot, n => n.tagName === 'DETAILS' && n.dataset && n.dataset.openKey === 'gear-box-travel pack');
-    assert(bag, 'container renders as a collapsible group');
-    assert.equal(bag.open, true, 'containers start open');
-    assert(textOfTree(bag).includes('(1)') && textOfTree(bag).includes('rations'), 'container shows its item count and contents');
+    // 3.6.0: a container's contents sit under the container's own row
+    const bag = find(tabRoot, n => n.dataset && n.dataset.boxKey === 'gear-box-travel pack');
+    assert(bag, 'the container row carries its contents');
+    const inside = find(bag, n => String(n.className || '').includes('rpgc-gear-inside'));
+    assert(inside && inside.attributes.hidden == null, 'containers start open');
+    assert.equal(inside.children.length, 1, 'one item inside the container');
+    assert(textOfTree(inside).includes('rations'), 'the container shows its contents');
     const folded = find(tabRoot, n => n.tagName === 'DETAILS' && n.dataset && /^person-/.test(n.dataset.openKey || ''));
     assert(folded, 'someone not in the scene folds to a header row');
     assert.equal(folded.open, false, 'folded people start closed');

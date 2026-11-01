@@ -1013,6 +1013,24 @@ button.rpgc-chip.intel:hover { border-color: var(--lumiverse-accent, #7aa2f7); }
 .rpgc-recap-list li.big{font-weight:600}
 .rpgc-recap-list .tm{font-size:11px;color:var(--lumiverse-text-muted,#999);margin-right:6px;font-variant-numeric:tabular-nums}
 .rpgc-recap-now{margin:0}
+.rpgc .rpgc-gear-item.rpgc-gear-box{display:grid;grid-template-columns:auto auto minmax(0,1fr) auto;align-items:center;column-gap:6px;row-gap:2px}
+.rpgc .rpgc-gear-box>.rpgc-box-toggle{grid-column:1;grid-row:1}
+.rpgc .rpgc-gear-box>.name{grid-column:2;grid-row:1;font-weight:650}
+.rpgc .rpgc-gear-box>.meta{grid-column:3;grid-row:1;min-width:0}
+.rpgc .rpgc-gear-box>.rpgc-gear-move{grid-column:4;grid-row:1}
+.rpgc .rpgc-gear-box>.rpgc-gear-peek,.rpgc .rpgc-gear-box>.rpgc-gear-inside{grid-column:1/-1}
+@container rpgc (max-width:400px){.rpgc .rpgc-gear-box>.name{grid-column:2/4}.rpgc .rpgc-gear-box>.meta{grid-column:2/-1;grid-row:2}}
+.rpgc-box-toggle{appearance:none;display:inline-flex;align-items:center;gap:4px;border:1px solid var(--u-line-2,#444);background:var(--u-raise,transparent);color:inherit;border-radius:999px;padding:1px 7px 1px 5px;font:600 10.5px/1.4 system-ui,sans-serif;cursor:pointer;flex:0 0 auto}
+.rpgc-box-toggle:hover{border-color:var(--u-accent,#7aa2f7)}
+.rpgc-box-toggle:focus-visible{outline:2px solid var(--u-accent,#7aa2f7);outline-offset:1px}
+.rpgc-box-toggle .chev{display:inline-block;width:0;height:0;border-left:4px solid currentColor;border-top:3.5px solid transparent;border-bottom:3.5px solid transparent;transition:transform .15s}
+.rpgc-box-toggle[aria-expanded=true] .chev{transform:rotate(90deg)}
+.rpgc-gear-peek{font-size:11px;padding-left:30px!important;color:var(--u-muted,#999);padding-left:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rpgc-gear-peek[hidden],.rpgc-gear-inside[hidden]{display:none!important}
+.rpgc .rpgc-gear-inside{list-style:none;margin:5px 0 2px 9px;padding:0 0 0 12px;border-left:2px solid color-mix(in srgb,var(--u-accent,#7aa2f7) 35%,transparent);display:flex;flex-direction:column;gap:4px}
+.rpgc .rpgc-gear-inside>li{position:relative}
+.rpgc .rpgc-gear-inside>li::before{content:'';position:absolute;left:-12px;top:.75em;width:8px;border-top:2px solid color-mix(in srgb,var(--u-accent,#7aa2f7) 35%,transparent)}
+@media (prefers-reduced-motion:reduce){.rpgc-box-toggle .chev{transition:none}}
 .rpgc .rpgc-place{font-size:10.5px;margin-top:3px;align-self:flex-start;width:max-content}
 .rpgc .rpgc-place.here{border-color:#5fbf7f;color:#7fd39a}
 .rpgc button.rpgc-place{cursor:pointer;background:none;color:inherit;font:inherit;font-size:10.5px}
@@ -5365,34 +5383,76 @@ export function setup(ctx) {
         const out = [];
         const now = g.items.filter(it => it.changedNow);
         if (now.length) out.push(h('p', { class: 'rpgc-gear-now' }, h('b', null, 'This turn: '), now.map(it => `${it.name} → ${it.state === 'in container' ? TT('in {0}', it.inside || T('a container')) : T(GEAR_LABEL[it.state] || 'carried')}`).join(' · ')));
+        // 3.6.0: a container's contents sit under the container's own row, wherever that row is (worn, on you,
+        // dropped, left somewhere, or inside another bag). Display only: the tracked "inside" name decides, with the
+        // same exact-name rule as before; nothing is inferred. A container with no row of its own, or a loop of
+        // bags inside each other, keeps the older "Inside …" group. Every item is drawn exactly once.
+        const low = x => String(x || '').toLowerCase();
         const used = new Set();
+        const boxRow = new Map();   // container name → its own item row
+        for (const cn of g.containers) { const box = g.items.find(it => low(it.name) === low(cn)); if (box) boxRow.set(low(cn), box); }
+        const contentsOf = cn => g.items.filter(it => it.state === 'in container' && it.inside && low(it.inside) === low(cn));
+        const nestable = new Set();
+        for (const cn of boxRow.keys()) {
+            // walk up: the bag, the bag it is in, … ; coming back to itself is a loop → not nestable
+            let cur = boxRow.get(cn), seen = new Set([cn]), loop = false;
+            for (let i = 0; cur && cur.state === 'in container' && cur.inside && i < 12; i++) {
+                const up = low(cur.inside); if (seen.has(up)) { loop = true; break; } seen.add(up); cur = boxRow.get(up);
+            }
+            if (!loop) nestable.add(cn);
+        }
+        const nestedUnderRow = it => it.state === 'in container' && it.inside && nestable.has(low(it.inside));
+        const boxItemRow = (it, depth) => {
+            const cn = low(it.name);
+            if (!nestable.has(cn) || depth > 4) return gearRow(g, it);
+            const kids = contentsOf(cn);
+            const boxKey = 'gear-box-' + cn, open = state.open[boxKey] !== false;
+            const li = gearRow(g, it);
+            li.classList.add('rpgc-gear-box');
+            li.dataset.boxKey = boxKey;
+            const list = h('ul', { class: 'rpgc-gear-inside', id: 'rpgc-' + boxKey.replace(/[^a-z0-9-]+/g, '-'), hidden: open ? null : '' },
+                kids.length ? kids.map(k => { used.add(k.key); return boxItemRow(k, depth + 1); }) : h('li', { class: 'rpgc-note' }, T('Nothing known inside.')));
+            const peek = kids.slice(0, 2).map(k => k.name).join(', ') + (kids.length > 2 ? ` +${kids.length - 2}` : '');
+            const peekEl = h('span', { class: 'rpgc-gear-peek', hidden: open || !kids.length ? '' : null }, peek);
+            const toggle = h('button', { type: 'button', class: 'rpgc-box-toggle', 'aria-expanded': open ? 'true' : 'false', 'aria-controls': list.id,
+                title: open ? TT('Close {0}', it.name) : TT('Open {0}', it.name), 'aria-label': TT('{0}: {1} inside', it.name, kids.length),
+                onclick: () => { const now = toggle.getAttribute('aria-expanded') !== 'true'; state.open[boxKey] = now; toggle.setAttribute('aria-expanded', now ? 'true' : 'false');
+                    if (now) { list.removeAttribute('hidden'); peekEl.setAttribute('hidden', ''); } else { list.setAttribute('hidden', ''); if (kids.length) peekEl.removeAttribute('hidden'); } } },
+                h('span', { class: 'chev', 'aria-hidden': 'true' }), h('span', { class: 'cnt' }, String(kids.length)));
+            const nameEl = li.querySelector ? li.querySelector('.name') : null;
+            if (nameEl) { nameEl.before(toggle); nameEl.after(peekEl); } else { li.appendChild(toggle); li.appendChild(peekEl); }
+            li.appendChild(list);
+            return li;
+        };
+        const rowFor = it => { used.add(it.key); return boxItemRow(it, 0); };
         for (const [st, title] of GEAR_GROUPS) {
             if (st === 'in container') {
-                // one list per bag, under the bag itself
+                // containers without a row of their own (or caught in a loop): the older "Inside …" group
                 for (const cn of g.containers) {
-                    const inside = g.items.filter(it => it.state === 'in container' && it.inside && it.inside.toLowerCase() === cn.toLowerCase());
-                    const box = g.items.find(it => it.name.toLowerCase() === cn.toLowerCase());
+                    if (nestable.has(low(cn))) continue;
+                    const inside = contentsOf(cn).filter(it => !used.has(it.key));
+                    const box = g.items.find(it => low(it.name) === low(cn));
                     if (!inside.length && !box) continue;
                     inside.forEach(it => used.add(it.key));
-                    // a collapsible list per bag; open by default, and a bag you close stays closed (remembered)
-                    const boxKey = 'gear-box-' + cn.toLowerCase();
-                    const det = h('details', { class: 'rpgc-gear-group box' }, h('summary', null, `👜 Inside ${cn}`, h('span', { class: 'meta' }, ` (${inside.length})`), box && box.state ? h('span', { class: 'meta' }, ` · ${box.state === 'in container' ? TT('in {0}', box.inside) : T(GEAR_LABEL[box.state] || '')}${box.where ? ` (${box.where})` : ''}`) : null),
+                    const boxKey = 'gear-box-' + low(cn);
+                    const det = h('details', { class: 'rpgc-gear-group box' }, h('summary', null, `👜 Inside ${cn}`, h('span', { class: 'meta' }, ` (${inside.length})`), box && box.state ? h('span', { class: 'meta' }, ` · ${box.state === 'in container' ? TT('in {0}', box.inside || T('a container')) : T(GEAR_LABEL[box.state] || box.state)}${box.where ? ` (${box.where})` : ''}`) : null),
                         inside.length ? h('ul', null, inside.map(it => gearRow(g, it))) : h('p', { class: 'rpgc-note' }, 'Nothing known inside.'));
                     det.open = state.open[boxKey] !== false;
                     det.dataset.openKey = boxKey; det.addEventListener('toggle', () => { state.open[boxKey] = det.open; });
                     out.push(det);
                 }
-                // things in a container nobody listed
-                const loose = g.items.filter(it => it.state === 'in container' && !used.has(it.key));
+                const loose = g.items.filter(it => it.state === 'in container' && !used.has(it.key) && !nestedUnderRow(it));
                 loose.forEach(it => used.add(it.key));
                 if (loose.length) out.push(h('div', { class: 'rpgc-gear-group' }, h('h4', null, '👜 Packed away'), h('ul', null, loose.map(it => gearRow(g, it)))));
                 continue;
             }
             const list = g.items.filter(it => (st === null ? !it.state : it.state === st) && !used.has(it.key));
             if (!list.length) continue;
-            list.forEach(it => used.add(it.key));
-            out.push(h('div', { class: 'rpgc-gear-group' + (st === 'in hand' ? ' hands' : '') }, h('h4', null, title), h('ul', null, list.map(it => gearRow(g, it)))));
+            out.push(h('div', { class: 'rpgc-gear-group' + (st === 'in hand' ? ' hands' : '') }, h('h4', null, title), h('ul', null, list.map(rowFor))));
         }
+        // safety net: anything not drawn yet (an unknown state, or a bag whose own row was never drawn) still shows
+        const rest = g.items.filter(it => !used.has(it.key));
+        if (rest.length) { rest.forEach(it => used.add(it.key)); out.push(h('div', { class: 'rpgc-gear-group' }, h('h4', null, '❔ ' + T('Other')), h('ul', null, rest.map(it => gearRow(g, it))))); }
         if (!g.items.length) out.push(h('p', { class: 'rpgc-note' }, g.ask
             ? 'Write what you do with your things — “I sheathe my sword”, “I sling the pack on my back”, “the letter goes in my coat pocket” — and it shows up here after the reply. What the HUD lists under Equipment or Items shows up too.'
             : 'Asking the story about your gear is off (Settings → HMS systems → Gear). The HUD’s Equipment and Items lines still show here, and you can add things by hand.'));

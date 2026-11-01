@@ -83,6 +83,50 @@ const fails = []; const check = (ok, what) => { if (!ok) fails.push(what); };
     check(before > 5 && after > 0 && after < before, `Settings search does not filter (${before} → ${after})`);
     } catch (e) { fails.push('interaction stopped: ' + String(e.message).split('\n')[0]); }
     await p.close();
+    // Gear containers: contents under their container's row, every item exactly once, loops not nested,
+    // opening/closing is display only (no message), remembered, independent; Move still works.
+    {
+        const item = (name, st, inside = null) => ({ key: name.toLowerCase(), name, state: st, where: null, inside, from: 'story', onHud: false, mine: false, history: [] });
+        const items = [item('Pack', 'on body'), item('Pouch', 'in container', 'Pack'), item('coin', 'in container', 'Pouch'), item('rope', 'in container', 'Pack'),
+            item('Chest A', 'in container', 'Chest B'), item('Chest B', 'in container', 'Chest A'), item('gem', 'in container', 'Chest A'),
+            item('note', 'in container', 'Locker'), item('map', 'in container', 'Unknown bag'), item('cloak', 'worn')];
+        const gearPayload = JSON.parse(JSON.stringify(payload));
+        gearPayload.hms.gear = { items, containers: ['Pack', 'Pouch', 'Chest A', 'Chest B', 'Locker'], gone: [], ask: true, tell: true };
+        fs.writeFileSync(tmp, page(process.env.FRONTEND || path.join(root, 'dist', 'frontend.js'), 420, `localStorage.setItem('rpgc-view','you');`));
+        const q = await browser.newPage({ viewport: { width: 460, height: 900 } }); q.setDefaultTimeout(3000);
+        q.on('pageerror', e => fails.push('gear: script error ' + e.message));
+        await q.goto('file://' + tmp); await q.evaluate(d => window.__recv(d), gearPayload); await q.waitForTimeout(60);
+        try {
+            const facts = () => q.evaluate(() => {
+                const sec = [...document.querySelectorAll('details')].find(d => d.dataset.openKey === 'gear');
+                const rows = [...sec.querySelectorAll('li.rpgc-gear-item')].map(li => li.querySelector('.name')?.textContent);
+                const parentBox = name => { const li = [...sec.querySelectorAll('li.rpgc-gear-item')].find(l => l.querySelector('.name')?.textContent === name); return li?.parentElement?.closest('li.rpgc-gear-box')?.querySelector('.name')?.textContent || null; };
+                const visible = name => { const li = [...sec.querySelectorAll('li.rpgc-gear-item')].find(l => l.querySelector('.name')?.textContent === name); return !!li && li.offsetParent !== null; };
+                return { rows, pouchIn: parentBox('Pouch'), coinIn: parentBox('coin'), ropeIn: parentBox('rope'), gemIn: parentBox('gem'), chestABox: !!sec.querySelector('[data-box-key="gear-box-chest a"]'),
+                    groups: [...sec.querySelectorAll('.rpgc-gear-group')].map(g => g.querySelector('summary,h4')?.textContent || ''), coinVisible: visible('coin'), ropeVisible: visible('rope'), sent: (window.__sent || []).filter(m => m.type === 'gear').length };
+            });
+            let f = await facts();
+            const counts = {}; for (const r of f.rows) counts[r] = (counts[r] || 0) + 1;
+            for (const it of items) check(counts[it.name] === 1, `gear: "${it.name}" is drawn ${counts[it.name] || 0} times (must be once)`);
+            check(f.pouchIn === 'Pack' && f.coinIn === 'Pouch' && f.ropeIn === 'Pack', `gear: nesting wrong (Pouch in ${f.pouchIn}, coin in ${f.coinIn}, rope in ${f.ropeIn})`);
+            check(!f.chestABox && f.gemIn === null && f.groups.some(t => /Inside Chest A/.test(t)), 'gear: a loop of containers was nested instead of kept as groups');
+            check(f.groups.some(t => /Inside Locker/.test(t)) && f.groups.some(t => /Packed away/.test(t)), 'gear: a container without a row, or an unknown container, lost its group');
+            await q.click('[data-box-key="gear-box-pack"] > .rpgc-box-toggle'); f = await facts();
+            check(!f.ropeVisible && !f.coinVisible, 'gear: closing Pack does not hide its contents');
+            check(f.rows.length === items.length && f.sent === 0, 'gear: closing a container changed the items or sent a message');
+            check(await q.evaluate(() => document.querySelector('[data-box-key="gear-box-pack"] > .rpgc-box-toggle').getAttribute('aria-expanded')) === 'false', 'gear: the toggle does not report closed');
+            await q.click('[data-box-key="gear-box-pack"] > .rpgc-box-toggle');
+            await q.click('[data-box-key="gear-box-pouch"] > .rpgc-box-toggle'); f = await facts();
+            check(f.ropeVisible && !f.coinVisible, 'gear: containers do not open and close independently');
+            await q.evaluate(d => window.__recv(d), gearPayload); await q.waitForTimeout(40); f = await facts();
+            check(!f.coinVisible && f.ropeVisible, 'gear: a closed container does not stay closed after a refresh');
+            await q.selectOption('select[aria-label="Move rope"]', 's:dropped');
+            const moved = await q.evaluate(() => (window.__sent || []).filter(m => m.type === 'gear').at(-1));
+            check(moved && moved.op === 'set' && moved.name === 'rope' && moved.state === 'dropped', 'gear: Move no longer sends the move');
+            if (shots) await q.screenshot({ path: path.join(shots, 'gear-containers.png'), fullPage: true });
+        } catch (e) { fails.push('gear check stopped: ' + String(e.message).split('\n')[0]); }
+        await q.close();
+    }
     // render time: a full render of All, new build vs FRONTEND_OLD
     const time = async file => { const q = await open(420, 'modern', 'all', file); const ms = await q.evaluate(d => { const t = []; for (let i = 0; i < 7; i++) { const a = performance.now(); window.__recv(JSON.parse(JSON.stringify(d))); t.push(performance.now() - a); } t.sort((x, y) => x - y); return t[3]; }, payload); await q.close(); return ms; };
     const now = await time(path.join(root, 'dist', 'frontend.js'));
