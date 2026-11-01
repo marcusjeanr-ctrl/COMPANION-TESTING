@@ -51,8 +51,9 @@ const fails = []; const check = (ok, what) => { if (!ok) fails.push(what); };
         if (shots) await p.screenshot({ path: path.join(shots, `${look}-${view}-${width}.png`), fullPage: true });
         await p.close();
     }
-    // interactions
+    // interactions (a missing control is reported as a failure, and the run goes on to the timing)
     const p = await open(420, 'modern', 'scene');
+    try {
     await p.click('.rpgc-viewtab[data-view=people]');
     check(await p.evaluate(() => document.querySelector('.rpgc-viewtab[aria-selected=true]')?.dataset.view) === 'people', 'clicking People does not switch view');
     await p.focus('.rpgc-viewtab[aria-selected=true]'); await p.keyboard.press('ArrowRight'); await p.waitForTimeout(30);
@@ -80,6 +81,7 @@ const fails = []; const check = (ok, what) => { if (!ok) fails.push(what); };
     await p.fill('.rpgc-set-search', 'quest'); await p.waitForTimeout(30);
     const after = await p.evaluate(() => [...document.querySelectorAll('.rpgc > details.rpgc-sec')].filter(d => !d.hidden).length);
     check(before > 5 && after > 0 && after < before, `Settings search does not filter (${before} → ${after})`);
+    } catch (e) { fails.push('interaction stopped: ' + String(e.message).split('\n')[0]); }
     await p.close();
     // render time: a full render of All, new build vs FRONTEND_OLD
     const time = async file => { const q = await open(420, 'modern', 'all', file); const ms = await q.evaluate(d => { const t = []; for (let i = 0; i < 7; i++) { const a = performance.now(); window.__recv(JSON.parse(JSON.stringify(d))); t.push(performance.now() - a); } t.sort((x, y) => x - y); return t[3]; }, payload); await q.close(); return ms; };
