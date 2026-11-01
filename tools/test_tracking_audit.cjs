@@ -1,4 +1,4 @@
-// Regression checks for the 3.2.14 tracking-audit fixes and the 3.3.0 technique fix. Synthetic chats only; no private text.
+// Regression checks for the 3.2.14 tracking-audit fixes, the 3.3.0 technique fix and the magic-discipline boundary. Synthetic chats only; no private text.
 // Run: node tools/test_tracking_audit.cjs
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
@@ -15,7 +15,7 @@ const ctx = {
 };
 ctx.globalThis = ctx;
 vm.createContext(ctx);
-vm.runInContext(source.slice(0, startup) + '\nglobalThis.__t = { questDetailsLatest, relGuard, relCfg, martialAbilityItems, techListPanel, posMovedNow, keepRoomReading, posRoomKey, setState: (st) => { getChatState = async () => st; saveChatState = async () => {}; }, setPool: p => { loreCatalogPool = () => p; } };', ctx);
+vm.runInContext(source.slice(0, startup) + '\nglobalThis.__t = { questDetailsLatest, relGuard, relCfg, martialAbilityItems, techListPanel, posMovedNow, keepRoomReading, posRoomKey, setState: (st) => { getChatState = async () => st; saveChatState = async () => {}; }, setPool: p => { loreCatalogPool = () => p; }, spellStoryFold };', ctx);
 const t = ctx.__t;
 
 let n = 0;
@@ -91,7 +91,38 @@ check('room moves: completed vs hypothetical, intended or begun', () => {
         assert.equal(moved(no), false, `should not move: ${no}`);
 });
 
-// 7. (3.3.4) Drawing a different room under the same place keeps the earlier room.
+// 8. (magic disciplines) A bare school name the model lists as a spell ("Water") is the discipline, not a spell,
+//    when the chat's spell references file spells under that school. The report below is the real one from a
+//    Six-Sided World session (names only), followed by the bare form the model switched to later.
+const spellEntry = (name, school, rank = 'Beginner') => ({ id: name, comment: `[Spell] ${name}`, content: `[SPELL — ${name}]\nSchool: ${school} · Rank: ${rank}\nEffect: test.`, key: [name] });
+const spellsFrom = (lore, reports) => {
+    t.setPool({ entries: lore });
+    const chat = []; for (const y of reports) chat.push(user('go'), reply({ survival: y }));
+    const f = t.spellStoryFold(chat, 'c1');
+    return { known: [...f.learned.keys()].sort(), mastered: [...f.mastered.keys()].sort() };
+};
+check('magic disciplines reported as spells stay out of the spellbook', () => {
+    const lore = [spellEntry('Squall', 'Water', 'Advanced'), spellEntry('Earth Pillar', 'Earth', 'Intermediate'), spellEntry('Stone Cannon', 'Earth', 'Intermediate'),
+        spellEntry('Earth Wall', 'Earth'), spellEntry('Heat Hand', 'Fire', 'not stated'), spellEntry('Fireball', 'Fire')];
+    const r = spellsFrom(lore, [
+        { spells: ['Squall', 'Earth Pillar', 'Stone Cannon', 'Water Magic', 'Earth Magic', 'Fire Magic'], learned: [], mastered: [] },
+        { spells: ['Water', 'Earth', 'Fire', 'Earth Wall'], learned: [], mastered: ['Heat Hand'] }]);
+    for (const school of ['water', 'earth', 'fire', 'water magic', 'earth magic', 'fire magic']) assert(!r.known.includes(school), `"${school}" counted as a spell`);
+    for (const spell of ['squall', 'earth pillar', 'stone cannon', 'earth wall']) assert(r.known.includes(spell), `"${spell}" was lost`);
+    assert.deepEqual(r.mastered, ['heat hand'], 'Heat Hand stays mastered');
+});
+check('a spell genuinely named like an element is kept', () => {
+    // a book with a spell called "Fire" (school Black) and a school called Water: "Fire" is a spell, "Water" is not
+    const r = spellsFrom([spellEntry('Fire', 'Black'), spellEntry('Aqua Jet', 'Water')], [{ spells: ['Fire', 'Water', 'Aqua Jet'] }]);
+    assert(r.known.includes('fire') && r.known.includes('aqua jet'), 'the spell named Fire was rejected');
+    assert(!r.known.includes('water'), 'the Water school became a spell');
+    // a school and a spell with the same name: the exact spell wins
+    assert(spellsFrom([spellEntry('Fire', 'Fire')], [{ spells: ['Fire'] }]).known.includes('fire'), 'a spell named after its own school was rejected');
+});
+check('without spell references nothing is filtered', () => {
+    const r = spellsFrom([], [{ spells: ['Fire', 'Water', 'Cure'] }]);
+    assert.deepEqual(r.known, ['cure', 'fire', 'water']);
+});
 
 (async () => {
 // 7. (3.3.4) Drawing a different room under the same place keeps the earlier room.

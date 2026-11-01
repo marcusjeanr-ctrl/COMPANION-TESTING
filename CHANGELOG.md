@@ -1,5 +1,111 @@
 # Changelog — RPG Companion HMS Edition
 
+## 1.0.0 — RPG Companion HMS Edition 1.0 (first official release)
+
+The first official release, built from the 3.4–3.6 development line (those numbers stay in the history below). Versions from here: 1.0.x maintenance fixes, 1.x backward-compatible additions, 2.0 for compatibility-changing work.
+
+Included (details in the entries below):
+- **Interface (3.5–3.6)**: views (Scene, You, People, Journey, All) with a side rail on wide panels; the Now card with the story's sky; Find anything (⌕ / Ctrl+K); Settings search; looks (Modern, Storybook, Minimal, Auto); dossier sheet; relationship web; Previously… recap; quest rings and paths; Loose ends; Agenda place marks; own-window background fix.
+- **Continuity (3.4–3.5)**: one Agenda entry per appointment and day countdowns; the player is never tracked as a second person in Minds ("Marcus" / "Marcus Veyrath"); a moment the model repeats in the next replies is one Chronicle entry.
+- **Fixes for 1.0**: a magic school reported as a spell ("Water") stays out of the Spellbook; Gear shows a container's contents under the container itself; Find keeps every letter you type.
+- **Checks**: `tools/replay_check.cjs`, `tools/compare_backends.cjs`, `tools/test_ui.cjs` alongside `tools/run_tests.cjs`.
+
+Unchanged: the extension identifier (`rpg_companion_hms`), saved settings and chat data (no migration), and the request to the model apart from the changes named above.
+
+## Release fix — Find keeps every letter you type
+
+- Find (⌕ / Ctrl+K) redrew the whole panel on every keystroke and replaced its own search box. In a large chat the redraw takes ~50 ms, and letters typed meanwhile went into the old box and were lost. Typing and the arrow keys now update only the result list. Found by the release stress test (very long names, 60-item inventory); display only.
+
+## Fix (experiment: magic disciplines) — schools are not spells
+
+Branch `experiment/magic-discipline-classification`, from `staging/3.6.0-ui` at `bf80da9`.
+
+- The Spellbook no longer lists a magic school as a known spell. Reports of "Water Magic" were already rejected, but when the model later reported the bare "Water", "Earth" and "Fire", they slipped through and showed as known spells under "Other" (Six-Sided World: 19 known, 16 real).
+- A bare name is treated as the school only when this chat's spell references file spells under that school and none of them carries that exact name. So a game with a spell called "Fire" keeps it, a spell named after its own school keeps it, and a chat without spell references is unchanged. Spells you marked by hand are never filtered.
+- Nothing saved is rewritten: the Spellbook is rebuilt from the story's reports, so the old reports are untouched and the three entries simply stop counting. School ranks (Water Advanced, Earth Intermediate, Fire Beginner) still come from the HUD as before.
+- The narrator request is unchanged (the known-spell list is not part of it).
+## 3.6.0 RC (experiment: gear containers) — contents under their bag
+
+Branch `experiment/3.6.0-gear-containers`, from `staging/3.6.0-ui` at `bf80da9`. Display only: `dist/backend.js` is unchanged.
+
+- A container's contents now sit **under the container's own row**, wherever that row is: worn, on you, dropped, left somewhere, or inside another bag. Before, the bag was listed in one place (e.g. under Dropped, by the door) and its contents in a separate "Inside …" group further up.
+- The bag row has a toggle with its count (▾ 4). Closed, it shows a one-line peek ("travel itinerary, sealed letter +2"). Each bag opens and closes on its own and stays as you left it (same remembered setting as before). Opening or closing is display only: nothing moves, nothing is sent.
+- Bags inside bags nest (a pouch in a pack), up to four levels.
+- Nothing is guessed: an item goes under a bag only when the tracker recorded that bag's exact name as where it is. A bag with no row of its own, or bags recorded inside each other in a loop, keep the older "Inside …" groups; an item in an unknown container stays under "Packed away". Anything not drawn otherwise shows under "Other", so no item can disappear.
+- Move menus and every other control are unchanged.
+
+## 3.6.0 RC (UI staging) — one application
+
+Branched from `staging/3.5.0` at `0318b1a`. **Interface only**: `dist/backend.js` is byte-identical to 3.5.0 apart from the version number, and on the Six-Sided World export the two builds produce identical panel data, narrator requests and Chronicle at every one of 29 replies (`tools/compare_backends.cjs`). No new model calls, no polling, nothing new saved except your display choices.
+
+**A look that fits the story**
+- A small design system: every card, button, chip, field and dialog now draws from shared tokens, so older panels (Gear, Family, Factions, Settings…) look like the new ones.
+- Three looks (Settings → Play style → Look): **Modern** (clean sans, accent tiles; the default, fits any genre), **Storybook** (serif small caps and gilt rules, the 3.5 look) and **Minimal** (flat and quiet). **Auto** picks Storybook for the fantasy worlds the extension knows (Re:Zero, Overlord, Mushoku Tensei, Undertale, Dark Souls, Skyrim) and Modern for everything else. Your theme, density and text size still apply on top.
+
+**App shell**
+- An app bar: the Companion mark, the mode, and Find / Refresh / Guide / Settings as compact icon buttons with labels where there is room.
+- On wide panels (own window, enlarged float, desktop) the views become a **side rail** with counts, and cards sit in two columns; narrow panels keep the tab bar on top.
+
+**Find anything** (⌕ in the app bar, or Ctrl/⌘+K)
+- One search over everything the panel tracks: people, quests, appointments, gear, known spells and techniques, places on the HUD and Chronicle moments. ↑/↓ and Enter open the result where it lives (a person opens their dossier); Esc closes.
+
+**Settings**
+- A search box over the 22 settings sections: type "memory", "portrait", "quest"… and only the matching sections remain, opened. Clearing it restores what you had open.
+
+**Dossier**
+- Opens as a sheet with the person's monogram, standing, family tie and whether they are here; on phones it slides up from the bottom. Focus moves into it; Esc closes.
+- The standing history chart is only drawn when the standing has actually changed (one point drew a large empty chart).
+
+**Checks**
+- `tools/compare_backends.cjs <old> <new> <export>`: compares two backend builds reply by reply (panel data, narrator request, Chronicle).
+- `tools/test_ui.cjs [payload]`: the real panel in Chromium at 340/420/860/1200 px in every look and view — no script errors, no horizontal overflow, every view renders — plus the interactions: tabs by mouse and arrow keys, Now card links, Ctrl+K → Enter → dossier → Esc, the Tools tray, Settings search; and the render time against an older build (`FRONTEND_OLD=`). Needs Playwright; skips without it.
+
+## 3.5.0 RC (staging) — Views, the journal look, a living Now card, and connected systems
+
+No extra model calls. The one tracking change is the Minds fix under **Continuity**; everything else is display.
+
+**Reliability (phase 3)**
+- **Own window**: the window no longer shows a teal area under the panel. It used to copy the colour of Lumiverse's page body, which is not the colour Lumiverse actually paints (that lives on inner containers). It now takes the background of the drawer the panel lives in, and the panel fills the window.
+- **Wide panels** (own window, enlarged float, wide drawer): cards sit in two columns above 720px, the view bar spreads out with labels beside icons, and the sky card grows. Very narrow panels get smaller labels.
+- **Chronicle**: a moment the model reports again in the next reply or two, reworded ("…fundamentally altering…" / "…shifting…"), is now one entry, not two. Built when the Chronicle is read: nothing saved is deleted, and an entry you starred or hid is always kept. The request also tells the model not to report a moment twice.
+- **Agenda ↔ places**: an appointment shows "📍 you're here" when the story has you at its place, "📍 been there" when the Chronicle has you there before, and a 🗺️ button to the Atlas when the location book has it. A place that was never established shows nothing. The Now card's next appointment shows its place.
+- **Loose ends**: "leave it as it is" is remembered per chat, so a dismissed note does not come back after a reload.
+- **Replay check** (`node tools/replay_check.cjs <chat export> [persona] [card]`, local only): replays a real chat one reply at a time and checks after every reply that Agenda, Quests and Gear hold no duplicates, Minds and People never track you as a second person, the narrator request is added once with no repeated lines, and the Chronicle repeats no moment. Run against 3.4.0 it finds the "Marcus Veyrath" split and the duplicate duel; against this build it finds nothing.
+
+**Continuity**
+- Minds no longer splits you in two. When your persona is "Marcus" and the narrator writes "Marcus Veyrath" (or the other way round), feelings toward that name are feelings toward you, not toward a separate person. Before, family members held two sets of feelings, one toward "you" and one toward "Marcus Veyrath", and both were sent to the model each turn. One extra or one missing trailing word only, and never when a party member has that name. Existing chats are corrected on the next read.
+- **Loose ends** (Scene): where two trackers disagree or a commitment looks forgotten, the panel asks instead of guessing. Examples: an appointment still "in progress" though its people aren't in the scene and you're somewhere else; an appointment over a day late; an appointment with someone Family lists as dead; more than two things in your hands at once. Answer with the card's own buttons (It happened / Called off / Missed / Open Gear) or ✕ to leave it as it is. Nothing changes until you answer.
+
+**Previously…**
+- Coming back to a chat after 3+ hours, Scene opens on a short recap: the last key moments from the Chronicle (moments, milestones, fights, starred and weighty entries; plot bookkeeping, relabelled bonds and near-duplicates are left out), where the story stands, and the open threads. "📜 Previously…" in Journey shows it any time.
+
+**Quests**
+- A progress ring fills only from a percentage the story measured. Without one, the ring shows the number of stages the quest has actually moved through. Completed quests show a ✓.
+- "Path so far" lists every objective the quest has had, oldest crossed out, so a long quest shows where it has been. Names the story has used for the same quest are listed under "Also called".
+
+**Relationship web** (People, its own card)
+- You at the centre and everyone tracked around you: people in the scene on the inner ring, glowing; the rest on the outer ring, closest first. Lines to you take your standing (warm, cold or mixed) and are dashed and labelled for family (father, older brother…). Lines between others come from Minds and lean warm or cold.
+- Tap someone to see only their ties, with a list of each tie; tap again, or use Dossier, to open their dossier. Keyboard reachable.
+
+
+**Navigation**
+- **Views**: a sticky bar switches between Scene (Now, World State, the world card, Map), You (your character, Gear, Magic, Body, Mind…), People (people, family, factions, secrets, phone), Journey (Agenda, Quests and plot, Chronicle, Chapters, Atlas) and All (the classic full list). Only the chosen view is built, so the panel is lighter to draw. Arrow keys move between views; the choice is remembered. Badges show active quests and people in the scene, a dot marks a view with something new this turn, and a red dot means something is late.
+- **Tools tray**: Panel placement, Test zone, Read again, Export character sheet, Collapse/Expand all and snapshots now sit in one folded "🧰 Tools" row instead of above the story.
+- The Move the world / fight buttons show on Scene and All.
+
+**Now card, reworked**
+- The top of the card is a sky that follows the story's clock: dawn, morning, day, afternoon, dusk and night colours, with the sun or moon on an arc by the hour and stars at night. The place is set large with its region under it; the time sits in a badge.
+- Every line links to its card: tap the appointment to open Agenda, the quest or plot line to open Quests, the place to open the Map.
+
+**People**
+- A name-tinted monogram stands in for a missing portrait on every person card (dimmed for people not in the scene).
+- The dossier (tap a name) lists every open appointment with that person and the quests they are part of, and has an "Open in People" button.
+
+**The journal look**
+- Each card has a medallion icon and a serif small-caps title, with a gilded rule under an open card's header. Softer, rounder cards with a light top sheen.
+- Agenda is drawn as a timeline: a rail with a node per appointment; the one in progress glows, late ones are red, new ones are highlighted.
+- Works with every existing theme (built on the theme's own colours) and respects reduced-motion.
+
 ## 3.4.0 RC — One appointment, one entry; the Now card
 
 **Fixed**

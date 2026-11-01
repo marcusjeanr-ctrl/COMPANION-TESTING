@@ -79,6 +79,7 @@ globalThis.__hooks = (chat, lore, user) => {
     const api = bctx.__hooks(chat, lore, 'Test Hero');
     await api.push();
     const state = bctx.__state;
+    if (process.env.SMOKE_DUMP) fs.writeFileSync(process.env.SMOKE_DUMP, JSON.stringify(state)); // the synthetic payload, for tools/test_ui.cjs
     assert(state && state.hms && state.hms.active !== false, 'backend produced no HMS payload');
     const h = state.hms, sys = h.systems;
     assert.equal(h.hud && h.hud.location && h.hud.location.at(-1), 'Test Hall', 'HUD location read');
@@ -142,7 +143,7 @@ globalThis.__hooks = (chat, lore, user) => {
         sendToBackend() {}, onBackendMessage: fn => { receive = fn; return () => {}; },
         getActiveChat: () => ({ chatId: 'c1', characterId: 'x' }), events: { on: () => () => {} },
     };
-    const storage = new Map();
+    const storage = new Map([['rpgc-view', 'all']]); // 3.5.0: the panel opens on Scene; the checks below cover every card, so use All
     const fctx = vm.createContext({ console: quiet, document: doc, window: {}, navigator: { language: 'en' }, ctx: hostCtx, URL, Blob: class {},
         localStorage: { getItem: k => storage.get(k) ?? null, setItem: (k, v) => storage.set(k, String(v)), removeItem: k => storage.delete(k) },
         setTimeout: (fn) => { try { fn(); } catch (e) { throw e; } return 1; }, clearTimeout() {}, setInterval: () => 1, clearInterval() {}, requestAnimationFrame: fn => 1,
@@ -154,10 +155,13 @@ globalThis.__hooks = (chat, lore, user) => {
     receive(JSON.parse(JSON.stringify(state)));
     const rendered = textOfTree(tabRoot);
     const find = (node, pred) => !node ? null : pred(node) ? node : (node.children || []).reduce((hit, c) => hit || find(c, pred), null);
-    const bag = find(tabRoot, n => n.tagName === 'DETAILS' && n.dataset && n.dataset.openKey === 'gear-box-travel pack');
-    assert(bag, 'container renders as a collapsible group');
-    assert.equal(bag.open, true, 'containers start open');
-    assert(textOfTree(bag).includes('(1)') && textOfTree(bag).includes('rations'), 'container shows its item count and contents');
+    // 3.6.0: a container's contents sit under the container's own row
+    const bag = find(tabRoot, n => n.dataset && n.dataset.boxKey === 'gear-box-travel pack');
+    assert(bag, 'the container row carries its contents');
+    const inside = find(bag, n => String(n.className || '').includes('rpgc-gear-inside'));
+    assert(inside && inside.attributes.hidden == null, 'containers start open');
+    assert.equal(inside.children.length, 1, 'one item inside the container');
+    assert(textOfTree(inside).includes('rations'), 'the container shows its contents');
     const folded = find(tabRoot, n => n.tagName === 'DETAILS' && n.dataset && /^person-/.test(n.dataset.openKey || ''));
     assert(folded, 'someone not in the scene folds to a header row');
     assert.equal(folded.open, false, 'folded people start closed');

@@ -1,4 +1,10 @@
-# RPG Companion HMS Edition 3.2.2 — Release Candidate
+# RPG Companion HMS Edition 1.0
+
+The side panel for RPG roleplay in Lumiverse: it reads the story's WORLD STATE HUD and keeps your character, the people around you, quests, appointments, gear, magic, places and the story so far, without taking the story over.
+
+> **1.0.0** is the first official release. It is the work developed as 3.4–3.6: the redesigned interface (views, Now card, Find, looks), continuity fixes (one Agenda entry per appointment, the player never tracked as a second person, no repeated Chronicle moments, magic schools not counted as spells) and the nested Gear containers. See [CHANGELOG.md](CHANGELOG.md). Updating keeps your settings and chat data; the extension identifier is unchanged.
+
+## Development history
 
 > 3.2.2 RC: [survival flag evidence checks](docs/features/3_2/SURVIVAL_3_2_2_READERS.md). No live Lumiverse acceptance performed.
 

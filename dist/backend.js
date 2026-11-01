@@ -2678,7 +2678,7 @@ async function pushState(chatId, snapshot = null) {
 // Demo mode plays scripted turns (no tokens); Live mode asks the model, with a small
 // world narrator standing in for a bot card.
 
-const RPGC_VERSION = '3.4.0';
+const RPGC_VERSION = '1.0.0';
 const diagLog = [];
 function diagPush(kind, m) { diagLog.push({ at: new Date().toISOString(), kind, text: String(m).slice(0, 400) }); if (diagLog.length > 60) diagLog.shift(); }
 function logW(m) { diagPush('warn', m); return spindle.log.warn(m); }
@@ -8471,8 +8471,17 @@ function chronMomentsRequest(userName) {
     if (!c.enabled || !c.moments) return null;
     return {
         json: '"moments": [{"what": "one line, past tense, names not pronouns", "who": ["names involved"]}]',
-        rules: `"moments": only what will still matter many replies from now — a promise or oath, a confession, a betrayal, a death, a secret or truth learned, a first meeting that changes things, a choice that turns the story. Most replies have none: then []. At most two. Report what this reply showed; never write the story toward a moment.`
+        rules: `"moments": only what will still matter many replies from now — a promise or oath, a confession, a betrayal, a death, a secret or truth learned, a first meeting that changes things, a choice that turns the story. Most replies have none: then []. At most two. Report what this reply showed; never write the story toward a moment. A moment already reported in an earlier reply is not reported again.`
     };
+}
+
+// Content words of a Chronicle line, for spotting the same beat told twice.
+function chronWords(text) {
+    return new Set(lockKey(text).split(/[^\p{L}\p{N}]+/u).filter(w => w.length > 3 && !['with', 'that', 'this', 'their', 'from', 'into', 'over', 'after', 'before', 'which', 'while'].includes(w)));
+}
+function chronSameBeat(a, b) {
+    let n = 0; for (const w of a) if (b.has(w)) n++;
+    return n >= 4 && n / Math.max(1, Math.min(a.size, b.size)) >= 0.7;
 }
 
 function chronIsUser(name, userName) {
@@ -8502,6 +8511,7 @@ function chronicleBuild(chat, st, userName = null) {
     let loop = 1, rewindWorld = false, arc = null, prevE = null, began = false;
     const notesBy = new Map();
     for (const n of ch.notes) { if (!notesBy.has(n.msgId)) notesBy.set(n.msgId, []); notesBy.get(n.msgId).push(n); }
+    const recentMoments = [];
     for (const m of chat) {
         if (m.role !== 'assistant') continue;
         const e = hudOf.get(m.id) || null;
@@ -8592,7 +8602,15 @@ function chronicleBuild(chat, st, userName = null) {
         }
         // the moments the model flagged
         for (const mo of Array.isArray(d.moments) ? d.moments : []) {
-            if (mo && mo.text) add('moment', mo.text, CHRON_IMP.moment, { who: (mo.who || []).filter(n => !chronIsUser(n, userName)) });
+            if (!mo || !mo.text) continue;
+            // 3.5.0: the model often reports the same beat again in the next reply, reworded ("decisively defeated
+            // Cassian in a duel, fundamentally altering…" / "…shifting…"). A moment that repeats one from the last
+            // two replies is the same moment. Nothing is deleted: the reply's data is untouched and an entry you
+            // starred or hid is always kept.
+            const bag = chronWords(mo.text), ri = idxOf.get(m.id);
+            const id = 'c' + hashStr(`${m.id}:${m.swipe_id ?? 0}:moment:${mo.text}`).toString(36);
+            if (!ch.star[id] && !ch.hide[id] && recentMoments.some(r => r.msgId !== m.id && ri - r.ri <= 4 && chronSameBeat(r.bag, bag))) continue;
+            if (add('moment', mo.text, CHRON_IMP.moment, { who: (mo.who || []).filter(n => !chronIsUser(n, userName)) })) recentMoments.push({ msgId: m.id, ri, bag });
         }
         // relationship history
         for (const r of Array.isArray(d.relations) ? d.relations : []) {
@@ -15014,8 +15032,19 @@ function simReplies(chat, excludeId = null) {
 
 function simYouKeys(userName) {
     const s = new Set(['you', 'player', 'the player', 'user', '{{user}}', 'protagonist', 'the protagonist', 'pc', 'mc', 'yourself']);
-    if (userName) { const u = lockKey(userName); if (u) { s.add(u); } }
+    if (userName) { const u = lockKey(userName); if (u) { s.add(u); s.userKey = u; } }
     return s;
+}
+/** 3.5.0: the narrator's longer or shorter form of the player's own name ("Marcus" ↔ "Marcus Veyrath") is
+ * the player, not a second person. One extra or one missing trailing word only, and never when a party
+ * member carries that name. */
+function simYouVariant(k, you) {
+    const u = you && you.userKey;
+    if (!u || !k || k === u) return false;
+    const uw = u.split(' '), kw = k.split(' ');
+    if (kw.length === uw.length + 1 && k.startsWith(u + ' ')) return true;
+    if (uw.length === kw.length + 1 && u.startsWith(k + ' ') && k.length > 2) return true;
+    return false;
 }
 /** One key per person across every report: exact name, a party alias, or a longer form of a known name. */
 function simKeyer(roster, you) {
@@ -15026,6 +15055,7 @@ function simKeyer(roster, you) {
         if (you.has(k)) return SIM_YOU;
         if (known.has(k)) return k;
         const member = partyMatch(roster, name);
+        if (!member && simYouVariant(k, you)) return SIM_YOU;
         if (member) k = lockKey(member.key || member.name);
         if (you.has(k)) return SIM_YOU;
         if (!known.has(k)) known.set(k, String(member?.name || name).replace(/\s+/g, ' ').trim());
@@ -16457,7 +16487,11 @@ function spellResolver(chatId) {
         const schoolKey = value => spellSchoolKey(value.replace(/\s*\([^)]*\)\s*$/, '').replace(/\s+(?:Magic|School)$/i, '').trim());
         const category = label.match(/^([^:]+?)(?:\s*:\s*(.+))?$/);
         const school = category && (cache.schools.has(schoolKey(category[1])) || SPELL_ELEMENTS.test(schoolKey(category[1])));
-        const nonSpell = !!(school && !category[2] && /\b(?:Magic|School)\b|\(\s*(?:Beginner|Elementary|Intermediate|Advanced|Saint|King|Emperor|God)\s*\)/i.test(label)) || /^(?:Mana Capacity|Casting Method|Magic Schools?|Magic Tiers?|Martial Styles?|Sword Styles?)\s*:/i.test(label) ||
+        // A bare school name ("Water", "Fire") is the discipline, not a spell, when this chat's spell references
+        // file spells under that school and none of them is named that way (an exact spell name returned above).
+        // Without such references nothing changes: a game may have a spell simply called "Fire".
+        const bareSchool = !category[2] && cache.schools.has(schoolKey(label)) && !/[,;·]|\band\b/i.test(label);
+        const nonSpell = bareSchool || !!(school && !category[2] && /\b(?:Magic|School)\b|\(\s*(?:Beginner|Elementary|Intermediate|Advanced|Saint|King|Emperor|God)\s*\)/i.test(label)) || /^(?:Mana Capacity|Casting Method|Magic Schools?|Magic Tiers?|Martial Styles?|Sword Styles?)\s*:/i.test(label) ||
             /^(?:Voiceless|Silent|Incantation|Truncated) Casting\b/i.test(label) ||
             /\b(?:Magic|Style|School)\s*(?:\(\s*|:\s*)(?:Beginner|Elementary|Intermediate|Advanced|Saint|King|Emperor|God)\b[^:]*$/i.test(label);
         let out = [];

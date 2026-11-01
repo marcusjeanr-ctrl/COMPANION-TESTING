@@ -1,6 +1,6 @@
 # HMS Rehberi
 
-**RPG Companion HMS Edition 3.3** ve **HMS Reporter beta**
+**RPG Companion HMS Edition 1.0** ve **HMS Reporter beta**
 
 Bu rehber bir HMS oyununun nasıl çalıştığını, nasıl kurulacağını ve her parçanın ne yaptığını anlatır.
 Önce **Buradan başla** kısmını oku. Diğer kısımları ihtiyaç duydukça kullan.
@@ -15,7 +15,7 @@ Bir HMS oyununun üç parçası vardır. Her parçanın tek bir işi vardır.
 | --- | --- | --- |
 | **Bot** | Karakter kartı ve lorebook'ları: Re:Zero, Mushoku Tensei, Classroom of the Elite ya da Overlord | Dünya ve kuralları. Her yanıtın en üstüne **WORLD STATE HUD**'u yazar. |
 | **HMS Reporter beta** | Bir preset: Lumiverse'ün gönderdiği prompt | HUD'un altındaki hikâyenin nasıl yazıldığı: üslup, sesler, uzunluk, düşünme. |
-| **RPG Companion HMS Edition 3.3** | Bir eklenti: yan panel | HUD'u okur ve kartlar hâlinde gösterir. İnsanları, ne hissettiklerini ve ne bildiklerini, görevleri, dövüşleri ve daha fazlasını izler. Oyuna başlamana ve soru sormana yardım eder. |
+| **RPG Companion HMS Edition 1.0** | Bir eklenti: yan panel | HUD'u okur ve kartlar hâlinde gösterir. İnsanları, ne hissettiklerini ve ne bildiklerini, görevleri, dövüşleri ve daha fazlasını izler. Oyuna başlamana ve soru sormana yardım eder. |
 
 ### Kim yönetiyor
 
