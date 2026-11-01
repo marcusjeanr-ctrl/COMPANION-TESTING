@@ -5054,6 +5054,7 @@ export function setup(ctx) {
         return h('div', { class: 'rpgc-person ' + p.tone },
             h('div', { class: 'head' }, avatarImg(p.name), npcName(p.name, {class:'name'}), standingChip(p),
                 p.bond ? h('span', { class: 'rpgc-chip bond' + (p.pinned && p.pinned.bond ? ' pinned' : ''), title: 'The kind of relationship' }, p.bond) : null,
+                p.hudBond ? h('span', { class: 'rpgc-chip kind', title: T('The bond stage the HUD shows') }, `${T('HUD')}: ${p.hudBond}`) : null,
                 p.minor ? h('span', { class: 'rpgc-chip minor', title: 'A minor: no romance, no desire' }, 'minor') : null,
                 h('span', { class: 'meta' }, personMeta(p))),
             p.alerts.length ? h('ul', { class: 'rpgc-palerts' }, p.alerts.map(a => h('li', { class: a.sev }, a.text))) : null,
@@ -6413,6 +6414,15 @@ export function setup(ctx) {
             if (w.martial.length) { out.push(rankedList('Sword styles', w.martial, 'mt-tech-', 'techniques')); if (w.triangle) out.push(h('p', { class: 'rpgc-note' }, h('b', null, 'The triangle: '), w.triangle)); }
             if (w.magic.length) out.push(rankedList('Magic', w.magic, 'spells-', 'spells'));
             if (w.languages.length) out.push(wRow('Languages', ...w.languages.map(l => h('span', { class: 'rpgc-chip' }, l.fluency ? `${l.name} \u00B7 ${l.fluency}` : l.name))));
+            // Six-Sided v1.1: sessions toward the next rank, read from the HUD's Training line
+            for (const tr of (w.training || [])) out.push(h('div', { class: 'rpgc-wrow' }, h('span', { class: 'lbl' }, T('Training')),
+                levelBar(Math.min(100, tr.done / Math.max(1, tr.needed) * 100), tr.done >= tr.needed ? 'ok' : ''),
+                h('span', { class: 'val' }, `${tr.skill} \u2192 ${tr.next} \u00B7 ${tr.done}/${tr.needed}${tr.done >= tr.needed ? ' \u00B7 ' + T('needs its proof') : ''}`)));
+            if (w.standing) out.push(wRow(T('Standing'), h('b', null, [w.standing.kind, w.standing.rank].filter(Boolean).join(' \u00B7 ') || w.standing.text),
+                w.standing.house ? h('span', { class: 'rpgc-chip' }, w.standing.nation ? `${w.standing.house} (${w.standing.nation})` : w.standing.house) : null,
+                w.standing.birth ? h('span', { class: 'rpgc-chip kind' }, w.standing.birth) : null));
+            if (w.faction) out.push(wRow(T('Faction'), w.faction));
+            if (w.familyPlots && w.familyPlots.length) out.push(wRow(T('Family plots'), ...w.familyPlots.map(f => h('span', { class: 'rpgc-chip hot' }, f))));
             if (w.contracts) out.push(wRow('Contracts', w.contracts));
             for (const e of w.eyes) out.push(h('div', { class: 'rpgc-wability' }, h('div', { class: 'rpgc-wrow' }, h('span', { class: 'rpgc-chip kind' }, 'Demon Eye'), h('b', null, e.text)), loreNote(e.lore)));
             for (const m of w.marks) out.push(h('div', { class: 'rpgc-wability' }, h('div', { class: 'rpgc-wrow' }, h('span', { class: 'rpgc-chip kind' + (m.kind === 'CURSE' ? ' hot' : '') }, m.kind === 'CURSE' ? 'Curse' : m.kind === 'BLESSING' ? 'Blessing' : 'Curse / Blessing'), h('b', null, m.name)), loreNote(m.lore)));

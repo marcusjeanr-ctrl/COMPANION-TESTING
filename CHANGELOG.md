@@ -4,6 +4,16 @@
 
 Compatibility with the Mushoku Tensei RPG "Six-Sided World" v1.1 card and its four HUD styles (Classic, Visual, Compact, Panel). Release candidate: automated checks pass; live Lumiverse acceptance is still to do. Report: `docs/release/1.1.0-RC-REPORT.md`.
 
+**Deeper integration (second RC pass, from live play)**
+- **A HUD with a blank line inside it is read to the end.** GLM 5.3 and DeepSeek sometimes leave a blank line mid-HUD; the Companion used to stop there (it read 17 of 23 lines of a real GLM reply, and 2 of 22 of a DeepSeek one). The HUD now goes on when the `***` wall follows and every line before it looks like a HUD line; prose after a blank line is still never read as HUD.
+- **Training**: the world card shows each `Training:` line as a progress bar (Sword God → Saint · 12/60), and the Chronicle records when training begins and when the sessions are done ("the rank now needs its proof"). The rank-up itself was already a milestone.
+- **Bonds**: each person shows the HUD's own bond stage beside the Companion's standing (`HUD: Trusted`), its steps are in the person's history, and the Chronicle records them ("HUD bond — Eris: Friend → Trusted"). The two are kept side by side, not merged: the HUD stage is the card's, the standing is the Companion's closeness ladder.
+- **Standing and family politics**: the world card shows the Standing line as class, rank, house (nation) and birth (House Head, Heir, Younger Child…), the Faction, and the **family plots** from your start command (Arranged Marriage, Feud with House Dravenmoor).
+- **Compact and style switches in the Chronicle**: rank-ups written in Compact's `Skills:` row are milestones too, and a rank-up on the same turn as a style switch is still recorded; a switch alone records nothing.
+- **Panel**: when your start command says `HUD: Panel` (or you switch with `[HUD = PANEL]`), the Companion's HUD card steps aside so the card's own Panel scripts draw the HUD. `[HUD = CLASSIC]` brings the Companion card back. The Settings switch still turns the card off everywhere.
+- **Label drift**: a HUD that writes `Magic:` / `Martial:` instead of `Magic Tiers:` / `Sword Style:` still fills the world card (Re:Zero's `Magic: … | Gate:` is unchanged).
+- A stray closing tag a model leaves alone on a line (such as `</ofilter>`) is hidden in the chat; the saved reply is untouched.
+
 **Every HUD style reads the same**
 - **Compact**: the merged `Skills:` row (💧Water Saint · ⚔️Sword God Int · 🤫 Voiceless) now gives magic schools, sword styles and Voiceless Casting to the world card, the Spellbook and the technique list. `Mana Capacity: Vast | Half | Rested · Touki (Battle Aura): Locked` reads as mana, reserve and Touki. The spot-first place (`◆ Boreas Manor, Roa, Asura Kingdom (Central Continent)`) reads in the same order as Classic, so the current place, the map and "First time at…" agree across styles.
 - **Visual**: the two ━━━ divider rules no longer turn the stat rows between them into an inline block, so those rows are tracked like any other line (dropped-line check, Chronicle ranks, pins). Condition, wounds and sword-style reach read through the icons and bold labels.

@@ -16,7 +16,7 @@ const ctx = { console: quiet, structuredClone, URL, TextEncoder, TextDecoder, se
 ctx.globalThis = ctx;
 vm.createContext(ctx);
 vm.runInContext(source.slice(0, startup) + `
-globalThis.__t = { parseHud, worldLines, worldOf, worldMushoku: l => worldMushoku('c1', l, {}, null), spellStanding, diffHud, isHudSwap,
+globalThis.__t = { parseHud, worldLines, worldOf, worldMushoku: (l, chat) => worldMushoku('c1', l, {}, chat || null), spellStanding, diffHud, isHudSwap, stripForDisplay, hudStyleFor: typeof hudStyleFor === 'function' ? hudStyleFor : null,
   hmsReadWounds, hmsReadConditions, hmsCfg, factionFromHud, techStanding, renderHudCard };
 globalThis.__hooks = (chat, user) => {
   chatApi.getMessages = async () => chat;
@@ -70,7 +70,7 @@ const compact = (s = S, { memory = false, equipment = false } = {}) => ['### WOR
 const STYLES = { classic, visual, compact, panel: classic };
 
 const parse = text => t.parseHud(text + 'The story continues.');
-const world = text => t.worldMushoku(t.worldLines(parse(text)));
+const world = (text, chat) => t.worldMushoku(t.worldLines(parse(text)), chat);
 const results = [], failed = [];
 const check = (name, fn) => { try { fn(); results.push(name); } catch (e) { failed.push(`${name}: ${e.message.split('\n')[0]}`); } };
 const checkAsync = async (name, fn) => { try { await fn(); results.push(name); } catch (e) { failed.push(`${name}: ${e.message.split('\n')[0]}`); } };
@@ -245,6 +245,72 @@ check('guard: a dropped line in the same style is still reported', () => {
         const ch = JSON.stringify(chronicle);
         assert(/Magic Tiers:[^"]*Healing \(Intermediate\)[^"]*→[^"]*Healing \(Advanced\)/.test(ch), 'rank-up recorded');
         assert(/The story begins — Sandbox: Fittoa Region/.test(ch), 'arc named at the start');
+    });
+
+    // 9. Deeper v1.1 integration: training, bonds, standing and family plots, Compact Chronicle, Panel.
+    check('HUD: a blank line inside the HUD (the wall still ahead) does not end it', () => {
+        const t2 = classic().replace(/^(Bonds:.*)$/m, '$1\nCanon: Living\n- Ledger: empty\n');
+        const h = parse(t2);
+        assert(h.lines.some(l => /^Present:/.test(l.text)), 'Present after the blank line is read');
+        assert(h.find.sepFound, 'the wall is found');
+        const prose = t.parseHud('### WORLD STATE ###\nDay: 1 | Time: 08:00\nHP: 10/10\n\nShe turns to you and smiles.\n\n***\nMore story.');
+        assert.equal(prose.lines.length, 2, 'prose after a blank line is never read as HUD');
+    });
+    check('drift: bold labels, blank lines and "Magic:" / "Martial:" still read as the sheet', () => {
+        const drift = '### WORLD STATE ###\n\n**Armored Dragon Calendar: K416, Month 1, Day 12**\n**Time:** 08:20 (Morning)\n\n**Mana Capacity:** Vast | **Reserve:** Full | **Status:** Rested\n**Martial:** Sword God Style — Advanced\n**Magic:** Water — Advanced · Earth — Intermediate · Fire — Beginner\n**Languages:** Human-Tongue (Fluent, reads)\n\n***\n';
+        const w = world(drift);
+        assert.equal(w.mana, 'Vast');
+        assert.deepEqual(plain(w.magic.map(m => [m.name, m.rank])), [['Water', 'Advanced'], ['Earth', 'Intermediate'], ['Fire', 'Beginner']]);
+        assert.deepEqual(plain(w.martial.map(m => m.rank)), ['Advanced']);
+        assert.equal(t.spellStanding(t.parseHud('### WORLD STATE ###\nDay: 3 | Time: 09:00\nMagic: Fire / Wind | Gate: C-Rank\n***\nx').lines).ladder, 'rz', 'Re:Zero "Magic: … | Gate:" is unchanged');
+    });
+    check('training: sessions toward the next rank are read', () => {
+        const w = world(classic({ ...S, training: 'Healing → Advanced (7/25 sessions)' }));
+        assert.deepEqual(plain(w.training), [{ skill: 'Healing', next: 'Advanced', done: 7, needed: 25 }]);
+        const none = world(classic({ ...S, training: null }));
+        assert.deepEqual(plain(none.training), []);
+    });
+    check('standing: class, rank, house, nation and birth; faction and family plots from the start command', () => {
+        const chat = [{ role: 'user', is_user: true, content: 'Mushoku_Start_Handler\nSandbox Mode\nSocial: Noble (Upper Noble, House Veyrath, Asura, Younger Child)\nFamily Plot: Arranged Marriage\nFamily Plot: Feud with House Dravenmoor' }];
+        const w = world(classic(), chat);
+        assert.deepEqual(plain(w.standing), { kind: 'Noble', rank: 'Knight', house: 'House Greyrat', nation: 'Asura', birth: 'Younger Child', text: S.standing });
+        assert.equal(w.faction, S.faction);
+        assert.deepEqual(plain(w.familyPlots), ['Arranged Marriage', 'Feud with House Dravenmoor']);
+    });
+    check('display: a stray closing tag on its own line is hidden; real markup is kept', () => {
+        assert.equal(t.stripForDisplay('Text.\n\n</ofilter>\n\nMore.').includes('</ofilter>'), false);
+        assert(t.stripForDisplay('<div>\nA\n</div>').includes('</div>'), 'a closing tag with its opening stays');
+    });
+    check('panel: the start command or a [HUD = …] switch says the card draws its own Panel', () => {
+        assert(t.hudStyleFor, 'hudStyleFor exists');
+        const u = c => ({ role: 'user', is_user: true, content: c });
+        assert.equal(t.hudStyleFor([u('Mushoku_Start_Handler\nHUD: Panel')]), 'panel');
+        assert.equal(t.hudStyleFor([u('Mushoku_Start_Handler\nHUD: Panel'), u('[HUD = CLASSIC] I wave.')]), 'classic');
+        assert.equal(t.hudStyleFor([u('hello')]), null);
+    });
+    await checkAsync('bonds: the HUD stage shows on the person, and a HUD stage change is in their history and the Chronicle', async () => {
+        const rel = (name, standing) => ({ key: name.toLowerCase(), name, standing, bond: 'friend', minor: true, mood: null, why: null });
+        const a = { ...S, bonds: 'Eris Boreas Greyrat (Friend), Ghislaine Dedoldia (Trusted)' }, b2 = { ...S, bonds: 'Eris Boreas Greyrat (Trusted), Ghislaine Dedoldia (Trusted)' };
+        const r1 = reply(classic(a)); r1.extra = { spindle_metadata: { rpg_companion: { swipes: { 0: { relations: [rel('Eris Boreas Greyrat', 'Friend')] } } } } };
+        const r2 = reply(classic(b2)); r2.extra = { spindle_metadata: { rpg_companion: { swipes: { 0: { relations: [rel('Eris Boreas Greyrat', 'Friend')] } } } } };
+        const { h, chronicle } = await run([user('a'), r1, user('b'), r2]);
+        const eris = h.relations.people.find(p => /eris/i.test(p.name));
+        assert.equal(eris.hudBond, 'Trusted');
+        assert(eris.events.some(e => /HUD bond: Friend → Trusted/.test(e)), JSON.stringify(eris.events));
+        assert(/Eris Boreas Greyrat: Friend → Trusted/.test(JSON.stringify(chronicle)), 'Chronicle has the bond step');
+    });
+    await checkAsync('chronicle: training starts and finishes; Compact and style switches still record rank-ups', async () => {
+        const start = { ...S, training: null }, mid = { ...S, training: 'Healing → Advanced (7/25 sessions)' }, done = { ...S, training: 'Healing → Advanced (25/25 sessions)' };
+        const up = { ...S, training: null, magic: [['Water', 'Saint'], ['Earth', 'Advanced'], ['Healing', 'Advanced']], sword: [['Sword God', 'Advanced'], ['Water God', 'Beginner']] };
+        const chat = [user('a'), reply(classic(start)), user('b'), reply(compact(mid)), user('c'), reply(compact(done)), user('d'), reply(compact(up)), user('e'), reply(visual({ ...up, sword: [['Sword God', 'Saint'], ['Water God', 'Beginner']] }))];
+        const { chronicle } = await run(chat);
+        const ch = JSON.stringify(chronicle);
+        assert(/Training began: Healing → Advanced/.test(ch), 'training start');
+        assert(/Training complete: Healing → Advanced/.test(ch), 'training complete');
+        assert(/Magic Tiers:[^"]*Healing \(Intermediate\)[^"]*→[^"]*Healing \(Advanced\)/.test(ch), 'Compact rank-up recorded');
+        assert(/Sword Style:[^"]*Sword God \(Intermediate\)[^"]*→[^"]*Sword God \(Advanced\)/.test(ch), 'Compact sword rank-up recorded');
+        assert(/Sword Style:[^"]*Sword God \(Advanced\)[^"]*→[^"]*Sword God \(Saint\)/.test(ch), 'rank-up across a style switch recorded');
+        assert(!/Magic Tiers:[^"]*→[^"]*"[^"]*Magic Tiers:/.test(ch) && (ch.match(/Magic Tiers:/g) || []).length === 1, 'a style switch alone records nothing');
     });
 
     // 8. Other cards keep their readings.

@@ -942,6 +942,7 @@ function stripHiddenTags(text) {
 
 function stripForDisplay(text) {
     let out = stripTrackerBlocks(stripCompanion(stripLeakedReasoning(collapseDuplicateHudHeads(text))));
+    out = out.replace(/^[ \t]*<\/([a-z][\w-]*)>[ \t]*\r?\n?/gim, (m, tag) => new RegExp(`<${tag}(?:[\\s>])`, 'i').test(out) ? m : '');
     // unterminated fenced block at the very start (streaming)
     const lead = out.match(/^\s*```(?:json)?\s*\n?[\s\S]*$/i);
     if (lead && !/```[\s\S]*```/.test(out)) {
@@ -3166,6 +3167,7 @@ registerInterceptorKeep(async (messages, context) => {
 
         const hmsOn = isHmsChat(chatId, messages, chat);
         for (const m of messages) injNoteCore(chatId, textOf(m.content));     // a bot that keeps its own wounds
+        if (chatId) { const hs = hudStyleFor(messages.filter(m => m && m.role === 'user')); if (hs) hudStyleCache.set(chatId, hs); }
         let contextName = 'RPG Companion: scene context';
         const trailingName = hmsOn ? 'side-panel request' : 'tracker instructions';
         // A preset with the {{rpgc_request}} slot (HMS Reporter) already carries this reply's request:
@@ -3577,9 +3579,34 @@ function hudCardHtml(hud, rawHud, cfg = chatDisplayCfg()) {
     return `<style>${HUD_CARD_CSS}</style>${html}`;
 }
 
+/**
+ * The HUD style the player chose in this chat ("HUD: Panel" in a start command, or a later "[HUD = PANEL]"),
+ * newest first; null when the chat never names one.
+ */
+function hudStyleFor(chat) {
+    for (let i = (chat || []).length - 1; i >= 0; i--) {
+        const m = chat[i];
+        if (!m || !(m.is_user || m.role === 'user')) continue;
+        const t = textOf(m.content);
+        const all = [...t.matchAll(/\[\s*HUD\s*=\s*(CLASSIC|VISUAL|COMPACT|PANEL)\s*\]|^[ \t]*HUD:\s*(Classic|Visual|Compact|Panel)\b/gim)];
+        if (all.length) { const x = all[all.length - 1]; return (x[1] || x[2]).toLowerCase(); }
+    }
+    return null;
+}
+const hudStyleCache = new Map();   // chatId -> 'panel' | 'classic' | … | null
+async function hudStyleOf(chatId) {
+    if (!chatId) return null;
+    if (hudStyleCache.has(chatId)) return hudStyleCache.get(chatId);
+    let style = null;
+    try { style = hudStyleFor(await chatApi.getMessages(chatId)); } catch { style = null; }
+    hudStyleCache.set(chatId, style);
+    while (hudStyleCache.size > 64) hudStyleCache.delete(hudStyleCache.keys().next().value);
+    return style;
+}
 /** Replaces the plain-text HUD in a displayed reply with the card. Leaves anything it cannot read alone. */
-function renderHudCard(text, cfg = chatDisplayCfg()) {
+function renderHudCard(text, cfg = chatDisplayCfg(), style = null) {
     if (!cfg.hudCard || !text || !HUD_HEAD_RE.test(text)) return text;
+    if (style === 'panel') return text;   // the card's own Panel scripts draw this HUD
     const f = findHud(text);
     if (!f || f.fromHtml || !f.sepFound || /🌐/.test(f.headLine)) return text; // Visual HUD already provides its own layout
     const hud = parseHud(text);
@@ -5206,7 +5233,7 @@ spindle.registerMessageContentProcessor(async (ctx) => {
     i18nApply();
     if (settings.enabled) {
         const dc = chatDisplayCfg();
-        try { out = renderHudCard(out, dc); } catch (e) { logW(`[RPG Companion HMS] HUD card failed: ${e?.message || e}`); }
+        try { out = renderHudCard(out, dc, dc.hudCard && HUD_HEAD_RE.test(out) ? await hudStyleOf(ctx.chatId) : null); } catch (e) { logW(`[RPG Companion HMS] HUD card failed: ${e?.message || e}`); }
         try { out = await renderDialogue(out, ctx.chatId, ctx.messageId, dc); } catch (e) { logW(`[RPG Companion HMS] Dialogue display failed: ${e?.message || e}`); }
     }
     const under = settings.enabled ? chatDisplayCfg() : null;
@@ -7070,6 +7097,31 @@ function collapseDuplicateHudHeads(text) {
     return out.join('\n');
 }
 
+/**
+ * A model sometimes leaves a blank line inside the HUD ("- Ledger: empty", blank, "📖 Canon reference: …").
+ * The HUD goes on when the wall comes within a short run of lines and every line before it looks like a
+ * HUD line (a label, a marker, a bracket tag or a sub-line), never prose. Without a wall, or with any
+ * prose-like line in between, the blank line ends the HUD as before.
+ */
+function hudBlankInside(src, from) {
+    let p = from, seen = 0;
+    while (p < src.length && seen < 30) {
+        let n = src.indexOf('\n', p);
+        if (n === -1) n = src.length;
+        const r = src.slice(p, n).replace(/\r$/, '');
+        p = n + 1;
+        if (!r.trim()) continue;
+        if (HUD_SEP_RE.test(r)) return seen > 0;
+        if (HUD_HEAD_RE.test(r) || !hudLineShaped(r)) return false;
+        seen++;
+    }
+    return false;
+}
+function hudLineShaped(raw) {
+    const t = hudSemanticText(raw);
+    if (!t || t.length > 240) return false;
+    return /^[^\s:"'*][^:"]{0,44}:(?:\s|$)/.test(t) || LOC_MARK_RE.test(t) || /^\[[^\]]+\]$/.test(t) || /^\s*[-•]\s+\S/.test(raw) || /^[\p{Extended_Pictographic}]/u.test(String(raw).trim());
+}
 function findHudAt(src, m) {
     let pos = m.index + m[0].length;
     if (src[pos] === '\r') pos++;
@@ -7097,7 +7149,7 @@ function findHudAt(src, m) {
                     if (r2.trim()) { nextRaw = r2; break; }
                     p2 = n2 + 1;
                 }
-                if (nextRaw === null || !HUD_SEP_RE.test(nextRaw)) { bodyEnd = pos; break; }
+                if (nextRaw === null || (!HUD_SEP_RE.test(nextRaw) && !hudBlankInside(src, nl + 1))) { bodyEnd = pos; break; }
             }
         } else {
             lines.push(raw);
@@ -8465,6 +8517,32 @@ const CHRON_IMP = { begin: 6, loop: 9, death: 9, arc: 8, rank: 7, gained: 7, que
     threadNew: 4, threadDone: 7, objDone: 4, objFailed: 5, place: 4, moment: 8, note: 9, star: 10, debt: 6, paid: 6, maskOff: 5 };
 const CHRON_SEND = { off: 99, key: 7, most: 5, all: 1 };
 const CHRON_RANK_RE = /^(standing|rank|guild rank|adventurer rank|class|title|tier|cohort|grade|race|level|lvl|lv|overall lvl|job lvl|racial lvl|job level|racial level|realm|cultivation|guild|faction|sword style|martial style|magic tiers|magic school|touki|touki \(battle aura\))$/i;
+/** Compact's merged Skills row read as the Magic Tiers and Sword Style it stands for. */
+function chronCompactFields(h, mp) {
+    if (mp.has('magic tiers') && mp.has('sword style')) return;
+    for (const l of h.lines) {
+        const cs = mtSkillsLine(hudSemanticText(l.text));
+        if (!cs) continue;
+        const rows = list => list.map(([a, b]) => `${a} (${b})`).join(', ');
+        if (cs.magic.length && !mp.has('magic tiers')) mp.set('magic tiers', { label: 'Magic Tiers', value: rows(cs.magic) });
+        if (cs.martial.length && !mp.has('sword style')) mp.set('sword style', { label: 'Sword Style', value: rows(cs.martial) });
+        return;
+    }
+}
+/**
+ * For ranked lists (Magic Tiers, Sword Style): true when some school or style moved a step, false when only
+ * the wording changed, null for any other field.
+ */
+function chronRankSig(key, a, b) {
+    const ladder = /^(magic tiers|magic school)$/.test(key) ? MT_MAGIC : /^(sword style|martial style)$/.test(key) ? MT_MARTIAL : null;
+    if (!ladder) return null;
+    const sig = v => new Map(mtRankRows(String(v).replace(/\s+\|\s+/g, ', '), ladder).map(r => [techStyleKey(r.name), r.step]));
+    const x = sig(a), y = sig(b);
+    if (!x.size || !y.size) return null;
+    for (const [k, step] of y) if (x.has(k) && step !== null && x.get(k) !== step) return true;
+    for (const k of y.keys()) if (!x.has(k)) return true;
+    return false;
+}
 const CHRON_POWER_RE = /^\[(AUTHORITY|DIVINE PROTECTION|SPIRIT CONTRACT|CONTRACT|BLESSING|TITLE|PACT|CURSE|WORLD ITEM|DEMON EYE)\b[^:\]]*:\s*([^\]]+)\]/i;
 const CHRON_SENT_MAX = 4000;
 const chronSyncing = new Set();
@@ -8608,13 +8686,17 @@ function chronicleBuild(chat, st, userName = null) {
                 if (!firstHud) { const segs = hud.location.filter(s => !/^\[/.test(s)); add('place', `First time at ${placeNow}${segs.length > 1 ? ` (${segs[segs.length - 2]})` : ''}.`, CHRON_IMP.place, { place: placeNow }); }
             }
             // ranks, levels, standing; a death the clock did not show; a power gained
-            const fields = (h) => { const mp = new Map(); for (const l of h.lines) if (l.kind === 'field' && !l.block) for (const f of l.fields || []) if (f.label) mp.set(f.label.trim().toLowerCase(), { label: f.label.trim(), value: String(f.value || '').trim() }); return mp; };
+            const fields = (h) => { const mp = new Map(); for (const l of h.lines) if (l.kind === 'field' && !l.block) for (const f of l.fields || []) if (f.label) mp.set(f.label.trim().toLowerCase(), { label: f.label.trim(), value: String(f.value || '').trim() }); chronCompactFields(h, mp); return mp; };
             const now = fields(hud);
-            if (prevHud && !swap) {
+            if (prevHud) {
                 const was = fields(prevHud);
                 for (const [k, v] of now) {
                     const p = was.get(k);
                     if (!p || !p.value || !v.value || relSameWords(p.value, v.value)) continue;
+                    // A HUD style switch rewrites every line; only a real step in a rank survives it.
+                    const sig = chronRankSig(k, p.value, v.value);
+                    if (sig === false) continue;
+                    if (swap && sig !== true) continue;
                     if (/^deaths?$/.test(k)) {
                         const num = (x) => { const mt = String(x).replace(/,/g, '').match(/-?\d+/); return mt ? Number(mt[0]) : null; };
                         const a = num(p.value), b = num(v.value);
@@ -8623,6 +8705,18 @@ function chronicleBuild(chat, st, userName = null) {
                     }
                     if (CHRON_RANK_RE.test(k) && v.value.length <= 80) add('milestone', `${v.label}: ${p.value} → ${v.value}.`, CHRON_IMP.rank);
                 }
+            }
+            // training toward a rank (Six-Sided v1.1): when it begins and when the sessions are done
+            for (const tr of (hud.lines.some(l => /^\W*\**\s*Training\b/i.test(l.text)) ? mtTraining(worldLines(hud)) : [])) {
+                const tk = 'tr:' + lockKey(`${tr.skill}>${tr.next}`), had = kin.get(tk);
+                if (!had && prevHud) add('milestone', `Training began: ${tr.skill} \u2192 ${tr.next} (${tr.done}/${tr.needed} sessions).`, CHRON_IMP.threadNew);
+                if (tr.done >= tr.needed && had !== 'done') { if (prevHud || had) add('milestone', `Training complete: ${tr.skill} \u2192 ${tr.next} — the rank now needs its proof.`, CHRON_IMP.objDone); kin.set(tk, 'done'); }
+                else if (!had) kin.set(tk, 'on');
+            }
+            // a step in a HUD bond (Six-Sided v1.1 Bonds)
+            if (prevHud) for (const b of hudBondsOf(hud)) {
+                const pb = hudBondsOf(prevHud).find(x => lockKey(x.name) === lockKey(b.name));
+                if (pb && !relSameWords(pb.stage, b.stage)) add('bond', `HUD bond — ${b.name}: ${pb.stage} \u2192 ${b.stage}.`, CHRON_IMP.standing, { who: [b.name] });
             }
             for (const l of hud.lines) {
                 const pm = String(l.text || '').trim().match(CHRON_POWER_RE);
@@ -9912,6 +10006,7 @@ function worldMushoku(chatId, lines, st, chat = null) {
     const manaParts = String(manaRow || '').split(/\s+\|\s+/);
     const compactReserve = manaParts.slice(1).find(x => /^(?:Full|High|Half|Low|Empty)\b/i.test(x)) || null;
     const compactRows = (list) => list.map(([name, rank]) => `${name} (${rank})`).join(', ');
+    const standingRow = one(/^Standing:\s*([^|]+)/i);
     const dreams = hg ? (hg[1].match(/Dreams:\s*(\d+)/i) || [])[1] : null;
     const w = isPlainObject(st.world) ? st.world : {};
     return {
@@ -9922,7 +10017,8 @@ function worldMushoku(chatId, lines, st, chat = null) {
         manaLore: mtManaTierLore(chatId, mtPowerViews(one(/^Mana Capacity:\s*(.+)$/i)).actual), toukiLore: /^none/i.test(mtPowerViews(one(/^Touki(?: \(Battle Aura\))?:\s*(.+)$/i)).actual || 'none') ? null : worldLore(chatId, 'touki'),
         martial: (() => {
             const sword = one(/^Sword Style:\s*(.+)$/i);
-            const list = mtRankRows(sword || one(/^Martial Style:\s*(.+)$/i) || (compactSkills ? compactRows(compactSkills.martial) : null), MT_MARTIAL);
+            // a model that drifts to "Martial:" still names the same thing (the card lists this drift as an error)
+            const list = mtRankRows(sword || one(/^Martial Style:\s*(.+)$/i) || (compactSkills ? compactRows(compactSkills.martial) : null) || one(/^Martial:\s*(.+)$/i), MT_MARTIAL);
             const idx = worldSpellIndex(chatId, /^\s*#+\s*Master Technique Index/i) || techIndexFromCatalog(chatId);
             if (idx) for (const m of list) {
                 const rows = idx[m.name.toLowerCase()] || idx[techStyleKey(m.name)] || [];
@@ -9933,7 +10029,7 @@ function worldMushoku(chatId, lines, st, chat = null) {
         })(),
         triangle: (() => { const idx = worldSpellIndex(chatId, /^\s*#+\s*Master Technique Index/i); return idx && idx._triangle ? idx._triangle : null; })(),
         magic: (() => {
-            const tiers = one(/^Magic Tiers:\s*(.+)$/i) || (compactSkills && compactSkills.magic.length ? compactRows(compactSkills.magic) : null);
+            const tiers = one(/^Magic Tiers:\s*(.+)$/i) || (compactSkills && compactSkills.magic.length ? compactRows(compactSkills.magic) : null) || one(/^Magic:\s*((?:(?!\bGate:).)+)$/i);
             const list = mtRankRows((/\b(?:Shown|True):/i.test(tiers || '') ? tiers : (tiers || one(/^Magic School:\s*(.+)$/i) || '').replace(/\s+\|\s+/g, ', ')), MT_MAGIC);
             const idx = worldSpellIndex(chatId) || spellIndexFromCatalog(chatId);
             if (idx) for (const m of list) {
@@ -9951,8 +10047,41 @@ function worldMushoku(chatId, lines, st, chat = null) {
         term: (() => { const m = worldFind(lines, /^Term:\s*(.+?)\s*\|\s*Role:\s*(.+)$/i); return m ? { term: m[1].trim(), role: m[2].trim() } : null; })(),
         hitogami: hg ? { state: hg[1].trim(), dreams: dreams ? Number(dreams) : null } : null,
         saga: (() => { try { const saga = mtSaga(chatId, date ? date.year : null, (one(/^(?:(?:Current )?Arc|Era\s*\/\s*Arc):\s*(.+)$/i) || lines.find(line => /^(?:Arc\s+\d|Era\s+\d|Sandbox:)/i.test(line)) || null), date); if (saga) { saga.canonMode = one(/^Canon:\s*([^|]+)/i); saga.events = chat ? mtEventLedger(chat) : []; } return saga; } catch { return null; } })(),
-        advice: (Array.isArray(w.advice) ? w.advice : []).slice(-12).reverse()
+        advice: (Array.isArray(w.advice) ? w.advice : []).slice(-12).reverse(),
+        training: mtTraining(lines), standing: mtStanding(standingRow), faction: one(/^Faction:\s*(.+)$/i) && !/^(none|no|-|—)$/i.test(one(/^Faction:\s*(.+)$/i)) ? one(/^Faction:\s*(.+)$/i) : null,
+        familyPlots: chat ? mtStartLines(chat, /^Family Plot:\s*(.+)$/i) : []
     };
+}
+
+/** "Training: Healing → Advanced (7/25 sessions)": one row per skill (the card shows at most two). */
+function mtTraining(lines) {
+    const out = [];
+    for (const l of lines) {
+        const m = String(l).match(/^Training:\s*(.+?)\s*(?:→|->|⟶)\s*(.+?)\s*\(\s*(\d+)\s*\/\s*(\d+)\s*sessions?\s*\)/i);
+        if (m && !out.some(x => x.skill === m[1].trim())) out.push({ skill: m[1].trim(), next: m[2].trim(), done: Number(m[3]), needed: Number(m[4]) });
+    }
+    return out.slice(0, 4);
+}
+/** "Noble — Upper Noble, House Veyrath (Asura), Younger Child" / "Commoner — Farmer" / "Slave — owner". */
+function mtStanding(text) {
+    const t = String(text || '').trim();
+    if (!t) return null;
+    const m = t.match(/^(Noble|Commoner|Slave|Royal(?:\s+Blood)?)\s*[—–-]\s*(.+)$/i);
+    if (!m) return { kind: null, rank: null, house: null, nation: null, birth: null, text: t };
+    const kind = m[1].replace(/\s+Blood$/i, '').replace(/^./, c => c.toUpperCase());
+    const parts = hmsSplitTop(m[2], /\s*,\s*/g);
+    if (!/^noble|^royal/i.test(kind)) return { kind, rank: parts[0] || null, house: null, nation: null, birth: parts.slice(1).join(', ') || null, text: t };
+    const houseIdx = parts.findIndex(x => /\bHouse\b/i.test(x));
+    const houseRaw = houseIdx >= 0 ? parts[houseIdx] : null;
+    const hm = houseRaw ? houseRaw.match(/^(.*?)\s*\(([^)]+)\)\s*$/) : null;
+    return { kind, rank: houseIdx > 0 ? parts.slice(0, houseIdx).join(', ') : (houseIdx < 0 ? parts[0] || null : null),
+        house: hm ? hm[1].trim() : houseRaw, nation: hm ? hm[2].trim() : null, birth: houseIdx >= 0 ? parts.slice(houseIdx + 1).join(', ') || null : parts.slice(1).join(', ') || null, text: t };
+}
+/** Lines of the player's start command ("Mushoku_Start_Handler" … ) that match, in order. */
+function mtStartLines(chat, re) {
+    const start = (chat || []).find(m => m && (m.is_user || m.role === 'user') && /\b\w+_Start_Handler\b/.test(textOf(m.content)));
+    if (!start) return [];
+    return textOf(start.content).split('\n').map(l => l.trim().match(re)).filter(Boolean).map(x => x[1].trim()).slice(0, 8);
 }
 
 /** The panel payload for the world card, or null when the HUD is not one of the four. */
@@ -12746,6 +12875,26 @@ function relSameWords(a, b) {
     return n(a) === n(b);
 }
 
+/** "Bonds: Eris (Friend), Ghislaine Dedoldia (Trusted)" → [{ name, stage }] (Six-Sided v1.1). */
+const hudBondsCache = new WeakMap();
+function hudBondsOf(hud) {
+    if (!hud || typeof hud !== 'object') return [];
+    if (!hudBondsCache.has(hud)) hudBondsCache.set(hud, hudBondsRead(hud));
+    return hudBondsCache.get(hud);
+}
+function hudBondsRead(hud) {
+    const line = hud && hud.lines ? hud.lines.map(l => hudSemanticText(l.text)).find(t => /^Bonds:\s*/i.test(t)) : null;
+    if (!line) return [];
+    return hmsSplitTop(line.replace(/^Bonds:\s*/i, ''), /\s*[,;]\s*/g).map(p => { const m = p.match(/^(.+?)\s*\(([^()]+)\)\s*$/); return m ? { name: m[1].trim(), stage: m[2].trim() } : null; }).filter(Boolean).slice(0, 8);
+}
+/** A HUD bond name for a tracked person: the same name, or a unique first name ("Aurelius" ↔ "Aurelius Veyrath"). */
+function hudBondFor(bonds, name) {
+    const k = lockKey(name), first = k.split(' ')[0];
+    const exact = bonds.find(b => lockKey(b.name) === k);
+    if (exact) return exact;
+    const byFirst = bonds.filter(b => { const bk = lockKey(b.name); return bk.split(' ')[0] === first && (bk === first || first === k); });
+    return byFirst.length === 1 ? byFirst[0] : null;
+}
 function hmsRelationsPanel(chat, st, cfg, classic = false) {
     const c = cfg || hmsCfg();
     const rc = relCfg(c, classic);
@@ -12793,6 +12942,18 @@ function hmsRelationsPanel(chat, st, cfg, classic = false) {
             events: [], alerts: []
         };
         if (rs.length === 1) view.events.push(`Met — ${cur.standing || 'first impression'}`);
+        // The card's own HUD stage for this person (Six-Sided v1.1 Bonds): shown beside the standing, with its steps.
+        {
+            let last = null;
+            for (const e of tl) {
+                const b = hudBondFor(hudBondsOf(e.hud), p.name);
+                if (!b) continue;
+                if (last && !relSameWords(last, b.stage)) view.events.push(`HUD bond: ${last} \u2192 ${b.stage}`);
+                last = b.stage;
+            }
+            const nowBond = tl.length ? hudBondFor(hudBondsOf(tl[tl.length - 1].hud), p.name) : null;
+            view.hudBond = nowBond ? nowBond.stage : null;
+        }
         for (let i = Math.max(1, rs.length - 6); i < rs.length; i++) {
             const a = rs[i - 1].standing, b = rs[i].standing;
             if (a && b && !relSameWords(a, b)) view.events.push(`${a} \u2192 ${b}`);
