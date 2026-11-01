@@ -1,8 +1,24 @@
 # Changelog — RPG Companion HMS Edition
 
-## 3.5.0 RC (staging) — Views, the journal look, a living Now card
+## 3.5.0 RC (staging) — Views, the journal look, a living Now card, and connected systems
 
-Display only. Tracking, saved data and the model request are unchanged (no extra calls, same request).
+No extra model calls. The one tracking change is the Minds fix under **Continuity**; everything else is display.
+
+**Continuity**
+- Minds no longer splits you in two. When your persona is "Marcus" and the narrator writes "Marcus Veyrath" (or the other way round), feelings toward that name are feelings toward you, not toward a separate person. Before, family members held two sets of feelings, one toward "you" and one toward "Marcus Veyrath", and both were sent to the model each turn. One extra or one missing trailing word only, and never when a party member has that name. Existing chats are corrected on the next read.
+- **Loose ends** (Scene): where two trackers disagree or a commitment looks forgotten, the panel asks instead of guessing. Examples: an appointment still "in progress" though its people aren't in the scene and you're somewhere else; an appointment over a day late; an appointment with someone Family lists as dead; more than two things in your hands at once. Answer with the card's own buttons (It happened / Called off / Missed / Open Gear) or ✕ to leave it as it is. Nothing changes until you answer.
+
+**Previously…**
+- Coming back to a chat after 3+ hours, Scene opens on a short recap: the last key moments from the Chronicle (moments, milestones, fights, starred and weighty entries; plot bookkeeping, relabelled bonds and near-duplicates are left out), where the story stands, and the open threads. "📜 Previously…" in Journey shows it any time.
+
+**Quests**
+- A progress ring fills only from a percentage the story measured. Without one, the ring shows the number of stages the quest has actually moved through. Completed quests show a ✓.
+- "Path so far" lists every objective the quest has had, oldest crossed out, so a long quest shows where it has been. Names the story has used for the same quest are listed under "Also called".
+
+**Relationship web** (People, its own card)
+- You at the centre and everyone tracked around you: people in the scene on the inner ring, glowing; the rest on the outer ring, closest first. Lines to you take your standing (warm, cold or mixed) and are dashed and labelled for family (father, older brother…). Lines between others come from Minds and lean warm or cold.
+- Tap someone to see only their ties, with a list of each tie; tap again, or use Dossier, to open their dossier. Keyboard reachable.
+
 
 **Navigation**
 - **Views**: a sticky bar switches between Scene (Now, World State, the world card, Map), You (your character, Gear, Magic, Body, Mind…), People (people, family, factions, secrets, phone), Journey (Agenda, Quests and plot, Chronicle, Chapters, Atlas) and All (the classic full list). Only the chosen view is built, so the panel is lighter to draw. Arrow keys move between views; the choice is remembered. Badges show active quests and people in the scene, a dot marks a view with something new this turn, and a red dot means something is late.

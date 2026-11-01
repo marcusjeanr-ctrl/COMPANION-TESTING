@@ -15014,8 +15014,19 @@ function simReplies(chat, excludeId = null) {
 
 function simYouKeys(userName) {
     const s = new Set(['you', 'player', 'the player', 'user', '{{user}}', 'protagonist', 'the protagonist', 'pc', 'mc', 'yourself']);
-    if (userName) { const u = lockKey(userName); if (u) { s.add(u); } }
+    if (userName) { const u = lockKey(userName); if (u) { s.add(u); s.userKey = u; } }
     return s;
+}
+/** 3.5.0: the narrator's longer or shorter form of the player's own name ("Marcus" ↔ "Marcus Veyrath") is
+ * the player, not a second person. One extra or one missing trailing word only, and never when a party
+ * member carries that name. */
+function simYouVariant(k, you) {
+    const u = you && you.userKey;
+    if (!u || !k || k === u) return false;
+    const uw = u.split(' '), kw = k.split(' ');
+    if (kw.length === uw.length + 1 && k.startsWith(u + ' ')) return true;
+    if (uw.length === kw.length + 1 && u.startsWith(k + ' ') && k.length > 2) return true;
+    return false;
 }
 /** One key per person across every report: exact name, a party alias, or a longer form of a known name. */
 function simKeyer(roster, you) {
@@ -15026,6 +15037,7 @@ function simKeyer(roster, you) {
         if (you.has(k)) return SIM_YOU;
         if (known.has(k)) return k;
         const member = partyMatch(roster, name);
+        if (!member && simYouVariant(k, you)) return SIM_YOU;
         if (member) k = lockKey(member.key || member.name);
         if (you.has(k)) return SIM_YOU;
         if (!known.has(k)) known.set(k, String(member?.name || name).replace(/\s+/g, ' ').trim());

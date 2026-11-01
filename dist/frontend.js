@@ -845,6 +845,62 @@ button.rpgc-chip.intel:hover { border-color: var(--lumiverse-accent, #7aa2f7); }
 .rpgc-now .go-arrow{margin-left:auto;padding-left:6px;opacity:.35}
 .rpgc-now>div.go:hover .go-arrow{opacity:.8}
 .rpgc-empty-view{text-align:center;padding:24px 8px}
+/* 3.5.0 phase 2 */
+.rpgc-ring-wrap{flex:0 0 auto;width:34px;height:34px;display:inline-block}
+.rpgc-ring{width:34px;height:34px;display:block}
+.rpgc-ring .track{stroke:color-mix(in srgb,currentColor 14%,transparent)}
+.rpgc-ring .fill{stroke:var(--rpgc-gold);stroke-linecap:round;transition:stroke-dasharray .6s ease}
+.rpgc-ring .fill.cur{stroke:var(--lumiverse-accent,#7aa2f7)}
+.rpgc-ring.done .fill{stroke:#5fbf7f}
+.rpgc-ring .lbl{font:700 10px var(--rpgc-serif);fill:currentColor}
+.rpgc-qcard .qhead{align-items:center}
+.rpgc-qpath{font-size:12px;margin-top:2px}
+.rpgc-qpath>summary{cursor:pointer;color:var(--lumiverse-text-muted,#999)}
+.rpgc-qpath ol{margin:6px 0 2px;padding-left:18px;display:flex;flex-direction:column;gap:3px}
+.rpgc-qpath li.past{color:var(--lumiverse-text-muted,#999);text-decoration:line-through;text-decoration-color:color-mix(in srgb,currentColor 40%,transparent)}
+.rpgc-qpath li.cur{font-weight:600}
+.rpgc-web-wrap{margin:0 -4px}
+.rpgc-web{display:block;width:100%;height:auto;max-width:440px;margin:auto;overflow:visible}
+.rpgc-web .orbit{fill:none;stroke:color-mix(in srgb,currentColor 9%,transparent);stroke-dasharray:2 4}
+.rpgc-web .orbit.far{stroke:color-mix(in srgb,currentColor 6%,transparent)}
+.rpgc-web .tie{fill:none;opacity:.8;transition:opacity .2s}
+.rpgc-web .tie.warm{stroke:#e0a83c}.rpgc-web .tie.cold{stroke:#e0625c}.rpgc-web .tie.mixed{stroke:#8d97a8}
+.rpgc-web .tie.kin{stroke-dasharray:6 3}
+.rpgc-web .tie.dim{opacity:.07}
+.rpgc-web .tie-lbl{font-size:8.5px;fill:currentColor;opacity:.75;paint-order:stroke;stroke:var(--rpgc-card-bg,var(--lumiverse-bg,#15151b));stroke-width:3px}
+.rpgc-web .node{cursor:pointer;transition:opacity .2s}
+.rpgc-web .node.me{cursor:default}
+.rpgc-web .node.dim{opacity:.22}
+.rpgc-web .node .disc{fill:hsl(var(--mono-h) 50% 40%);stroke:hsl(var(--mono-h) 60% 70%);stroke-width:1}
+.rpgc-web .node.me .disc{fill:var(--rpgc-gold);stroke:#fff8}
+.rpgc-web .node .halo{fill:none;stroke:transparent;stroke-width:2}
+.rpgc-web .node .halo.top,.rpgc-web .node .halo.pos{stroke:#e0a83c88}.rpgc-web .node .halo.neg{stroke:#e0625c99}
+.rpgc-web .node.here .halo{stroke:var(--lumiverse-accent,#7aa2f7);stroke-width:2.5;filter:drop-shadow(0 0 4px var(--lumiverse-accent,#7aa2f7))}
+.rpgc-web .node.focus .disc{stroke:#fff;stroke-width:2}
+.rpgc-web .node:focus-visible{outline:none}.rpgc-web .node:focus-visible .disc{stroke:#fff;stroke-width:2.5}
+.rpgc-web .ini{font:600 10px var(--rpgc-serif);fill:#fff;pointer-events:none}
+.rpgc-web .nm{font-size:9.5px;fill:currentColor;pointer-events:none;paint-order:stroke;stroke:var(--rpgc-card-bg,var(--lumiverse-bg,#15151b));stroke-width:3px}
+.rpgc-web-legend{display:flex;gap:12px;flex-wrap:wrap;justify-content:center;font-size:11px;color:var(--lumiverse-text-muted,#999)}
+.rpgc-web-legend>span,.rpgc-web-info li{display:inline-flex;align-items:center;gap:5px}
+.rpgc .sw{display:inline-block;width:16px;height:3px;border-radius:2px;flex:0 0 auto}
+.rpgc .sw.warm{background:#e0a83c}.rpgc .sw.cold{background:#e0625c}.rpgc .sw.mixed{background:#8d97a8}.rpgc .sw.kin{background:repeating-linear-gradient(90deg,currentColor 0 5px,transparent 5px 8px);opacity:.7}
+.rpgc-web-info{display:flex;flex-direction:column;gap:6px;padding:8px 10px;border-radius:10px;background:color-mix(in srgb,currentColor 5%,transparent)}
+.rpgc-recap{border-radius:16px;padding:12px 14px;display:flex;flex-direction:column;gap:8px;border:1px solid color-mix(in srgb,var(--rpgc-gold) 50%,transparent);
+  background:radial-gradient(120% 80% at 0% 0%,color-mix(in srgb,var(--rpgc-gold) 16%,transparent),transparent 70%),var(--rpgc-card-bg,transparent);animation:rpgc-in .3s ease-out}
+.rpgc-recap-head{display:flex;align-items:baseline;gap:8px}
+.rpgc-recap-head .rpgc-mini{margin-left:auto}
+.rpgc-recap-title{font:600 italic 18px var(--rpgc-serif);letter-spacing:.02em}
+.rpgc-recap-list{margin:0;padding:0 0 0 4px;list-style:none;display:flex;flex-direction:column;gap:5px;border-left:2px solid color-mix(in srgb,var(--rpgc-gold) 45%,transparent)}
+.rpgc-recap-list li{padding-left:10px;position:relative}
+.rpgc-recap-list li.big{font-weight:600}
+.rpgc-recap-list .tm{font-size:11px;color:var(--lumiverse-text-muted,#999);margin-right:6px;font-variant-numeric:tabular-nums}
+.rpgc-recap-now{margin:0}
+.rpgc-loose{border-radius:12px;border:1px solid color-mix(in srgb,#e5c55a 45%,transparent);background:color-mix(in srgb,#e5c55a 6%,transparent);padding:6px 10px}
+.rpgc-loose>summary{cursor:pointer;font-weight:600;display:flex;gap:6px;align-items:center;list-style:none}
+.rpgc-loose>summary::-webkit-details-marker{display:none}
+.rpgc-loose ul{list-style:none;margin:6px 0 2px;padding:0;display:flex;flex-direction:column;gap:8px}
+.rpgc-loose li{display:grid;grid-template-columns:auto 1fr;gap:4px 8px;font-size:12.5px}
+.rpgc-loose .acts{grid-column:2;display:flex;gap:6px;flex-wrap:wrap;align-items:center}
 /* ── 3.5.0 visual identity: the journal ── */
 .rpgc{--rpgc-serif:'Iowan Old Style','Palatino Linotype',Palatino,'Book Antiqua',Georgia,serif;--rpgc-gold:color-mix(in srgb,var(--lumiverse-accent,#7aa2f7) 45%,#d8b25a);--rpgc-line:color-mix(in srgb,currentColor 13%,transparent)}
 .rpgc .rpgc-sec{border-radius:14px;border-color:var(--rpgc-line);background:linear-gradient(180deg,color-mix(in srgb,currentColor 3.5%,transparent),transparent 120px),var(--rpgc-card-bg,var(--lumiverse-fill-subtle,transparent))}
@@ -1241,6 +1297,43 @@ function canonDivergenceRows(saga, hud) {
 }
 
 // Bounded projection of existing Minds observations. No layout engine or physics.
+// 3.5.0 web data: standing toward you from Relationships, family ties from Family, and feelings between
+// others from Minds (warm axes against cold ones). Names are matched exactly (case/space-insensitive).
+function relationshipWebData2(minds, relations, family, present) {
+    const key = n => playNameKey(n || '');
+    const ladder = { top: 4, pos: 3, neutral: 2, neg: 1 };
+    const map = new Map();
+    const add = (name, extra) => { const k = key(name); if (!k) return null; const cur = map.get(k) || { key: k, name, present: false }; Object.assign(cur, Object.fromEntries(Object.entries(extra).filter(([, v]) => v !== undefined && v !== null))); map.set(k, cur); return cur; };
+    for (const r of relations || []) add(r.name, { standing: r.standing, tone: r.tone, bond: r.bond, present: !!r.present || undefined });
+    for (const f of family || []) add(f.name, { kin: f.relation, present: f.present || undefined });
+    for (const p of minds?.people || []) add(p.name, { present: p.present || undefined, mkey: p.key });
+    for (const c of present || []) if (map.has(key(c.name))) map.get(key(c.name)).present = true;
+    let nodes = [...map.values()].sort((a, b) => (b.present - a.present) || ((ladder[b.tone] || 0) - (ladder[a.tone] || 0)) || a.name.localeCompare(b.name));
+    const omitted = Math.max(0, nodes.length - 14); nodes = nodes.slice(0, 14);
+    const keep = new Set(nodes.map(n => n.key)), byMind = new Map(nodes.filter(n => n.mkey).map(n => [n.mkey, n.key]));
+    const hue = n => { let h = 0; for (const c of n.toLowerCase()) h = (h * 31 + c.codePointAt(0)) >>> 0; return h % 360; };
+    const words = n => String(n).replace(/\(.*?\)/g, '').trim().split(/\s+/).filter(w => /^\p{L}/u.test(w));
+    for (const n of nodes) { const w = words(n.name); n.ini = ((w[0] || n.name)[0] + (w.length > 1 ? w[w.length - 1][0] : '')).toUpperCase(); n.short = (w[0] || n.name).slice(0, 12); n.hue = hue(n.name); }
+    const links = [];
+    const toneOf = net => net >= 6 ? 'warm' : net <= -6 ? 'cold' : 'mixed';
+    const net = pair => (pair.axes || []).reduce((s, a) => s + (a.off ? 0 : a.warm ? a.v : -a.v), 0);
+    for (const n of nodes) {
+        const mind = (minds?.people || []).find(p => p.key === n.mkey);
+        const youPair = mind?.pairs?.find(q => q.you);
+        const tone = n.tone === 'neg' ? 'cold' : n.tone === 'pos' || n.tone === 'top' ? 'warm' : youPair ? toneOf(net(youPair)) : 'mixed';
+        links.push({ from: n.key, to: '@you', toYou: true, tone: n.kin ? tone + ' kin' : tone, w: n.tone === 'top' ? 3.2 : n.tone ? 2.4 : 1.6, label: n.kin || null,
+            title: `${n.name} → ${'you'}: ${[n.kin, n.standing, n.bond].filter(Boolean).join(' · ') || (youPair ? toneOf(net(youPair)) : '')}` });
+        for (const q of mind?.pairs || []) {
+            if (q.you) continue;
+            const to = byMind.get(q.to) || (keep.has(key(q.toName)) ? key(q.toName) : null);
+            if (!to || to === n.key) continue;
+            const v = net(q);
+            links.push({ from: n.key, to, tone: toneOf(v), w: 1.4, label: null, title: `${n.name} → ${q.toName}: ${toneOf(v)}` });
+        }
+    }
+    return { nodes: [{ key: '@you', name: 'You', ini: '★', short: 'You', hue: 45 }, ...nodes], links, omitted };
+}
+
 function relationshipWebData(minds, userName = 'You') {
     const people = (minds?.people || []).slice(0,19);
     const nodes = [{key:'@you',name:userName}, ...people.map(p => ({key:p.key,name:p.name}))];
@@ -3854,37 +3947,57 @@ export function setup(ctx) {
                 h('button', { class: 'rpgc-btn', onclick: () => { mark(null); saveSettings(false); render(); } }, 'No thanks')));
     }
 
+    // 3.5.0: the relationship web. You at the centre; everyone the story tracks around you, closest first.
+    // Lines to you take the standing's colour (and the family tie as a label); lines between others come from
+    // Minds and lean warm or cold. Tap a person to see only their ties; tap again for their dossier.
     function renderRelationshipWeb() {
         const minds = state.hms?.minds || state.extras?.minds;
-        if (!minds?.people?.length) return null;
-        const body = h('div', {class:'rpgc-web-body',style:'min-width:0;overflow-wrap:anywhere'});
-        const det = h('details', {class:'rpgc-subdet rpgc-relationship-web'}, h('summary', null, 'Minds relationship web'), body);
-        const draw = () => {
-            if (!det.open || body.childNodes.length) return;
-            const data = relationshipWebData(minds,state.userName || T('You'));
-            const svg = document.createElementNS('http://www.w3.org/2000/svg','svg');
-            svg.setAttribute('viewBox','0 0 300 300'); svg.setAttribute('role','img'); svg.setAttribute('aria-label',T('Minds relationship web'));
-            svg.style.cssText = 'display:block;width:100%;max-width:400px;height:auto;margin:auto';
-            const defs=document.createElementNS(svg.namespaceURI,'defs'),arrow=document.createElementNS(svg.namespaceURI,'marker'),path=document.createElementNS(svg.namespaceURI,'path');
-            arrow.setAttribute('id','rpgc-web-arrow');arrow.setAttribute('viewBox','0 0 10 10');arrow.setAttribute('refX','8');arrow.setAttribute('refY','5');arrow.setAttribute('markerWidth','5');arrow.setAttribute('markerHeight','5');arrow.setAttribute('orient','auto');
-            path.setAttribute('d','M 0 0 L 10 5 L 0 10 z');path.setAttribute('fill','context-stroke');arrow.appendChild(path);defs.appendChild(arrow);svg.appendChild(defs);
-            const positions = new Map(data.nodes.map((n,i) => {const a=2*Math.PI*i/data.nodes.length;return [n.key,{x:150+112*Math.cos(a),y:150+112*Math.sin(a)}];}));
-            const node = (tag,attrs,text) => {const el=document.createElementNS(svg.namespaceURI,tag);for(const [k,v] of Object.entries(attrs)) el.setAttribute(k,String(v));if(text!==undefined)el.textContent=text;return el;};
-            for (const link of data.links) {
-                const a=positions.get(link.from),b=positions.get(link.to);
-                const line=node('line',{x1:a.x,y1:a.y,x2:b.x,y2:b.y,stroke:link.color,'stroke-width':2,'marker-end':'url(#rpgc-web-arrow)'});
-                line.appendChild(node('title',{},`${data.nodes.find(n=>n.key===link.from).name} → ${data.nodes.find(n=>n.key===link.to).name}: ${link.mood}`));svg.appendChild(line);
+        const rel = state.hms?.relations?.people || [], fam = state.hms?.family?.members || [];
+        if (!minds?.people?.length && rel.length < 2) return null;
+        const data = relationshipWebData2(minds, rel, fam, state.data?.characters || []);
+        if (data.nodes.length < 2) return null;
+        const focus = state.webFocus && data.nodes.some(n => n.key === state.webFocus) ? state.webFocus : null;
+        const NS = 'http://www.w3.org/2000/svg';
+        const el = (tag, attrs, ...kids) => { const e = document.createElementNS(NS, tag); for (const [k, v] of Object.entries(attrs || {})) if (v !== null && v !== undefined) e.setAttribute(k, String(v)); for (const c of kids) if (c) e.appendChild(typeof c === 'string' ? document.createTextNode(c) : c); return e; };
+        const W = 320, cx = 160, cy = 150, others = data.nodes.filter(n => n.key !== '@you');
+        const pos = new Map([['@you', { x: cx, y: cy }]]);
+        others.forEach((n, i) => { const a = -Math.PI / 2 + 2 * Math.PI * i / others.length, r = n.present ? 82 : 118; pos.set(n.key, { x: cx + r * Math.cos(a), y: cy + r * Math.sin(a) * 0.92 }); });
+        const svg = el('svg', { viewBox: `0 0 ${W} 300`, class: 'rpgc-web', role: 'group', 'aria-label': T('Relationship web') });
+        svg.appendChild(el('circle', { cx, cy, r: 82, class: 'orbit' })); svg.appendChild(el('circle', { cx, cy, r: 118, class: 'orbit far' }));
+        const hot = l => !focus || l.from === focus || l.to === focus;
+        for (const l of data.links) {
+            const a = pos.get(l.from), b = pos.get(l.to); if (!a || !b) continue;
+            const mx = (a.x + b.x) / 2 + (l.toYou ? 0 : (cy - (a.y + b.y) / 2) * 0.25), my = (a.y + b.y) / 2 + (l.toYou ? 0 : ((a.x + b.x) / 2 - cx) * 0.25);
+            const path = el('path', { d: `M${a.x.toFixed(1)},${a.y.toFixed(1)} Q${mx.toFixed(1)},${my.toFixed(1)} ${b.x.toFixed(1)},${b.y.toFixed(1)}`, class: 'tie ' + l.tone + (hot(l) ? '' : ' dim'), 'stroke-width': l.w },
+                el('title', null, l.title));
+            svg.appendChild(path);
+            if (l.label && hot(l) && (focus || l.toYou)) svg.appendChild(el('text', { x: ((a.x + b.x) / 2).toFixed(1), y: ((a.y + b.y) / 2 - 3).toFixed(1), class: 'tie-lbl', 'text-anchor': 'middle' }, l.label));
+        }
+        for (const n of data.nodes) {
+            const p = pos.get(n.key), me = n.key === '@you', r = me ? 17 : 14;
+            const linked = !focus || n.key === focus || data.links.some(l => (l.from === focus && l.to === n.key) || (l.to === focus && l.from === n.key));
+            const g = el('g', { class: 'node' + (me ? ' me' : '') + (n.present ? ' here' : '') + (n.key === focus ? ' focus' : '') + (linked ? '' : ' dim'), tabindex: me ? null : '0', role: me ? null : 'button',
+                'aria-label': me ? null : `${n.name}${n.standing ? ', ' + n.standing : ''}${n.present ? ', ' + T('here') : ''}`, style: `--mono-h:${n.hue}` });
+            g.appendChild(el('circle', { cx: p.x.toFixed(1), cy: p.y.toFixed(1), r: r + 3, class: 'halo ' + (n.tone || '') }));
+            g.appendChild(el('circle', { cx: p.x.toFixed(1), cy: p.y.toFixed(1), r, class: 'disc' }));
+            g.appendChild(el('text', { x: p.x.toFixed(1), y: (p.y + 4).toFixed(1), 'text-anchor': 'middle', class: 'ini' }, n.ini));
+            g.appendChild(el('text', { x: p.x.toFixed(1), y: (p.y + r + 13).toFixed(1), 'text-anchor': 'middle', class: 'nm' }, me ? T('You') : n.short));
+            g.appendChild(el('title', null, n.name));
+            if (!me) {
+                const act = () => { if (state.webFocus === n.key) { state.dossierName = n.name; } else state.webFocus = n.key; render(); };
+                g.addEventListener('click', act); g.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); act(); } });
             }
-            for (const person of data.nodes) {
-                const p=positions.get(person.key);svg.appendChild(node('circle',{cx:p.x,cy:p.y,r:5,fill:'currentColor'}));
-                const label=node('text',{x:p.x,y:p.y-8,'text-anchor':'middle','font-size':9,fill:'currentColor'},String(person.name).slice(0,14));label.appendChild(node('title',{},person.name));svg.appendChild(label);
-            }
-            body.append(svg,h('p',{class:'rpgc-note'},'Arrows describe reported relationships; colours show the source character’s recorded mood.'));
-            body.append(h('ul',{class:'rpgc-list'},data.nodes.map(p=>h('li',null,document.createTextNode(p.name)))));
-            if(data.omitted) body.append(h('p',{class:'rpgc-note'},TT('{0} people omitted from graph',data.omitted)));
-        };
-        det.addEventListener('toggle',()=>{state.open.relationshipWeb=det.open;draw();});det.open=state.open.relationshipWeb===true;draw();
-        return det;
+            svg.appendChild(g);
+        }
+        const fNode = focus ? data.nodes.find(n => n.key === focus) : null;
+        const info = fNode ? h('div', { class: 'rpgc-web-info' },
+            h('b', null, fNode.name), fNode.standing ? h('span', { class: 'rpgc-chip' }, fNode.standing) : null, fNode.bond ? h('span', { class: 'rpgc-note' }, ' ' + fNode.bond) : null,
+            h('ul', { class: 'rpgc-list' }, data.links.filter(l => l.from === focus || l.to === focus).map(l => h('li', null, h('span', { class: 'sw ' + l.tone }), l.title))),
+            h('div', { class: 'rpgc-row' }, h('button', { class: 'rpgc-btn', onclick: () => { state.dossierName = fNode.name; render(); } }, T('Dossier')),
+                h('button', { class: 'rpgc-btn', onclick: () => { state.webFocus = null; render(); } }, T('Show everyone'))))
+            : h('p', { class: 'rpgc-note' }, T('Inner ring: in the scene. Tap someone to see only their ties; tap again for their dossier.'));
+        const legend = h('div', { class: 'rpgc-web-legend' }, ...[['warm', T('warm')], ['cold', T('cold')], ['mixed', T('mixed')], ['kin', T('family')]].map(([c, l]) => h('span', null, h('span', { class: 'sw ' + c }), l)));
+        return section('relweb', T('Relationship web'), state.open, data.omitted ? TT('{0} people', data.nodes.length - 1) + ' +' + data.omitted : TT('{0} people', data.nodes.length - 1), h('div', { class: 'rpgc-web-wrap' }, svg), legend, info);
     }
 
     // 3.4.0 — the Now card: one glance at where the story stands, built from what the panel already
@@ -4001,19 +4114,95 @@ export function setup(ctx) {
         const danger = renderDanger();
         if (danger) out.push(danger);
         // 3.5.0: only the chosen view is built (All keeps the classic order).
+        noteSeen();
         const cards = [
-            ['scene', renderNow], ['scene', renderWorldState], ['scene', renderWorldCard], ['scene', renderMap], ['journey', renderAtlas], ['journey', renderAgenda],
+            ['scene', renderRecap], ['scene', renderNow], ['scene', renderLooseEnds], ['scene', renderWorldState], ['scene', renderWorldCard], ['scene', renderMap], ['journey', renderAtlas], ['journey', renderAgenda],
+            ['journey', () => h('div', { class: 'rpgc-row rpgc-journey-top', 'data-open-key': 'recap-btn' }, h('button', { class: 'rpgc-btn', onclick: () => { state.recap = { since: null }; goTo('scene'); } }, '📜 ' + T('Previously…')))],
             ['you', renderYou], ['you', renderGear], ['you', renderHoldings], ['you', renderMoney], ['you', renderDnd],
             ['people', renderPeopleAll], ['people', renderRelationshipWeb], ['people', renderFamily], ['people', renderFactions], ['people', renderSecrets], ['people', renderPhone],
             ['you', renderBody], ['you', renderInjuries], ['you', renderMind], ['you', renderSurvival], ['you', renderMagic], ['you', renderTechniques], ['you', renderAbilities],
             ['journey', () => s.showQuests ? renderHmsQuests() : null], ['journey', renderChronicle], ['journey', renderChapter]];
-        const order = view === 'journey' ? ['agenda', 'quests', 'chronicle', 'chapter', 'atlas'] : null;
+        const order = view === 'journey' ? ['recap-btn', 'agenda', 'quests', 'chronicle', 'chapter', 'atlas'] : null;
         const built = [];
         for (const [group, fn] of cards) if (view === 'all' || view === group) { const el = fn(); if (el) built.push(el); }
         if (order) built.sort((a, b) => order.indexOf(a.dataset?.openKey) - order.indexOf(b.dataset?.openKey));
         if (!built.length) built.push(h('p', { class: 'rpgc-note rpgc-empty-view' }, T('Nothing here yet. Cards appear as the story reports them.')));
         out.push(h('div', { class: 'rpgc-view rpgc-view-' + view }, ...built));
         return out;
+    }
+
+    // ─────────── 3.5.0: Previously… ───────────
+    // Coming back to a chat after a break (3+ hours since the panel last showed it), the Scene opens on a short
+    // recap from the Chronicle and the plot. Read-only; the "Previously…" button in Journey shows it any time.
+    const SEEN_KEY = id => 'rpgc-seen:' + id;
+    function noteSeen() {
+        if (!state.chatId) return;
+        if (state.recapFor !== state.chatId) {
+            state.recapFor = state.chatId;
+            let last = null; try { last = JSON.parse(localStorage.getItem(SEEN_KEY(state.chatId)) || 'null'); } catch { last = null; }
+            state.recap = !!(last && Date.now() - last.t > 3 * 3600e3) ? { since: last.t } : null;
+        }
+        if (!state.seenWritten || Date.now() - state.seenWritten > 60e3) { state.seenWritten = Date.now(); try { localStorage.setItem(SEEN_KEY(state.chatId), JSON.stringify({ t: Date.now() })); } catch { /* convenience */ } }
+    }
+    function renderRecap() {
+        if (!state.recap) return null;
+        const D = state.chronData && state.chronData.chatId === state.chatId ? state.chronData : null;
+        if (!D && !state.chronReq) { state.chronReq = true; send({ type: 'chronicle_get', chatId: state.chatId }); }
+        const entries = (D?.entries || []).filter(e => !e.hidden);
+        // What happened, not bookkeeping: moments, milestones, fights, starred or weighty entries. Plot threads
+        // are summed up below, and relabelled bonds ("X → Y") are noise in a recap.
+        const story = entries.filter(e => e.kind !== 'plot' && !(e.kind === 'bond' && /→/.test(e.text || '')));
+        const key = story.filter(e => e.star || ['moment', 'milestone', 'fight', 'encounter'].includes(e.kind) || e.imp >= 8);
+        const pick = (key.length >= 3 ? key : [...new Set([...key, ...story.filter(e => e.imp >= 6)])].sort((a, b) => entries.indexOf(a) - entries.indexOf(b))).slice(-6);
+        // The Chronicle can hold the same beat twice in a row in slightly different words: keep the later one.
+        const bag = t => new Set(playNameKey(t).split(' ').filter(w => w.length > 3));
+        const close2 = (a, b) => { const A = bag(a.text), B = bag(b.text); let n = 0; for (const w of A) if (B.has(w)) n++; return n / Math.max(1, Math.min(A.size, B.size)) >= 0.7; };
+        for (let i = pick.length - 2; i >= 0; i--) if (close2(pick[i], pick[i + 1])) pick.splice(i, 1);
+        const ago = state.recap.since ? fmtSpan(Math.round((Date.now() - state.recap.since) / 60000)) : null;
+        const pv = state.plotView, threads = (pv?.threads || []).filter(t => t.state !== 'resolved').slice(0, 3);
+        const close = () => { state.recap = null; render(); };
+        return h('div', { class: 'rpgc-recap', role: 'region', 'aria-label': T('Previously') },
+            h('div', { class: 'rpgc-recap-head' }, h('span', { class: 'rpgc-recap-title' }, T('Previously…')), ago ? h('span', { class: 'rpgc-note' }, TT('last here {0} ago', ago)) : null,
+                h('button', { class: 'rpgc-mini', 'aria-label': T('Close the recap'), title: T('Close'), onclick: close }, '✕')),
+            !D ? h('p', { class: 'rpgc-note' }, T('Reading the Chronicle…')) : pick.length ? h('ol', { class: 'rpgc-recap-list' }, pick.map(e => h('li', { class: e.star || e.imp >= 8 ? 'big' : '' }, e.when ? h('span', { class: 'tm' }, String(e.when).split(',').pop().trim()) : null, e.text))) : h('p', { class: 'rpgc-note' }, T('The Chronicle has nothing yet.')),
+            pv?.now ? h('p', { class: 'rpgc-recap-now' }, h('b', null, T('Where it stands: ')), pv.now) : null,
+            threads.length ? h('p', { class: 'rpgc-note' }, T('Open threads: ') + threads.map(t => t.name).join(' · ')) : null,
+            h('div', { class: 'rpgc-row' }, h('button', { class: 'rpgc-btn primary', onclick: close }, T('Back to the story')), h('button', { class: 'rpgc-btn', onclick: () => { state.recap = null; goTo('journey', 'chronicle'); } }, T('Full Chronicle'))));
+    }
+
+    // ─────────── 3.5.0: Loose ends ───────────
+    // Where two trackers disagree, or a commitment looks forgotten, the panel asks you instead of guessing.
+    // Nothing changes until you answer, and the answer goes through the card's own buttons.
+    function looseEnds() {
+        const hms = state.hms || {}, out = [];
+        const here = new Set((state.data?.characters || []).map(c => playNameKey(c.name)));
+        const place = (hms.hud?.location || []).map(x => playNameKey(typeof x === 'string' ? x : x.text || '')).join(' ');
+        const words = t => playNameKey(t || '').split(' ').filter(w => w.length > 3 && !['with', 'room', 'hall', 'house', 'the'].includes(w));
+        const fam = hms.family?.members || [];
+        const set = (x, st) => send({ type: 'agenda', chatId: state.chatId, op: 'set', key: x.key, state: st });
+        for (const x of hms.agenda?.items || []) {
+            const people = String(x.with || '').split(/[,;&]|\s+and\s+/i).map(n => playNameKey(n)).filter(Boolean);
+            if (x.state === 'in_progress' && !x.isNew && people.length && !people.some(p => here.has(p) || [...here].some(h => h.startsWith(p + ' ') || p.startsWith(h + ' '))) &&
+                x.where && !words(x.where).some(w => place.includes(w)))
+                out.push({ id: 'agenda-' + x.key, icon: '▶', text: TT('"{0}" is still marked in progress, but {1} is not in the scene and you are not at {2}.', x.what, x.with, x.where), acts: [['✓ ' + T('It happened'), () => set(x, 'kept')], ['⊘ ' + T('Called off'), () => set(x, 'cancelled')]] });
+            if (x.state === 'open' && ((Number.isFinite(x.dueIn) && x.dueIn < -1440) || (Number.isFinite(x.dayIn) && x.dayIn < -1)))
+                out.push({ id: 'late-' + x.key, icon: '⏳', text: TT('"{0}" was due over a day ago.', x.what), acts: [['✓ ' + T('It happened'), () => set(x, 'kept')], ['✗ ' + T('Missed'), () => set(x, 'missed')]] });
+            if (['open', 'in_progress'].includes(x.state)) for (const f of fam) if (/dead|deceased|died/i.test(f.status || '') && people.includes(playNameKey(f.name)))
+                out.push({ id: 'dead-' + x.key + f.name, icon: '🕯️', text: TT('"{0}" is with {1}, whom Family lists as {2}.', x.what, f.name, f.status), acts: [['⊘ ' + T('Called off'), () => set(x, 'cancelled')]] });
+        }
+        const hands = (hms.gear?.items || []).filter(g => g.state === 'in hand');
+        if (hands.length > 2) out.push({ id: 'hands', icon: '✋', text: TT('Gear has {0} things in your hands at once: {1}.', hands.length, hands.map(g => g.name).join(', ')), acts: [[T('Open Gear'), () => goTo('you', 'gear')]] });
+        const dismissed = state.looseDismissed || (state.looseDismissed = new Set());
+        return out.filter(x => !dismissed.has(x.id));
+    }
+    function renderLooseEnds() {
+        const list = looseEnds();
+        if (!list.length) return null;
+        return h('details', { class: 'rpgc-loose', open: state.open.loose === false ? null : '', ontoggle: e => { state.open.loose = e.target.open; } },
+            h('summary', null, '🧩 ', T('Loose ends'), h('span', { class: 'rpgc-chip' }, String(list.length))),
+            h('ul', null, list.map(x => h('li', null, h('span', { class: 'ic', 'aria-hidden': 'true' }, x.icon), h('span', { class: 'tx' }, x.text),
+                h('span', { class: 'acts' }, ...x.acts.map(([label, fn]) => h('button', { class: 'rpgc-btn', onclick: fn }, label)),
+                    h('button', { class: 'rpgc-mini', title: T('Leave it as it is'), 'aria-label': T('Leave it as it is'), onclick: () => { state.looseDismissed.add(x.id); render(); } }, '✕'))))));
     }
 
     // ─────────── 3.5.0: views ───────────
@@ -4039,6 +4228,7 @@ export function setup(ctx) {
         b.journey = { n: active || null, alarm: late > 0, fresh: ag.some(x => x.isNew) };
         b.you = { fresh: (hms.gear?.items || []).some(g => g.changedNow) };
         b.people = { n: (state.data?.characters || []).length || null };
+        if (looseEnds().length) b.scene = { fresh: true };
         return b;
     }
     function viewBar(view) {
@@ -4054,6 +4244,45 @@ export function setup(ctx) {
                 bd.alarm ? h('span', { class: 'dot alarm', title: T('Something is late') }) : bd.fresh ? h('span', { class: 'dot', title: T('Changed this turn') }) : null);
         });
         return h('div', { class: 'rpgc-views', role: 'tablist', 'aria-label': T('Panel views') }, ...btns);
+    }
+
+    // 3.5.0: quest progress you can trust. A ring fills only from a measured percentage; without one it
+    // shows the stages the story has actually moved through (from the quest's own identity history).
+    function questStages(q) {
+        const out = [];
+        for (const x of q.identityHistory || []) { const o = String(x.objective || '').trim(); if (o && out.at(-1) !== o) out.push(o); }
+        const cur = String(q.objective || '').trim();
+        if (cur && out.at(-1) !== cur) out.push(cur);
+        return out;
+    }
+    function questRing(q, completed) {
+        const done = completed || ['done', 'completed'].includes(q.cls) || ['completed', 'done'].includes(String(q.state || '').toLowerCase());
+        const pct = Number.isFinite(q.progress) ? Math.max(0, Math.min(100, q.progress)) : null;
+        const stages = questStages(q).length;
+        if (!done && pct === null && stages < 2) return null;
+        const NS = 'http://www.w3.org/2000/svg', R = 15, C = 2 * Math.PI * R;
+        const svg = document.createElementNS(NS, 'svg'); svg.setAttribute('viewBox', '0 0 36 36'); svg.setAttribute('class', 'rpgc-ring' + (done ? ' done' : ''));
+        const circ = (attrs) => { const c = document.createElementNS(NS, 'circle'); for (const [k, v] of Object.entries({ cx: 18, cy: 18, r: R, fill: 'none', ...attrs })) c.setAttribute(k, String(v)); svg.appendChild(c); return c; };
+        circ({ class: 'track', 'stroke-width': 3.5 });
+        let label, title;
+        if (done) { circ({ class: 'fill', 'stroke-width': 3.5 }); label = '✓'; title = T('Completed'); }
+        else if (pct !== null) { circ({ class: 'fill', 'stroke-width': 3.5, 'stroke-dasharray': `${(C * pct / 100).toFixed(2)} ${C.toFixed(2)}`, transform: 'rotate(-90 18 18)' }); label = String(pct); title = TT('{0}% — measured by the story', pct); }
+        else { const n = Math.min(stages, 12), gap = 2.2, seg = C / n - gap;
+            for (let i = 0; i < n; i++) circ({ class: i === n - 1 ? 'fill cur' : 'fill', 'stroke-width': 3.5, 'stroke-dasharray': `${seg.toFixed(2)} ${(C - seg).toFixed(2)}`, 'stroke-dashoffset': (-(C / n) * i).toFixed(2), transform: 'rotate(-90 18 18)' });
+            label = String(stages); title = TT('Stage {0} — no measured percentage, so this counts the stages the story has moved through', stages); }
+        const t = document.createElementNS(NS, 'text'); t.setAttribute('x', '18'); t.setAttribute('y', '22.5'); t.setAttribute('text-anchor', 'middle'); t.setAttribute('class', 'lbl'); t.textContent = label; svg.appendChild(t);
+        return h('span', { class: 'rpgc-ring-wrap', title, role: 'img', 'aria-label': title }, svg);
+    }
+    function questPath(q) {
+        const stages = questStages(q);
+        const aliases = (q.questAliases || []).filter(a => playNameKey(a) !== playNameKey(q.name));
+        if (stages.length < 2 && !aliases.length) return null;
+        const id = 'quest-path-' + (q.key || q.name);
+        const det = h('details', { class: 'rpgc-qpath' }, h('summary', null, stages.length > 1 ? TT('Path so far · {0} stages', stages.length) : T('Also called')),
+            stages.length > 1 ? h('ol', null, stages.map((o, i) => h('li', { class: i === stages.length - 1 ? 'cur' : 'past' }, o))) : null,
+            aliases.length ? h('p', { class: 'rpgc-note' }, T('Also called: ') + aliases.join(' · ')) : null);
+        det.open = state.open[id] === true; det.addEventListener('toggle', () => { state.open[id] = det.open; });
+        return det;
     }
 
     function renderHmsQuests() {
@@ -4075,13 +4304,13 @@ export function setup(ctx) {
             const due = (m) => m === null || m === undefined ? null : m < 0 ? h('span', { class: 'rpgc-chip hot' }, 'overdue') : h('span', { class: 'rpgc-chip' + (m < 1440 ? ' hot' : '') }, `due in ${fmtSpan(m)}`);
             const sorted = quests.slice().sort((a, b) => ((b.key === focus) - (a.key === focus)) || ((a.category === 'main' ? 0 : 1) - (b.category === 'main' ? 0 : 1)));
             const card = (q, completed = false) => h('div', { class: 'rpgc-qcard ' + q.cls + (q.key && q.key === focus ? ' focus' : '') },
-                h('div', { class: 'qhead' + (completed ? ' rpgc-quest' : '') },
+                h('div', { class: 'qhead' + (completed ? ' rpgc-quest' : '') }, questRing(q, completed),
                     q.key ? h('button', { class: 'rpgc-mini star', 'aria-label': q.key === focus ? 'Unfocus this quest' : 'Focus this quest', title: 'Focus quest', onclick: () => send({ type: 'quest_focus', chatId: state.chatId, name: q.name, key: q.key }) }, q.key === focus ? '\u2605' : '\u2606') : null,
                     h('span', { class: 'name' }, q.name),
                     q.category ? h('span', { class: 'rpgc-chip' }, q.category) : null,
                     q.state ? h('span', { class: 'qst ' + q.cls + (completed ? ' st done' : ''), title: q.lifecycleEvidence?.quote || null }, q.state) : q.fromStory ? h('span', { class: 'qst active' }, 'in the story') : null),
                 q.objective ? h('div', { class: 'obj' }, '\u25B8 ' + q.objective) : null,
-                q.progress !== null && q.progress !== undefined ? levelBar(q.progress, 'ok') : null,
+                questPath(q),
                 (q.giver || q.where || q.reward || q.dueIn !== undefined) ? h('div', { class: 'rpgc-chips' },
                     q.giver ? h('span', { class: 'rpgc-chip' }, h('em', null, 'From: '), q.giver) : null,
                     q.where ? h('span', { class: 'rpgc-chip' }, h('em', null, 'Where: '), q.where) : null,
