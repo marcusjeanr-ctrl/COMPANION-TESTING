@@ -1,5 +1,17 @@
 # Changelog — RPG Companion HMS Edition
 
+## 1.0.0 — RPG Companion HMS Edition 1.0 (first official release)
+
+The first official release, built from the 3.4–3.6 development line (those numbers stay in the history below). Versions from here: 1.0.x maintenance fixes, 1.x backward-compatible additions, 2.0 for compatibility-changing work.
+
+Included (details in the entries below):
+- **Interface (3.5–3.6)**: views (Scene, You, People, Journey, All) with a side rail on wide panels; the Now card with the story's sky; Find anything (⌕ / Ctrl+K); Settings search; looks (Modern, Storybook, Minimal, Auto); dossier sheet; relationship web; Previously… recap; quest rings and paths; Loose ends; Agenda place marks; own-window background fix.
+- **Continuity (3.4–3.5)**: one Agenda entry per appointment and day countdowns; the player is never tracked as a second person in Minds ("Marcus" / "Marcus Veyrath"); a moment the model repeats in the next replies is one Chronicle entry.
+- **Fixes for 1.0**: a magic school reported as a spell ("Water") stays out of the Spellbook; Gear shows a container's contents under the container itself; Find keeps every letter you type.
+- **Checks**: `tools/replay_check.cjs`, `tools/compare_backends.cjs`, `tools/test_ui.cjs` alongside `tools/run_tests.cjs`.
+
+Unchanged: the extension identifier (`rpg_companion_hms`), saved settings and chat data (no migration), and the request to the model apart from the changes named above.
+
 ## Release fix — Find keeps every letter you type
 
 - Find (⌕ / Ctrl+K) redrew the whole panel on every keystroke and replaced its own search box. In a large chat the redraw takes ~50 ms, and letters typed meanwhile went into the old box and were lost. Typing and the arrow keys now update only the result list. Found by the release stress test (very long names, 60-item inventory); display only.
