@@ -2678,7 +2678,7 @@ async function pushState(chatId, snapshot = null) {
 // Demo mode plays scripted turns (no tokens); Live mode asks the model, with a small
 // world narrator standing in for a bot card.
 
-const RPGC_VERSION = '1.0.0';
+const RPGC_VERSION = '1.0.1';
 const diagLog = [];
 function diagPush(kind, m) { diagLog.push({ at: new Date().toISOString(), kind, text: String(m).slice(0, 400) }); if (diagLog.length > 60) diagLog.shift(); }
 function logW(m) { diagPush('warn', m); return spindle.log.warn(m); }
@@ -14238,8 +14238,33 @@ function moneyRead(chat, st) {
         else if (x.dir === 'out') totals[cur].out += x.amount;
     }
     let balance = null;
-    try { const hud = tl.length ? tl[tl.length - 1].hud : null; balance = commsBalance(hud, commsCfg()); } catch { balance = null; }
+    try { const hud = tl.length ? tl[tl.length - 1].hud : null; balance = moneyHudBalance(hud, commsCfg()); } catch { balance = null; }
     return { list, open, totals, balance, now, lastId, unresolvedCorrections: unresolved };
+}
+
+// 1.0.1: the purse as the HUD shows it. A line with a balance label ("Gold: 12", "Balance: 300") is read as
+// before. Otherwise a holdings line ("Resources: 12 Gold, 45 Silver", "Purse: 300 credits") counts when every
+// part of it is an amount with a unit and at least one unit is a currency word from the balance labels (Gold,
+// Coins, Credits, Money…). "Resources: 3 rations, 2 torches" does not. The value is shown as written: no
+// conversion between denominations, and nothing enters the ledger, so a balance seen again adds nothing.
+const MONEY_HOLDING_LABELS = ['Resources', 'Purse', 'Coin Purse', 'Wealth', 'Currency', 'Cash', 'Savings', 'Treasury', 'Coffers', 'Pouch'];
+function moneyHudBalance(hud, cc) {
+    const direct = commsBalance(hud, cc);
+    if (direct || !hud) return direct;
+    const units = new Set((cc.balance || []).map(x => lockKey(x)).filter(Boolean));
+    const currency = unit => [...units].some(u => unit === u || unit + 's' === u || unit === u + 's' || unit.endsWith(' ' + u) || unit.endsWith(' ' + u + 's'));
+    for (const l of hud.lines) {
+        if (l.block === 'fence') continue;
+        for (const f of hmsFieldsOf(l)) {
+            if (!f.label || !hmsLabelIn(f.label, MONEY_HOLDING_LABELS)) continue;
+            const parts = String(f.value || '').split(/\s*(?:[,;+]|\band\b)\s*/i).map(p => p.trim()).filter(Boolean);
+            if (!parts.length || parts.length > 6) continue;
+            const amounts = parts.map(p => p.match(/^[$€£¥₩]?\d[\d.,']*\s*([\p{L}][\p{L}'’ -]{0,24})$/u));
+            if (amounts.every(Boolean) && amounts.some(a => currency(lockKey(a[1]))))
+                return { label: f.label.replace(/^[^\p{L}\p{N}]+/u, ''), value: String(f.value).trim() };
+        }
+    }
+    return null;
 }
 
 function hmsMoneyPanel(chat, st, cfg) {

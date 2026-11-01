@@ -1,11 +1,11 @@
-// Regression checks for the 3.2.14 tracking-audit fixes, the 3.3.0 technique fix and the magic-discipline boundary. Synthetic chats only; no private text.
+// Regression checks for the 3.2.14 tracking-audit fixes, the 3.3.0 technique fix, the magic-discipline boundary and the HUD purse. Synthetic chats only; no private text.
 // Run: node tools/test_tracking_audit.cjs
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
 const vm = require('node:vm');
 
-const source = fs.readFileSync(path.join(__dirname, '..', 'dist', 'backend.js'), 'utf8');
+const source = fs.readFileSync(process.env.BACKEND || path.join(__dirname, '..', 'dist', 'backend.js'), 'utf8'); // BACKEND=<older backend.js> shows which checks fail without a fix
 const startup = source.indexOf('// ───────────────────────────── Startup');
 assert(startup > 0, 'backend startup marker missing');
 const quiet = { log() {}, warn() {}, error() {}, info() {} };
@@ -15,7 +15,7 @@ const ctx = {
 };
 ctx.globalThis = ctx;
 vm.createContext(ctx);
-vm.runInContext(source.slice(0, startup) + '\nglobalThis.__t = { questDetailsLatest, relGuard, relCfg, martialAbilityItems, techListPanel, posMovedNow, keepRoomReading, posRoomKey, setState: (st) => { getChatState = async () => st; saveChatState = async () => {}; }, setPool: p => { loreCatalogPool = () => p; }, spellStoryFold };', ctx);
+vm.runInContext(source.slice(0, startup) + '\nglobalThis.__t = { questDetailsLatest, relGuard, relCfg, martialAbilityItems, techListPanel, posMovedNow, keepRoomReading, posRoomKey, setState: (st) => { getChatState = async () => st; saveChatState = async () => {}; }, setPool: p => { loreCatalogPool = () => p; }, spellStoryFold, moneyHudBalance: typeof moneyHudBalance === \'function\' ? moneyHudBalance : commsBalance, commsCfg, messageHud, moneyRead };', ctx);
 const t = ctx.__t;
 
 let n = 0;
@@ -122,6 +122,38 @@ check('a spell genuinely named like an element is kept', () => {
 check('without spell references nothing is filtered', () => {
     const r = spellsFrom([], [{ spells: ['Fire', 'Water', 'Cure'] }]);
     assert.deepEqual(r.known, ['cure', 'fire', 'water']);
+});
+
+// 9. (1.0.1 finances) The purse as the HUD shows it, on a holdings line, without inventing transactions.
+const hudReply = (line, data = {}) => ({ id: `m${++n}`, role: 'assistant', is_user: false, swipe_id: 0,
+    content: `### WORLD STATE ###\nDay: 3 | Time: 12:45 (Afternoon)\n◆ Kingdom → Hall → Room\n${line}\n***\nThe story continues.`,
+    extra: { spindle_metadata: { rpg_companion: { swipes: { 0: data } } } } });
+const balanceOf = line => { const b = t.moneyHudBalance(t.messageHud(hudReply(line)), t.commsCfg()); return b ? `${b.label}: ${b.value}` : null; };
+check('a holdings line with money is the balance, as written', () => {
+    assert.equal(balanceOf('Resources: 12 Gold, 45 Silver'), 'Resources: 12 Gold, 45 Silver');
+    assert.equal(balanceOf('Purse: 300 credits'), 'Purse: 300 credits');
+    assert.equal(balanceOf('Gold: 12'), 'Gold: 12', 'a balance label reads as before');
+});
+check('a holdings line without money, or a reward line, is not a balance', () => {
+    assert.equal(balanceOf('Resources: 3 rations, 2 torches'), null);
+    assert.equal(balanceOf('Resources: plenty of supplies'), null);
+    assert.equal(balanceOf('Reward: 50 Gold'), null, 'a quest reward is not money you hold');
+});
+check('a balance seen again adds no money and creates no income', () => {
+    const chat = [user('I count my coins.'), hudReply('Resources: 12 Gold, 45 Silver', { money: [] }), user('I wait.'),
+        hudReply('Resources: 12 Gold, 45 Silver', { money: [] }), user('I wait.'), hudReply('Resources: 12 Gold, 45 Silver', { money: [] })];
+    const r = t.moneyRead(chat, {});
+    assert.equal(r.balance && r.balance.value, '12 Gold, 45 Silver');
+    assert.equal(r.list.length, 0, 'no ledger entry');
+    assert.equal(Object.keys(r.totals).length, 0, 'no income');
+    // a real purchase is still a transaction, and the balance follows the newest HUD
+    chat.push(user('I buy bread.'), hudReply('Resources: 11 Gold, 45 Silver', { money: [{ amount: 1, currency: 'Gold', kind: 'expense', dir: 'out', what: 'bread' }] }));
+    const r2 = t.moneyRead(chat, {});
+    assert.equal(r2.balance.value, '11 Gold, 45 Silver');
+    assert.equal(r2.list.length, 1); assert.equal(r2.totals.Gold.out, 1);
+    // a promised payment the reporter marks as not accepted is not money received
+    chat.push(user('He promises to pay.'), hudReply('Resources: 11 Gold, 45 Silver', { money: [{ amount: 5, currency: 'Gold', kind: 'income', dir: 'in', what: 'promised fee', accepted: false }] }));
+    assert.equal(t.moneyRead(chat, {}).list.length, 1, 'a promise is not recorded');
 });
 
 (async () => {
