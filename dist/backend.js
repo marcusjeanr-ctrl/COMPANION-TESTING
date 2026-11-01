@@ -8471,8 +8471,17 @@ function chronMomentsRequest(userName) {
     if (!c.enabled || !c.moments) return null;
     return {
         json: '"moments": [{"what": "one line, past tense, names not pronouns", "who": ["names involved"]}]',
-        rules: `"moments": only what will still matter many replies from now — a promise or oath, a confession, a betrayal, a death, a secret or truth learned, a first meeting that changes things, a choice that turns the story. Most replies have none: then []. At most two. Report what this reply showed; never write the story toward a moment.`
+        rules: `"moments": only what will still matter many replies from now — a promise or oath, a confession, a betrayal, a death, a secret or truth learned, a first meeting that changes things, a choice that turns the story. Most replies have none: then []. At most two. Report what this reply showed; never write the story toward a moment. A moment already reported in an earlier reply is not reported again.`
     };
+}
+
+// Content words of a Chronicle line, for spotting the same beat told twice.
+function chronWords(text) {
+    return new Set(lockKey(text).split(/[^\p{L}\p{N}]+/u).filter(w => w.length > 3 && !['with', 'that', 'this', 'their', 'from', 'into', 'over', 'after', 'before', 'which', 'while'].includes(w)));
+}
+function chronSameBeat(a, b) {
+    let n = 0; for (const w of a) if (b.has(w)) n++;
+    return n >= 4 && n / Math.max(1, Math.min(a.size, b.size)) >= 0.7;
 }
 
 function chronIsUser(name, userName) {
@@ -8502,6 +8511,7 @@ function chronicleBuild(chat, st, userName = null) {
     let loop = 1, rewindWorld = false, arc = null, prevE = null, began = false;
     const notesBy = new Map();
     for (const n of ch.notes) { if (!notesBy.has(n.msgId)) notesBy.set(n.msgId, []); notesBy.get(n.msgId).push(n); }
+    const recentMoments = [];
     for (const m of chat) {
         if (m.role !== 'assistant') continue;
         const e = hudOf.get(m.id) || null;
@@ -8592,7 +8602,15 @@ function chronicleBuild(chat, st, userName = null) {
         }
         // the moments the model flagged
         for (const mo of Array.isArray(d.moments) ? d.moments : []) {
-            if (mo && mo.text) add('moment', mo.text, CHRON_IMP.moment, { who: (mo.who || []).filter(n => !chronIsUser(n, userName)) });
+            if (!mo || !mo.text) continue;
+            // 3.5.0: the model often reports the same beat again in the next reply, reworded ("decisively defeated
+            // Cassian in a duel, fundamentally altering…" / "…shifting…"). A moment that repeats one from the last
+            // two replies is the same moment. Nothing is deleted: the reply's data is untouched and an entry you
+            // starred or hid is always kept.
+            const bag = chronWords(mo.text), ri = idxOf.get(m.id);
+            const id = 'c' + hashStr(`${m.id}:${m.swipe_id ?? 0}:moment:${mo.text}`).toString(36);
+            if (!ch.star[id] && !ch.hide[id] && recentMoments.some(r => r.msgId !== m.id && ri - r.ri <= 4 && chronSameBeat(r.bag, bag))) continue;
+            if (add('moment', mo.text, CHRON_IMP.moment, { who: (mo.who || []).filter(n => !chronIsUser(n, userName)) })) recentMoments.push({ msgId: m.id, ri, bag });
         }
         // relationship history
         for (const r of Array.isArray(d.relations) ? d.relations : []) {

@@ -845,6 +845,22 @@ button.rpgc-chip.intel:hover { border-color: var(--lumiverse-accent, #7aa2f7); }
 .rpgc-now .go-arrow{margin-left:auto;padding-left:6px;opacity:.35}
 .rpgc-now>div.go:hover .go-arrow{opacity:.8}
 .rpgc-empty-view{text-align:center;padding:24px 8px}
+/* 3.5.0 phase 3: wide panels (own window, enlarged float, desktop drawer) use two columns */
+.rpgc{container-type:inline-size;container-name:rpgc}
+@container rpgc (min-width: 720px){
+  .rpgc-view{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));align-items:start;gap:12px}
+  .rpgc-view>.rpgc-now,.rpgc-view>.rpgc-recap,.rpgc-view>.rpgc-loose,.rpgc-view>.rpgc-journey-top,.rpgc-view>.rpgc-empty-view,.rpgc-view>details[data-sec=relweb],.rpgc-view>details[data-sec=people],.rpgc-view>details[data-sec=chronicle]{grid-column:1/-1}
+  .rpgc-views{grid-template-columns:repeat(5,minmax(0,140px));justify-content:center}
+  .rpgc-viewtab{flex-direction:row;justify-content:center;gap:6px;font-size:12.5px;padding:7px 8px}
+  .rpgc-viewtab .n{position:static}
+  .rpgc-sky{min-height:120px}
+  .rpgc-sky-place .big{font-size:28px}
+}
+@container rpgc (max-width: 340px){
+  .rpgc-viewtab .l{font-size:10px}
+  .rpgc-sky-place .big{font-size:19px}
+  .rpgc-sky-time{font-size:17px}
+}
 /* 3.5.0 phase 2 */
 .rpgc-ring-wrap{flex:0 0 auto;width:34px;height:34px;display:inline-block}
 .rpgc-ring{width:34px;height:34px;display:block}
@@ -895,6 +911,9 @@ button.rpgc-chip.intel:hover { border-color: var(--lumiverse-accent, #7aa2f7); }
 .rpgc-recap-list li.big{font-weight:600}
 .rpgc-recap-list .tm{font-size:11px;color:var(--lumiverse-text-muted,#999);margin-right:6px;font-variant-numeric:tabular-nums}
 .rpgc-recap-now{margin:0}
+.rpgc .rpgc-place{font-size:10.5px;margin-top:3px;align-self:flex-start;width:max-content}
+.rpgc .rpgc-place.here{border-color:#5fbf7f;color:#7fd39a}
+.rpgc button.rpgc-place{cursor:pointer;background:none;color:inherit;font:inherit;font-size:10.5px}
 .rpgc-loose{border-radius:12px;border:1px solid color-mix(in srgb,#e5c55a 45%,transparent);background:color-mix(in srgb,#e5c55a 6%,transparent);padding:6px 10px}
 .rpgc-loose>summary{cursor:pointer;font-weight:600;display:flex;gap:6px;align-items:center;list-style:none}
 .rpgc-loose>summary::-webkit-details-marker{display:none}
@@ -4019,7 +4038,7 @@ export function setup(ctx) {
         const open = ag.filter(x => x.state === 'open');
         const rank = x => x.agendaTiming.delta !== null ? x.agendaTiming.delta : Number.isFinite(x.agendaTiming.dayIn) ? x.agendaTiming.dayIn * 1440 : 1e12;
         const next = open.filter(x => rank(x) < 1e12).sort((a, b) => rank(a) - rank(b))[0] || (!doing.length ? open[0] : null);
-        if (next) link = ['journey', 'agenda'], row('⏭', T('Next'), h('b', null, next.what), h('span', { class: 'rpgc-note' }, ' · ' + agendaDue(next)));
+        if (next) link = ['journey', 'agenda'], row('⏭', T('Next'), h('b', null, next.what), h('span', { class: 'rpgc-note' }, ' · ' + agendaDue(next) + (next.where && agendaPlace(next)?.here ? ' · 📍 ' + T('here') : next.where ? ' · ' + next.where : '')));
         const quests = (state.hms.systems?.quests || []).filter(q => !['done', 'completed', 'closed', 'failed', 'abandoned', 'ended', 'hidden'].includes(q.cls || q.state));
         const q = quests.find(x => x.category === 'main') || quests[0];
         if (q) link = ['journey', 'quests'], row('🎯', T('Quest'), h('b', null, q.name), q.objective ? ' — ' + q.objective : '', Number.isFinite(q.progress) ? h('span', { class: 'rpgc-note' }, ` (${q.progress}%)`) : null, quests.length > 1 ? h('span', { class: 'rpgc-note' }, TT(' +{0} more', quests.length - 1)) : null);
@@ -4192,8 +4211,14 @@ export function setup(ctx) {
         }
         const hands = (hms.gear?.items || []).filter(g => g.state === 'in hand');
         if (hands.length > 2) out.push({ id: 'hands', icon: '✋', text: TT('Gear has {0} things in your hands at once: {1}.', hands.length, hands.map(g => g.name).join(', ')), acts: [[T('Open Gear'), () => goTo('you', 'gear')]] });
-        const dismissed = state.looseDismissed || (state.looseDismissed = new Set());
-        return out.filter(x => !dismissed.has(x.id));
+        return out.filter(x => !looseDismissed().has(x.id));
+    }
+    function looseDismissed() {
+        if (state.looseFor !== state.chatId) {
+            state.looseFor = state.chatId;
+            try { state.looseDismissed = new Set(JSON.parse(localStorage.getItem('rpgc-loose:' + state.chatId) || '[]')); } catch { state.looseDismissed = new Set(); }
+        }
+        return state.looseDismissed;
     }
     function renderLooseEnds() {
         const list = looseEnds();
@@ -4202,7 +4227,7 @@ export function setup(ctx) {
             h('summary', null, '🧩 ', T('Loose ends'), h('span', { class: 'rpgc-chip' }, String(list.length))),
             h('ul', null, list.map(x => h('li', null, h('span', { class: 'ic', 'aria-hidden': 'true' }, x.icon), h('span', { class: 'tx' }, x.text),
                 h('span', { class: 'acts' }, ...x.acts.map(([label, fn]) => h('button', { class: 'rpgc-btn', onclick: fn }, label)),
-                    h('button', { class: 'rpgc-mini', title: T('Leave it as it is'), 'aria-label': T('Leave it as it is'), onclick: () => { state.looseDismissed.add(x.id); render(); } }, '✕'))))));
+                    h('button', { class: 'rpgc-mini', title: T('Leave it as it is'), 'aria-label': T('Leave it as it is'), onclick: () => { const d = looseDismissed(); d.add(x.id); try { localStorage.setItem('rpgc-loose:' + state.chatId, JSON.stringify([...d].slice(-200))); } catch { /* convenience */ } render(); } }, '✕'))))));
     }
 
     // ─────────── 3.5.0: views ───────────
@@ -4989,6 +5014,34 @@ export function setup(ctx) {
         if (timing.delta <= 0) return T('now');
         return `${TT('in {0}', fmtSpan(timing.delta))}${x.when ? ` (${x.when})` : ''}`;
     }
+    // 3.5.0: where an appointment takes place, but only when that place is established: you are there now
+    // (the HUD), the Chronicle has you there before, or the location book (Atlas) has it. Otherwise nothing.
+    function placeWords(text) {
+        const people = new Set([...(state.hms?.relations?.people || []), ...(state.hms?.family?.members || []), ...(state.data?.characters || [])]
+            .flatMap(p => playNameKey(p.name || '').split(' ')).filter(w => w.length > 2));
+        return playNameKey(String(text || '').replace(/['’]s\b/g, '')).split(' ').filter(w => w.length > 2 && !['the', 'and', 'near', 'outside', 'inside', 'front'].includes(w) && !people.has(w));
+    }
+    function agendaPlace(x) {
+        const W = placeWords(x.where);
+        if (!W.length) return null;
+        const has = set => W.every(w => set.has(w));
+        const here = new Set((state.hms?.hud?.location || []).flatMap(l => placeWords(typeof l === 'string' ? l : l.text || '')));
+        if (has(here)) return { here: true };
+        const atlas = state.atlasIndex ? [...state.atlasIndex.values()].find(n => n.name && has(new Set(placeWords(n.name)))) : null;
+        const D = state.chronData && state.chronData.chatId === state.chatId ? state.chronData : null;
+        const visit = D ? (D.entries || []).filter(e => e.kind === 'place' || e.where).reverse().find(e => has(new Set(placeWords((e.kind === 'place' ? e.text : '') + ' ' + (e.where || ''))))) : null;
+        if (!atlas && !visit) return null;
+        return { atlasId: atlas ? atlas.id : null, visited: visit ? String(visit.when || '').trim() || true : null };
+    }
+    function agendaPlaceChip(x) {
+        const p = agendaPlace(x);
+        if (!p) return null;
+        if (p.here) return h('span', { class: 'rpgc-chip rpgc-place here', title: T('The story has you at this place now') }, '📍 ' + T("you're here"));
+        const label = p.visited ? (p.visited === true ? T('been there') : TT('been there · {0}', p.visited)) : T('on the Atlas');
+        return p.atlasId != null
+            ? h('button', { class: 'rpgc-chip rpgc-place', type: 'button', title: T('Show it on the Atlas'), onclick: () => { state.atlasFocus = p.atlasId; state.atlasSel = p.atlasId; goTo('journey', 'atlas'); } }, '🗺️ ' + label)
+            : h('span', { class: 'rpgc-chip rpgc-place', title: T('The Chronicle has you at this place before') }, '📍 ' + label);
+    }
     function agendaRow(x) {
         const act = (st, label, title) => h('button', { class: 'rpgc-mini', title, 'aria-label': `${label}: ${x.what}`, onclick: () => send({ type: 'agenda', chatId: state.chatId, op: 'set', key: x.key, state: st }) }, label);
         return h('li', { class: 'rpgc-agenda-item ' + x.status + (x.isNew ? ' new' : '') },
@@ -4996,7 +5049,8 @@ export function setup(ctx) {
             // the time goes under the title, so a long "when" wraps instead of squeezing the title to a column
             h('span', { class: 'body' }, h('b', null, x.what),
                 h('span', { class: 'due' }, agendaDue(x)),
-                h('span', { class: 'meta' }, x.with ? npcName(x.with) : null, x.where ? ' · '+TT('at {0}',x.where) : null, x.mine ? ' · '+T('set by you') : x.from === 'you' ? ' · '+T('added by you') : null)),
+                h('span', { class: 'meta' }, x.with ? npcName(x.with) : null, x.where ? ' · '+TT('at {0}',x.where) : null, x.mine ? ' · '+T('set by you') : x.from === 'you' ? ' · '+T('added by you') : null),
+                (x.state === 'open' || x.state === 'in_progress') ? agendaPlaceChip(x) : null),
             (x.state === 'open' || x.state === 'in_progress') ? h('span', { class: 'acts' }, act('kept', '✓', 'It happened'), act('missed', '✗', 'Its time passed without it'), act('cancelled', '⊘', 'Called off')) : act('removed', '✕', 'Remove from the list'));
     }
     function renderAgenda() {
@@ -6896,13 +6950,23 @@ export function setup(ctx) {
             let vars = '';
             for (let i = 0; i < cs.length; i++) { const p = cs[i]; if (p.startsWith('--')) vars += `${p}:${cs.getPropertyValue(p)};`; }
             const bs = document.body ? getComputedStyle(document.body) : null;
+            // 3.5.0: Lumiverse paints its look on inner containers, not on <body> (whose colour can be a bright
+            // teal). Take the background of the drawer the panel normally lives in, so the window matches it.
+            let panelBg = null;
+            for (let n = tab && tab.root; n && n !== document.documentElement; n = n.parentElement) {
+                const c = getComputedStyle(n);
+                if (c.backgroundImage && c.backgroundImage !== 'none' && !/url\(/.test(c.backgroundImage)) { panelBg = `${c.backgroundImage}, ${c.backgroundColor}`; break; }
+                if (c.backgroundColor && !/^(transparent|rgba\(\s*0,\s*0,\s*0,\s*0\s*\))$/.test(c.backgroundColor)) { panelBg = c.backgroundColor; break; }
+            }
+            panelBg = panelBg || 'var(--lumiverse-bg, var(--lumiverse-background, #12131a))';
             let v = pd.getElementById('rpgc-host-vars');
             if (!v) { v = pd.createElement('style'); v.id = 'rpgc-host-vars'; pd.head.appendChild(v); }
             v.textContent = `:root{${vars}color-scheme:${cs.colorScheme || 'normal'};}
 html,body{height:100%!important;margin:0;overflow:hidden!important;}
 body{background:${bs ? bs.backgroundColor : '#111'};color:${bs ? bs.color : '#ddd'};font-family:${bs ? bs.fontFamily : 'system-ui, sans-serif'};font-size:${bs ? bs.fontSize : '14px'};}
-#rpgc-pop-scroll{position:fixed!important;inset:0!important;zoom:1!important;overflow-x:hidden!important;overflow-y:auto!important;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;touch-action:pan-y;outline:none;}
-#rpgc-pop-scroll > .rpgc{max-width:860px;margin:0 auto;zoom:var(--lumiverse-ui-scale, 1);}`;
+#rpgc-pop-scroll{position:fixed!important;inset:0!important;zoom:1!important;overflow-x:hidden!important;overflow-y:auto!important;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;touch-action:pan-y;outline:none;background:${panelBg};}
+#rpgc-pop-scroll > .rpgc{max-width:1100px;min-height:100%;margin:0 auto;zoom:var(--lumiverse-ui-scale, 1);}
+html,body{background:${panelBg}!important;}`;
         } catch (e) { state.status = { kind: 'warning', text: `The pop-out window could not copy Lumiverse\u2019s look: ${e?.message || e}` }; }
     }
 

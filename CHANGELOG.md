@@ -4,6 +4,14 @@
 
 No extra model calls. The one tracking change is the Minds fix under **Continuity**; everything else is display.
 
+**Reliability (phase 3)**
+- **Own window**: the window no longer shows a teal area under the panel. It used to copy the colour of Lumiverse's page body, which is not the colour Lumiverse actually paints (that lives on inner containers). It now takes the background of the drawer the panel lives in, and the panel fills the window.
+- **Wide panels** (own window, enlarged float, wide drawer): cards sit in two columns above 720px, the view bar spreads out with labels beside icons, and the sky card grows. Very narrow panels get smaller labels.
+- **Chronicle**: a moment the model reports again in the next reply or two, reworded ("…fundamentally altering…" / "…shifting…"), is now one entry, not two. Built when the Chronicle is read: nothing saved is deleted, and an entry you starred or hid is always kept. The request also tells the model not to report a moment twice.
+- **Agenda ↔ places**: an appointment shows "📍 you're here" when the story has you at its place, "📍 been there" when the Chronicle has you there before, and a 🗺️ button to the Atlas when the location book has it. A place that was never established shows nothing. The Now card's next appointment shows its place.
+- **Loose ends**: "leave it as it is" is remembered per chat, so a dismissed note does not come back after a reload.
+- **Replay check** (`node tools/replay_check.cjs <chat export> [persona] [card]`, local only): replays a real chat one reply at a time and checks after every reply that Agenda, Quests and Gear hold no duplicates, Minds and People never track you as a second person, the narrator request is added once with no repeated lines, and the Chronicle repeats no moment. Run against 3.4.0 it finds the "Marcus Veyrath" split and the duplicate duel; against this build it finds nothing.
+
 **Continuity**
 - Minds no longer splits you in two. When your persona is "Marcus" and the narrator writes "Marcus Veyrath" (or the other way round), feelings toward that name are feelings toward you, not toward a separate person. Before, family members held two sets of feelings, one toward "you" and one toward "Marcus Veyrath", and both were sent to the model each turn. One extra or one missing trailing word only, and never when a party member has that name. Existing chats are corrected on the next read.
 - **Loose ends** (Scene): where two trackers disagree or a commitment looks forgotten, the panel asks instead of guessing. Examples: an appointment still "in progress" though its people aren't in the scene and you're somewhere else; an appointment over a day late; an appointment with someone Family lists as dead; more than two things in your hands at once. Answer with the card's own buttons (It happened / Called off / Missed / Open Gear) or ✕ to leave it as it is. Nothing changes until you answer.
