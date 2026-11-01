@@ -845,6 +845,108 @@ button.rpgc-chip.intel:hover { border-color: var(--lumiverse-accent, #7aa2f7); }
 .rpgc-now .go-arrow{margin-left:auto;padding-left:6px;opacity:.35}
 .rpgc-now>div.go:hover .go-arrow{opacity:.8}
 .rpgc-empty-view{text-align:center;padding:24px 8px}
+/* ═════ 3.6.0 design system ═════
+   Tokens first; every component reads them. A look only changes tokens and a few signature details. */
+.rpgc{--u-accent:var(--lumiverse-accent,#7aa2f7);--u-accent-fg:var(--lumiverse-accent-fg,#0b0d14);--u-text:var(--lumiverse-text,#e4e6ee);--u-muted:var(--lumiverse-text-muted,#9aa0ae);
+  --u-line:color-mix(in srgb,var(--u-text) 12%,transparent);--u-line-2:color-mix(in srgb,var(--u-text) 20%,transparent);
+  --u-surface:var(--rpgc-card-bg,color-mix(in srgb,var(--u-text) 3%,transparent));--u-raise:color-mix(in srgb,var(--u-text) 6%,transparent);--u-hover:color-mix(in srgb,var(--u-text) 8%,transparent);
+  --u-radius:14px;--u-radius-s:9px;--u-display:system-ui,-apple-system,'Segoe UI',Roboto,'Helvetica Neue',sans-serif;--u-shadow:0 6px 22px -14px #000d;
+  --u-ok:#5fbf7f;--u-warn:#e5c55a;--u-bad:#ff8c87;--rpgc-gold:var(--u-accent)}
+.rpgc.look-storybook{--u-display:'Iowan Old Style','Palatino Linotype',Palatino,'Book Antiqua',Georgia,serif;--rpgc-gold:color-mix(in srgb,var(--u-accent) 45%,#d8b25a)}
+.rpgc.look-modern{--u-accent-2:color-mix(in srgb,var(--u-accent) 60%,#4fd1c5)}
+.rpgc.look-minimal{--u-radius:8px;--u-radius-s:6px;--u-shadow:none;--rpgc-gold:var(--u-line-2)}
+/* app bar */
+.rpgc .rpgc-top{display:flex;align-items:center;gap:6px;flex-wrap:wrap;padding:4px 2px 2px}
+.rpgc .rpgc-top .rpgc-btn,.rpgc .rpgc-top select{white-space:nowrap}
+.rpgc .rpgc-top .rpgc-panelsel{max-width:120px}
+.rpgc-brand .glyph{display:grid;place-items:center;width:28px;height:28px;border-radius:9px;font-size:15px;color:var(--u-accent-fg);
+  background:linear-gradient(135deg,var(--u-accent),var(--u-accent-2,var(--rpgc-gold)));box-shadow:0 4px 14px -6px var(--u-accent)}
+.rpgc.look-minimal .rpgc-brand .glyph{background:var(--u-raise);color:var(--u-text);box-shadow:none}
+.rpgc .rpgc-top .rpgc-mode{display:flex;flex-direction:column;line-height:1.1;flex:1 1 90px;min-width:90px;white-space:nowrap;overflow:hidden}
+.rpgc-mode .ttl{font:650 14px/1.1 var(--u-display);color:var(--u-text);letter-spacing:.01em}
+.rpgc.look-storybook .rpgc-mode .ttl{font-variant:small-caps;letter-spacing:.05em}
+.rpgc-mode .sub{font-size:10.5px;color:var(--u-muted);overflow:hidden;text-overflow:ellipsis}
+.rpgc .rpgc-btn.tb{display:inline-flex;align-items:center;gap:5px;padding:5px 9px;border-radius:999px}
+.rpgc .rpgc-btn.tb::before{font-size:13px;line-height:1}
+.rpgc .tb-find::before{content:'⌕';font-size:15px}.rpgc .tb-refresh::before{content:'⟳'}.rpgc .tb-guide::before{content:'?';font-weight:700}.rpgc .tb-settings::before{content:'⚙'}
+@container rpgc (max-width:520px){.rpgc .rpgc-btn.tb{font-size:0;padding:6px 8px;gap:0}.rpgc .rpgc-btn.tb::before{font-size:14px}.rpgc .rpgc-btn.tb[aria-pressed=true]{font-size:12px;gap:5px}}
+/* components, shared by every panel */
+.rpgc .rpgc-btn{border-radius:var(--u-radius-s);border-color:var(--u-line-2);background:var(--u-raise);transition:background .15s,border-color .15s,transform .1s}
+.rpgc .rpgc-btn:hover{background:var(--u-hover);border-color:color-mix(in srgb,var(--u-accent) 45%,var(--u-line-2))}
+.rpgc .rpgc-btn:active{transform:translateY(1px)}
+.rpgc .rpgc-btn.primary{background:var(--u-accent);color:var(--u-accent-fg);border-color:transparent}
+.rpgc .rpgc-btn[aria-pressed=true]{background:color-mix(in srgb,var(--u-accent) 22%,transparent);border-color:color-mix(in srgb,var(--u-accent) 60%,transparent)}
+.rpgc .rpgc-chip{border-radius:999px}
+.rpgc input[type=text],.rpgc input[type=search],.rpgc input[type=number],.rpgc select,.rpgc textarea{border-radius:var(--u-radius-s);border-color:var(--u-line-2);background:color-mix(in srgb,var(--u-text) 4%,transparent);transition:border-color .15s,box-shadow .15s}
+.rpgc input:focus-visible,.rpgc select:focus-visible,.rpgc textarea:focus-visible{outline:none;border-color:var(--u-accent);box-shadow:0 0 0 3px color-mix(in srgb,var(--u-accent) 25%,transparent)}
+.rpgc .rpgc-sec{border-radius:var(--u-radius);border-color:var(--u-line);box-shadow:var(--u-shadow)}
+.rpgc.look-modern .rpgc-sec{background:linear-gradient(180deg,color-mix(in srgb,var(--u-text) 4%,transparent),transparent 90px),var(--u-surface)}
+.rpgc.look-minimal .rpgc-sec{background:var(--u-surface)}
+.rpgc .rpgc-sec-title{font-family:var(--u-display)}
+.rpgc.look-modern .rpgc-sec-title,.rpgc.look-minimal .rpgc-sec-title{font-variant:normal;letter-spacing:.01em;font-size:14px;font-weight:650}
+.rpgc.look-modern .rpgc-sig{border-radius:9px;background:color-mix(in srgb,var(--u-accent) 16%,transparent);box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--u-accent) 35%,transparent)}
+.rpgc.look-modern .rpgc-sec[open]>summary .rpgc-sig{transform:none}
+.rpgc.look-minimal .rpgc-sig{width:22px;height:22px;background:none;box-shadow:none;font-size:13px}
+.rpgc.look-modern .rpgc-sec[open]>summary,.rpgc.look-minimal .rpgc-sec[open]>summary{border-image:none;border-bottom:1px solid var(--u-line)}
+.rpgc.look-modern h4,.rpgc.look-minimal h4{font-family:var(--u-display);font-variant:normal;letter-spacing:.06em;text-transform:uppercase;font-size:10.5px;color:var(--u-muted);font-weight:700}
+.rpgc .rpgc-subdet>summary,.rpgc .rpgc-qpath>summary{cursor:pointer;color:var(--u-muted);border-radius:6px;padding:2px 4px;margin:0 -4px;width:max-content;max-width:100%}
+.rpgc .rpgc-subdet>summary:hover,.rpgc .rpgc-qpath>summary:hover{color:var(--u-text);background:var(--u-hover)}
+.rpgc .rpgc-person,.rpgc .rpgc-pcard,.rpgc .rpgc-qcard{border-radius:12px;border-color:var(--u-line)}
+.rpgc .rpgc-person>.head,.rpgc .rpgc-pcard>.head{align-items:center;gap:8px}
+.rpgc .rpgc-person .name,.rpgc .rpgc-pcard .name{font-family:var(--u-display);font-weight:650;font-size:14px}
+.rpgc .rpgc-bar{height:7px}
+.rpgc .rpgc-bar>i{background-image:linear-gradient(90deg,transparent,#fff3)}
+.rpgc select{padding-right:22px}
+.rpgc .rpgc-gear-row select,.rpgc li select{font-size:11.5px;padding:3px 20px 3px 7px;background-color:transparent;border-style:dashed}
+/* the view bar becomes a rail on wide panels */
+.rpgc-shell{display:flex;flex-direction:column;gap:12px;min-width:0}
+.rpgc-main{display:flex;flex-direction:column;gap:12px;min-width:0}
+@container rpgc (min-width: 900px){
+  .rpgc-shell{display:grid;grid-template-columns:176px minmax(0,1fr);align-items:start;gap:16px}
+  .rpgc-shell>.rpgc-views{position:sticky;top:8px;grid-template-columns:1fr;gap:4px;padding:8px;margin:0}
+  .rpgc-shell>.rpgc-views .rpgc-viewtab{flex-direction:row;justify-content:flex-start;gap:10px;font-size:13px;padding:9px 12px}
+  .rpgc-shell>.rpgc-views .rpgc-viewtab .n{position:static;margin-left:auto}
+  .rpgc-shell>.rpgc-views .rpgc-viewtab .dot{position:static;margin-left:auto}
+  .rpgc-shell>.rpgc-views .rpgc-viewtab .n+.dot{margin-left:4px}
+}
+.rpgc.look-modern .rpgc-viewtab.on,.rpgc.look-minimal .rpgc-viewtab.on{box-shadow:0 4px 14px -8px var(--u-accent)}
+/* find */
+.rpgc-find-overlay{position:fixed;inset:0;z-index:10001;background:#0009;backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px);display:flex;justify-content:center;align-items:flex-start;padding:min(12vh,90px) 10px 10px;animation:rpgc-in .15s ease-out}
+.rpgc-find{width:min(560px,100%);max-height:min(70vh,560px);display:flex;flex-direction:column;border-radius:16px;overflow:hidden;color:var(--u-text);
+  background:var(--rpgc-card-bg,var(--lumiverse-bg,#151824));border:1px solid var(--u-line-2);box-shadow:0 24px 60px -20px #000}
+.rpgc-find-box{display:flex;align-items:center;gap:8px;padding:10px 12px;border-bottom:1px solid var(--u-line)}
+.rpgc-find-box .mag{font-size:18px;color:var(--u-muted)}
+.rpgc .rpgc-find-box input{flex:1;min-width:0;border:0;background:none;font-size:15px;padding:4px 0;box-shadow:none}
+.rpgc-find kbd{font:600 10px var(--u-display);padding:2px 6px;border-radius:5px;border:1px solid var(--u-line-2);color:var(--u-muted)}
+.rpgc-find-list{list-style:none;margin:0;padding:6px;overflow:auto;display:flex;flex-direction:column;gap:2px}
+.rpgc-find-list li{display:flex;align-items:center;gap:10px;padding:7px 9px;border-radius:10px;cursor:pointer;min-width:0}
+.rpgc-find-list li.sel{background:color-mix(in srgb,var(--u-accent) 18%,transparent)}
+.rpgc-find-list li.none{cursor:default;color:var(--u-muted);justify-content:center;padding:18px}
+.rpgc-find-list .ic{width:22px;text-align:center;flex:0 0 auto}
+.rpgc-find-list .tx{flex:1;min-width:0;display:flex;flex-direction:column}
+.rpgc-find-list .tx b{font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rpgc-find-list .tx small{color:var(--u-muted);font-size:11px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rpgc-find-list .kd{font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:var(--u-muted);flex:0 0 auto}
+.rpgc-find-foot{padding:7px 12px;font-size:11px;color:var(--u-muted);border-top:1px solid var(--u-line)}
+/* settings search */
+.rpgc-set-head{position:sticky;top:0;z-index:5;display:flex;flex-direction:column;gap:4px;padding:6px 0;background:linear-gradient(var(--rpgc-card-bg,var(--lumiverse-bg,#12131a)) 75%,transparent)}
+.rpgc .rpgc-set-search{width:100%;font-size:13.5px;padding:8px 12px;border-radius:999px}
+.rpgc-set-count:empty{display:none}
+/* dossier sheet */
+.rpgc .rpgc-play-overlay{backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px);animation:rpgc-in .15s ease-out}
+.rpgc .rpgc-sheet{border-radius:18px;border-color:var(--u-line-2);box-shadow:0 30px 70px -24px #000;padding:0 16px 14px;display:flex;flex-direction:column;gap:8px}
+.rpgc-sheet-head{position:sticky;top:0;z-index:1;display:flex;align-items:center;gap:12px;margin:0 -16px;padding:14px 16px 10px;border-bottom:1px solid var(--u-line);background:inherit;
+  background:linear-gradient(160deg,color-mix(in srgb,var(--u-accent) 14%,transparent),transparent 70%),var(--rpgc-card-bg,var(--lumiverse-background,#171b25))}
+.rpgc-sheet-head .rpgc-mono{width:44px;height:44px;font-size:16px}
+.rpgc-sheet-head .who{flex:1;min-width:0;display:flex;flex-direction:column}
+.rpgc-sheet-head h3{margin:0;font:650 18px/1.2 var(--u-display)}
+.rpgc .rpgc-sheet h4{margin:6px 0 2px}
+.rpgc .rpgc-sheet p{margin:2px 0}
+@media (max-width:520px){.rpgc .rpgc-play-overlay{align-items:flex-end;padding:0}.rpgc .rpgc-sheet{border-radius:18px 18px 0 0;max-height:88vh;width:100%}}
+/* guide: reading measure */
+.rpgc .rpgc-guide{max-width:72ch;margin:0 auto;font-size:13.5px;line-height:1.6}
+.rpgc .rpgc-guide h2,.rpgc .rpgc-guide h3{font-family:var(--u-display)}
+@media (prefers-reduced-motion:reduce){.rpgc-find-overlay,.rpgc .rpgc-play-overlay{animation:none}.rpgc .rpgc-btn{transition:none}}
 /* 3.5.0 phase 3: wide panels (own window, enlarged float, desktop drawer) use two columns */
 .rpgc{container-type:inline-size;container-name:rpgc}
 @container rpgc (min-width: 720px){
@@ -1682,7 +1784,7 @@ export function setup(ctx) {
         id: 'rpg-companion-hms',
         title: 'RPG Companion (HMS)',
         shortName: 'RPG',
-        headerTitle: 'RPG Companion HMS Edition 3.5.0 RC',
+        headerTitle: 'RPG Companion HMS Edition 3.6.0 RC',
         description: 'The side panel for HMS bots: the HUD as cards, people, quests, the map, fights, the Chronicle, and a guide',
         keywords: ['rpg', 'hms', 'tracker', 'hud', 'quests', 'dice', 'guide'],
         iconSvg: ICON_SVG
@@ -1794,6 +1896,9 @@ export function setup(ctx) {
         if (rerender) render();
     }
 
+    // Ctrl/Cmd+K opens Find anywhere in the panel's window.
+    const findKey = e => { if ((e.ctrlKey || e.metaKey) && !e.shiftKey && !e.altKey && String(e.key).toLowerCase() === 'k' && state.view === 'trackers' && state.chatId && hmsOn() && (root.isConnected)) { e.preventDefault(); openFind(); } };
+    try { document.addEventListener('keydown', findKey); } catch { /* host without a document */ }
     const unsubBackend = ctx.onBackendMessage((msg) => {
         if (!msg) return;
         if (msg.type === 'tracker_status') {
@@ -2053,7 +2158,7 @@ export function setup(ctx) {
     function render(fromBackend = false) {
         if (!panelVisible) { hiddenRender = true; return; }
         applyLang();
-        root.className = 'rpgc' + themeClass() + (S()?.compactMobile ? ' rpgc-compact-mobile' : '');
+        root.className = 'rpgc' + themeClass() + ' look-' + currentLook() + (S()?.compactMobile ? ' rpgc-compact-mobile' : '');
         if (encModal) encModal.root.className = 'rpgc rpgc-enc' + themeClass();
         const active = document.activeElement;
         if (fromBackend && active && root.contains(active) && (active.isContentEditable || /INPUT|TEXTAREA|SELECT/.test(active.tagName))) {
@@ -2072,6 +2177,8 @@ export function setup(ctx) {
         const scroll = tab.root.scrollTop;
         root.replaceChildren(...(state.view === 'settings' ? renderSettings() : state.view === 'guide' ? renderGuide() : state.view === 'sandbox' ? renderSandbox() : renderTrackers()).filter(Boolean));   // a switched-off card is simply absent
         const dossier=renderNpcDossier();if(dossier)root.appendChild(dossier);
+        const finder = state.view === 'trackers' ? renderFind() : null; if (finder) root.appendChild(finder);
+        if (state.view === 'settings') settingsSearch();
         tab.root.scrollTop = scroll;
         if (state.jumpTo) {
             const id = state.jumpTo; state.jumpTo = null;
@@ -2116,7 +2223,7 @@ export function setup(ctx) {
     function renderStandingHistory(person) {
         if(!playOn('standingHistory'))return null;
         const history=standingHistory(person,state.hms?.relations?.ladder || S()?.hmsSystems?.relations?.ladder);
-        if(!history.points.length)return null;
+        if(history.points.length<2)return null; // one point is just the current standing, already shown above it
         const svg=document.createElementNS('http://www.w3.org/2000/svg','svg');svg.setAttribute('viewBox','0 0 300 100');svg.setAttribute('role','img');svg.setAttribute('aria-label',T('Standing history'));svg.style.cssText='width:100%;max-width:360px;height:auto';
         const xy=history.points.map((p,i)=>({x:10+i*280/Math.max(1,history.points.length-1),y:90-p.value/history.max*75,name:p.name}));
         const path=document.createElementNS(svg.namespaceURI,'path');path.setAttribute('d',xy.map((p,i)=>i?'H'+p.x+'V'+p.y:'M'+p.x+','+p.y).join(' '));path.setAttribute('fill','none');path.setAttribute('stroke','currentColor');path.setAttribute('stroke-width','2');svg.appendChild(path);
@@ -2127,8 +2234,11 @@ export function setup(ctx) {
         if (!state.dossierName || !playOn('npcDossier')) return null;
         const d=npcDossierData(state,state.dossierName);
         const close=()=>{state.dossierName=null;render();};
-        const body=h('div',{class:'rpgc-play-modal',role:'dialog','aria-modal':'true','aria-label':'NPC dossier',onkeydown:e=>{if(e.key==='Escape')close();}},
-            h('div',{class:'rpgc-row'},h('h3',null,d?.name || state.dossierName),h('button',{class:'rpgc-btn',onclick:close},'Close')));
+        const closeBtn=h('button',{class:'rpgc-btn rpgc-sheet-close',onclick:close,'aria-label':T('Close')},'Close');
+        const body=h('div',{class:'rpgc-play-modal rpgc-sheet',role:'dialog','aria-modal':'true','aria-label':TT('Dossier: {0}',d?.name || state.dossierName),onkeydown:e=>{if(e.key==='Escape')close();}},
+            h('div',{class:'rpgc-sheet-head'},monogram(d?.name || state.dossierName),h('div',{class:'who'},h('h3',null,d?.name || state.dossierName),
+                d?h('span',{class:'rpgc-note'},[d.standing,d.family?.relation,d.person?.present||d.family?.present?T('here'):null].filter(Boolean).join(' · ')):null),closeBtn));
+        setTimeout(()=>{try{closeBtn.focus({preventScroll:true});}catch{}},0);
         if (!d) body.appendChild(h('p',{class:'rpgc-note'},'Unknown person'));
         else {
             const line=(label,text)=>{if(text)body.appendChild(h('p',null,h('b',null,label),': ',String(text)));};
@@ -2175,22 +2285,24 @@ export function setup(ctx) {
         const st = state.busy && (!state.status || state.status.kind !== 'busy')
             ? { kind: 'busy', text: 'Generating trackers with a separate call…' }
             : state.status;
-        const bar = h('div', { class: 'rpgc-top' },
-            h('span', { class: 'rpgc-mode' }, mode),
+        const bar = h('div', { class: 'rpgc-top', role: 'toolbar', 'aria-label': T('RPG Companion') },
+            h('span', { class: 'rpgc-brand', 'aria-hidden': 'true' }, h('span', { class: 'glyph' }, '◈')),
+            h('span', { class: 'rpgc-mode' }, h('span', { class: 'ttl' }, T('Companion')), h('span', { class: 'sub' }, mode)),
+            state.view === 'trackers' && state.chatId && hmsOn() ? h('button', { class: 'rpgc-btn tb tb-find', title: T('Find anything (Ctrl+K)'), 'aria-label': T('Find anything'), onclick: () => openFind() }, h('span', { class: 'tl' }, T('Find'))) : null,
             state.view === 'trackers' && state.busy
                 ? h('button', { class: 'rpgc-btn', onclick: cancelRefresh }, 'Cancel')
                 : null,
             state.view === 'trackers' && !state.busy
-                ? h('button', { class: 'rpgc-btn', title: 'Generate trackers for the latest reply with a separate call', disabled: !state.chatId || !s?.enabled ? true : null, onclick: requestRefresh }, 'Refresh')
+                ? h('button', { class: 'rpgc-btn tb tb-refresh', title: 'Generate trackers for the latest reply with a separate call', disabled: !state.chatId || !s?.enabled ? true : null, onclick: requestRefresh }, 'Refresh')
                 : null,
             s && !trayTools() ? panelModeSelect() : null,
             S()?.uiTestZone === false && !state.sandbox || trayTools() ? null : testZoneButton(),
             h('button', {
-                class: 'rpgc-btn', 'aria-pressed': state.view === 'guide' ? 'true' : 'false', title: 'How everything works: the bot, the preset and this panel',
+                class: 'rpgc-btn tb tb-guide', 'aria-pressed': state.view === 'guide' ? 'true' : 'false', title: 'How everything works: the bot, the preset and this panel',
                 onclick: () => { state.view = state.view === 'guide' ? (state.sandbox ? 'sandbox' : 'trackers') : 'guide'; render(); }
             }, state.view === 'guide' ? 'Close the guide' : 'Guide'),
             h('button', {
-                class: 'rpgc-btn', 'aria-pressed': state.view === 'settings' ? 'true' : 'false',
+                class: 'rpgc-btn tb tb-settings', 'aria-pressed': state.view === 'settings' ? 'true' : 'false',
                 onclick: () => { state.view = state.view === 'settings' ? (state.sandbox ? 'sandbox' : 'trackers') : 'settings'; render(); }
             }, state.view === 'settings' ? (state.sandbox ? 'Back to the test zone' : 'Back to trackers') : 'Settings'));
         if (!st || !st.text || !state.chatId) return bar;
@@ -2532,6 +2644,27 @@ export function setup(ctx) {
         return h('div', { class: 'rpgc-set' }, h('h4', null, label), ta);
     }
 
+    // 3.6.0: Settings search: filters the cards by their own text and opens what matches. Display only.
+    function settingsSearch() {
+        const cards = [...root.children].filter(el => el.matches?.('details.rpgc-sec'));
+        if (!cards.length) return;
+        const box = h('input', { type: 'search', class: 'rpgc-set-search', value: state.setFind || '', placeholder: TT('Search {0} settings sections', cards.length), 'aria-label': T('Search settings') });
+        const note = h('p', { class: 'rpgc-note rpgc-set-count', role: 'status' });
+        const apply = () => {
+            const q = playNameKey(box.value), words = q.split(' ').filter(Boolean);
+            let n = 0;
+            for (const c of cards) {
+                const hit = !words.length || words.every(w => playNameKey(c.textContent || '').includes(w));
+                c.hidden = !hit; if (hit) n++;
+                if (words.length && hit && !c.open) { c.dataset.findOpened = '1'; c.open = true; }
+                if (!words.length && c.dataset.findOpened) { delete c.dataset.findOpened; c.open = state.open[c.dataset.openKey] === true; }
+            }
+            note.textContent = words.length ? (n ? TT('{0} sections match', n) : T('No setting matches.')) : '';
+        };
+        box.addEventListener('input', () => { state.setFind = box.value; apply(); });
+        cards[0].before(h('div', { class: 'rpgc-set-head' }, box, note));
+        apply();
+    }
     function renderSettings() {
         const s = S();
         if (!s) return [topBar(), h('p', { class: 'rpgc-note' }, 'Loading…')];
@@ -4115,7 +4248,7 @@ export function setup(ctx) {
         const snapshots = renderTrackerSnapshots();
         if (state.trackerSnapshots?.view) return [topBar(), snapshots];
         const view = currentView();
-        const out = [topBar(), renderMobilePinned(), viewBar(view),
+        const out = [topBar(), renderMobilePinned(),
             h('details', {class:'rpgc-tools', 'data-open-key':'tools', open: state.open.tools === true ? '' : null, ontoggle: e => { state.open.tools = e.target.open; }},
                 h('summary', null, '🧰 ' + T('Tools')),
                 h('div', {class:'rpgc-row rpgc-tools-row'}, h('label', {class:'rpgc-note'}, T('Panel'), ' ', panelModeSelect()), S()?.uiTestZone === false ? null : testZoneButton(), rereadButton(), h('button', {class:'rpgc-btn', onclick:exportCharacterSheet}, 'Export character sheet')),
@@ -4146,7 +4279,8 @@ export function setup(ctx) {
         for (const [group, fn] of cards) if (view === 'all' || view === group) { const el = fn(); if (el) built.push(el); }
         if (order) built.sort((a, b) => order.indexOf(a.dataset?.openKey) - order.indexOf(b.dataset?.openKey));
         if (!built.length) built.push(h('p', { class: 'rpgc-note rpgc-empty-view' }, T('Nothing here yet. Cards appear as the story reports them.')));
-        out.push(h('div', { class: 'rpgc-view rpgc-view-' + view }, ...built));
+        const head = out.splice(2); // tools, notices and story actions sit above the view, inside the main column
+        out.push(h('div', { class: 'rpgc-shell' }, viewBar(view), h('div', { class: 'rpgc-main' }, ...head, h('div', { class: 'rpgc-view rpgc-view-' + view }, ...built))));
         return out;
     }
 
@@ -4228,6 +4362,56 @@ export function setup(ctx) {
             h('ul', null, list.map(x => h('li', null, h('span', { class: 'ic', 'aria-hidden': 'true' }, x.icon), h('span', { class: 'tx' }, x.text),
                 h('span', { class: 'acts' }, ...x.acts.map(([label, fn]) => h('button', { class: 'rpgc-btn', onclick: fn }, label)),
                     h('button', { class: 'rpgc-mini', title: T('Leave it as it is'), 'aria-label': T('Leave it as it is'), onclick: () => { const d = looseDismissed(); d.add(x.id); try { localStorage.setItem('rpgc-loose:' + state.chatId, JSON.stringify([...d].slice(-200))); } catch { /* convenience */ } render(); } }, '✕'))))));
+    }
+
+    // ─────────── 3.6.0: Find anything ───────────
+    // One box over everything the panel already tracks: people, quests, appointments, gear, spells and
+    // techniques, places and Chronicle moments. Picking a result opens it where it lives. Read-only.
+    function findIndex() {
+        const hms = state.hms || {}, out = [];
+        const add = (kind, icon, label, sub, go) => { if (label) out.push({ kind, icon, label: String(label), sub: sub ? String(sub) : '', key: playNameKey(label + ' ' + (sub || '')), go }); };
+        const people = new Map();
+        for (const p of [...(hms.relations?.people || []), ...(hms.family?.members || []), ...(hms.minds?.people || []), ...(state.data?.characters || [])]) if (p?.name && !people.has(playNameKey(p.name))) people.set(playNameKey(p.name), p);
+        for (const p of people.values()) add(T('Person'), '👤', p.name, [p.standing, p.relation, p.bond].filter(Boolean).join(' · '), () => { state.dossierName = p.name; render(); });
+        for (const q of hms.systems?.quests || []) add(T('Quest'), '🎯', q.name, q.objective, () => goTo('journey', 'quests'));
+        for (const a of hms.agenda?.items || []) add(T('Agenda'), '📅', a.what, [a.with, a.where, a.state === 'open' ? a.when : ({ in_progress: T('in progress'), kept: T('kept'), missed: T('missed'), cancelled: T('called off') }[a.state] || a.state)].filter(Boolean).join(' · '), () => goTo('journey', 'agenda'));
+        for (const g of hms.gear?.items || []) add(T('Gear'), '🎒', g.name, [g.state, g.where || g.inside].filter(Boolean).join(' · '), () => goTo('you', 'gear'));
+        for (const [list, card] of [[hms.magic?.list, 'magic'], [hms.techniques, 'techniques']]) for (const g of list?.schools || []) for (const sp of g.spells || [])
+            if (['known', 'mastered', 'study'].includes(sp.status)) add(card === 'magic' ? T('Spell') : T('Technique'), card === 'magic' ? '✨' : '⚔️', sp.name, [g.school || g.name, sp.rank, sp.status].filter(Boolean).join(' · '), () => goTo('you', card));
+        const places = new Set();
+        for (const l of hms.hud?.location || []) { const t = typeof l === 'string' ? l : l.text; if (t && !places.has(t)) { places.add(t); add(T('Place'), '📍', t, T('on the HUD now'), () => goTo('scene', 'world')); } }
+        const D = state.chronData && state.chronData.chatId === state.chatId ? state.chronData : null;
+        for (const e of (D?.entries || []).filter(e => !e.hidden && e.kind !== 'plot').slice(-200)) add(T('Chronicle'), '📖', e.text, e.when, () => goTo('journey', 'chronicle'));
+        return out;
+    }
+    function openFind() {
+        if (!state.chronData && !state.chronReq && state.chatId) { state.chronReq = true; send({ type: 'chronicle_get', chatId: state.chatId }); }
+        state.find = { q: '', sel: 0 }; render();
+        setTimeout(() => root.querySelector('.rpgc-find input')?.focus(), 0);
+    }
+    function renderFind() {
+        if (!state.find) return null;
+        const close = () => { state.find = null; render(); };
+        const words = playNameKey(state.find.q).split(' ').filter(Boolean);
+        const all = findIndex();
+        const hits = words.length ? all.filter(x => words.every(w => x.key.includes(w))).slice(0, 40) : all.filter(x => ['👤', '🎯', '📅'].includes(x.icon)).slice(0, 12);
+        const sel = Math.min(state.find.sel, Math.max(0, hits.length - 1));
+        const pick = x => { state.find = null; x.go(); };
+        const input = h('input', { type: 'search', value: state.find.q, placeholder: T('Find a person, quest, item, spell, place, moment…'), 'aria-label': T('Find anything'), 'aria-controls': 'rpgc-find-list', autocomplete: 'off' });
+        input.addEventListener('input', () => { state.find.q = input.value; state.find.sel = 0; render(); setTimeout(() => { const i = root.querySelector('.rpgc-find input'); if (i) { i.focus(); i.setSelectionRange(i.value.length, i.value.length); } }, 0); });
+        input.addEventListener('keydown', e => {
+            if (e.key === 'Escape') { e.preventDefault(); close(); }
+            else if (e.key === 'ArrowDown' || e.key === 'ArrowUp') { e.preventDefault(); state.find.sel = Math.max(0, Math.min(hits.length - 1, sel + (e.key === 'ArrowDown' ? 1 : -1))); render(); setTimeout(() => root.querySelector('.rpgc-find input')?.focus(), 0); }
+            else if (e.key === 'Enter' && hits[sel]) { e.preventDefault(); pick(hits[sel]); }
+        });
+        return h('div', { class: 'rpgc-find-overlay', onclick: e => { if (e.target === e.currentTarget) close(); } },
+            h('div', { class: 'rpgc-find', role: 'dialog', 'aria-modal': 'true', 'aria-label': T('Find anything') },
+                h('div', { class: 'rpgc-find-box' }, h('span', { class: 'mag', 'aria-hidden': 'true' }, '⌕'), input, h('kbd', null, 'Esc')),
+                h('ul', { id: 'rpgc-find-list', role: 'listbox', class: 'rpgc-find-list' },
+                    hits.length ? hits.map((x, i) => h('li', { role: 'option', 'aria-selected': i === sel ? 'true' : 'false', class: i === sel ? 'sel' : '', onclick: () => pick(x), onmouseenter: () => { state.find.sel = i; } },
+                        h('span', { class: 'ic', 'aria-hidden': 'true' }, x.icon), h('span', { class: 'tx' }, h('b', null, x.label), x.sub ? h('small', null, x.sub) : null), h('span', { class: 'kd' }, x.kind)))
+                        : h('li', { class: 'none' }, T('Nothing tracked matches.'))),
+                h('div', { class: 'rpgc-find-foot' }, words.length ? TT('{0} found', hits.length) : T('Type to search everything the panel tracks'), ' · ↑↓ ', T('to move'), ' · Enter ', T('to open'))));
     }
 
     // ─────────── 3.5.0: views ───────────
@@ -5784,6 +5968,15 @@ export function setup(ctx) {
         for (const path of STYLE_PATHS) { const v = pathGet(s, path); if (v !== undefined) out[path] = JSON.parse(JSON.stringify(v)); }
         return out;
     }
+    // 3.6.0: the look. Modern suits any genre and is the default; Storybook (serif, gilt) is picked
+    // automatically for the fantasy worlds the extension knows; Minimal is flat and quiet. Display only.
+    const LOOKS = [['auto', 'Auto (by world)'], ['modern', 'Modern'], ['storybook', 'Storybook'], ['minimal', 'Minimal']];
+    const FANTASY_WORLDS = new Set(['rezero', 'overlord', 'mushoku', 'undertale', 'darksouls', 'skyrim']);
+    function currentLook() {
+        const v = S()?.uiLook;
+        if (v && v !== 'auto' && LOOKS.some(l => l[0] === v)) return v;
+        return state.world && FANTASY_WORLDS.has(String(state.world.id || '')) ? 'storybook' : 'modern';
+    }
     function themeClass() {
         const s = S() || {};
         const t = s.uiTheme;
@@ -5820,6 +6013,8 @@ export function setup(ctx) {
                 sp.active = 'user:' + id; state.stylePick = 'user:' + id;
                 saveSettings(false); render();
             } }, 'Save current as preset')),
+            h('div', { class: 'rpgc-row' }, h('span', { class: 'lbl' }, T('Look')), (() => { const x = h('select', { 'aria-label': T('Look'), onchange: (e) => { s.uiLook = e.target.value; saveSettings(false); render(); } }, LOOKS.map(([v, l]) => h('option', { value: v }, T(l)))); x.value = s.uiLook || 'auto'; return x; })(),
+                h('span', { class: 'rpgc-note' }, ' ' + TT('now: {0}', T(currentLook())))),
             h('div', { class: 'rpgc-row' }, h('span', { class: 'lbl' }, 'Theme'), themeSel),
             h('div', { class: 'rpgc-row' }, h('span', { class: 'lbl' }, 'Density'), (() => { const x = h('select', { 'aria-label': 'Panel density', onchange: (e) => { s.uiDensity = e.target.value; saveSettings(false); render(); } }, h('option', { value: 'comfortable' }, 'Comfortable'), h('option', { value: 'compact' }, 'Compact')); x.value = s.uiDensity || 'comfortable'; return x; })()),
             h('div', { class: 'rpgc-row' }, h('span', { class: 'lbl' }, 'Text size'), (() => { const x = h('select', { 'aria-label': 'Text size', onchange: (e) => { s.uiTextSize = e.target.value; saveSettings(false); render(); } }, h('option', { value: 'small' }, 'Small'), h('option', { value: 'normal' }, 'Normal'), h('option', { value: 'large' }, 'Large')); x.value = s.uiTextSize || 'normal'; return x; })()));
@@ -7499,7 +7694,7 @@ html,body{background:${panelBg}!important;}`;
             if (!popWin || popWin.closed) {
                 popWin = window.open('', 'rpgc_popout', 'width=460,height=860');
                 if (!popWin) { state.status = { kind: 'warning', text: 'The browser blocked the pop-out window. Allow pop-ups for Lumiverse and try again.' }; const s = S(); s.uiPanelMode = 'drawer'; return applyPanelMode(); }
-                popWin.document.title = 'RPG Companion HMS Edition 3.5.0 RC';
+                popWin.document.title = 'RPG Companion HMS Edition 3.6.0 RC';
                 syncPopoutLook(popWin);
                 try { if (!popLookObs) { popLookObs = new MutationObserver(() => syncPopoutLook(popWin)); popLookObs.observe(document.documentElement, { attributes: true }); if (document.body) popLookObs.observe(document.body, { attributes: true, attributeFilter: ['class'] }); } } catch { /* optional */ }
                 popWin.addEventListener('beforeunload', () => { popWin = null; if (panelMode() === 'popout') { const s = S(); s.uiPanelMode = 'drawer'; saveSettings(false); applyPanelMode(); render(); } });

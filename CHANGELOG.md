@@ -1,5 +1,31 @@
 # Changelog — RPG Companion HMS Edition
 
+## 3.6.0 RC (UI staging) — one application
+
+Branched from `staging/3.5.0` at `0318b1a`. **Interface only**: `dist/backend.js` is byte-identical to 3.5.0 apart from the version number, and on the Six-Sided World export the two builds produce identical panel data, narrator requests and Chronicle at every one of 29 replies (`tools/compare_backends.cjs`). No new model calls, no polling, nothing new saved except your display choices.
+
+**A look that fits the story**
+- A small design system: every card, button, chip, field and dialog now draws from shared tokens, so older panels (Gear, Family, Factions, Settings…) look like the new ones.
+- Three looks (Settings → Play style → Look): **Modern** (clean sans, accent tiles; the default, fits any genre), **Storybook** (serif small caps and gilt rules, the 3.5 look) and **Minimal** (flat and quiet). **Auto** picks Storybook for the fantasy worlds the extension knows (Re:Zero, Overlord, Mushoku Tensei, Undertale, Dark Souls, Skyrim) and Modern for everything else. Your theme, density and text size still apply on top.
+
+**App shell**
+- An app bar: the Companion mark, the mode, and Find / Refresh / Guide / Settings as compact icon buttons with labels where there is room.
+- On wide panels (own window, enlarged float, desktop) the views become a **side rail** with counts, and cards sit in two columns; narrow panels keep the tab bar on top.
+
+**Find anything** (⌕ in the app bar, or Ctrl/⌘+K)
+- One search over everything the panel tracks: people, quests, appointments, gear, known spells and techniques, places on the HUD and Chronicle moments. ↑/↓ and Enter open the result where it lives (a person opens their dossier); Esc closes.
+
+**Settings**
+- A search box over the 22 settings sections: type "memory", "portrait", "quest"… and only the matching sections remain, opened. Clearing it restores what you had open.
+
+**Dossier**
+- Opens as a sheet with the person's monogram, standing, family tie and whether they are here; on phones it slides up from the bottom. Focus moves into it; Esc closes.
+- The standing history chart is only drawn when the standing has actually changed (one point drew a large empty chart).
+
+**Checks**
+- `tools/compare_backends.cjs <old> <new> <export>`: compares two backend builds reply by reply (panel data, narrator request, Chronicle).
+- `tools/test_ui.cjs [payload]`: the real panel in Chromium at 340/420/860/1200 px in every look and view — no script errors, no horizontal overflow, every view renders — plus the interactions: tabs by mouse and arrow keys, Now card links, Ctrl+K → Enter → dossier → Esc, the Tools tray, Settings search; and the render time against an older build (`FRONTEND_OLD=`). Needs Playwright; skips without it.
+
 ## 3.5.0 RC (staging) — Views, the journal look, a living Now card, and connected systems
 
 No extra model calls. The one tracking change is the Minds fix under **Continuity**; everything else is display.

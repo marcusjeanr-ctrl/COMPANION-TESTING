@@ -79,6 +79,7 @@ globalThis.__hooks = (chat, lore, user) => {
     const api = bctx.__hooks(chat, lore, 'Test Hero');
     await api.push();
     const state = bctx.__state;
+    if (process.env.SMOKE_DUMP) fs.writeFileSync(process.env.SMOKE_DUMP, JSON.stringify(state)); // the synthetic payload, for tools/test_ui.cjs
     assert(state && state.hms && state.hms.active !== false, 'backend produced no HMS payload');
     const h = state.hms, sys = h.systems;
     assert.equal(h.hud && h.hud.location && h.hud.location.at(-1), 'Test Hall', 'HUD location read');
