@@ -1,5 +1,14 @@
 # Changelog — RPG Companion HMS Edition
 
+## Fix (experiment: magic disciplines) — schools are not spells
+
+Branch `experiment/magic-discipline-classification`, from `staging/3.6.0-ui` at `bf80da9`.
+
+- The Spellbook no longer lists a magic school as a known spell. Reports of "Water Magic" were already rejected, but when the model later reported the bare "Water", "Earth" and "Fire", they slipped through and showed as known spells under "Other" (Six-Sided World: 19 known, 16 real).
+- A bare name is treated as the school only when this chat's spell references file spells under that school and none of them carries that exact name. So a game with a spell called "Fire" keeps it, a spell named after its own school keeps it, and a chat without spell references is unchanged. Spells you marked by hand are never filtered.
+- Nothing saved is rewritten: the Spellbook is rebuilt from the story's reports, so the old reports are untouched and the three entries simply stop counting. School ranks (Water Advanced, Earth Intermediate, Fire Beginner) still come from the HUD as before.
+- The narrator request is unchanged (the known-spell list is not part of it).
+
 ## 3.6.0 RC (UI staging) — one application
 
 Branched from `staging/3.5.0` at `0318b1a`. **Interface only**: `dist/backend.js` is byte-identical to 3.5.0 apart from the version number, and on the Six-Sided World export the two builds produce identical panel data, narrator requests and Chronicle at every one of 29 replies (`tools/compare_backends.cjs`). No new model calls, no polling, nothing new saved except your display choices.

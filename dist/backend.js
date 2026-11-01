@@ -16487,7 +16487,11 @@ function spellResolver(chatId) {
         const schoolKey = value => spellSchoolKey(value.replace(/\s*\([^)]*\)\s*$/, '').replace(/\s+(?:Magic|School)$/i, '').trim());
         const category = label.match(/^([^:]+?)(?:\s*:\s*(.+))?$/);
         const school = category && (cache.schools.has(schoolKey(category[1])) || SPELL_ELEMENTS.test(schoolKey(category[1])));
-        const nonSpell = !!(school && !category[2] && /\b(?:Magic|School)\b|\(\s*(?:Beginner|Elementary|Intermediate|Advanced|Saint|King|Emperor|God)\s*\)/i.test(label)) || /^(?:Mana Capacity|Casting Method|Magic Schools?|Magic Tiers?|Martial Styles?|Sword Styles?)\s*:/i.test(label) ||
+        // A bare school name ("Water", "Fire") is the discipline, not a spell, when this chat's spell references
+        // file spells under that school and none of them is named that way (an exact spell name returned above).
+        // Without such references nothing changes: a game may have a spell simply called "Fire".
+        const bareSchool = !category[2] && cache.schools.has(schoolKey(label)) && !/[,;·]|\band\b/i.test(label);
+        const nonSpell = bareSchool || !!(school && !category[2] && /\b(?:Magic|School)\b|\(\s*(?:Beginner|Elementary|Intermediate|Advanced|Saint|King|Emperor|God)\s*\)/i.test(label)) || /^(?:Mana Capacity|Casting Method|Magic Schools?|Magic Tiers?|Martial Styles?|Sword Styles?)\s*:/i.test(label) ||
             /^(?:Voiceless|Silent|Incantation|Truncated) Casting\b/i.test(label) ||
             /\b(?:Magic|Style|School)\s*(?:\(\s*|:\s*)(?:Beginner|Elementary|Intermediate|Advanced|Saint|King|Emperor|God)\b[^:]*$/i.test(label);
         let out = [];
