@@ -1,6 +1,6 @@
 # Guia HMS
 
-**RPG Companion HMS Edition 1.0** e **HMS Reporter beta**
+**RPG Companion HMS Edition 1.1.1 beta** e **HMS Reporter beta**
 
 Este guia explica como um jogo HMS funciona, como configurá-lo e o que cada parte faz.
 Leia primeiro **Comece aqui**. Use as outras partes quando precisar.
@@ -15,7 +15,7 @@ Um jogo HMS tem três partes. Cada parte tem uma função.
 | --- | --- | --- |
 | **O bot** | O card do personagem e seus lorebooks: Re:Zero, Mushoku Tensei, Classroom of the Elite ou Overlord | O mundo e suas regras. Ele escreve o **HUD do WORLD STATE** no topo de cada resposta. |
 | **HMS Reporter beta** | Um preset: o prompt que o Lumiverse envia | Como a história abaixo do HUD é escrita: estilo, vozes, tamanho, raciocínio. |
-| **RPG Companion HMS Edition 1.0** | Uma extensão: o painel lateral | Lê o HUD e o mostra em cartões. Acompanha pessoas, o que sentem e o que sabem, missões, lutas e mais. Ajuda você a começar um jogo e a tirar dúvidas. |
+| **RPG Companion HMS Edition 1.1.1 beta** | Uma extensão: o painel lateral | Lê o HUD e o mostra em cartões. Acompanha pessoas, o que sentem e o que sabem, missões, lutas e mais. Ajuda você a começar um jogo e a tirar dúvidas. |
 
 ### Quem manda
 
@@ -273,6 +273,12 @@ O preset então pede uma resposta fora do personagem: sem HUD, sem história, se
 O painel mostra um cartão por assunto. Um cartão só aparece quando tem algo para mostrar.
 Clique no título de um cartão para recolher ou abrir.
 
+### Visões, Agora, Buscar e Anteriormente…
+Num chat HMS os cartões ficam agrupados em visões: **Cena** (Anteriormente…, o cartão Agora, pontas soltas, World State, o cartão do mundo, o mapa), **Você** (você, equipamento, posses, finanças, D&D, corpo, ferimentos, mente, sobrevivência, magia, técnicas de espada, habilidades), **Pessoas** (pessoas, a rede de relações, família, facções, segredos, celular), **Jornada** (agenda, missões, Crônica, capítulos, atlas) e **Todos** (todos os cartões numa página). Num painel estreito as visões ficam numa barra no topo; num largo (janela própria, flutuante ampliado), num trilho lateral, com os cartões em duas colunas. Um número numa visão conta o que está esperando ali.
+O cartão **Agora** mostra onde você está num relance: o lugar, o relógio do HUD sob um céu que segue a hora e o clima, e o que importa a seguir. Clique numa linha para abrir o cartão dela.
+Voltando a um chat depois de algumas horas, a Cena abre em **Anteriormente…**: os últimos momentos-chave, onde a história está e as pontas soltas. O botão Anteriormente… na Jornada mostra isso a qualquer hora.
+**Buscar** (⌕ na barra de cima, ou Ctrl/⌘+K) procura pessoas, missões, compromissos, equipamento, magias, lugares e momentos da Crônica; Enter abre o resultado onde ele vive (uma pessoa abre a ficha dela). **Ferramentas** reúne o modo do painel, a zona de teste, Ler de novo e a ficha do personagem. As Configurações têm uma busca própria, e Configurações → Estilo de jogo → Visual escolhe Moderno, Livro de histórias, Minimalista ou Automático.
+
 ### Novo jogo
 Só num chat novo. Veja a parte 3.
 
@@ -286,13 +292,14 @@ O HUD, linha por linha.
 - A **checagem da linha Arc** avisa quando a linha Arc não carrega lore de arco nenhuma, e corrige com um clique.
 
 ### O cartão do mundo
-Um cartão por mundo: **Re:Zero**, **Overlord**, **Classroom of the Elite**, **Mushoku Tensei**, **Undertale**, **Dark Souls** e **Skyrim**.
+Um cartão por mundo: **Re:Zero**, **Overlord**, **Classroom of the Elite**, **Mushoku Tensei**, **Undertale**, **Dark Souls**, **Skyrim** e **Baldur's Gate 3**.
 Ele mostra os atributos próprios daquele mundo a partir do HUD, explicados pelos seus lorebooks. Alguns exemplos:
 
 - Re:Zero: mortes e o ponto de salvamento, Autoridades, contratos espirituais e seus ranks.
 - Overlord: níveis e classes, com uma checagem de que eles batem.
 - Classroom of the Elite: o calendário, a classificação das turmas, Private Points, a prova.
 - Mushoku Tensei: estilos de espada e ranks de magia, os conselhos do Homem-Deus e a linha do tempo da saga: o ano (K.) numa barra com os 22 arcos, o arco atual e quantos anos faltam para o próximo. Os arcos e seus anos vêm das entradas "[WORLD STATE — ARC N: …]" do lorebook, ou da lista canônica se ele não tiver.
+- Baldur's Gate 3: o ato e o capítulo, a data de Harptos, PV, CA e XP até o próximo nível, espaços de magia e recursos de classe, o girino e seus poderes, a aprovação dos companheiros, o acampamento, os pactos, o Dark Urge e a contagem regressiva. O estilo de jogo dele liga o D&D automaticamente: o card de D&D lê a sua ficha do HUD (classe e nível do Role, os testes de resistência da classe, as perícias e os seis atributos da linha Stats), o resultado da rolagem vai para o bot como o teste, e uma luta que começa na história abre a janela por turnos.
 
 ### Mapa
 Onde cada um está na sala. Começa desligado: Configurações → Extras do chat e do painel → **Mapa**.
@@ -305,6 +312,7 @@ O livro de locais do bot como mapa. Mostra onde você está, os cômodos ao redo
 Clique num lugar para entrar, **Subir** para sair.
 
 ### Você
+No topo fica quem você é: seu nome e, do HUD (e da sua persona para o que o HUD não diz), idade, raça, gênero, classe ou função, nascimento, origem, casa, títulos e afins, e depois a história até aqui: dias, respostas, pessoas conhecidas e missões concluídas.
 O seu próprio estado: vida e outros recursos, medidores, humor, estresse e sanidade.
 Nível e experiência só aparecem em mundos que têm níveis.
 **Item padrão** lista coisas que o bot supõe que você tem. **Carregado** lista pequenas coisas que você ganhou na história. Você pode adicioná-las ou removê-las.
@@ -409,8 +417,9 @@ Reservas de magia, tradições, recargas e um grimório que aprende as suas magi
 
 **Aprender.** Aperte 📖 para estudar uma magia. Antes de cada resposta o modelo é lembrado do que você estuda, com o efeito e o encantamento do lorebook, e da regra de que aprender exige prática e o seu rank. O bloco do painel lateral informa o progresso (uma barra sob a magia) e a magia quando você a lança bem pela primeira vez: ela vai para Conhecida e para a Crônica. ✓ marca uma magia como aprendida à mão; ✕ tira. Quando o rank de uma escola sobe no HUD, o card diz quais magias isso acabou de abrir. As magias que você conhece também vão para a preparação das lutas. Aparecer no menu de uma luta, ou só ser tentada, nunca conta como aprender; uma magia que a história mostra você praticando entra em Estudando sozinha. Lorebooks de qualquer tamanho são lidos inteiros, não só as primeiras 200 entradas.
 
-### Técnicas de espada
+### Técnicas de combate
 A mesma lista das magias, para os estilos de espada. As técnicas vêm do lorebook: `[TECHNIQUE — Longsword of Light]` com `Style: Sword God · Rank: Saint`, ou texto corrido como "Sword God Technique: Silent Strike." e "… technique of the Water God Style, achieved at the Saint tier". A linha `Sword Style:` (ou `Martial Style:`) do HUD dá o seu rank em cada estilo, então cada técnica aparece como Conhecida, Estudando, Ao alcance, Próximo rank, Bloqueada ou Rank desconhecido. Estudar, ✓ e ✕ funcionam como nas magias; quando a história informa a primeira execução limpa, ela vira Conhecida e entra na Crônica. Um lorebook complementar, *Mushoku Tensei - Sword Techniques (Mazaki)*, dá um rank a cada técnica dos estilos Sword God, Water God e North God, e traz o Estilo Greyrat criado por Ars Greyrat (adição de fã).
+Além dos três estilos de espada, ele lê **Superd Spear**, **Beastfolk CQC** e **Demon Brawling** da mesma linha `Sword Style`, e o **Touki** da linha `Touki (Battle Aura):` do HUD (Locked, Awakening, Active, Mastered). Com rank **God** num estilo, toda técnica dele fica ao alcance, mesmo uma que o lorebook não ranqueia. O lorebook complementar *Mushoku Tensei - Combat Techniques (Mazaki)* dá rank a todas as técnicas e acrescenta as de Superd, beastfolk, demônios, Touki e da Dragon Race.
 
 ### Habilidades
 Seus poderes, perícias e atributos, lidos do HUD.

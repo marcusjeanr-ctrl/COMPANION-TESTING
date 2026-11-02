@@ -150,7 +150,9 @@ check('guard: switching styles is a layout change, not dropped lines', () => {
 check('techniques: the sword-style reach reads in every style', () => {
     for (const make of [classic, visual, compact]) {
         const st = t.techStanding(parse(make()).lines);
-        assert.deepEqual(plain([...st.values()].map(r => [r.name, r.rank])), [['Sword God', 'Intermediate'], ['Water God', 'Beginner']], make.name);
+        assert.deepEqual(plain([...st.values()].map(r => [r.name, r.rank])), [['Touki', 'Locked'], ['Sword God', 'Intermediate'], ['Water God', 'Beginner']], make.name);
+        const on = t.techStanding(parse(make({ ...S, touki: 'Active' })).lines).get('touki');
+        assert.deepEqual(plain([on.name, on.rank]), ['Touki', 'Active'], make.name + ': Touki Active');
     }
 });
 check('world card: Imperial and Divine magic tiers have a step', () => {

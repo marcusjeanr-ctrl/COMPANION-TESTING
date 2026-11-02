@@ -1,6 +1,6 @@
 # HMS Guide
 
-**RPG Companion HMS Edition 1.0** and **HMS Reporter beta**
+**RPG Companion HMS Edition 1.1.1 beta** and **HMS Reporter beta**
 
 This guide explains how an HMS game works, how to set it up, and what every part does.
 Read **Start here** first. Use the other parts when you need them.
@@ -15,7 +15,7 @@ An HMS game has three parts. Each part has one job.
 | --- | --- | --- |
 | **The bot** | The character card and its lorebooks: Re:Zero, Mushoku Tensei, Classroom of the Elite or Overlord | The world and its rules. It writes the **WORLD STATE HUD** at the top of every reply. |
 | **HMS Reporter beta** | A preset: the prompt Lumiverse sends | How the story under the HUD is written: style, voices, length, thinking. |
-| **RPG Companion HMS Edition 1.0** | An extension: the side panel | It reads the HUD and shows it as cards. It tracks people, how they feel and what they know, quests, fights and more. It helps you start a game and ask questions. |
+| **RPG Companion HMS Edition 1.1.1 beta** | An extension: the side panel | It reads the HUD and shows it as cards. It tracks people, how they feel and what they know, quests, fights and more. It helps you start a game and ask questions. |
 
 ### Who is in charge
 
@@ -264,6 +264,12 @@ The preset then asks for an answer out of character: no HUD, no story, no hidden
 The panel shows one card per thing. A card only shows when it has something to show.
 Click a card's title to fold or unfold it.
 
+### Views, Now, Find and Previously…
+In an HMS chat the cards are grouped in views: **Scene** (Previously…, the Now card, loose ends, World State, the world card, the map), **You** (you, gear, holdings, finances, D&D, body, injuries, mind, survival, magic, sword techniques, abilities), **People** (people, the relationship web, family, factions, secrets, phone), **Journey** (agenda, quests, Chronicle, chapters, atlas) and **All** (every card on one page). On a narrow panel the views are a bar on top; on a wide one (own window, enlarged float) a rail on the side, with the cards in two columns. A number on a view counts what waits there.
+The **Now** card is where you are at a glance: the place, the HUD clock under a sky that follows the hour and the weather, and what matters next. Click a line to open its card.
+Coming back to a chat after a few hours, the Scene opens on **Previously…**: the last key moments, where the story stands and its open threads. The Previously… button in Journey shows it any time.
+**Find** (⌕ in the top bar, or Ctrl/⌘+K) searches people, quests, appointments, gear, spells, places and Chronicle moments; Enter opens the result where it lives (a person opens their dossier). **Tools** holds the panel mode, the test zone, Read again and the character sheet. Settings has its own search box, and Settings → Play style → Look picks Modern, Storybook, Minimal or Auto.
+
 ### New game
 Only on a new chat. See part 3.
 
@@ -277,13 +283,14 @@ The HUD, line by line.
 - The **Arc line check** warns when the Arc line loads no arc lore, and fixes it in one click.
 
 ### The world card
-One card per world: **Re:Zero**, **Overlord**, **Classroom of the Elite**, **Mushoku Tensei**, **Undertale**, **Dark Souls** and **Skyrim**.
+One card per world: **Re:Zero**, **Overlord**, **Classroom of the Elite**, **Mushoku Tensei**, **Undertale**, **Dark Souls**, **Skyrim** and **Baldur's Gate 3**.
 It shows that world's own stats from the HUD, explained from your lorebooks. Some examples:
 
 - Re:Zero: deaths and the save point, Authorities, spirit contracts and their ranks.
 - Overlord: levels and classes, with a check that they add up.
 - Classroom of the Elite: the calendar, class standings, Private Points, the exam.
 - Mushoku Tensei: sword styles and magic ranks, the Man-God's advice, and the saga's timeline: the year (K.) on a bar of all 22 arcs, the current arc, and how many years to the next one. The arcs and their years come from the lorebook's "[WORLD STATE — ARC N: …]" entries, or the canon list if it has none.
+- Baldur's Gate 3: the act and chapter, the Harptos date, HP, AC and XP to the next level, spell slots and class resources, the tadpole and its powers, companion approval, camp, pacts, the Dark Urge and the countdown. Its play style turns D&D on automatically: the D&D card reads your sheet from the HUD (class and level from Role, the class's saving throws, skills, and the six scores from the Stats line), the roller's result goes to the bot as the check, and a fight that starts in the story opens the turn-based window.
 
 ### Map
 Where everyone stands in the room. It is off at first: Settings → Chat and panel extras → **Map**.
@@ -296,6 +303,7 @@ The bot's location book as a map. It shows where you are, the rooms around you, 
 Click a place to go in, **Up** to go out.
 
 ### You
+The top shows who you are: your name and, from the HUD (and your persona for what the HUD leaves out), your age, race, gender, class or role, birth, origin, house, titles and the like, then the story so far: days, replies, people met and quests done.
 Your own state: health and other pools, meters, mood, stress and sanity.
 Level and experience show only in worlds that have levels.
 **Standard issue** lists things the bot assumes you have. **Carried** lists small things you got in the story. You can add or remove them.
@@ -403,8 +411,9 @@ Magic pools, traditions, cooldowns, and a spellbook that learns your spells.
 
 **Learning.** Press 📖 to study a spell. Before each reply the model is reminded what you study, with the spell's effect and chant from the lorebook, and the rule that learning takes practice and your rank. The side-panel block reports progress (a bar under the spell) and the spell once you first cast it cleanly: it moves to Known and into the Chronicle. ✓ marks a spell learned by hand; ✕ takes it off. When a school's rank goes up on the HUD, the card says which spells it just opened. Spells you know are also given to the fight setup. Being offered in a fight menu, or merely tried, never counts as learning; a spell the story shows you practising goes into Studying by itself. Lorebooks of any size are read whole, not only the first 200 entries.
 
-### Sword techniques
+### Combat techniques
 The same list as the spells, for sword styles. Techniques come from the lorebook: `[TECHNIQUE — Longsword of Light]` with `Style: Sword God · Rank: Saint`, or prose such as "Sword God Technique: Silent Strike." and "… technique of the Water God Style, achieved at the Saint tier". The HUD's `Sword Style:` (or `Martial Style:`) line gives your rank in each style, so each technique shows as Known, Studying, Within reach, Next rank, Locked or Rank unknown. Study, ✓ and ✕ work as for spells; the story's report of a first clean execution makes it Known and puts it in the Chronicle. A companion lorebook, *Mushoku Tensei - Sword Techniques (Mazaki)*, gives every technique of the Sword God, Water God and North God styles a rank, plus the Greyrat Style founded by Ars Greyrat (a fan addition).
+Besides the three sword styles it reads **Superd Spear**, **Beastfolk CQC** and **Demon Brawling** from the same `Sword Style` line, and **Battle Aura** from the HUD's `Touki (Battle Aura):` line (Locked, Awakening, Active, Mastered). At **God** rank every technique of the style is within reach, even one the lorebook gives no rank. The companion lorebook *Mushoku Tensei - Combat Techniques (Mazaki)* gives every technique a rank and adds the Superd, beastfolk, demon, Touki and Dragon Race techniques.
 
 ### Abilities
 Your powers, skills and attributes, read from the HUD.

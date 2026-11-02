@@ -4,6 +4,15 @@
 
 Compatibility with the Mushoku Tensei RPG "Six-Sided World" v1.1 card and its four HUD styles (Classic, Visual, Compact, Panel). Release candidate: automated checks pass; live Lumiverse acceptance is still to do. Report: `docs/release/1.1.0-RC-REPORT.md`.
 
+**Combat techniques and "who you are" (third RC pass, from the 1.1.1 beta)**
+- Brought in from the other fork's **1.1.1 beta** (its changes on top of 1.0.1, merged three-way so none of this RC's fixes are undone):
+  - **Touki (Battle Aura)** is a track of its own, read from the HUD's `Touki (Battle Aura):` line in every style, also when Compact puts it on the mana row: Locked, Awakening, Active, Mastered.
+  - **Superd Spear, Beastfolk CQC and Demon Brawling** are read as styles from the Sword Style line (and from Compact's `Skills:` row); a style keeps the HUD's spelling.
+  - At **God** rank in a style every technique of that style is within reach, including the ones the lorebook gives no rank.
+  - The **You** card's identity block (name, age, race, origin… from the HUD and persona; days, replies, people met) and the beta's Baldur's Gate 3 world card. Display only.
+- The narrator request is unchanged on every world tested; only panel data gains the new fields. The guides (all five languages) describe the new technique tracks.
+- The techniques the companion lorebook *Mushoku Tensei - Combat Techniques (Mazaki)* ranks appear when that lorebook is active. The Six-Sided World card's own combat entries mostly describe styles, so without it the list shows the card's ranked techniques and Superd Spear: Thousand Cuts.
+
 **Deeper integration (second RC pass, from live play)**
 - **A HUD with a blank line inside it is read to the end.** GLM 5.3 and DeepSeek sometimes leave a blank line mid-HUD; the Companion used to stop there (it read 17 of 23 lines of a real GLM reply, and 2 of 22 of a DeepSeek one). The HUD now goes on when the `***` wall follows and every line before it looks like a HUD line; prose after a blank line is still never read as HUD.
 - **Training**: the world card shows each `Training:` line as a progress bar (Sword God → Saint · 12/60), and the Chronicle records when training begins and when the sessions are done ("the rank now needs its proof"). The rank-up itself was already a milestone.

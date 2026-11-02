@@ -2599,6 +2599,7 @@ async function pushState(chatId, snapshot = null) {
         const cs = await getChatState(chatId);
         refreshThoughtsCache(chatId, chat);
         const userName = await getUserName(chatId);
+        try { await personaFor(chatId); } catch { /* the You card goes without it */ }
         const payload = withReadPass(chat, () => ({
             type: 'state',
             chatId,
@@ -2626,7 +2627,7 @@ async function pushState(chatId, snapshot = null) {
                 try {
                     const m = latestHudMessage(chat);
                     const lines = worldLines(m ? parseHud(textOf(m.content)) : null);
-                    return worldFind(lines, /^\[D&D CHARACTER SHEET\]$/i) ? worldDndSheet(lines) : null;
+                    return worldFind(lines, /^\[D&D CHARACTER SHEET\]$/i) ? worldDndSheet(lines) : hudDndSheetGeneric(lines);
                 } catch { return null; }
             })(),
             song: cs.song || null,
@@ -2768,6 +2769,7 @@ const tzOV = (day, time, place, extra) => `### WORLD STATE ###\nDay: ${day} | Ti
 const tzCO = (d, time, place, extra) => `### WORLD STATE ###\nYear 1/3 · Month 2/12 · May ${d} | ${time}\n◆ The ANHS Program → Campus → ${place}\nCohort: 1-DELTA | Standing: Class 1-D | Seat 21\nStandings 5/1 \u2014 ALPHA 1004 (A) \u00B7 BRAVO 663 (B) \u00B7 CHARLIE 492 (C) \u00B7 DELTA 87 (D)\nArc 2: The Midterm Pressure\nPrivate Points: ${extra.pp || '48,200'}\nSurveillance: ${extra.surv || 'Watched (hallway camera)'}\nEquipment: School smartphone | Uniform\n${extra.more || ''}***\n`;
 const tzUT = (area, extra) => `### WORLD STATE ###\n\u25C6 Mt. Ebott \u2192 The Underground \u2192 ${area}\nLV: ${extra.lv || 2} | EXP: ${extra.exp || 20} | NEXT: ${extra.next || 10} | G: ${extra.g || 42}\nHP: ${extra.hp || '24/24'}\nSOUL: Red \u2014 Determination\nRoute: ${extra.route || 'Neutral'} | Kills: ${extra.kills || '1'}\nSAVE: ${extra.save || 'Snowdin \u2014 Town'}\nAT: 10 (1) | DF: 10 (2)\nWeapon: Tough Glove | Armor: Manly Bandanna\nItems: Monster Candy, Cinnamon Bun\n${extra.more || ''}***\n`;
 const tzDS = (area, extra) => `### WORLD STATE ###\n\u25C6 Lordran \u2192 ${area}\nLevel: ${extra.lv || 31} | Souls: ${extra.souls || '4,120'}\nHP: ${extra.hp || '780/780'} | Stamina: ${extra.st || '110/110'}\nEstus Flask: ${extra.estus || '5/5'} (+2)\nHumanity: ${extra.hum || 2} | Form: ${extra.form || 'Human'}\nBonfire: ${extra.bonfire || 'Firelink Shrine'}\nCovenant: Warriors of Sunlight (Rank 1)\nDeaths: ${extra.deaths || 12}\nStats: VIT 20 | ATT 10 | END 22 | STR 18 | DEX 14 | RES 11 | INT 9 | FTH 12\nWeapon: Longsword +5 | Shield: Grass Crest Shield\n${extra.more || ''}***\n`;
+const tzBG = (extra) => `### WORLD STATE ###\nDay: ${extra.day || 2} | Date: ${extra.date || '21 Eleasis, 1492 DR'} | Time: ${extra.time || '09:20 (Morning)'} | Weather: Clear, smoke on the wind\n\u25C6 Fa\u00EBr\u00FBn \u2192 Sword Coast \u2192 Chionthar Wilderness \u2192 ${extra.place || 'Emerald Grove \u2192 Druid Grove'}\nArc: Act I \u00B7 ${extra.arc || 'A1-04 \"The Emerald Grove\"'}\nGame Mode: Canon Run | Canon: Keep | Difficulty: Balanced | Narrative: Strict Agency\nRole: Tav \u00B7 Half-Elf (High) \u00B7 Cleric ${extra.lv || 2} (Life Domain, Lathander) \u00B7 Acolyte\nHealth: ${extra.health || '100'}/100 | HP: ${extra.hp || '17/17'} | AC: 18 | Level: ${extra.lv || 2} | XP: ${extra.xp || '520/900'}\nStats: STR 13 \u00B7 DEX 10 \u00B7 CON 15 \u00B7 INT 8 \u00B7 WIS 17 \u00B7 CHA 12\nResources: Spell Slots \u2014 L1 ${extra.slots || '3/3'} | Short Rests \u2014 ${extra.rests || '2/2'} | Inspiration \u2014 ${extra.insp || '1'} | Channel Divinity \u2014 1/1\nTadpole: ${extra.tadpole || 'Dormant'} | Powers: ${extra.powers || 'none'} | Call: ${extra.call || 'Silent'}\nCondition: ${extra.cond || 'Healthy'}\nSkills: Insight (Proficient), Religion (Proficient), Medicine (Proficient), Persuasion (Proficient)\nLanguages: Common (Native), Elvish (Fluent), Celestial (Basic)\nEquipment: mace, scale mail, shield, holy symbol of Lathander, healer's kit\nSupplies: Camp \u2014 ${extra.camp || '25'} \u00B7 Gold \u2014 ${extra.gold || '48'} \u00B7 Potions \u2014 2 \u00B7 Scrolls \u2014 1 \u00B7 Ammo \u2014 none\nParty: Shadowheart \u2014 ${extra.sh || 'Neutral'} \u00B7 Astarion \u2014 ${extra.as || 'Low'} \u00B7 Lae'zel \u2014 Neutral\nNext Canon Event: The Rite of Thorns \u2014 when the grove's gates close\nCountdown: Ceremorphosis (feared) \u2014 days, maybe less\nStanding: Emerald Grove \u2014 ${extra.grove || 'Wary'} \u00B7 Absolute cult \u2014 unaware of you\nQuests: Find a healer for the tadpole \u2014 active; Save the refugees \u2014 active\n${extra.more || ''}Thread: ${extra.thread || 'Will Kagha listen?'}\n***\n`;
 const tzSK = (place, extra) => `### WORLD STATE ###\n4th of Last Seed, 4E 201 | ${extra.time || '10:00'}\n\u25C6 Skyrim \u2192 Whiterun Hold \u2192 ${place}\nLevel: ${extra.lv || 18} (Next: ${extra.next || 40}%) | Race: Nord | Standing Stone: The Warrior\nHealth: ${extra.hp || '270/270'} | Magicka: ${extra.mp || '110/110'} | Stamina: ${extra.st || '230/230'}\nDragon Souls: ${extra.souls || 2} | Perks: ${extra.perks || 1} unspent\nShouts: Unrelenting Force (${extra.fus || 2}/3), Whirlwind Sprint (1/3)\nSkills: One-Handed 52 \u00B7 Block 41 \u00B7 Heavy Armor 38 \u00B7 Smithing 45 \u00B7 Archery 33\nBounty: ${extra.bounty || 'Whiterun 40'}\nFactions: Companions (Whelp)\nGold: ${extra.gold || '612'} | Carry: 214/300\n${extra.more || ''}***\n`;
 const tzMT = (day, time, extra) => `### WORLD STATE ###\nYear: K.414 | Day: ${day} | Time: ${time}\nLocation: \u25C6 Six-Faced World \u2192 Central Continent \u2192 Asura Kingdom (Fittoa Region) \u2192 Buena Village \u2192 ${extra.place || 'The Greyrat House'}\nBirth: K.407 | Race: Human | Age: 7 | Origin: Native (Reincarnated)\nCurrent Arc: Arc 2-B: Hearth & Home\nMana Capacity: Laplace Factor (Growing)\nCasting Method: Voiceless (Silent)\nTouki: None (Unavailable)\nMartial Style: Sword God Style: ${extra.sword || 'Beginner'}\nMagic School: Water: Saint, Fire: Advanced, Earth: Advanced, Wind: Advanced, Healing: ${extra.heal || 'Elementary'}\nLanguages: Human God (Native), Demon God (Fluent)${extra.lang || ''}\nEquipment: Roxy's wand \u2014 keepsake / magic focus, Migurd amulet \u2014 Roxy's parting gift\n${extra.more || ''}Memory: Memory 1\n***\n`;
 
@@ -2904,6 +2906,21 @@ const SANDBOX_WORLDS = {
             (d) => tzSK('the road to Riverwood', { time: '14:30', souls: 3, fus: 3, perks: 2, next: 55 }) + 'Wings over the watchtower. The dragon falls, and its soul pours into you like wind through an open door. FUS RO DAH, whole at last.' +
                 tzBlock({ characters: [{ name: 'Lydia', thoughts: { content: 'Dragonborn. It is true, then.' } }],
                     relations: [{ name: 'Lydia', standing: 'Devoted', bond: 'housecarl', minor: false, mood: 'awed', affection: 45, trust: 70, respect: 75, desire: 0, tension: 0, jealousy: 0, fear: 0, reasons: { respect: 'She watched you take the dragon\u2019s soul' } }] })
+        ]
+    },
+    bg3: {
+        name: 'Baldur\u2019s Gate 3', party: ['Shadowheart', 'Astarion', "Lae'zel"],
+        narrator: 'You narrate a Baldur\u2019s Gate 3 story on the Sword Coast in 1492 DR, as D&D 5e. The protagonist is USER, a Half-Elf Life Cleric of Lathander with a mind flayer tadpole behind the eye. Shadowheart, Astarion and Lae\'zel travel with USER. Begin every reply with this HUD, keep every line that still applies, then a line of *** and the prose:\n' + tzBG({}).replace(/\n\*\*\*\n$/, '') + '\n***\nShow every roll like the game: "\uD83C\uDFB2 Persuasion \u2014 d20 (14) + 5 = 19 vs DC 15 \u2014 Success".',
+        script: [
+            (d) => tzBG({}) + 'The druids\u2019 grove smells of moss and blood. Kagha does not lower her blade; behind her, the tieflings clutch their children.\n\n\uD83C\uDFB2 Persuasion \u2014 d20 (14) + 3 = 17 vs DC 15 \u2014 Success\n\n"Speak quickly, outsider," she says. Shadowheart lifts an eyebrow at you. Astarion yawns.' +
+                tzBlock({ characters: [{ name: 'Shadowheart', details: { Outfit: 'Sharran half-plate, hood down', Position: 'At your shoulder', Agenda: 'Keep the artefact hidden' }, thoughts: { content: 'Let them argue. As long as nobody asks about what is in my pack.' } },
+                    { name: 'Astarion', details: { Outfit: 'Fine doublet, rapier', Position: 'Leaning on a tree', Agenda: 'Find out how far the tadpole lets him go' }, thoughts: { content: 'Druids. Wonderful. Bark and sermons.' } }],
+                    relations: [{ name: 'Shadowheart', standing: 'Neutral', bond: 'companion', minor: false, mood: 'guarded', affection: 30, trust: 20, respect: 30, desire: 5, tension: 10, jealousy: 0, fear: 0 },
+                        { name: 'Astarion', standing: 'Wary', bond: 'companion', minor: false, mood: 'bored', affection: 15, trust: 5, respect: 20, desire: 10, tension: 20, jealousy: 0, fear: 0 }],
+                    party: [{ name: 'Shadowheart', register: 'Guarded', band: 'Sharran cleric' }, { name: 'Astarion', register: 'Playful', band: 'Vampire spawn (hidden)' }] }),
+            (d) => tzBG({ day: 3, date: '22 Eleasis, 1492 DR', time: '06:40 (Dawn)', place: 'Camp \u2192 Riverside', lv: 3, hp: '24/24', xp: '980/2700', slots: '4/4', insp: '2', tadpole: 'Stirring', powers: 'Transfuse Health', call: 'Whispering', sh: 'Medium', as: 'Neutral', grove: 'Friendly', camp: '15', gold: '112', more: '[ROMANCE: Shadowheart \u2014 first kiss]\n', thread: 'What did the Dream Visitor want?' }) + 'Dawn over the river. Shadowheart sits apart, turning the artefact over in her hands, and does not hide it when you come near this time.\n\nIn the night, a beautiful stranger walked through your dream and asked you to trust the tadpole. You woke with a new power at your fingertips.' +
+                tzBlock({ characters: [{ name: 'Shadowheart', thoughts: { content: 'I should not have kissed them. I should not want to again.' } }],
+                    relations: [{ name: 'Shadowheart', standing: 'Warm', bond: 'companion', minor: false, mood: 'flustered', affection: 55, trust: 40, respect: 40, desire: 35, tension: 15, jealousy: 0, fear: 0, reasons: { desire: 'A kiss under the stars' } }] })
         ]
     },
     classic: {
@@ -9380,7 +9397,8 @@ const WORLD_COVERS = {
     mushoku: ['MARTIAL STYLE', 'MAGIC SCHOOL', 'TOUKI', 'CASTING METHOD', 'MANA CAPACITY', 'DEMON EYE', 'CURSE', 'BLESSING', 'CONTRACTS', 'TERM', 'ADVENTURER'],
     undertale: ['SOUL', 'ROUTE', 'KILLS', 'WEAPON', 'ARMOR'],
     darksouls: ['COVENANT', 'HUMANITY', 'FORM', 'HOLLOWING', 'WEAPON'],
-    skyrim: ['SHOUTS', 'SHOUT', 'SKILLS', 'STANDING STONE', 'FACTIONS', 'AFFLICTION', 'RACE', 'PERKS', 'PERK']
+    skyrim: ['SHOUTS', 'SHOUT', 'SKILLS', 'STANDING STONE', 'FACTIONS', 'AFFLICTION', 'RACE', 'PERKS', 'PERK'],
+    bg3: ['TADPOLE', 'POWERS', 'CALL', 'RESOURCES', 'PACT', 'URGE', 'ROMANCE', 'CAMP', 'COUNTDOWN', 'NEXT CANON EVENT', 'STATS']
 };
 
 // ── Undertale, Dark Souls and Skyrim ──
@@ -9471,6 +9489,137 @@ function worldSkyrim(chatId, lines) {
     };
 }
 
+// ── Baldur's Gate 3 (the HMS BG3 card): the world card, and the D&D sheet read from its HUD ──
+
+const BG3_TADPOLE = ['None', 'Dormant', 'Stirring', 'Awakened', 'Half-Illithid'];
+const BG3_APPROVAL = ['Despise', 'Low', 'Neutral', 'Medium', 'High', 'Exceptional'];
+const BG3_STANDING = ['At War', 'Hostile', 'Wary', 'Neutral', 'Friendly', 'Allied', 'Sworn'];
+const BG3_XP = [0, 300, 900, 2700, 6500, 14000, 23000, 34000, 48000, 64000, 85000, 100000];
+// 5e saving-throw proficiencies by class (a multiclass keeps its first class's saves)
+const DND_CLASS_SAVES = { barbarian: ['str', 'con'], bard: ['dex', 'cha'], cleric: ['wis', 'cha'], druid: ['int', 'wis'], fighter: ['str', 'con'], monk: ['str', 'dex'],
+    paladin: ['wis', 'cha'], ranger: ['str', 'dex'], rogue: ['dex', 'int'], sorcerer: ['con', 'cha'], warlock: ['wis', 'cha'], wizard: ['int', 'wis'], artificer: ['con', 'int'] };
+const DND_CLASS_RE = /\b(Barbarian|Bard|Cleric|Druid|Fighter|Monk|Paladin|Ranger|Rogue|Sorcerer|Warlock|Wizard|Artificer)\s+(\d{1,2})\b(?:\s*\(([^)]*)\))?/gi;
+
+/** "Role: Tav · Half-Elf (High) · Cleric 3 (Life Domain, Lathander) / Fighter 1 · Acolyte" → origin, race, classes, background. */
+function bg3Role(text) {
+    if (!text) return null;
+    const parts = String(text).split(/\s*·\s*/).map(x => x.trim()).filter(Boolean);
+    const classes = [];
+    for (const m of String(text).matchAll(DND_CLASS_RE)) classes.push({ name: m[1].charAt(0).toUpperCase() + m[1].slice(1).toLowerCase(), level: Number(m[2]), sub: m[3] ? m[3].split(/\s*,\s*/)[0].trim() : null, note: m[3] ? m[3].split(/\s*,\s*/).slice(1).join(', ') || null : null });
+    const classIdx = parts.findIndex(p => /\b(Barbarian|Bard|Cleric|Druid|Fighter|Monk|Paladin|Ranger|Rogue|Sorcerer|Warlock|Wizard|Artificer)\b/i.test(p));
+    return { origin: parts[0] || null, race: classIdx > 1 ? parts.slice(1, classIdx).join(' · ') : (parts[1] && classIdx !== 1 ? parts[1] : null),
+        classes, background: classIdx >= 0 && parts[classIdx + 1] ? parts.slice(classIdx + 1).join(' · ') : null };
+}
+
+/** "Stats: STR 8 · DEX 16 · CON 14 · INT 10 · WIS 12 · CHA 16" (scores, or "+3" modifiers, or "[+3]"). */
+function dndStatsLine(text) {
+    const out = { scores: {}, mods: {} };
+    for (const m of String(text || '').matchAll(/\b(STR|DEX|CON|INT|WIS|CHA)\b\s*[:=]?\s*\[?\s*([+-]?\d{1,2})\s*\]?(?:\s*\(\s*([+-]\d{1,2})\s*\))?/gi)) {
+        const id = m[1].toLowerCase(), v = m[2];
+        if (/^[+-]/.test(v)) out.mods[id] = Number(v);
+        else { out.scores[id] = Number(v); out.mods[id] = m[3] ? Number(m[3]) : Math.floor((Number(v) - 10) / 2); }
+    }
+    return out;
+}
+
+/**
+ * A D&D sheet from a HUD that prints a class and level but no sheet block of its own (the BG3 card):
+ * level and proficiency from Level, saves from the first class, skills from "Skills: Insight (Proficient)…",
+ * scores from a Stats line when the HUD prints one.
+ */
+function hudDndSheetGeneric(lines) {
+    const roleM = worldFind(lines, /^Role:\s*(.+)$/i);
+    const role = roleM ? bg3Role(roleM[1]) : null;
+    const lvlM = worldFind(lines, /(?:^|\|\s*)Level:\s*(\d{1,2})\b/i);
+    const level = lvlM ? Number(lvlM[1]) : role && role.classes.length ? role.classes.reduce((a, c) => a + c.level, 0) : null;
+    if (!role || !role.classes.length || !level) return null;
+    const stats = dndStatsLine((worldFind(lines, /^(?:Stats|Ability Scores|Abilities):\s*(.+)$/i) || [])[1]);
+    const skillsM = worldFind(lines, /^Skills:\s*(.+)$/i);
+    const skills = {};
+    if (skillsM) for (const x of skillsM[1].split(/\s*,\s*(?![^()]*\))/)) {
+        const m = x.match(/^(.+?)\s*(?:\(([^)]*)\))?\s*$/);
+        if (!m) continue;
+        const name = m[1].replace(/\*+$/, '').trim().toLowerCase();
+        if (!name || /^\(/.test(name)) continue;
+        skills[name] = /expert/i.test(m[2] || '') || /\*$/.test(m[1]) ? 2 : 1;
+    }
+    const first = role.classes[0];
+    return { klass: role.classes.map(c => `${c.name} ${c.level}${c.sub ? ` (${c.sub})` : ''}`).join(' / '), level, pb: 2 + Math.floor((Math.max(1, Math.min(20, level)) - 1) / 4),
+        mods: stats.mods, scores: stats.scores, saves: DND_CLASS_SAVES[first.name.toLowerCase()] || [], skills, from: 'role' };
+}
+
+function worldBg3(chatId, lines) {
+    const dayM = worldFind(lines, /^Day:\s*(\d+)/i);
+    const dateM = worldFind(lines, /(?:^|\|\s*)Date:\s*([^|]+)/i);
+    const timeM = worldFind(lines, /(?:^|\|\s*)Time:\s*([\d:]+)\s*(?:\(([^)]+)\))?/i);
+    const arcM = worldFind(lines, /^Arc:\s*(?:(Act\s+[IVX]+)\s*·\s*([A-Z0-9-]+)\s*(?:["“]([^"”]+)["”])?|Sandbox\s*·\s*(.+))\s*$/i);
+    const modeM = worldFind(lines, /^Game Mode:\s*(.+)$/i);
+    const mode = {};
+    if (modeM) {
+        const parts = modeM[1].split(/\s*\|\s*/);
+        mode.run = parts[0].trim();
+        for (const p of parts.slice(1)) { const k = p.match(/^(Canon|Difficulty|Narrative|Voice)\s*:\s*(.+)$/i); if (k) mode[k[1].toLowerCase()] = k[2].trim(); }
+    }
+    const roleM = worldFind(lines, /^Role:\s*(.+)$/i);
+    const hpM = worldFind(lines, /(?:^|\|\s*)HP:\s*(-?\d+)\s*\/\s*(\d+)/i);
+    const acM = worldFind(lines, /(?:^|\|\s*)AC:\s*(\d+)/i);
+    const lvlM = worldFind(lines, /(?:^|\|\s*)Level:\s*(\d+)/i);
+    const xpM = worldFind(lines, /(?:^|\|\s*)XP:\s*([\d,]+)\s*\/\s*([\d,]+)/i);
+    const resM = worldFind(lines, /^Resources:\s*(.+)$/i);
+    const resources = [];
+    if (resM) for (const p of resM[1].split(/\s*\|\s*/)) {
+        const k = p.match(/^(.+?)\s*[—–-]\s*(.+)$/);
+        if (!k) continue;
+        const label = k[1].trim(), val = k[2].trim();
+        if (/^spell slots$/i.test(label)) {
+            for (const s of val.split(/\s*,\s*/)) { const q = s.match(/^L(\d)\s+(\d+)\s*\/\s*(\d+)/i); if (q) resources.push({ label: `L${q[1]} slots`, cur: Number(q[2]), max: Number(q[3]), kind: 'slot' }); }
+            continue;
+        }
+        const q = val.match(/^(\d+)\s*\/\s*(\d+)/);
+        if (q) resources.push({ label, cur: Number(q[1]), max: Number(q[2]), kind: /short rest/i.test(label) ? 'rest' : 'class' });
+        else if (/^\d+$/.test(val)) resources.push({ label, cur: Number(val), max: /inspiration/i.test(label) ? 4 : null, kind: /inspiration/i.test(label) ? 'insp' : 'class' });
+        else resources.push({ label, text: val, kind: 'class' });
+    }
+    const tadM = worldFind(lines, /^Tadpole:\s*([^|]+?)(?:\s*\|\s*Powers:\s*([^|]+?))?(?:\s*\|\s*Call:\s*(.+))?$/i);
+    const tadState = tadM ? tadM[1].trim() : null;
+    const tadStep = tadState ? BG3_TADPOLE.findIndex(x => x.toLowerCase() === tadState.toLowerCase()) : -1;
+    const powers = tadM && tadM[2] && !/^none$/i.test(tadM[2].trim()) ? tadM[2].split(/\s*,\s*/).map(x => x.trim()).filter(Boolean).map(n => ({ name: n, lore: worldLore(chatId, n) })) : [];
+    const partyM = worldFind(lines, /^Party:\s*(.+)$/i);
+    const party = partyM ? partyM[1].split(/\s*·\s*/).map(x => {
+        const m = x.match(/^(.+?)\s*[—–-]\s*(.+)$/);
+        const band = m ? m[2].trim() : null;
+        const step = band ? BG3_APPROVAL.findIndex(b => b.toLowerCase() === band.toLowerCase()) : -1;
+        return { name: (m ? m[1] : x).trim(), band, step: step >= 0 ? step : null };
+    }).filter(p => p.name) : [];
+    const campM = worldFind(lines, /^Camp:\s*(.+)$/i);
+    const supM = worldFind(lines, /^Supplies:\s*(.+)$/i);
+    const supplies = supM ? supM[1].split(/\s*·\s*/).map(x => { const m = x.match(/^(.+?)\s*[—–-]\s*(.+)$/); return m ? { label: m[1].trim(), value: m[2].trim() } : null; }).filter(Boolean) : [];
+    const standM = worldFind(lines, /^Standing:\s*(.+)$/i);
+    const standing = standM ? standM[1].split(/\s*·\s*/).map(x => {
+        const m = x.match(/^(.+?)\s*[—–-]\s*(.+)$/);
+        const lv = m ? m[2].trim() : null;
+        const step = lv ? BG3_STANDING.findIndex(b => b.toLowerCase() === lv.toLowerCase()) : -1;
+        return { name: (m ? m[1] : x).trim(), level: lv, step: step >= 0 ? step : null };
+    }) : [];
+    const one = (re) => { const m = worldFind(lines, re); return m ? m[1].trim() : null; };
+    const tag = (name) => worldAll(lines, new RegExp(`^\\[${name}:\\s*([^\\]]+)\\]`, 'i')).map(m => m[1].trim());
+    const lvl = lvlM ? Number(lvlM[1]) : null;
+    const xp = xpM ? { cur: worldNum(xpM[1]), next: worldNum(xpM[2]) } : null;
+    let xpPct = null;
+    if (xp && lvl && xp.next) { const base = BG3_XP[lvl - 1] ?? 0; xpPct = Math.max(0, Math.min(100, Math.round((xp.cur - base) / Math.max(1, xp.next - base) * 100))); }
+    return {
+        day: dayM ? Number(dayM[1]) : null, date: dateM ? dateM[1].trim() : null, time: timeM ? timeM[1] : null, period: timeM && timeM[2] ? timeM[2] : null,
+        act: arcM ? (arcM[1] || 'Sandbox') : null, code: arcM ? arcM[2] || null : null, chapter: arcM ? arcM[3] || arcM[4] || null : null,
+        mode: modeM ? { run: mode.run || null, canon: mode.canon || null, difficulty: mode.difficulty || null, narrative: mode.narrative || null } : null,
+        role: roleM ? bg3Role(roleM[1]) : null,
+        hp: hpM ? { cur: Number(hpM[1]), max: Number(hpM[2]) } : null, ac: acM ? Number(acM[1]) : null, level: lvl, xp, xpPct, levelUp: !!(xp && xp.next && xp.cur >= xp.next && lvl && lvl < 12),
+        resources, tadpole: tadState ? { state: tadState, step: tadStep, call: tadM[3] ? tadM[3].trim() : null, removed: /removed/i.test(tadState) } : null, powers,
+        party, camp: campM ? campM[1].split(/\s*,\s*/).map(x => x.trim()).filter(Boolean) : [], supplies, standing,
+        next: one(/^Next Canon Event:\s*(.+)$/i), countdown: one(/^Countdown:\s*(.+)$/i), thread: one(/^Thread:\s*(.+)$/i),
+        pacts: tag('PACT'), urge: tag('URGE')[0] || null, romances: tag('ROMANCE'), divergences: tag('DIVERGENCE'), changes: tag('CHANGE')
+    };
+}
+
 /** Does this HUD belong to a story where time can run backwards (Return by Death, Undertale's SAVE and RESET)? */
 function hudCanRewind(hud) {
     if (!hud) return false;
@@ -9485,7 +9634,7 @@ const WORLD_STANDARD_ISSUE = {
         note: 'Standard issue. The bot assumes every student carries these and puts one on the HUD only when something happens to it (confiscated, cracked, torn).' }
 };
 function worldStandardIssue(hud) { try { return hud ? WORLD_STANDARD_ISSUE[worldOf(worldLines(hud))] || null : null; } catch { return null; } }
-const WORLD_LABEL = { rezero: 'Re:Zero', overlord: 'Overlord', cote: 'Classroom of the Elite', mushoku: 'Mushoku Tensei', undertale: 'Undertale', darksouls: 'Dark Souls', skyrim: 'Skyrim' };
+const WORLD_LABEL = { rezero: 'Re:Zero', overlord: 'Overlord', cote: 'Classroom of the Elite', mushoku: 'Mushoku Tensei', undertale: 'Undertale', darksouls: 'Dark Souls', skyrim: 'Skyrim', bg3: 'Baldur\u2019s Gate 3' };
 const RZ_RANKS = ['Lesser', 'Quasi', 'Full', 'Great', 'Sovereign'];
 const MT_MARTIAL = ['Beginner', 'Intermediate', 'Advanced', 'Saint', 'King', 'Emperor', 'God'];
 const MT_MAGIC = ['Elementary', 'Intermediate', 'Advanced', 'Saint', 'King', 'Emperor', 'God'];
@@ -9505,6 +9654,7 @@ function worldOf(lines) {
         mushoku: 2 * /^(?:Year:\s*K\.|Armored Dragon Calendar:\s*K)/m.test(t) + /^Mana Capacity:/m.test(t) + 2 * /Six-Faced World|Central Continent\s*→\s*Asura Kingdom/i.test(t) + /\[HITOGAMI:|^(?:Martial Style|Sword Style|Magic School|Magic Tiers|Touki(?: \(Battle Aura\)?):)/m.test(t),
         undertale: 2 * /^(LV|LOVE):\s*\d+/m.test(t) + /^SOUL:/m.test(t) + /^Route:/m.test(t) + 2 * /\bThe Underground\b|Snowdin|Waterfall|Hotland|New Home|Mt\.? Ebott/i.test(t),
         darksouls: 2 * /(^|\|\s*)Souls:\s*[\d,]+/m.test(t) + /Estus/i.test(t) + /^(Bonfire|Last Bonfire):/m.test(t) + /Humanity:|Hollowing|\bEmbered\b/i.test(t) + 2 * /Lordran|Lothric|Drangleic|Firelink|Age of Fire|Kiln of the First Flame/i.test(t),
+        bg3: 2 * /Fa(?:er|e)r[u\u00FB]n/i.test(t) + 2 * /\b14\d\d DR\b/.test(t) + /^Tadpole:/m.test(t) + /^Arc:\s*(?:Act\s+[IVX]+|Sandbox)/m.test(t) + /^Party:.*[\u2014\u2013-]\s*(?:Despise|Low|Neutral|Medium|High|Exceptional)\b/m.test(t),
         skyrim: 2 * /\bMagicka\b/i.test(t) + /Dragon Souls:/i.test(t) + /^Shouts?:/m.test(t) + /Standing Stone/i.test(t) + 2 * /\bSkyrim\b|Tamriel|Whiterun|Solitude|Windhelm|Riften|Markarth/i.test(t)
     };
     let best = null, top = 1;
@@ -10114,13 +10264,15 @@ function worldPanel(chatId, chat, st) {
     else if (id === 'undertale') Object.assign(out, worldUndertale(chatId, lines));
     else if (id === 'darksouls') Object.assign(out, worldDarkSouls(chatId, lines));
     else if (id === 'skyrim') Object.assign(out, worldSkyrim(chatId, lines));
+    else if (id === 'bg3') Object.assign(out, worldBg3(chatId, lines));
     // A D&D character sheet some Re:Zero modes print: the D&D card reads it instead of your own numbers.
-    const sheet = worldFind(lines, /^\[D&D CHARACTER SHEET\]$/i) ? worldDndSheet(lines) : null;
+    // A HUD that prints a class and level (BG3) gives one too: level, saves, skills and any Stats line.
+    const sheet = worldFind(lines, /^\[D&D CHARACTER SHEET\]$/i) ? worldDndSheet(lines) : hudDndSheetGeneric(lines);
     if (sheet) out.dndSheet = sheet;
     // HUD lines this card shows in full; the Abilities card leaves them to it.
     out.covers = WORLD_COVERS[id] || [];
     // Inline blocks this card renders in full; the World State shows a pointer instead of repeating them.
-    out.blocks = [out.godmother ? 'THE GODMOTHER' : null, out.database ? 'SCHOOL DATABASE' : null, sheet ? 'D&D CHARACTER SHEET' : null].filter(Boolean);
+    out.blocks = [out.godmother ? 'THE GODMOTHER' : null, out.database ? 'SCHOOL DATABASE' : null, sheet && sheet.from !== 'role' ? 'D&D CHARACTER SHEET' : null].filter(Boolean);
     return out;
 }
 
@@ -11293,6 +11445,7 @@ function hmsPanelStateRead(chatId, chat, st) {
                 you = hmsYouPanel(chat, st, null, sysNow); magic = hmsMagicPanel(chat, st, null, sysNow, chatId);
                 if (magicCfg().on && sysNow) { try { techniques = techListPanel(chatId, chat, st, sysNow); } catch (e) { logW(`[RPG Companion HMS] Technique list failed: ${e?.message || e}`); } }
                 if (you && comms && comms.balance) you.balance = comms.balance;
+                if (you) { try { you.identity = youIdentity(chatId, chat, tl, sysNow, relations, systems); } catch (e) { logW(`[RPG Companion HMS] You identity read failed: ${e?.message || e}`); } }
                 if (systems && hmsCfg().abilities.enabled !== false) {
                     const category = hmsParseVocab(hmsCfg().abilities.vocabulary).find(g => /martial/i.test(g.name));
                     const items = category ? martialAbilityItems(chatId, chat, st) : [];
@@ -16299,6 +16452,105 @@ function hmsYouPanelRead(chat, st, cfg, sys) {
         carried, standard: si ? { items: si.items, note: si.note } : null };
 }
 
+// ── who you are: the You card's identity block ──
+// The HUD's own identity lines first (Mushoku: "Birth: K.407 | Race: Human | Age: 7 | Origin: …", BG3:
+// "Role: Tav · Half-Elf (High) · Cleric 2 · Acolyte", CotE: "Cohort: … | Standing: Class 1-D | Seat 21"),
+// then what the persona says for anything the HUD leaves out. Nothing here is sent to the model.
+const personaCache = new Map();   // chatId → { text, at }
+async function personaFor(chatId) {
+    if (!chatId) return '';
+    const hit = personaCache.get(chatId);
+    if (hit && Date.now() - hit.at < 60000) return hit.text;
+    let text = '';
+    try { text = String(await resolveMacros('{{persona}}', chatId === SANDBOX_ID ? lastRealChatId : chatId) || ''); } catch { text = ''; }
+    if (/^\s*\{\{persona\}\}\s*$/.test(text)) text = '';
+    personaCache.set(chatId, { text: text.slice(0, 6000), at: Date.now() });
+    while (personaCache.size > 40) personaCache.delete(personaCache.keys().next().value);
+    return text;
+}
+const YOU_ID_FIELDS = [
+    ['age', 'Age', /^(?:age|current age|idade|edad)$/i],
+    ['born', 'Born', /^(?:birth|born|birthday|birthdate|date of birth|dob|birth year)$/i],
+    ['race', 'Race', /^(?:race|species|heritage|ancestry|kin|bloodline race)$/i],
+    ['gender', 'Gender', /^(?:gender|sex)$/i],
+    ['class', 'Class', /^(?:class|classes|job|jobs|occupation|profession|vocation)$/i],
+    ['role', 'Role', /^(?:role|origin character)$/i],
+    ['origin', 'Origin', /^(?:origin|background|hometown|birthplace|homeland|nationality|from)$/i],
+    ['house', 'House', /^(?:house|clan|family name|lineage|noble house)$/i],
+    ['affiliation', 'Affiliation', /^(?:affiliation|allegiance|guild|order|cohort|class standing)$/i],
+    ['title', 'Titles', /^(?:titles?|epithets?|aliases)$/i],
+    ['alignment', 'Alignment', /^(?:alignment|karma)$/i],
+    ['soul', 'Soul', /^soul$/i],
+    ['covenant', 'Covenant', /^covenant$/i],
+    ['form', 'Form', /^(?:form|true form)$/i],
+    ['looks', 'Appearance', /^(?:appearance|looks|aparência|apariencia)$/i]
+];
+function youIdFields(lines) {
+    const out = new Map();
+    for (const raw of lines || []) {
+        const text = hudSemanticText(raw && raw.text !== undefined ? raw.text : raw);
+        if (!text || /^[◆◇⌖►▶•]/.test(text)) continue;
+        for (const part of hmsSplitTop(text, /\s+\|\s+/g)) {
+            const m = String(part).match(/^\s*([^:]{1,32}?)\s*:\s*(.+?)\s*$/);
+            if (!m) continue;
+            const f = YOU_ID_FIELDS.find(x => x[2].test(m[1].trim()));
+            if (!f || out.has(f[0])) continue;
+            const v = m[2].replace(/\*\*/g, '').trim();
+            if (!v || /^(?:none|n\/a|unknown|—|-)$/i.test(v)) continue;
+            out.set(f[0], { key: f[0], label: f[1], value: v.slice(0, 140), from: 'hud' });
+        }
+    }
+    return out;
+}
+function youPersonaFields(text, out) {
+    const t = String(text || '');
+    if (!t.trim()) return;
+    for (const line of t.split(/\n+/).slice(0, 80)) {
+        const m = line.replace(/^[\s*\-•#>]+/, '').replace(/\*\*/g, '').match(/^([A-Za-zÀ-ÿ ]{2,24})\s*[:=]\s*(.{1,140})$/);
+        if (!m) continue;
+        const f = YOU_ID_FIELDS.find(x => x[2].test(m[1].trim()));
+        if (f && !out.has(f[0])) out.set(f[0], { key: f[0], label: f[1], value: m[2].trim(), from: 'persona' });
+    }
+    if (!out.has('age')) {
+        const a = t.match(/\b(\d{1,4})[\s-]*(?:years?|yrs?)[\s-]*old\b|\b(\d{1,4})[\s-]*(?:anos|años)(?:\s+de\s+idade)?\b|\bage[ds]?\s+(\d{1,4})\b/i);
+        const n = a ? Number(a[1] || a[2] || a[3]) : NaN;
+        if (Number.isFinite(n) && n > 0 && n < 5000) out.set('age', { key: 'age', label: 'Age', value: String(n), from: 'persona' });
+    }
+    if (!out.has('gender')) {
+        const words = t.slice(0, 1500).toLowerCase();
+        const g = /\b(?:she|her)\b/.test(words) && !/\b(?:he|him|his)\b/.test(words) ? 'Female' : /\b(?:he|him|his)\b/.test(words) && !/\b(?:she|her)\b/.test(words) ? 'Male' : null;
+        if (g) out.set('gender', { key: 'gender', label: 'Gender', value: g, from: 'persona' });
+    }
+}
+/** The persona's first sentence, as a tagline under the name. */
+function youTagline(text, name) {
+    const t = String(text || '').replace(/\{\{user\}\}/gi, name || 'You').replace(/[*_#>`]+/g, '').replace(/\s+/g, ' ').trim();
+    if (!t || /^[A-Za-z ]{2,24}\s*:/.test(t)) return null;
+    const m = t.match(/^(.{12,220}?[.!?])(?:\s|$)/);
+    const s = (m ? m[1] : t.slice(0, 160)).trim();
+    return s.length > 8 ? s : null;
+}
+function youIdentity(chatId, chat, tl, sys, relations, systems) {
+    const lines = sys && sys._lines ? sys._lines : [];
+    const fields = youIdFields(lines);
+    // BG3's Role line holds origin · race · class · background in one: show it whole, as chips
+    const role = fields.get('role');
+    if (role && /\s·\s/.test(role.value)) role.parts = role.value.split(/\s+·\s+/).map(x => x.trim()).filter(Boolean).slice(0, 6);
+    // Overlord prints the race with its heteromorph tag on a line of its own ("Race: Elder Lich (Heteromorph) | Racial Lvl …"): handled above
+    const persona = (personaCache.get(chatId) || {}).text || '';
+    youPersonaFields(persona, fields);
+    const name = userNameCache.get(chatId) || null;
+    // the story so far: how long, how much, how many people
+    const replies = (chat || []).filter(m => m.role === 'assistant' && trackingMessageVisible(m)).length;
+    const clocks = (tl || []).map(e => e.clock).filter(v => v !== null && v !== undefined && Number.isFinite(v));
+    const days = clocks.length > 1 ? Math.max(0, Math.floor((clocks[clocks.length - 1] - clocks[0]) / 1440)) + 1 : null;
+    const met = relations && Array.isArray(relations.people) ? relations.people.length : null;
+    const done = systems && Array.isArray(systems.journal) ? systems.journal.filter(j => !j.dropped).length : null;
+    const order = YOU_ID_FIELDS.map(x => x[0]);
+    const list = [...fields.values()].sort((a, b) => order.indexOf(a.key) - order.indexOf(b.key));
+    return { name, fields: list, tagline: youTagline(persona, name), story: { days, replies, met, done } };
+}
+
 /** A message that reached a phone is not a thing in your pocket ("pairing notification on phone"). */
 function pocketIsAuthorization(n) {
     return /^(?:permission|approval|consent|authori[sz]ation|access|(?:the )?right)\s+to\b/i.test(String(n || '').trim());
@@ -17236,7 +17488,26 @@ function techStyleKey(v) {
 }
 function techStyleName(v) {
     const k = techStyleKey(v);
-    return k ? spellTitle(k) : 'Other';
+    if (!k) return 'Other';
+    const own = String(v ?? '').replace(/\*+/g, '').replace(/[_]+/g, ' ').replace(/\b(?:style|school|ryu|ryū|sword style|swordsmanship)\b/gi, ' ').replace(/\s+/g, ' ').trim();
+    // written with capitals by the HUD or the book: keep it as written; all lower case: title case it
+    return own && own !== own.toLowerCase() ? own : spellTitle(k);
+}
+// Battle Aura has its own three steps, read from the HUD's Touki line rather than from the Sword Style line
+const TOUKI_LADDER = ['Awakening', 'Active', 'Mastered'];
+function techIsTouki(style) { return /^(?:touki|toki|battle aura|fighting spirit)$/.test(techStyleKey(style)); }
+function techToukiStep(s) {
+    const t = String(s || '').toLowerCase();
+    if (/\b(?:locked|none|sealed|unavailable|absent|cannot)\b/.test(t)) return -1;
+    if (/\bmaster(?:ed|y)?\b|\bcomplete\b|\bperfect\b/.test(t)) return 2;
+    if (/\bactive\b|\bcontrolled\b|\bconscious\b/.test(t)) return 1;
+    if (/\bawaken(?:ing|ed)?\b|\bemerging\b|\blatent\b|\bunstable\b|\bflicker/.test(t)) return 0;
+    return null;
+}
+// the rank shown for a technique row, on its own ladder
+function techRankLabel(style, step) {
+    if (step === null || step === undefined || step < 0) return null;
+    return techIsTouki(style) ? TOUKI_LADDER[step] || null : MT_MARTIAL[step] || null;
 }
 function techStep(s) {
     const m = String(s || '').toLowerCase().match(/\b(beginner|elementary|basic|intermediate|advanced|saint|king|emperor|imperial|god|divine)\b/);
@@ -17249,6 +17520,7 @@ function techRankIn(text) {
     const m = t.match(TECH_RANK_RE);
     if (m) return techStep(m[1]);
     if (/\b(foundational|basic) (posture|stance|footwork)\b/i.test(t)) return 0;
+    if (/\b(?:the|an?) (?:fundamental|essential|basic) (?:application|tactic|technique|move|form)\b/i.test(t)) return 0;
     return null;
 }
 
@@ -17276,15 +17548,17 @@ function techsFromEntry(e, out) {
         const sr = text.match(/Style:\s*([^\n·|]+?)\s*(?:[·|]\s*|\n\s*)Rank:\s*([^\n]+)/i) || text.match(/Style:\s*([^\n]+)/i);
         const rankRaw = sr && sr[2] ? sr[2].trim() : '';
         const eff = text.match(/^Effect:\s*(.+)$/im), req = text.match(/^Requires?:\s*(.+)$/im), who = text.match(/^(?:Unique to|Users?|Known users?):\s*(.+)$/im);
-        const step = /^unique/i.test(rankRaw) ? null : techStep(rankRaw);
-        out.push({ name, style: sr ? techStyleName(sr[1]) : 'Other', step, rank: step === null ? null : MT_MARTIAL[step],
+        const styleName = sr ? techStyleName(sr[1]) : 'Other';
+        const step = /^unique/i.test(rankRaw) ? null : techIsTouki(styleName) ? techToukiStep(rankRaw) : techStep(rankRaw);
+        out.push({ name, style: styleName, step: step !== null && step < 0 ? null : step, rank: techRankLabel(styleName, step),
             kind: /^unique/i.test(rankRaw) ? 'unique' : step === null ? 'free' : 'ranked', who: who ? who[1].trim() : null,
             effect: eff ? spellClip(eff[1], 260) : null, requires: req ? spellClip(req[1], 160) : null, fan, src: e.id, prio: 0 });
         return;
     }
     if (/^\s*\[/.test(text)) return;   // rulebooks, start cards and divergences are not techniques
     // "Sword God Technique: Silent Strike. …" / "North God: Earth Shaker. …"
-    let m = text.match(/^\s*((?:Sword|Water|North|Dragon) God)(?: Technique| Style Technique)?\s*:\s*([^.\n:]{2,50})\.\s*([\s\S]*)$/i);
+    let m = text.match(/^\s*((?:Sword|Water|North|Dragon) God|Superd Spear|Beastfolk CQC|Demon Brawling)(?: Technique| Style Technique)?\s*:\s*([^.\n:]{2,50})\.\s*([\s\S]*)$/i);
+    if (m && !/^\s*[A-Z]/.test(m[2])) return;   // "Superd Spear: a Superd's trident is not forged…" describes, it names nothing
     if (m) {
         const rest = m[3];
         const step = techRankIn(m[2] + ' ' + rest.slice(0, 300));
@@ -17339,9 +17613,17 @@ function techStanding(lines) {
     for (const raw of lines || []) {
         const l = hudSemanticText(String(raw && raw.text !== undefined ? raw.text : raw)).trim();
         const cs = mtSkillsLine(l);
-        const m = l.match(/^(?:Sword Styles?|Martial Styles?|Sword School|Swordsmanship)\s*:\s*(.+)$/i) || (cs && cs.martial.length ? [null, cs.martial.map(([a, b]) => `${a} (${b})`).join(', ')] : null);
+        // "Touki (Battle Aura): Mastered", also inside a line of fields ("Mana Capacity: … · Touki (Battle Aura): Active")
+        for (const part of hmsSplitTop(l, /\s+\|\s+/g)) {
+            const tk = String(part).match(/^\s*(?:Touki|Toki|Battle Aura)(?:\s*\((?:Battle Aura|Touki)\))?\s*:\s*(.+)$/i);
+            if (!tk) continue;
+            const v = tk[1].split(/\s*[—–(]\s*/)[0];
+            const step = techToukiStep(v);
+            if (step !== null) out.set('touki', { name: 'Touki', rank: step < 0 ? v.trim() || 'Locked' : TOUKI_LADDER[step], step });
+        }
+        const m = l.match(/^(?:Sword Styles?|Martial Styles?|Sword Schools?|Swordsmanship|Fighting Styles?)\s*:\s*(.+)$/i) || (cs && cs.martial.length ? [null, cs.martial.map(([a, b]) => `${a} (${b})`).join(', ')] : null);
         if (!m) continue;
-        for (const row of mtRankRows(m[1], MT_MARTIAL)) {
+        for (const row of mtRankRows(m[1].replace(/\s+\/\s+/g, ' | '), MT_MARTIAL)) {
             const k = techStyleKey(row.name);
             if (k && !/^none$/i.test(k)) out.set(k, { name: techStyleName(row.name), rank: row.rank, step: row.step });
         }
@@ -17371,10 +17653,11 @@ function techListPanel(chatId, chat, st, sys) {
         else if (r.kind === 'unique') { status = 'special'; why = r.who ? `Unique — ${r.who}` : 'Unique'; }
         else if (!stand.size) status = 'open';
         else if (!sch) { status = 'locked'; why = 'Not one of your styles'; }
+        else if (r.step === null && sch.step !== null && sch.step >= (techIsTouki(r.style) ? TOUKI_LADDER.length : MT_MARTIAL.length) - 1) status = 'reach';   // at the top of the style, every technique is within reach
         else if (r.step === null || sch.step === null) { status = 'unranked'; why = r.step === null ? 'No technique rank given — the story decides' : 'Your style rank is unknown — the story decides'; }
         else if (r.step <= sch.step) status = 'reach';
-        else if (r.step === sch.step + 1) { status = 'next'; why = `Needs ${MT_MARTIAL[r.step]}`; }
-        else { status = 'locked'; why = `Needs ${MT_MARTIAL[r.step]}`; }
+        else if (r.step === sch.step + 1) { status = 'next'; why = `Needs ${techRankLabel(r.style, r.step)}`; }
+        else { status = 'locked'; why = `Needs ${techRankLabel(r.style, r.step)}`; }
         return { name: r.name, key: r.key, school: r.style, rank: r.rank, step: r.step, status, why, who: r.who, effect: r.effect, chant: null, requires: r.requires, fan: !!r.fan,
             ...spellRowPractice(status, r.key, fold, known), ...((known.has(r.key) ? known.get(r.key).evidence : fold.abilityEvidence?.get(r.key)) ? { evidence: known.has(r.key) ? known.get(r.key).evidence : fold.abilityEvidence.get(r.key) } : {}) };
     });
@@ -17416,7 +17699,7 @@ function techListPanel(chatId, chat, st, sys) {
 function techIndexFromCatalog(chatId) {
     const out = {};
     for (const r of techCatalog(chatId)) {
-        if (r.step === null || r.kind !== 'ranked') continue;
+        if (r.step === null || r.kind !== 'ranked' || techIsTouki(r.style)) continue;
         const list = (out[techStyleKey(r.style)] = out[techStyleKey(r.style)] || []);
         let row = list.find(x => x.step === r.step);
         if (!row) { row = { rank: MT_MARTIAL[r.step], step: r.step, spells: [] }; list.push(row); }
