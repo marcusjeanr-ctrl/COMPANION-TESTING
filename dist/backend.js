@@ -14680,7 +14680,8 @@ const MONEY_HOLDING_LABELS = ['Resources', 'Purse', 'Coin Purse', 'Wealth', 'Cur
 function moneyHudBalance(hud, cc) {
     const direct = commsBalance(hud, cc);
     if (direct || !hud) return direct;
-    const units = new Set((cc.balance || []).map(x => lockKey(x)).filter(Boolean));
+    // Coin metals are money in any world, whatever the balance labels say ("Purse: 6 Silver, 17 Copper").
+    const units = new Set([...(cc.balance || []).map(x => lockKey(x)), 'gold', 'silver', 'copper', 'bronze', 'coin', 'coins'].filter(Boolean));
     const currency = unit => [...units].some(u => unit === u || unit + 's' === u || unit === u + 's' || unit.endsWith(' ' + u) || unit.endsWith(' ' + u + 's'));
     for (const l of hud.lines) {
         if (l.block === 'fence') continue;
