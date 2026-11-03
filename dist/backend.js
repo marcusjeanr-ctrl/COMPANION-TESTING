@@ -10912,7 +10912,7 @@ function buildCompanionInstructionRead(committed, userName, locks, st = null, ch
         const yf = [];
         if (wantSurvival) yf.push('"slept": false, "ate": false, "drank": false, "rested": false', `"mind": "${HMS_MIND_SCALE.join('|')}"`);
         if (yc.on) { yf.push(wantSurvival ? '"mood": "1-3 words", "sanity": 0..100' : '"mood": "1-3 words", "stress": "L", "sanity": 0..100'); if (askXp) yf.push('"xp": 0, "xpWhy": "or null"'); yf.push('"got": [], "lost": []'); }
-        if (magicSeen) yf.push('"spells": ["one individual magical spell name per entry; no physical/Touki maneuvers; include confirmed prior knowledge; no grouped lists, school/style ranks, casting methods, NPC, hypothetical or failed-only mentions"]');
+        if (magicSeen) yf.push('"spells": ["one individual magical spell name per entry, only spells this reply or the player message just before it names; no physical/Touki maneuvers; never list spells from memory; no grouped lists, school/style ranks, casting methods, NPC, hypothetical or failed-only mentions"]');
         if (abilitiesSeen) yf.push('"abilities": [{"name":"individual ability", "owner":"you", "state":"known|practiced|attempted|reliable|mastered|forgotten", "historical":false, "evidence":"short exact quote from this reply, <=160 chars"}]');
         const studying = magicSeen ? spellStudyActive(chat, st).map(x => x.name).slice(0, 8) : [];
         if (abilitiesSeen || studying.length) yf.push(`"learned": ["explicitly earned player learning this turn under the card rules; practice success alone is not learning; not historical knowledge"], "study": [{"spell": "${abilitiesSeen ? 'ability deliberately practiced/taught now' : `one of: ${studying.join(', ')}`}", "progress": "explicit measured percentage or null", "note": "practice evidence or null; when the story states what is left, end with it in the story's words (e.g. \\"4 more study sessions or practical casts left\\")"}]`);
@@ -17194,11 +17194,18 @@ function spellStoryFoldUncached(chat, chatId = null) {
     const resolve = spellResolver(chatId);
     const established = new Map();
     const learned = new Map(), mastered = new Map(), progress = new Map(), order = new Map(), abilityEvidence = new Map(), withdrawn = new Map();
-    let i = 0;
+    let i = 0, userText = '';
+    const hasRefs = chatId ? spellCatalog(chatId).length > 0 : false;
     for (const m of chat || []) {
+        if (m.role === 'user') { userText = textOf(m.content); continue; }
         if (m.role !== 'assistant') continue;
         order.set(m.id, i++);
         if (!trackingMessageVisible(m) || m._rpgcPurpose === 'continue') continue;
+        // A spell the side-panel block lists, that the chat's spell references don't hold, counts only when this
+        // reply or the player's message names it: otherwise the list grew a new invented name every few replies
+        // ("Water Splash", "Stone Bullet"). Without spell references nothing is filtered.
+        const said = ` ${spellKey(textOf(m.content) + ' ' + userText)} `;
+        const named = target => !hasRefs || !!resolve.reference(target.name) || said.includes(` ${target.key} `) || said.includes(` ${spellKey(target.name)} `);
         for (const raw of spellEstablishedNames(m, playerName)) for (const target of resolve.records(raw)) {
             const note = target.note || established.get(target.key)?.note;
             if (target.key) established.set(target.key, { ...target, ...(note ? { note } : {}), msgId: m.id, at: order.get(m.id) });
@@ -17210,9 +17217,9 @@ function spellStoryFoldUncached(chat, chatId = null) {
         const rejectedClaims = new Set(assessments.filter(row => row.state === 'unverified').flatMap(row => resolve.records(row.name).map(target => target.key)));
         // The spell list is repeated every reply: it adds a spell the first time, and a repeat
         // never re-dates when it was learned (which would hide later practice on it).
-        for (const n of Array.isArray(y.spells) ? y.spells : []) for (const target of resolve.records(n)) if (!rejectedClaims.has(target.key) && learned.has(target.key)) { const prev = learned.get(target.key); if (!prev.note && target.note) prev.note = target.note; }
+        for (const n of Array.isArray(y.spells) ? y.spells : []) for (const target of resolve.records(n)) if (!named(target) && !learned.has(target.key)) continue; else if (!rejectedClaims.has(target.key) && learned.has(target.key)) { const prev = learned.get(target.key); if (!prev.note && target.note) prev.note = target.note; }
         else if (!rejectedClaims.has(target.key)) learned.set(target.key, { ...target, ...((target.note || learned.get(target.key)?.note || established.get(target.key)?.note) ? { note: target.note || learned.get(target.key)?.note || established.get(target.key)?.note } : {}), msgId: m.id, at: order.get(m.id), newlyLearned: false });
-        for (const n of Array.isArray(y.learned) ? y.learned : []) for (const target of resolve.records(n)) if (!rejectedClaims.has(target.key)) learned.set(target.key, { ...target, msgId: m.id, at: order.get(m.id), newlyLearned: true });
+        for (const n of Array.isArray(y.learned) ? y.learned : []) for (const target of resolve.records(n)) if (named(target) && !rejectedClaims.has(target.key)) learned.set(target.key, { ...target, msgId: m.id, at: order.get(m.id), newlyLearned: true });
         for (const n of Array.isArray(y.mastered) ? y.mastered : []) for (const target of resolve.records(n)) if (!rejectedClaims.has(target.key)) mastered.set(target.key, { ...target, msgId: m.id, at: order.get(m.id) });
         for (const s of Array.isArray(y.study) ? y.study : []) if (s && s.spell) for (const target of resolve.records(s)) progress.set(target.key, { name: target.name, progress: s.progress, note: s.note || target.note || null, msgId: m.id, at: order.get(m.id) });
         if (assessments.length) {
