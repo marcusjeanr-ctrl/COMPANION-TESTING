@@ -13668,6 +13668,11 @@ function gearReadUncached(chat, st, cfg) {
     }
     // what the latest HUD lists: owned, whatever the readings said about how it is carried
     const hud = tl.length ? tl[tl.length - 1].hud : null;
+    const hudListedWhenGone = it => {
+        let e = null;
+        for (const t of tl) { const i = idxOf.has(t.msg.id) ? idxOf.get(t.msg.id) : -1; if (i >= 0 && i <= it.idx) e = t; }
+        return !!e && gearFromHud(e.hud).some(x => { const k = lockKey(gearBare(x.name)); return k === it.key || find(gearBare(x.name)) === it || (headOf(x.name) === headOf(it.name) && headOf(it.name).length > 2); });
+    };
     for (const x of gearFromHud(hud)) {
         // "Plain road sword" on the HUD and "Plain steel sword (short, light, fullered)" in the story: the one
         // sword you carry, when exactly one carried item ends in the same thing (sword, cloak, wand…)
@@ -13677,7 +13682,10 @@ function gearReadUncached(chat, st, cfg) {
         if (!it) continue;
         it.onHud = true;
         it.name = x.name;                                    // shown as the HUD spells it
-        if (it.state === 'gone') it.state = null;          // the HUD says you still have it: STATE IS GOD
+        // the HUD says you still have it: STATE IS GOD. Except where the reply that said it went (handed back,
+        // sold, given away) already carried it on its own HUD: the narrator copies the HUD forward, so a listing
+        // that never changed since is a stale copy, not the item coming back.
+        if (it.state === 'gone' && !(it.msgId && hudListedWhenGone(it))) it.state = null;
         if (!it.state && x.hint) it.state = x.hint;
         for (const c of x.contents) { const inner = ensure(c, 'hud'); if (inner) { inner.onHud = true; if (!inner.state || inner.state === 'gone') { inner.state = 'in container'; inner.inside = it.name; } } }
     }
