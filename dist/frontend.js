@@ -2195,6 +2195,32 @@ export function setup(ctx) {
     function commit() { saveTrackers(); render(); }
 
     // ── rendering ──
+    // Wide panels lay the cards out in two columns. A plain grid row is as tall as its tallest card, which left
+    // a gap under a short or closed card beside a long one; each card now spans the rows its own height needs,
+    // so the next card moves up into the space. Recomputed whenever a card opens, closes or changes size.
+    const ROW_UNIT = 4, COL_GAP = 12;
+    let viewObserver = null;
+    function layoutViewColumns() {
+        if (viewObserver) { viewObserver.disconnect(); viewObserver = null; }
+        const view = root.querySelector('.rpgc-view');
+        if (!view) return;
+        const fit = () => {
+            const twoCols = getComputedStyle(view).display === 'grid' && String(getComputedStyle(view).gridTemplateColumns).trim().split(/\s+/).length > 1;
+            view.style.gridAutoRows = twoCols ? `${ROW_UNIT}px` : '';
+            view.style.rowGap = twoCols ? '0px' : '';
+            for (const card of view.children) {
+                if (!twoCols) { card.style.gridRowEnd = ''; continue; }
+                card.style.gridRowEnd = `span ${Math.max(1, Math.ceil((card.getBoundingClientRect().height + COL_GAP) / ROW_UNIT))}`;
+            }
+        };
+        fit();
+        if (typeof ResizeObserver === 'function') {
+            let queued = false;
+            viewObserver = new ResizeObserver(() => { if (queued) return; queued = true; requestAnimationFrame(() => { queued = false; fit(); }); });
+            viewObserver.observe(view);
+            for (const card of view.children) viewObserver.observe(card);
+        }
+    }
     let pendingRender = false;
     let deferredEl = null;
     const fieldDrafts = new Map();   // what the player has typed into the panel's boxes, until they clear or submit it
@@ -2236,6 +2262,7 @@ export function setup(ctx) {
             if (fieldDrafts.has(k) && el.value !== fieldDrafts.get(k)) el.value = fieldDrafts.get(k);
             if (k === wasKey && document.activeElement !== el) { el.focus({ preventScroll: true }); if (wasSel) try { el.setSelectionRange(wasSel[0], wasSel[1]); } catch { /* number fields have no selection */ } }
         }
+        layoutViewColumns();
         tab.root.scrollTop = scroll;
         if (state.jumpTo) {
             const id = state.jumpTo; state.jumpTo = null;
@@ -5149,8 +5176,13 @@ export function setup(ctx) {
                 h('span', { class: 'body' }, x.what, h('span', { class: 'meta' }, [T(MONEY_LABEL[x.kind]), x.with, x.from === 'you' ? T('by you') : null, x.ago !== null && x.ago !== undefined ? (x.ago < 1 ? T('just now') : TT('{0} ago', fmtSpan(x.ago))) : null].filter(Boolean).map(t => ' · ' + t).join(''))),
                 h('b', { class: 'amt' }, `${x.dir === 'in' ? '+' : x.dir === 'out' ? '−' : ''}${fmtAmt(x.amount, x.currency)}`),
                 h('button', { class: 'rpgc-mini', title: 'Remove this entry', 'aria-label': `Remove ${x.what}`, onclick: () => send({ type: 'money', chatId: state.chatId, op: 'remove', id: x.id }) }, '✕')));
-            out.push(h('div', { class: 'rpgc-gear-group' }, h('h4', null, '📒 Ledger'), h('ul', null, rows),
-                m.ledger.length > 8 ? h('button', { class: 'rpgc-btn', onclick: () => { state.moneyAll = !state.moneyAll; render(); } }, state.moneyAll ? 'Show fewer' : `Show all (${m.ledger.length})`) : null));
+            // the ledger folds away under the totals, so the card stays short; it remembers whether you left it open
+            const ledger = h('details', { class: 'rpgc-gear-group rpgc-money-ledger' }, h('summary', null, h('h4', { style: 'display:inline' }, '📒 Ledger'), h('span', { class: 'meta' }, ` (${m.ledger.length})`)),
+                h('ul', null, rows),
+                m.ledger.length > 8 ? h('button', { class: 'rpgc-btn', onclick: () => { state.moneyAll = !state.moneyAll; render(); } }, state.moneyAll ? 'Show fewer' : `Show all (${m.ledger.length})`) : null);
+            ledger.open = state.open['money-ledger'] === true;
+            ledger.addEventListener('toggle', () => { state.open['money-ledger'] = ledger.open; });
+            out.push(ledger);
         } else out.push(h('p', { class: 'rpgc-note' }, m.ask ? 'Every payment, purchase, wage, bribe, loan and debt shows up here, from your own messages and the story. The HUD’s balance stays the record of what you have.' : 'Asking the story about money is off (Settings → HMS systems → Finances). You can still log entries.'));
         const amt = h('input', { type: 'number', min: '0', step: 'any', placeholder: 'amount', 'aria-label': 'Amount', style: 'width:80px' });
         const cur = h('input', { type: 'text', placeholder: 'gold', 'aria-label': 'Currency', maxlength: '30', style: 'width:70px' });
