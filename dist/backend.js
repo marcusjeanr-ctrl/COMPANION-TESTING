@@ -2058,7 +2058,10 @@ function messageSource(msg) {
     return source;
 }
 function trackingMessageVisible(msg) {
-    return !!msg && !['save', 'help'].includes(msg._rpgcPurpose) && msg.hidden !== true && msg.is_hidden !== true && msg.metadata?.hidden !== true && msg.extra?.hidden !== true;
+    // A message hidden from the prompt still happened in the story: summary tools (Summaryception and
+    // the like) hide every reply they have summarised, and dropping those made the panel forget people,
+    // money, gear and the start command as a chat grew. Only the extension's own save and help turns are out.
+    return !!msg && !['save', 'help'].includes(msg._rpgcPurpose);
 }
 // Lexical evidence only: en, pt-BR, es, ru and tr. Water alone is not drinking.
 const SURVIVAL_FLAG_EVIDENCE = Object.freeze({
