@@ -5486,7 +5486,9 @@ export function setup(ctx) {
             const where = low(it.where);
             const fits = g.items.filter(o => o !== it && o.state && o.state !== 'gone' && o.state !== 'sheathed' &&
                 (wordIn(where, low(o.name)) || wordIn(where, low(o.name).replace(/\s*\([^)]*\)\s*$/, '').split(/\s+/).pop())));
-            if (fits.length === 1) { holderOf.set(it.key, fits[0]); boxRow.set(low(fits[0].name), fits[0]); }
+            // "sheathed at Marcus's hip": nothing named, but if you carry exactly one thing a blade hangs from, it is in that
+            const holders = fits.length ? fits : g.items.filter(o => o !== it && o.state && !['gone', 'sheathed', 'stowed', 'dropped'].includes(o.state) && /\b(baldric|scabbard|sheath|sword[- ]?belt|frog|harness|holster|bandolier)\b/i.test(o.name));
+            if (holders.length === 1) { holderOf.set(it.key, holders[0]); boxRow.set(low(holders[0].name), holders[0]); }
         }
         const contentsOf = cn => g.items.filter(it => (it.state === 'in container' && it.inside && low(it.inside) === low(cn)) || (holderOf.has(it.key) && low(holderOf.get(it.key).name) === low(cn)));
         const nestable = new Set();

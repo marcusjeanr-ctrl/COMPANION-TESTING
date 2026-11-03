@@ -13551,7 +13551,9 @@ function gearFromHud(hud) {
     };
     const bare = gearBare;
     const take = (value) => {
-        for (const piece of split(String(value).replace(/^[*_\s]+/, ''))) {
+        for (let piece of split(String(value).replace(/^[*_\s]+/, ''))) {
+            // "Plain road sword (Halvin's mark) on hip": where it hangs is not part of its name
+            piece = piece.replace(/\s+(?:on|at|across|over|by)\s+(?:the\s+|my\s+|his\s+|her\s+)?(?:left\s+|right\s+)?(?:hip|back|belt|shoulder|side|waist|chest|thigh|hand)\s*$/i, '');
             const m = piece.match(/^([^([{]+?)\s*(?:\(([^)]*)\))?\s*(?:\[([^\]]*)\])?\s*$/);
             // "Roxy's wand — keepsake / magic focus": the name is before the dash, the rest is a note
             const name = bare((m ? m[1] : piece).split(/\s+[—–]\s+|\s+-\s+/)[0]).slice(0, 60);
@@ -13745,7 +13747,7 @@ function gearRequest(chat, st, userName, cfg) {
     const gc = gearCfg(cfg);
     if (!gc.on || !gc.ask) return null;
     const json = `"gear": [{"item": "short name, the same every reply (\"coin purse\", not \"coin purse — three silver\")", "state": "${GEAR_STATES.join('|')}", "where": "location or null", "inside": "container or null"}]`;
-    let rules = `"gear": changed possession states from established player actions/narration. An item only tried, examined or handled and then put back (a shop's wares, someone else's things) is not gear: never report it. in hand=held; worn=clothing/armour; sheathed=sheath/holster; on body=slung/strapped with where; in container=inside names it; stowed=off-person storage, or left with someone to keep, mend or hold for you (where = who has it); dropped=set down; gone=transferred away, consumed/lost/destroyed. Storage/unequipping retain ownership. Nearby/NPC-owned/offered items and plans confer none. Unopened gifts need accepted transfer. Do not infer consent from narrator-assigned decisions or undo explicit physical facts. Reuse HUD/Gear-now names. [] if unchanged; damage alone never removes gear. HUD ownership is authoritative.`;
+    let rules = `"gear": changed possession states from established player actions/narration. An item only tried, examined or handled and then put back (a shop's wares, someone else's things) is not gear: never report it. in hand=held; worn=clothing/armour; sheathed=sheath/holster (where names what holds it: baldric, scabbard, belt); on body=slung/strapped with where; in container=inside names it; stowed=off-person storage, or left with someone to keep, mend or hold for you (where = who has it); dropped=set down; gone=transferred away, consumed/lost/destroyed. Storage/unequipping retain ownership. Nearby/NPC-owned/offered items and plans confer none. Unopened gifts need accepted transfer. Do not infer consent from narrator-assigned decisions or undo explicit physical facts. Reuse HUD/Gear-now names. [] if unchanged; damage alone never removes gear. HUD ownership is authoritative.`;
     if (gc.tell && chat && st) {
         let now = [];
         try { now = gearRead(chat, st).items.filter(it => it.state && it.state !== 'gone'); } catch { now = []; }

@@ -5,6 +5,7 @@
 Compatibility with the Mushoku Tensei RPG "Six-Sided World" v1.1 card and its four HUD styles (Classic, Visual, Compact, Panel). Release candidate: automated checks pass; live Lumiverse acceptance is still to do. Report: `docs/release/1.1.0-RC-REPORT.md`.
 
 **Fixes from live play (fourth RC pass)**
+- **Gear:** a sword sheathed "at the hip" with no holder named sits under the one baldric, scabbard or sword belt you carry; and where the HUD says it hangs ("Plain road sword (Halvin's mark) on hip") is no longer part of its name.
 - **Gear:** the HUD's short name and the story's long one for the same thing ("travel paper bundle" and "travel bundle of northern paper sheets") are one item: when every word of one name is in the other, in any order, and only one item fits.
 - **Gear, Gone list:** something left somewhere, or left with someone to keep or mend, moves to Gone at once, and something dropped moves there after a day, so things left behind for months are not clutter. Each shows where it was last seen. One that is still yours gets a **Back on you** button; something sold, eaten or given away does not.
 - **Gear:** an item the story says you handed back, sold or gave away goes to Gone at once, even while the narrator keeps copying the old Equipment line forward. The HUD brings an item back only when it newly lists it again.
