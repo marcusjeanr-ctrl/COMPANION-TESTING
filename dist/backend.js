@@ -3217,6 +3217,9 @@ registerInterceptorKeep(async (messages, context) => {
                     ctxNames.push('world moves');
                 }
             }
+            if (gt !== 'continue') {
+                try { const r = hmsStoryReminders(chat, await getChatState(chatId), userName); if (r.parts.length) { ctxParts.push(...r.parts); ctxNames.push(...r.names); } } catch (e) { logW(`[RPG Companion HMS] Story reminders failed: ${e?.message || e}`); }
+            }
             if (commsCfg().on && gt !== 'continue') {
                 const lastUser = [...chat].reverse().find(m => m.role === 'user');
                 const note = lastUser ? commsNote(textOf(lastUser.content), userName) : null;
@@ -3606,14 +3609,14 @@ function hudCardHtml(hud, rawHud, cfg = chatDisplayCfg()) {
 function hudStyleFor(chat) {
     // The player's start command or a later switch ("HUD: Panel" on its own line, or among other settings
     // as "Canon: Living | HUD: Panel"), else the style the latest HUD itself reports on its Game Mode line.
-    const STYLE_RE = /\[\s*HUD\s*=\s*(CLASSIC|VISUAL|COMPACT|PANEL)\s*\]|(?:^|\|)[ \t]*HUD:\s*(Classic|Visual|Compact|Panel)\b/gim;
+    const STYLE_RE = /\[\s*HUD\s*=\s*(CLASSIC|VISUAL|COMPACT|PANEL|CARD)\s*\]|(?:^|\|)[ \t]*HUD:\s*(Classic|Visual|Compact|Panel|Card)\b/gim;
     let fromHud = null;
     for (let i = (chat || []).length - 1; i >= 0; i--) {
         const m = chat[i];
         if (!m) continue;
         const t = textOf(m.content);
         if (!(m.is_user || m.role === 'user')) {
-            if (!fromHud && HUD_HEAD_RE.test(t)) { const g = t.match(/^[ \t]*Game Mode:[^\n]*?\bHUD:\s*(Classic|Visual|Compact|Panel)\b/im); fromHud = g ? g[1].toLowerCase() : ''; }
+            if (!fromHud && HUD_HEAD_RE.test(t)) { const g = t.match(/^[ \t]*Game Mode:[^\n]*?\bHUD:\s*(Classic|Visual|Compact|Panel|Card)\b/im); fromHud = g ? g[1].toLowerCase() : ''; }
             continue;
         }
         const all = [...t.matchAll(STYLE_RE)];
@@ -3634,7 +3637,9 @@ async function hudStyleOf(chatId) {
 /** Replaces the plain-text HUD in a displayed reply with the card. Leaves anything it cannot read alone. */
 function renderHudCard(text, cfg = chatDisplayCfg(), style = null) {
     if (!cfg.hudCard || !text || !HUD_HEAD_RE.test(text)) return text;
-    if (style === 'panel') return text;   // the card's own Panel scripts draw this HUD
+    // The bot names its own HUD look (Classic, Visual, Compact, or Panel through its display scripts): leave it as the
+    // bot draws it. "HUD: Card", or no style named, is the extension's card.
+    if (style && style !== 'card') return text;
     const f = findHud(text);
     if (!f || f.fromHtml || !f.sepFound || /🌐/.test(f.headLine)) return text; // Visual HUD already provides its own layout
     const hud = parseHud(text);
@@ -11497,7 +11502,11 @@ function hmsPanelStateRead(chatId, chat, st) {
             } catch (e) { logW(`[RPG Companion HMS] You/Magic read failed: ${e?.message || e}`); }
             // A party member in agony or at the end of their strength is a danger, not a mood.
             if (systems && party) for (const m of party.members) for (const a of m.alerts) if (a.sev === 'high' && ['hunger', 'fatigue', 'pain'].includes(a.dim)) systems.danger.push(a.text);
-            return { systems, party, relations, family, gear, agenda, holdings, money, factions, secrets, comms, you, magic, techniques, map, minds, buildings };
+            let checks = [], birthdays = [];
+            try { checks = hmsChecks(chat, st, gear); } catch (e) { logW(`[RPG Companion HMS] Checks failed: ${e?.message || e}`); }
+            try { birthdays = hmsBirthdays(chat, st, userNameCache.get(chatId) || null); } catch (e) { logW(`[RPG Companion HMS] Birthdays failed: ${e?.message || e}`); }
+            if (agenda) agenda.birthdays = birthdays;
+            return { systems, party, relations, family, gear, agenda, holdings, money, factions, secrets, comms, you, magic, techniques, map, minds, buildings, checks };
         })()
     };
 }
@@ -13743,7 +13752,7 @@ function hmsGearPanel(chat, st, cfg) {
         ago: ago(it.at), changedNow: !!lastId && it.msgId === lastId && it.history.length > 0,
         history: it.history.slice(-5).map(h => ({ state: h.state, where: h.where, inside: h.inside, ago: ago(h.at), you: !!h.you }))
     }));
-    const gone = items.filter(away).sort((a, b) => a.idx - b.idx).slice(-20).map(it => ({ key: it.key, name: it.name, ago: ago(it.at), where: it.where || null, owned: owned(it) }));
+    const gone = items.filter(away).sort((a, b) => a.idx - b.idx).slice(-20).map(it => ({ key: it.key, name: it.name, ago: ago(it.at), where: it.where || null, owned: owned(it), onHud: !!it.onHud }));
     const containers = [...new Set(list.filter(x => x.state === 'in container' && x.inside).map(x => x.inside))];
     for (const it of list) if (/\b(bag|backpack|pack|pouch|satchel|sack|purse|chest|box|case|quiver|bandolier|bag of holding|inventory)\b/i.test(it.name) && !containers.some(cn => relSameWords(cn, it.name))) containers.push(it.name);
     return { items: list, gone, containers, ask: gc.ask, tell: gc.tell };
@@ -13803,7 +13812,7 @@ async function hmsGearEdit(chatId, p) {
 // made, kept, missed, moved or cancelled in the player's own message or the reply) and added by hand.
 // Times are placed on the HUD clock, so the panel knows what is due, and the model is reminded.
 
-const AGENDA_KINDS = ['meeting', 'promise', 'deadline', 'event', 'errand'];
+const AGENDA_KINDS = ['meeting', 'promise', 'deadline', 'event', 'errand', 'letter'];
 const AGENDA_STATES = ['open', 'in_progress', 'kept', 'missed', 'cancelled'];
 const AGENDA_NUM = { a: 1, an: 1, one: 1, two: 2, three: 3, four: 4, five: 5, six: 6, seven: 7, eight: 8, nine: 9, ten: 10, eleven: 11, twelve: 12, couple: 2, few: 3 };
 
@@ -14339,6 +14348,7 @@ function agendaRequest(chat, st, userName, cfg) {
     if (!ac.on || !ac.ask) return null;
     const json = `"agenda": [{"what": "what was agreed or set, a few words", "with": "who, or null", "where": "where, or null", "when": "story wording; keep approximate times", "due": "confirmed exact HUD date/time or null", "kind": "${AGENDA_KINDS.join('|')}", "state": "${AGENDA_STATES.join('|')}|moved"}]`;
     let rules = `"agenda": appointments, promises and set times involving ${userName} — only agreed commitments, externally established deadlines or activities actually begun; omit suggestions and unaccepted invitations. Changes are made, started, kept, broken, moved or called off in ${userName}'s own last message or in this reply ("I'll meet you at the river tomorrow", "the exam is on Friday", "be back before dark"). One entry for each that changed, reusing the same "what" for one already listed; [] when nothing changed. "in_progress" once an ongoing activity actually starts; "kept" once it finishes or a one-off appointment is fulfilled, "missed" when its time passed without it, "cancelled" when called off. Use "moved" for an existing commitment's changed schedule/context. Keep vague times vague; never invent a clock.`;
+    rules += ` Something of ${userName}'s left with someone to be finished, mended or kept, with a time to get it back, is an "errand" too ("Ash wand back from Ferren", "when" as the story says). Letters ${userName} writes, sends, receives or promises (by courier, by hand) are kind "letter" ("Letter to Valeriana", "Letter from Father"): open until sent or received, then kept.`;
     if (ac.tell && chat && st) {
         let open = [];
         try { open = hmsAgendaPanel(chat, st).items.filter(x => x.state === 'open' || x.state === 'in_progress'); } catch { open = []; }
@@ -18563,6 +18573,143 @@ async function hmsWorldMoves(chatId) {
     setStatus(chatId, 'ok', 'The world is moving. Watch the chat.');
 }
 
+// ── Checks, birthdays and short story reminders (all read from what the panels already know) ──
+
+/** The people on a HUD's Present line: "Seraphina Veyrath (42, b. K374)", "Ferren (58, b. ~K358)", "Aurelia (8)". */
+function hmsPresentPeople(hud) {
+    if (!hud) return [];
+    const line = hud.lines.map(l => hudSemanticText(String(l.text || ''))).find(t => /^\s*Present:/i.test(t));
+    if (!line) return [];
+    const out = [];
+    for (const part of hmsSplitTop(line.replace(/^\s*Present:\s*/i, ''), /\s*[,;]\s*/g)) {
+        const p = String(part).trim();
+        if (!p || /^\[/.test(p)) continue;                            // "[Guards: 2 at gate]": a group, not a person
+        const m = p.match(/^([^(]+?)\s*(?:\(([^)]*)\))?\s*$/);
+        if (!m) continue;
+        const name = m[1].trim(), info = m[2] || '';
+        const age = info.match(/^\s*~?(\d{1,4})\b/);
+        const born = info.match(/\bb\.\s*(~)?\s*K\.?\s*(\d{3,4})(?:\s*,?\s*Month\s*(\d{1,2}))?/i);
+        out.push({ name, age: age ? Number(age[1]) : null, born: born ? Number(born[2]) : null, month: born && born[3] ? Number(born[3]) : null, approx: !!(born && born[1]), info });
+    }
+    return out;
+}
+/** The player's own birth: "Age: 12 (born K404, Month 1)". */
+function hmsPlayerBirth(hud) {
+    if (!hud) return null;
+    const t = hud.lines.map(l => hudSemanticText(String(l.text || ''))).join('\n');
+    const m = t.match(/\bAge:\s*(\d{1,4})[^\n]*?\bborn\s*K\.?\s*(\d{3,4})(?:\s*,?\s*Month\s*(\d{1,2}))?/i);
+    return m ? { age: Number(m[1]), born: Number(m[2]), month: m[3] ? Number(m[3]) : null } : null;
+}
+/** Today on the Six-Sided calendar, or null on any other calendar. */
+function hmsCalNow(hud) {
+    if (!hud) return null;
+    const top = hud.lines.filter(l => !l.block).slice(0, 4).map(l => l.text).join(' | ');
+    return mtCalendar(top);
+}
+const HMS_ROLE_RE = /-|\b(?:seller|keeper|guard|guards|maid|maids|servant|merchant|clerk|staff|steward|smith|driver|vendor|stranger|boy|girl|man|woman|child|soldier|knight|priest|courier|crowd|patron|patrons)\b/i;
+function hmsNamedPerson(name) { return !!name && /^\p{Lu}/u.test(name) && !HMS_ROLE_RE.test(name); }
+
+/** Things worth a look, shown on the World State card. Each check only reports; nothing is changed. */
+function hmsChecks(chat, st, gear) {
+    const out = [];
+    const tl = hmsTimeline(chat);
+    const last = tl.length ? tl[tl.length - 1] : null;
+    if (!last) return out;
+    const cal = hmsCalNow(last.hud);
+    // an age and a birth year that disagree
+    if (cal) for (const p of hmsPresentPeople(last.hud)) {
+        if (p.age === null || p.born === null) continue;
+        const want = cal.year - p.born - (p.month && cal.month < p.month ? 1 : 0);
+        const slack = p.month ? 0 : 1;
+        if (Math.abs(p.age - want) > slack + (p.approx ? 1 : 0)) out.push({ kind: 'age', text: `${p.name}: ${p.age} on the Present line, but born K${p.born} makes ${p.approx ? 'about ' : ''}${want} in K${cal.year}.` });
+    }
+    // a named person with no birth year
+    const noBirth = hmsPresentPeople(last.hud).filter(p => p.born === null && hmsNamedPerson(p.name)).map(p => p.name);
+    if (noBirth.length) out.push({ kind: 'birth', text: `No birth year on the Present line for ${noBirth.join(', ')}. The card fixes one on first appearance; a quick OOC fix keeps the age steady.` });
+    // the clock going backwards
+    if (tl.length > 1 && last.reset && worldOf(worldLines(last.hud)) !== 'rezero') {
+        const prev = tl[tl.length - 2];
+        out.push({ kind: 'clock', text: `The clock went back: ${hmsClockText(prev.hud)} in the reply before, ${hmsClockText(last.hud)} now.` });
+    }
+    // time passing while the player asked OOC questions
+    if (tl.length > 1 && Number.isFinite(last.clock) && Number.isFinite(tl[tl.length - 2].clock)) {
+        const prev = tl[tl.length - 2];
+        const a = chat.indexOf(prev.msg), b = chat.indexOf(last.msg);
+        const ooc = a >= 0 && b > a ? chat.slice(a + 1, b).filter(m => m.role === 'user' && isOocText(textOf(m.content))).length : 0;
+        const gap = last.clock - prev.clock;
+        if (ooc && gap > 30) out.push({ kind: 'ooc', text: `The clock moved ${hmsSpan(gap)} across a stretch with ${ooc} OOC message${ooc === 1 ? '' : 's'}. OOC turns are not meant to pass time.` });
+    }
+    // the HUD still carrying what the story says is not on you
+    const stale = gear && Array.isArray(gear.gone) ? gear.gone.filter(x => x.onHud) : [];
+    if (stale.length) out.push({ kind: 'gear', text: `The HUD's Equipment line still lists ${stale.map(x => x.where ? `${x.name} (${x.where})` : x.name).join(', ')}. Gear has ${stale.length === 1 ? 'it' : 'them'} as not on you; edit the line, or the narrator may treat ${stale.length === 1 ? 'it' : 'them'} as carried.` });
+    return out;
+}
+function hmsClockText(hud) {
+    const top = hud ? hud.lines.filter(l => !l.block).slice(0, 4).map(l => l.text).join(' | ') : '';
+    const cal = mtCalendar(top), tm = top.match(/\b(\d{1,2}:\d{2})\b/);
+    return [cal ? `K${cal.year}, Month ${cal.month}, Day ${cal.day}` : null, tm ? tm[1] : null].filter(Boolean).join(' ') || 'an earlier time';
+}
+
+/** Upcoming birthdays: the player, the family and everyone Friendly or closer, from the birth years the HUD gives. */
+function hmsBirthdays(chat, st, userName = null) {
+    const tl = hmsTimeline(chat);
+    const last = tl.length ? tl[tl.length - 1] : null;
+    const cal = last ? hmsCalNow(last.hud) : null;
+    if (!cal || !cal.month) return [];
+    const seen = new Map();
+    for (const e of tl) for (const p of hmsPresentPeople(e.hud)) if (p.born !== null) seen.set(lockKey(p.name), p);
+    let family = [], close = new Set();
+    try { family = (famRead(chat, st).members || []).map(m => lockKey(m.name)); } catch { family = []; }
+    try { for (const p of (hmsRelationsPanel(chat, st)?.people || [])) if (['Friendly', 'Friend', 'Close', 'Devoted'].includes(p.standing)) close.add(lockKey(p.name)); } catch { /* optional */ }
+    const wanted = k => family.some(f => f === k || f.startsWith(k + ' ') || k.startsWith(f + ' ')) || [...close].some(f => f === k || f.startsWith(k + ' ') || k.startsWith(f + ' '));
+    const rows = [];
+    const add = (name, born, month, you) => {
+        if (month) {
+            const y = cal.month < month || (cal.month === month && cal.day <= 1) ? cal.year : cal.year + 1;
+            const months = (y - cal.year) * 12 + (month - cal.month);
+            rows.push({ name, you: !!you, turns: y - born, year: y, month, inMonths: months, today: months === 0 && cal.month === month });
+        } else rows.push({ name, you: !!you, turns: null, year: null, month: null, born, inMonths: null });
+    };
+    const me = hmsPlayerBirth(last.hud);
+    if (me) add(userName || 'You', me.born, me.month, true);
+    for (const [k, p] of seen) if (wanted(k)) add(p.name, p.born, p.month, false);
+    rows.sort((a, b) => (a.inMonths ?? 99) - (b.inMonths ?? 99) || a.name.localeCompare(b.name));
+    return rows.slice(0, 20);
+}
+
+/** Short reminders for the narrator, only when one applies: what you do not have, what falls due, a time skip. */
+function hmsStoryReminders(chat, st, userName) {
+    const parts = [], names = [];
+    let gear = null, agenda = null;
+    try { gear = gearCfg(hmsCfg()).on ? hmsGearPanel(chat, st) : null; } catch { gear = null; }
+    try { agenda = agendaCfg().on ? hmsAgendaPanel(chat, st) : null; } catch { agenda = null; }
+    const stale = gear && Array.isArray(gear.gone) ? gear.gone.filter(x => x.onHud) : [];
+    if (stale.length) {
+        parts.push(`[RPG Companion: what ${userName} has]\nThe last HUD's Equipment line still lists ${stale.map(x => x.where ? `${x.name} (${x.where})` : x.name).join('; ')}, but the story has ${stale.length === 1 ? 'it' : 'them'} away from ${userName}. ${userName} does not have ${stale.length === 1 ? 'it' : 'them'} now: write the Equipment line without ${stale.length === 1 ? 'it' : 'them'}, and do not narrate ${stale.length === 1 ? 'it' : 'them'} as in hand, until the story gives ${stale.length === 1 ? 'it' : 'them'} back.`);
+        names.push('what you have');
+    }
+    const due = agenda ? agenda.items.filter(x => x.state === 'open' && (x.status === 'overdue' || x.status === 'soon' || (x.dueIn === null && Number.isFinite(x.dayIn) && x.dayIn <= 0))) : [];
+    if (due.length) {
+        parts.push(`[RPG Companion: due now]\n${due.slice(0, 6).map(x => `- ${x.what}${x.with ? ` (with ${x.with})` : ''}: ${x.status === 'overdue' ? 'late' : 'due now or soon'}${x.when ? ` (${x.when})` : ''}`).join('\n')}\nLet the world keep or miss these as it would; never force a scene, and never decide for ${userName}.`);
+        names.push('due now');
+    }
+    const lastUser = [...chat].reverse().find(m => m.role === 'user');
+    const skip = lastUser && /\b(?:time[- ]?skip|skip (?:ahead|forward|to|the next|until|a (?:day|week|month|year))|fast[- ]forward|(?:a|one|two|three|several|few|\d+)\s+(?:days?|weeks?|months?|years?)\s+(?:later|pass|go by|have passed))\b/i.test(textOf(lastUser.content));
+    if (skip) {
+        const open = agenda ? agenda.items.filter(x => x.state === 'open' || x.state === 'in_progress').slice(0, 8) : [];
+        const away = gear && Array.isArray(gear.gone) ? gear.gone.filter(x => x.owned).slice(0, 6) : [];
+        let bdays = [];
+        try { bdays = hmsBirthdays(chat, st, userName).filter(b => b.inMonths !== null && b.inMonths <= 12).slice(0, 6); } catch { bdays = []; }
+        const lines = [
+            ...open.map(x => `- ${x.what}${x.with ? ` (with ${x.with})` : ''}${x.when ? `: ${x.when}` : ''}`),
+            ...away.map(x => `- ${x.name}: ${x.where || 'left somewhere'}`),
+            ...bdays.map(b => `- ${b.name} turns ${b.turns} in Month ${b.month}, K${b.year}`)
+        ];
+        if (lines.length) { parts.push(`[RPG Companion: if this reply skips time]\nThese are open. Settle whichever falls inside the skip (kept, missed, delivered, celebrated), as the world would:\n${lines.join('\n')}`); names.push('time-skip recap'); }
+    }
+    return { parts, names };
+}
+
 function pinsReminder(st) {
     const pins = Object.values(st.pins || {}).filter(p => p && p.text);
     if (!pins.length) return null;
@@ -19055,6 +19202,22 @@ spindle.onFrontendMessage(async (payload, userId) => {
                 break;
             }
 
+            // Backup and restore: everything the extension keeps for one chat (hand edits, pins, ledger, notes)
+            case 'chat_backup': {
+                if (!payload.chatId || payload.chatId === SANDBOX_ID) return;
+                const st = await getChatState(payload.chatId);
+                toFrontend({ type: 'chat_backup', chatId: payload.chatId, data: { format: 'rpg-companion-chat', version: 1, savedAt: new Date().toISOString(), state: st } });
+                break;
+            }
+            case 'chat_restore': {
+                if (!payload.chatId || payload.chatId === SANDBOX_ID) return;
+                const d = payload.data;
+                if (!isPlainObject(d) || d.format !== 'rpg-companion-chat' || !isPlainObject(d.state)) { setStatus(payload.chatId, 'error', 'That file is not an RPG Companion chat backup.'); await pushState(payload.chatId); return; }
+                await saveChatState(payload.chatId, d.state);
+                setStatus(payload.chatId, 'info', 'Chat backup restored.');
+                await pushState(payload.chatId);
+                break;
+            }
             case 'gear': {
                 if (!payload.chatId || !['add', 'set', 'remove'].includes(payload.op)) return;
                 await hmsGearEdit(payload.chatId, payload);

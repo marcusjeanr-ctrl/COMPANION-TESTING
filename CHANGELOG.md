@@ -4,6 +4,16 @@
 
 Compatibility with the Mushoku Tensei RPG "Six-Sided World" v1.1 card and its four HUD styles (Classic, Visual, Compact, Panel). Release candidate: automated checks pass; live Lumiverse acceptance is still to do. Report: `docs/release/1.1.0-RC-REPORT.md`.
 
+**Added (all read from what the panels already know; nothing about how the story is tracked changes)**
+- **The narrator is told what you do not have.** When the HUD's Equipment line still lists something Gear has away from you (left with someone, on a shelf, given away), one short note says so, so the story stops narrating it as in hand.
+- **Due now.** An Agenda item that is due or late is named to the narrator, to keep or miss as the world would; never forced.
+- **Time-skip recap.** When your message skips time ("two weeks later", "time skip"), the narrator gets what is open: appointments, things left with someone, birthdays inside the year.
+- **Things coming back and letters on the Agenda.** Something left with someone with a time to get it back is logged as an errand; letters written, sent, received or promised are a new ✉️ kind.
+- **Birthdays** in the Agenda: you, your family and everyone Friendly or closer, from the birth years the Present line gives.
+- **Worth a look** on the World State card: an age that does not match its birth year, a named person with no birth year, the clock going back, time passing during OOC turns, and an Equipment line that disagrees with Gear.
+- **HUD: Card.** The new card style is understood, also as `[HUD = CARD]`; the Companion's card stays out of the way of any other style the bot names (Classic, Visual, Compact, Panel), and draws when the style is Card or none is named.
+- **Backup** (Settings): save what the Companion keeps for this chat to a file, and restore it.
+
 **Fixes from live play (fourth RC pass)**
 - **HUD card and the bot's Panel:** the Companion's HUD card steps aside for the Six-Sided card's own Panel HUD (its regex scripts) also when the start command sets the style among other settings ("Canon: Living | HUD: Panel") or only the HUD's Game Mode line says "HUD: Panel". It used to see "HUD: Panel" only on a line of its own, and drew its card over the bot's panel.
 - **Gear:** a detail the HUD gives in brackets ("Plain road sword (Halvin's mark)") shows beside the item's name; one that says how it is carried still sets that instead.

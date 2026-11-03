@@ -1959,6 +1959,14 @@ export function setup(ctx) {
         if(msg.type==='voice_dialogue') {
             if(msg.chatId===state.chatId&&msg.requestKey===state.voiceDialogue?.requestKey&&msg.replyId===state.hms?.messageId){state.voiceDialogue={...msg,id:msg.replyId,loading:false};render();}return;
         }
+        if (msg.type === 'chat_backup') {
+            if (msg.chatId !== state.chatId || !msg.data) return;
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(new Blob([JSON.stringify(msg.data, null, 2)], { type: 'application/json' }));
+            a.download = `rpg-companion-chat-${String(msg.chatId).slice(0, 8)}-${String(msg.data.savedAt || '').slice(0, 10)}.json`;
+            document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1000);
+            return;
+        }
         if (msg.type === 'diagnostics') { onDiagnostics(msg); return; }
         if (msg.type === 'catalog') {
             if (msg.chatId === state.chatId) { state.catalog = msg.catalog ? { ...msg.catalog, chatId: msg.chatId } : { none: true, chatId: msg.chatId, pages: [] }; state.catReq = false; render(); }
@@ -2920,9 +2928,27 @@ export function setup(ctx) {
                 } }, 'Reset settings')));
         danger.dataset.openKey = 's-reset'; danger.addEventListener('toggle', () => { state.open['s-reset'] = danger.open; });
 
+        // This chat's saved Companion data (hand edits, pins, ledger, notes) to a file and back
+        const restoreIn = h('input', { type: 'file', accept: '.json,application/json', style: 'display:none', onchange: async (e) => {
+            const f = e.target.files && e.target.files[0];
+            if (!f) return;
+            try { send({ type: 'chat_restore', chatId: state.chatId, data: JSON.parse(await f.text()) }); }
+            catch { state.status = { kind: 'error', text: 'That file is not valid JSON.' }; render(); }
+            e.target.value = '';
+        } });
+        const backup = section('s-backup', 'Backup', closedByDefault('s-backup'), null,
+            h('p', { class: 'rpgc-note' }, 'Save what the Companion keeps for this chat (your hand edits, pins, the ledger, notes) to a file, and load it back after moving the chat or reinstalling. The story itself stays in the chat.'),
+            h('div', { class: 'rpgc-row' },
+                h('button', { class: 'rpgc-btn', disabled: !state.chatId ? true : null, onclick: () => send({ type: 'chat_backup', chatId: state.chatId }) }, 'Save a backup'),
+                h('button', { class: 'rpgc-btn', disabled: !state.chatId ? true : null, onclick: async () => {
+                    const res = ctx.ui.showConfirm ? await uiCall('showConfirm', { title: 'Restore a backup?', message: 'What the Companion keeps for this chat is replaced by the file. Messages stay as they are.', variant: 'danger' }) : { confirmed: true };
+                    if (res?.confirmed) restoreIn.click();
+                } }, 'Restore a backup'), restoreIn));
+        backup.dataset.openKey = 's-backup'; backup.addEventListener('toggle', () => { state.open['s-backup'] = backup.open; });
+
         return hmsOn()
-            ? [topBar(), renderStyleSettings(), renderPlaySettings(), renderModulesSettings(), renderHmsSettings(), renderHmsSystemsSettings(), renderMindsSettings(), renderQuestSettings(), renderChapterSettings(), renderChronicleSettings(), renderLoreSettings(), renderEngineSettings(), general, panels, renderDisplaySettings(), charsCfg, renderEncounterSettings(), renderDndSettings(), extras, renderPresetSettings(), prompts, renderHelpSettings(), danger]
-            : [topBar(), renderStyleSettings(), renderPlaySettings(), renderModulesSettings(), renderHmsSettings(), renderSocialSettings(), renderQuestSettings(), renderChapterSettings(), renderChronicleSettings(), renderLoreSettings(), renderEngineSettings(), general, renderPresetSettings(), panels, renderDisplaySettings(), extras, statsCfg, sceneCfg, charsCfg, renderEncounterSettings(), renderDndSettings(), prompts, renderHelpSettings(), danger];
+            ? [topBar(), renderStyleSettings(), renderPlaySettings(), renderModulesSettings(), renderHmsSettings(), renderHmsSystemsSettings(), renderMindsSettings(), renderQuestSettings(), renderChapterSettings(), renderChronicleSettings(), renderLoreSettings(), renderEngineSettings(), general, panels, renderDisplaySettings(), charsCfg, renderEncounterSettings(), renderDndSettings(), extras, renderPresetSettings(), prompts, renderHelpSettings(), backup, danger]
+            : [topBar(), renderStyleSettings(), renderPlaySettings(), renderModulesSettings(), renderHmsSettings(), renderSocialSettings(), renderQuestSettings(), renderChapterSettings(), renderChronicleSettings(), renderLoreSettings(), renderEngineSettings(), general, renderPresetSettings(), panels, renderDisplaySettings(), extras, statsCfg, sceneCfg, charsCfg, renderEncounterSettings(), renderDndSettings(), prompts, renderHelpSettings(), backup, danger];
     }
 
     // ─────────── locks ───────────
@@ -4140,6 +4166,8 @@ export function setup(ctx) {
             if (sysw && sysw.notices && sysw.notices.length) content.push(h('ul', { class: 'rpgc-notices' }, sysw.notices.map(n => h('li', null, '\u2726 ' + n))));
             if (!Object.keys(state.hms.pins || {}).length) content.push(h('p', { class: 'rpgc-note' }, 'Pin a line to have it carried forward unchanged every turn.'));
         }
+        const checks = Array.isArray(state.hms?.checks) ? state.hms.checks : [];
+        if (checks.length) content.push(h('div', { class: 'rpgc-checks' }, h('b', null, T('Worth a look')), h('ul', null, checks.map(c => h('li', { class: 'rpgc-note' }, c.text)))));
         if (hud && hud.fromHtml) content.push(h('p', { class: 'rpgc-note' }, 'This HUD was written in HTML and is read through it. The guard can flag dropped lines here, but cannot put them back into the reply.'));
         return section('world', 'World State', state.open, hud && hud.time ? hud.time : null, ...content);
     }
@@ -5278,7 +5306,7 @@ export function setup(ctx) {
     // Appointments, promises and set times: what is due, what is late, what you kept or missed.
 
     function agendaOf() { return (state.hms && state.hms.agenda) || (state.extras && state.extras.agenda) || null; }
-    const AGENDA_ICON = { meeting: '🤝', promise: '🤞', deadline: '⏳', event: '📅', errand: '🧭' };
+    const AGENDA_ICON = { meeting: '🤝', promise: '🤞', deadline: '⏳', event: '📅', errand: '🧭', letter: '✉️' };
     function renderAbilityEvidence(item, pane='abilities') {
         if(!playOn('abilityEvidence')||state.open[pane]===false)return null;
         const e=abilityEvidenceSummary(item);
@@ -5364,6 +5392,18 @@ export function setup(ctx) {
             const det = h('details', { class: 'rpgc-subdet' }, h('summary', null, `Done (${done.length})`), h('ul', { class: 'rpgc-agenda-group done' }, done.map(agendaRow)));
             det.open = state.open['agenda-done'] === true;
             det.dataset.openKey = 'agenda-done'; det.addEventListener('toggle', () => { state.open['agenda-done'] = det.open; });
+            out.push(det);
+        }
+        // Birthdays coming up: you, your family and everyone Friendly or closer, from the HUD's birth years
+        const bdays = Array.isArray(a.birthdays) ? a.birthdays : [];
+        if (bdays.length) {
+            const MONTHS = ['', 'Month 1', 'Month 2', 'Month 3', 'Month 4', 'Month 5', 'Month 6', 'Month 7', 'Month 8', 'Month 9', 'Month 10', 'Month 11', 'Month 12'];
+            const det = h('details', { class: 'rpgc-subdet' }, h('summary', null, `🎂 ${T('Birthdays')} (${bdays.length})`),
+                h('ul', { class: 'rpgc-agenda-group' }, bdays.map(b => h('li', null, h('b', null, b.name),
+                    b.turns !== null ? ` · ${TT('turns {0}', b.turns)} · ${MONTHS[b.month] || ''}, K${b.year}${b.inMonths === 0 ? ` · ${T('this month')}` : b.inMonths === 1 ? ` · ${T('next month')}` : ` · ${TT('in {0} months', b.inMonths)}`}`
+                        : ` · ${TT('born K{0}', b.born)} · ${T('month not known yet')}`))));
+            det.open = state.open['agenda-bdays'] === true;
+            det.dataset.openKey = 'agenda-bdays'; det.addEventListener('toggle', () => { state.open['agenda-bdays'] = det.open; });
             out.push(det);
         }
         const whatIn = h('input', { type: 'text', placeholder: 'A promise or appointment', 'aria-label': 'A promise or appointment', maxlength: '90', style: 'flex:1 1 100%;min-width:0' });
