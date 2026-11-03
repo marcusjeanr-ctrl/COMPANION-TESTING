@@ -13463,7 +13463,9 @@ function gearBare(n) {
     return String(n || '').replace(/^[-•*·▸◦►>\s]+/, '').replace(/^\d+\s*[x×]\s*/i, '').replace(/^[x×]\s*\d+\s+/i, '').replace(/\s*[x×]\s*\d+$/i, '')
         .replace(/\s*\(\s*[x×]?\s*\d+\s*\)$/i, '').replace(/^\d+\s+(?=\p{L})/u, '').replace(/^(?:my|his|her|their|your|the)\s+/i, '').replace(/[*_`]+/g, '')
         // "coin purse — three silver plus allowance copper": a dash and what follows describe the item, they don't name it
-        .replace(/\s+[—–]\s+.*$/, '').replace(/\s+-\s+.*$/, '').trim();
+        .replace(/\s+[—–]\s+.*$/, '').replace(/\s+-\s+.*$/, '')
+        // "ash wand, wool-rolled for trueing": a comma and a lower-case phrase describe it, they don't name it
+        .replace(/,\s+(?=[a-z])(?=[^,()]*[\s-])[^,()]*$/, '').trim();
 }
 
 // The same thing under another word: "pack" is the backpack, and a model writing the reply in Portuguese
@@ -13616,9 +13618,15 @@ function gearReadUncached(chat, st, cfg) {
         const described = [...items.values()].filter(it => !avoid?.has(it) && refined(bare(it.key), bare(k)));
         return described.length === 1 ? described[0] : null;
     };
+    // every name any HUD gave an item: a story report that uses one ("Plain road sword") is that HUD item
+    const hudNames = new Set();
+    for (const e of tl) for (const x of gearFromHud(e.hud)) hudNames.add(lockKey(x.name));
+    const headOf = k => lockKey(gearBare(k)).replace(/\s*\([^)]*\)\s*$/, '').split(/\s+/).pop();
+    const heldOfKind = (name, exclude = null) => { const want = headOf(name); return want && want.length > 2 ? [...items.values()].filter(y => y !== exclude && y.state && !['gone', 'dropped', 'stowed'].includes(y.state) && headOf(y.name) === want) : []; };
     const ensure = (name, from, avoid = null) => {
         name = gearBare(name);
         let it = find(name, avoid);
+        if (!it && from === 'story' && hudNames.has(lockKey(name))) { const held = heldOfKind(name); if (held.length === 1) { it = held[0]; it.name = name; } }
         if (it && avoid && lockKey(name) !== it.key && lockKey(name).startsWith(lockKey(it.name) + ' ')) it.name = name;   // show the fuller name
         if (!it) { const key = lockKey(name); if (!key) return null; it = { key, name, state: null, where: null, inside: null, from, at: null, msgId: null, idx: -1, history: [], onHud: false }; items.set(key, it); }
         return it;
@@ -13664,12 +13672,7 @@ function gearReadUncached(chat, st, cfg) {
         // "Plain road sword" on the HUD and "Plain steel sword (short, light, fullered)" in the story: the one
         // sword you carry, when exactly one carried item ends in the same thing (sword, cloak, wand…)
         let it = find(gearBare(x.name));
-        if (!it) {
-            const head = k => lockKey(gearBare(k)).replace(/\s*\([^)]*\)\s*$/, '').split(/\s+/).pop();
-            const want = head(x.name);
-            const held = want && want.length > 2 ? [...items.values()].filter(y => y.from !== 'hud' && y.state && !['gone', 'dropped', 'stowed'].includes(y.state) && head(y.name) === want) : [];
-            if (held.length === 1) it = held[0];
-        }
+        if (!it) { const held = heldOfKind(x.name).filter(y => y.from !== 'hud'); if (held.length === 1) it = held[0]; }
         it = it || ensure(x.name, 'hud');
         if (!it) continue;
         it.onHud = true;
@@ -14619,6 +14622,8 @@ function moneyPreserveCorrectionAnchors(st, previous) {
 }
 
 /** The ledger and the debts, rebuilt from the chat as it stands. */
+/** One key per currency: "copper", "coppers" and "Copper" are the same coin. */
+function moneyCurKey(c) { const k = lockKey(c || '?').replace(/\s+/g, ' '); return k.length > 3 && /[^s]s$/.test(k) ? k.slice(0, -1) : k; }
 function moneyRead(chat, st) {
     const g = st && isPlainObject(st.money) ? st.money : {};
     const tl = hmsTimeline(chat);
@@ -14654,7 +14659,7 @@ function moneyRead(chat, st) {
         if (x.from !== 'story') return true;
         const at = replyAt.get(x.msgId);
         if (at !== undefined && keptStory.some(y => y.msgId !== x.msgId && at - y.reply > 0 && at - y.reply <= 2 && y.amount === x.amount &&
-            lockKey(y.currency) === lockKey(x.currency) && (y.kind || '') === (x.kind || '') && (y.dir || '') === (x.dir || '') && sameWith(y.with, x.with))) return false;
+            moneyCurKey(y.currency) === moneyCurKey(x.currency) && (y.kind || '') === (x.kind || '') && (y.dir || '') === (x.dir || '') && sameWith(y.with, x.with))) return false;
         keptStory.push({ ...x, reply: at });
         return true;
     });
@@ -14670,7 +14675,7 @@ function moneyRead(chat, st) {
     const open = debts.filter(d => d.left > 0 && !settled.has(d.id));
     const totals = {};
     // "copper" and "coppers", "Gold" and "gold": one currency, shown as first written
-    const curKey = c => { const k = lockKey(c || '?').replace(/\s+/g, ' '); return k.length > 3 && /[^s]s$/.test(k) ? k.slice(0, -1) : k; };
+    const curKey = moneyCurKey;
     const curName = new Map();
     for (const x of list) {
         const k = curKey(x.currency);
