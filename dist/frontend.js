@@ -5571,7 +5571,11 @@ export function setup(ctx) {
         out.push(h('div', { class: 'rpgc-add' }, nameIn, stSel, h('button', { class: 'rpgc-btn', onclick: add }, 'Add')));
         if (g.gone && g.gone.length) {
             const det = h('details', { class: 'rpgc-subdet' }, h('summary', null, `Gone (${g.gone.length})`),
-                h('p', { class: 'rpgc-note' }, g.gone.map(x => x.name + (gearAgo(x.ago) ? ` (${gearAgo(x.ago)})` : '')).join(' · ')));
+                // where each was last seen; one still yours (left somewhere, with someone) can come back on you
+                h('div', { class: 'rpgc-note' }, ...g.gone.map(x => h('div', { style: 'display:flex;align-items:center;gap:6px;margin:2px 0' },
+                    h('span', { class: 'grow', style: 'min-width:0' }, x.name, x.where ? h('span', { style: 'color:var(--lumiverse-text-muted,#aaa)' }, ` · ${x.where}`) : null, gearAgo(x.ago) ? h('span', { style: 'color:var(--lumiverse-text-muted,#aaa)' }, ` (${gearAgo(x.ago)})`) : null),
+                    x.owned ? h('button', { class: 'rpgc-btn', 'aria-label': `${T('Back on you')}: ${x.name}`,
+                        onclick: () => send({ type: 'gear', chatId: state.chatId, op: 'set', key: x.key, name: x.name, state: 'on body' }) }, T('Back on you')) : null))));
             det.open = state.open['gear-gone'] === true;
             det.dataset.openKey = 'gear-gone'; det.addEventListener('toggle', () => { state.open['gear-gone'] = det.open; });
             out.push(det);

@@ -13710,12 +13710,19 @@ function hmsGearPanel(chat, st, cfg) {
     if (!gc.on) return null;
     const { items, now, lastId } = gearRead(chat, st, c);
     const ago = (at) => at !== null && at !== undefined && now !== null ? Math.max(0, now - at) : null;
-    const list = items.filter(it => it.state !== 'gone').map(it => ({
+    // Put away somewhere: still yours, but out of the carried list, so a thing left at home for a year is not
+    // clutter. Left somewhere goes there at once, dropped after a day; each keeps where it was last seen.
+    const DAY = 1440;
+    const KEPT_RE = /\b(drawer|shelf|chest|cupboard|wardrobe|room|home|house|manor|estate|stable|left (?:with|at|in)|with [A-Z][\w'-]+|for (?:trueing|repair|repairs|mending|fixing|safekeeping|cleaning)|to be (?:trued|mended|repaired|fixed|cleaned)|lent|loaned|stored|kept|holding|minding)\b/i;
+    const SPENT_RE = /\b(sold|eaten|ate|drunk|drank|given (?:away|as)|gift(?:ed)?|traded|spent|broke|broken|destroyed|lost|burn(?:t|ed)?|used up|consumed|stolen|thrown|smashed)\b/i;
+    const owned = it => it.state === 'stowed' || it.state === 'dropped' || (it.state === 'gone' && KEPT_RE.test(it.where || '') && !SPENT_RE.test(it.where || ''));
+    const away = it => it.state === 'gone' || it.state === 'stowed' || (it.state === 'dropped' && ago(it.at) !== null && ago(it.at) >= DAY);
+    const list = items.filter(it => !away(it)).map(it => ({
         key: it.key, name: it.name, state: it.state, where: it.where, inside: it.inside, from: it.from, onHud: it.onHud, mine: !!it.mine,
         ago: ago(it.at), changedNow: !!lastId && it.msgId === lastId && it.history.length > 0,
         history: it.history.slice(-5).map(h => ({ state: h.state, where: h.where, inside: h.inside, ago: ago(h.at), you: !!h.you }))
     }));
-    const gone = items.filter(it => it.state === 'gone').slice(-12).map(it => ({ key: it.key, name: it.name, ago: ago(it.at) }));
+    const gone = items.filter(away).sort((a, b) => a.idx - b.idx).slice(-20).map(it => ({ key: it.key, name: it.name, ago: ago(it.at), where: it.where || null, owned: owned(it) }));
     const containers = [...new Set(list.filter(x => x.state === 'in container' && x.inside).map(x => x.inside))];
     for (const it of list) if (/\b(bag|backpack|pack|pouch|satchel|sack|purse|chest|box|case|quiver|bandolier|bag of holding|inventory)\b/i.test(it.name) && !containers.some(cn => relSameWords(cn, it.name))) containers.push(it.name);
     return { items: list, gone, containers, ask: gc.ask, tell: gc.tell };
@@ -13730,7 +13737,7 @@ function gearRequest(chat, st, userName, cfg) {
     const gc = gearCfg(cfg);
     if (!gc.on || !gc.ask) return null;
     const json = `"gear": [{"item": "short name, the same every reply (\"coin purse\", not \"coin purse — three silver\")", "state": "${GEAR_STATES.join('|')}", "where": "location or null", "inside": "container or null"}]`;
-    let rules = `"gear": changed possession states from established player actions/narration. An item only tried, examined or handled and then put back (a shop's wares, someone else's things) is not gear: never report it. in hand=held; worn=clothing/armour; sheathed=sheath/holster; on body=slung/strapped with where; in container=inside names it; stowed=off-person storage; dropped=set down; gone=transferred away, consumed/lost/destroyed. Storage/unequipping retain ownership. Nearby/NPC-owned/offered items and plans confer none. Unopened gifts need accepted transfer. Do not infer consent from narrator-assigned decisions or undo explicit physical facts. Reuse HUD/Gear-now names. [] if unchanged; damage alone never removes gear. HUD ownership is authoritative.`;
+    let rules = `"gear": changed possession states from established player actions/narration. An item only tried, examined or handled and then put back (a shop's wares, someone else's things) is not gear: never report it. in hand=held; worn=clothing/armour; sheathed=sheath/holster; on body=slung/strapped with where; in container=inside names it; stowed=off-person storage, or left with someone to keep, mend or hold for you (where = who has it); dropped=set down; gone=transferred away, consumed/lost/destroyed. Storage/unequipping retain ownership. Nearby/NPC-owned/offered items and plans confer none. Unopened gifts need accepted transfer. Do not infer consent from narrator-assigned decisions or undo explicit physical facts. Reuse HUD/Gear-now names. [] if unchanged; damage alone never removes gear. HUD ownership is authoritative.`;
     if (gc.tell && chat && st) {
         let now = [];
         try { now = gearRead(chat, st).items.filter(it => it.state && it.state !== 'gone'); } catch { now = []; }

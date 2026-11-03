@@ -5,6 +5,7 @@
 Compatibility with the Mushoku Tensei RPG "Six-Sided World" v1.1 card and its four HUD styles (Classic, Visual, Compact, Panel). Release candidate: automated checks pass; live Lumiverse acceptance is still to do. Report: `docs/release/1.1.0-RC-REPORT.md`.
 
 **Fixes from live play (fourth RC pass)**
+- **Gear, Gone list:** something left somewhere, or left with someone to keep or mend, moves to Gone at once, and something dropped moves there after a day, so things left behind for months are not clutter. Each shows where it was last seen. One that is still yours gets a **Back on you** button; something sold, eaten or given away does not.
 - **Gear:** an item the story says you handed back, sold or gave away goes to Gone at once, even while the narrator keeps copying the old Equipment line forward. The HUD brings an item back only when it newly lists it again.
 - **Two-column panels:** opening a card moves the cards under it down at once. They used to wait for the resize watcher, so for a moment (longer on a slow device) the opened card drew over the ones below.
 - **Gear:** an item the HUD already holds is no longer added a second time when the story reports it under the HUD's own name ("Plain road sword"), and a description after a comma ("ash wand, wool-rolled for trueing") no longer makes a new item. The held item of that kind is updated instead.
