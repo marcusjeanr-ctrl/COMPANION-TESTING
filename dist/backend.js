@@ -13558,7 +13558,9 @@ function gearFromHud(hud) {
             // "Roxy's wand — keepsake / magic focus": the name is before the dash, the rest is a note
             const name = bare((m ? m[1] : piece).split(/\s+[—–]\s+|\s+-\s+/)[0]).slice(0, 60);
             if (!name || /^(none|nothing|empty|n\/a|-+)$/i.test(name)) continue;
-            out.push({ name, hint: m && m[2] ? gearState(m[2]) : null, contents: m && m[3] ? split(m[3]).map(x => bare(x.replace(/\s*\([^)]*\)\s*$/, ''))).filter(Boolean).slice(0, 12) : [] });
+            // "(Halvin's mark)": a detail of the thing itself, not how it is carried, is kept to show beside the name
+            const note = m && m[2] && !gearState(m[2]) && !/^\s*[x×]?\s*\d+\s*$/i.test(m[2]) ? m[2].trim().slice(0, 40) : null;
+            out.push({ name, note, hint: m && m[2] ? gearState(m[2]) : null, contents: m && m[3] ? split(m[3]).map(x => bare(x.replace(/\s*\([^)]*\)\s*$/, ''))).filter(Boolean).slice(0, 12) : [] });
             if (out.length >= 30) return true;
         }
         return false;
@@ -13692,6 +13694,7 @@ function gearReadUncached(chat, st, cfg) {
         if (!it) continue;
         it.onHud = true;
         it.name = x.name;                                    // shown as the HUD spells it
+        it.note = x.note || null;
         // the HUD says you still have it: STATE IS GOD. Except where the reply that said it went (handed back,
         // sold, given away) already carried it on its own HUD: the narrator copies the HUD forward, so a listing
         // that never changed since is a stale copy, not the item coming back.
@@ -13728,7 +13731,7 @@ function hmsGearPanel(chat, st, cfg) {
     const owned = it => it.state === 'stowed' || it.state === 'dropped' || (it.state === 'gone' && KEPT_RE.test(it.where || '') && !SPENT_RE.test(it.where || ''));
     const away = it => it.state === 'gone' || it.state === 'stowed' || (it.state === 'dropped' && ago(it.at) !== null && ago(it.at) >= DAY);
     const list = items.filter(it => !away(it)).map(it => ({
-        key: it.key, name: it.name, state: it.state, where: it.where, inside: it.inside, from: it.from, onHud: it.onHud, mine: !!it.mine,
+        key: it.key, name: it.name, note: it.note || null, state: it.state, where: it.where, inside: it.inside, from: it.from, onHud: it.onHud, mine: !!it.mine,
         ago: ago(it.at), changedNow: !!lastId && it.msgId === lastId && it.history.length > 0,
         history: it.history.slice(-5).map(h => ({ state: h.state, where: h.where, inside: h.inside, ago: ago(h.at), you: !!h.you }))
     }));

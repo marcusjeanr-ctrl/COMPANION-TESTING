@@ -5458,7 +5458,7 @@ export function setup(ctx) {
         const meta = [it.where, it.onHud ? T('on the HUD') : it.from === 'you' ? T('added by you') : null, it.mine ? T('set by you') : null, it.changedNow ? T('just now') : null].filter(Boolean).join(' · ');
         const hist = (it.history || []).length > 1 ? it.history.map(x => `${x.state === 'in container' ? TT('in {0}', x.inside || T('a container')) : T(GEAR_LABEL[x.state] || x.state)}${x.where ? ` (${x.where})` : ''}${x.you ? ' — ' + T('set by you') : gearAgo(x.ago) ? ` — ${gearAgo(x.ago)}` : ''}`).join(' → ') : null;
         return h('li', { class: 'rpgc-gear-item' + (it.changedNow ? ' now' : ''), title: hist || null },
-            h('span', { class: 'name' }, it.name),
+            h('span', { class: 'name' }, it.note ? `${it.name} (${it.note})` : it.name),
             meta ? h('span', { class: 'meta' }, meta) : null,
             gearMove(g, it));
     }
