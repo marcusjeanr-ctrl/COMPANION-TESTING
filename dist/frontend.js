@@ -5472,7 +5472,11 @@ export function setup(ctx) {
             li.classList.add('rpgc-gear-box');
             li.dataset.boxKey = boxKey;
             const list = h('ul', { class: 'rpgc-gear-inside', id: 'rpgc-' + boxKey.replace(/[^a-z0-9-]+/g, '-'), hidden: open ? null : '' },
-                kids.length ? kids.map(k => { used.add(k.key); return boxItemRow(k, depth + 1); }) : h('li', { class: 'rpgc-note' }, T('Nothing known inside.')));
+                kids.length ? kids.map(k => { used.add(k.key); const row = boxItemRow(k, depth + 1);
+                    // under its holder, a row that is not simply "in a container" says how it is carried (🗡️ sheathed)
+                    if (k.state && k.state !== 'in container') { const g0 = GEAR_GROUPS.find(([st]) => st === k.state); const icon = g0 ? String(g0[1]).split(' ')[0] : '';
+                        const tag = h('span', { class: 'rpgc-chip rpgc-gear-state' }, `${icon} ${T(GEAR_LABEL[k.state] || k.state)}`.trim()); const nm = row.querySelector ? row.querySelector('.name') : null; if (nm) nm.after(tag); else row.appendChild(tag); }
+                    return row; }) : h('li', { class: 'rpgc-note' }, T('Nothing known inside.')));
             const peek = kids.slice(0, 2).map(k => k.name).join(', ') + (kids.length > 2 ? ` +${kids.length - 2}` : '');
             const peekEl = h('span', { class: 'rpgc-gear-peek', hidden: open || !kids.length ? '' : null }, peek);
             const toggle = h('button', { type: 'button', class: 'rpgc-box-toggle', 'aria-expanded': open ? 'true' : 'false', 'aria-controls': list.id,
