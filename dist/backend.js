@@ -3604,14 +3604,22 @@ function hudCardHtml(hud, rawHud, cfg = chatDisplayCfg()) {
  * newest first; null when the chat never names one.
  */
 function hudStyleFor(chat) {
+    // The player's start command or a later switch ("HUD: Panel" on its own line, or among other settings
+    // as "Canon: Living | HUD: Panel"), else the style the latest HUD itself reports on its Game Mode line.
+    const STYLE_RE = /\[\s*HUD\s*=\s*(CLASSIC|VISUAL|COMPACT|PANEL)\s*\]|(?:^|\|)[ \t]*HUD:\s*(Classic|Visual|Compact|Panel)\b/gim;
+    let fromHud = null;
     for (let i = (chat || []).length - 1; i >= 0; i--) {
         const m = chat[i];
-        if (!m || !(m.is_user || m.role === 'user')) continue;
+        if (!m) continue;
         const t = textOf(m.content);
-        const all = [...t.matchAll(/\[\s*HUD\s*=\s*(CLASSIC|VISUAL|COMPACT|PANEL)\s*\]|^[ \t]*HUD:\s*(Classic|Visual|Compact|Panel)\b/gim)];
+        if (!(m.is_user || m.role === 'user')) {
+            if (!fromHud && HUD_HEAD_RE.test(t)) { const g = t.match(/^[ \t]*Game Mode:[^\n]*?\bHUD:\s*(Classic|Visual|Compact|Panel)\b/im); fromHud = g ? g[1].toLowerCase() : ''; }
+            continue;
+        }
+        const all = [...t.matchAll(STYLE_RE)];
         if (all.length) { const x = all[all.length - 1]; return (x[1] || x[2]).toLowerCase(); }
     }
-    return null;
+    return fromHud || null;
 }
 const hudStyleCache = new Map();   // chatId -> 'panel' | 'classic' | … | null
 async function hudStyleOf(chatId) {
@@ -3619,7 +3627,7 @@ async function hudStyleOf(chatId) {
     if (hudStyleCache.has(chatId)) return hudStyleCache.get(chatId);
     let style = null;
     try { style = hudStyleFor(await chatApi.getMessages(chatId)); } catch { style = null; }
-    hudStyleCache.set(chatId, style);
+    if (style) hudStyleCache.set(chatId, style);       // not found yet: look again next time, a later HUD may say
     while (hudStyleCache.size > 64) hudStyleCache.delete(hudStyleCache.keys().next().value);
     return style;
 }

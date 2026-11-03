@@ -5,6 +5,7 @@
 Compatibility with the Mushoku Tensei RPG "Six-Sided World" v1.1 card and its four HUD styles (Classic, Visual, Compact, Panel). Release candidate: automated checks pass; live Lumiverse acceptance is still to do. Report: `docs/release/1.1.0-RC-REPORT.md`.
 
 **Fixes from live play (fourth RC pass)**
+- **HUD card and the bot's Panel:** the Companion's HUD card steps aside for the Six-Sided card's own Panel HUD (its regex scripts) also when the start command sets the style among other settings ("Canon: Living | HUD: Panel") or only the HUD's Game Mode line says "HUD: Panel". It used to see "HUD: Panel" only on a line of its own, and drew its card over the bot's panel.
 - **Gear:** a detail the HUD gives in brackets ("Plain road sword (Halvin's mark)") shows beside the item's name; one that says how it is carried still sets that instead.
 - **Gear:** a sword sheathed "at the hip" with no holder named sits under the one baldric, scabbard or sword belt you carry; and where the HUD says it hangs ("Plain road sword (Halvin's mark) on hip") is no longer part of its name.
 - **Gear:** the HUD's short name and the story's long one for the same thing ("travel paper bundle" and "travel bundle of northern paper sheets") are one item: when every word of one name is in the other, in any order, and only one item fits.
