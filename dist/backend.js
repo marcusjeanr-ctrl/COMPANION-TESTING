@@ -14660,8 +14660,17 @@ function moneyRead(chat, st) {
     }
     const open = debts.filter(d => d.left > 0 && !settled.has(d.id));
     const totals = {};
+    // "copper" and "coppers", "Gold" and "gold": one currency, shown as first written
+    const curKey = c => { const k = lockKey(c || '?').replace(/\s+/g, ' '); return k.length > 3 && /[^s]s$/.test(k) ? k.slice(0, -1) : k; };
+    const curName = new Map();
     for (const x of list) {
-        const cur = x.currency || '?';
+        const k = curKey(x.currency);
+        if (!curName.has(k) || String(x.currency || '').length < String(curName.get(k)).length) {
+            const was = curName.get(k), now = x.currency || '?';
+            if (was !== undefined && totals[was]) { totals[now] = totals[was]; delete totals[was]; }
+            curName.set(k, now);
+        }
+        const cur = curName.get(k);
         if (!totals[cur]) totals[cur] = { in: 0, out: 0 };
         if (x.dir === 'in') totals[cur].in += x.amount;
         else if (x.dir === 'out') totals[cur].out += x.amount;
