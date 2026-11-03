@@ -2210,7 +2210,7 @@ export function setup(ctx) {
             view.style.rowGap = twoCols ? '0px' : '';
             for (const card of view.children) {
                 if (!twoCols) { card.style.gridRowEnd = ''; continue; }
-                card.style.gridRowEnd = `span ${Math.max(1, Math.ceil((card.getBoundingClientRect().height + COL_GAP) / ROW_UNIT))}`;
+                card.style.gridRowEnd = `span ${Math.max(1, Math.ceil((card.offsetHeight + COL_GAP) / ROW_UNIT))}`;   // layout px: unaffected by zoom or transforms
             }
         };
         fit();
