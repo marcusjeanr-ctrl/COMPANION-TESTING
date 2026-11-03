@@ -14628,7 +14628,22 @@ function moneyRead(chat, st) {
     }
     for (const a of Array.isArray(g.added) ? g.added : []) if (a && a.amount) ledger.push({ ...a, from: 'you', msgId: null });
     const { hidden, settled, unresolved } = moneyCorrectionTargets(g, ledger, recentAliases);
-    const list = ledger.filter(x => !hidden.has(x.sourceId || x.id) && (x.from === 'you' || x.accepted !== false && !reportSpeculative(x))); // keep original ledger IDs for saved manual corrections
+    const shown = ledger.filter(x => !hidden.has(x.sourceId || x.id) && (x.from === 'you' || x.accepted !== false && !reportSpeculative(x))); // keep original ledger IDs for saved manual corrections
+    // The same payment reported again in the next reply or two (same amount, currency, kind and person) is one
+    // payment, not two: the side-panel block often repeats a handover the story is still describing. Done after
+    // the hand corrections, so hiding one of the pair by hand still leaves the other.
+    const replyAt = new Map();
+    { let n = 0; for (const m of chat || []) if (m.role === 'assistant') replyAt.set(m.id, n++); }
+    const sameWith = (a, b) => a && b ? relSameWords(a, b) : !a && !b;
+    const keptStory = [];
+    const list = shown.filter(x => {
+        if (x.from !== 'story') return true;
+        const at = replyAt.get(x.msgId);
+        if (at !== undefined && keptStory.some(y => y.msgId !== x.msgId && at - y.reply > 0 && at - y.reply <= 2 && y.amount === x.amount &&
+            lockKey(y.currency) === lockKey(x.currency) && (y.kind || '') === (x.kind || '') && (y.dir || '') === (x.dir || '') && sameWith(y.with, x.with))) return false;
+        keptStory.push({ ...x, reply: at });
+        return true;
+    });
     // debts: "debt" (you owe) and "loan" (owed to you) stay open until a "repaid" with the same person or settled by hand
     const debts = [];
     for (const x of list) {
@@ -17012,7 +17027,9 @@ function spellResolver(chatId) {
         const key = spellKey(label);
         if (index.has(key)) { const out = [resolve(label)]; cache.values.set(label, out); if (cache.values.size > 512) cache.values.delete(cache.values.keys().next().value); return out; }
         if (cache.groups.has(key)) return cache.groups.get(key);
-        const invalid = text => !text || text.length > 160 || /[.!?:]/.test(text) ||
+        // A name the references don't hold must still read like a spell name, not a sentence
+        // ("Lord Boreas wants Marcus as steady company for his nephew" is a learned fact, not a spell).
+        const invalid = text => !text || text.length > 160 || /[.!?:]/.test(text) || text.split(/\s+/).length > 6 ||
             /^(?:none|null|n\/a|unknown|unlearned|unconfirmed)$/i.test(text) || /^not\s+/i.test(text) ||
             /\b(?:might|could|would|should|plans?|intends?)\s+(?:to\s+)?(?:know|learn|cast|study|use)\b|\b(?:knows?|demonstrates?)\s+\S|\bnever\s+(?:knew|known|learned|cast|used)\b/i.test(text);
         const single = text => {

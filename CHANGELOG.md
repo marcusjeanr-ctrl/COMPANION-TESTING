@@ -4,6 +4,10 @@
 
 Compatibility with the Mushoku Tensei RPG "Six-Sided World" v1.1 card and its four HUD styles (Classic, Visual, Compact, Panel). Release candidate: automated checks pass; live Lumiverse acceptance is still to do. Report: `docs/release/1.1.0-RC-REPORT.md`.
 
+**Fixes from live play (fourth RC pass)**
+- **Spellbook:** a name the spell references don't hold must read like a spell name (six words at most). A learned fact the side-panel block filed as a spell ("Lord Boreas wants Marcus as steady company for his hard-tempered nephew…") no longer shows as one. The Spellbook is rebuilt from the reports, so an entry already there goes away by itself; spells marked by hand are untouched.
+- **Finances:** the same payment reported again in the next reply or two (same amount, currency, kind and person) counts once. A real chat showed 6 silver for Aurelius's 3. Applied after hand corrections, so hiding one of a pair by hand still keeps the other.
+
 **Combat techniques and "who you are" (third RC pass, from the 1.1.1 beta)**
 - Brought in from the other fork's **1.1.1 beta** (its changes on top of 1.0.1, merged three-way so none of this RC's fixes are undone):
   - **Touki (Battle Aura)** is a track of its own, read from the HUD's `Touki (Battle Aura):` line in every style, also when Compact puts it on the mana row: Locked, Awakening, Active, Mastered.
