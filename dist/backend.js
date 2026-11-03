@@ -13458,7 +13458,9 @@ function gearCfg(cfg) {
 /** "2x Med kit", "Radio x2", "Arrows (12)", "3 torches", "my sword": the bare name of the thing. */
 function gearBare(n) {
     return String(n || '').replace(/^[-•*·▸◦►>\s]+/, '').replace(/^\d+\s*[x×]\s*/i, '').replace(/^[x×]\s*\d+\s+/i, '').replace(/\s*[x×]\s*\d+$/i, '')
-        .replace(/\s*\(\s*[x×]?\s*\d+\s*\)$/i, '').replace(/^\d+\s+(?=\p{L})/u, '').replace(/^(?:my|his|her|their|your|the)\s+/i, '').replace(/[*_`]+/g, '').trim();
+        .replace(/\s*\(\s*[x×]?\s*\d+\s*\)$/i, '').replace(/^\d+\s+(?=\p{L})/u, '').replace(/^(?:my|his|her|their|your|the)\s+/i, '').replace(/[*_`]+/g, '')
+        // "coin purse — three silver plus allowance copper": a dash and what follows describe the item, they don't name it
+        .replace(/\s+[—–]\s+.*$/, '').replace(/\s+-\s+.*$/, '').trim();
 }
 
 // The same thing under another word: "pack" is the backpack, and a model writing the reply in Portuguese
@@ -13704,7 +13706,7 @@ function gearLine(it) {
 function gearRequest(chat, st, userName, cfg) {
     const gc = gearCfg(cfg);
     if (!gc.on || !gc.ask) return null;
-    const json = `"gear": [{"item": "short name", "state": "${GEAR_STATES.join('|')}", "where": "location or null", "inside": "container or null"}]`;
+    const json = `"gear": [{"item": "short name, the same every reply (\"coin purse\", not \"coin purse — three silver\")", "state": "${GEAR_STATES.join('|')}", "where": "location or null", "inside": "container or null"}]`;
     let rules = `"gear": changed possession states from established player actions/narration. in hand=held; worn=clothing/armour; sheathed=sheath/holster; on body=slung/strapped with where; in container=inside names it; stowed=off-person storage; dropped=set down; gone=transferred away, consumed/lost/destroyed. Storage/unequipping retain ownership. Nearby/NPC-owned/offered items and plans confer none. Unopened gifts need accepted transfer. Do not infer consent from narrator-assigned decisions or undo explicit physical facts. Reuse HUD/Gear-now names. [] if unchanged; damage alone never removes gear. HUD ownership is authoritative.`;
     if (gc.tell && chat && st) {
         let now = [];
