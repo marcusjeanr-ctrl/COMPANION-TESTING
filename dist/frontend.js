@@ -2199,9 +2199,13 @@ export function setup(ctx) {
     // a gap under a short or closed card beside a long one; each card now spans the rows its own height needs,
     // so the next card moves up into the space. Recomputed whenever a card opens, closes or changes size.
     const ROW_UNIT = 4, COL_GAP = 12;
-    let viewObserver = null;
+    let viewObserver = null, viewFit = null;
+    // Opening or closing a card re-fits at once. Waiting for the resize watcher alone left the other cards
+    // under an opened one for a moment (or until the next refresh, where the watcher is slow or missing).
+    root.addEventListener('toggle', () => { if (viewFit) viewFit(); }, true);
     function layoutViewColumns() {
         if (viewObserver) { viewObserver.disconnect(); viewObserver = null; }
+        viewFit = null;
         const view = root.querySelector('.rpgc-view');
         if (!view) return;
         const fit = () => {
@@ -2213,7 +2217,7 @@ export function setup(ctx) {
                 card.style.gridRowEnd = `span ${Math.max(1, Math.ceil((card.offsetHeight + COL_GAP) / ROW_UNIT))}`;   // layout px: unaffected by zoom or transforms
             }
         };
-        fit();
+        fit(); viewFit = fit;
         if (typeof ResizeObserver === 'function') {
             let queued = false;
             viewObserver = new ResizeObserver(() => { if (queued) return; queued = true; requestAnimationFrame(() => { queued = false; fit(); }); });
