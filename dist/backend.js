@@ -13589,6 +13589,7 @@ function gearRead(chat, st, cfg) {
     if (!cache.has(st)) cache.set(st, gearReadUncached(chat, st, cfg));
     return cache.get(st);
 }
+const GEAR_STOP_WORDS = new Set(['the', 'and', 'with', 'from', 'for', 'his', 'her', 'its', 'their', 'your', 'my', 'of', 'in', 'on', 'small', 'large', 'old', 'new', 'little', 'big']);
 function gearReadUncached(chat, st, cfg) {
     const g = st && isPlainObject(st.gear) ? st.gear : {};
     const pk = st && isPlainObject(st.pockets) ? st.pockets : {};
@@ -13616,7 +13617,14 @@ function gearReadUncached(chat, st, cfg) {
         for (const it of items.values()) { const a = bare(it.key), b = bare(k); if (a === b || (a.length > 3 && b.length > 3 && (a.endsWith(' ' + b) || b.endsWith(' ' + a))) || (Math.min(a.length, b.length) >= 5 && (a.endsWith(b) || b.endsWith(a)))) return it; }
         // a further description matches only one item, and never one already reported in this same reply
         const described = [...items.values()].filter(it => !avoid?.has(it) && refined(bare(it.key), bare(k)));
-        return described.length === 1 ? described[0] : null;
+        if (described.length === 1) return described[0];
+        // "travel paper bundle" and "travel bundle of northern paper sheets": every word of the shorter name is in
+        // the longer one, in any order (two words at least, and only one item fits)
+        const words = x => new Set(lockKey(gearBare(x)).replace(/\([^)]*\)/g, ' ').split(/[^a-z0-9']+/).filter(w => w.length > 2 && !GEAR_STOP_WORDS.has(w)).map(w => w.length > 3 && /[^s]s$/.test(w) ? w.slice(0, -1) : w));
+        const mine = words(k);
+        const within = (a, b) => a.size >= 2 && [...a].every(w => b.has(w));
+        const sharing = mine.size < 2 ? [] : [...items.values()].filter(it => { if (avoid?.has(it)) return false; const theirs = words(it.name); return within(mine, theirs) || within(theirs, mine); });
+        return sharing.length === 1 ? sharing[0] : null;
     };
     // every name any HUD gave an item: a story report that uses one ("Plain road sword") is that HUD item
     const hudNames = new Set();
