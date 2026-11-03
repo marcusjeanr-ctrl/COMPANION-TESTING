@@ -18246,12 +18246,17 @@ function questDetailsLatest(chat) {
                     }
                     return true;
                 };
-                const referenced = q.questId ? rows.filter(x => questReferenceMatch(x, q, continuityLines ??= trackingContinuityLines(m))) : [];
+                // A report that names a row's own Quest ID is that row, whatever else matches its name.
+                const byId = q.questId ? rows.filter(x => lockKey(x.key) === lockKey(q.questId)) : [];
+                const referenced = byId.length === 1 ? byId : q.questId ? rows.filter(x => questReferenceMatch(x, q, continuityLines ??= trackingContinuityLines(m))) : [];
                 const exact = referenced.length ? referenced : rows.filter(x => questKey(x.name) === questKey(q.name) && matches(x));
                 const candidates = exact.length ? exact : rows.filter(matches);
                 // An ambiguous paraphrase cannot choose or invent another assignment.
                 if (!exact.length && candidates.length > 1 && candidates.every(x => questChallengeMatch(x, q))) continue;
-                let row = candidates.length === 1 ? candidates[0] : null;
+                // Two rows under one name (a finished run of the quest and the one that reopened it): a report
+                // continues the open one, never starts a third copy.
+                const open = candidates.length > 1 ? candidates.filter(x => !['done', 'ended', 'failed'].includes((questReportedState(x.state)?.cls || x.cls))) : [];
+                let row = candidates.length === 1 ? candidates[0] : open.length === 1 ? open[0] : null;
                 let contractLink = referenced.length === 1;
                 if (!row && !candidates.length && rows.length) {
                     const lines = () => continuityLines ??= trackingContinuityLines(m);
@@ -18285,6 +18290,13 @@ function questDetailsLatest(chat) {
                 // Reported under this quest's own Quest ID: its objective is the current stage, as reported.
                 const idLinked = !!(row && q.questId && lockKey(q.questId) === lockKey(row.key));
                 const deadlineChanged = !row || (q.deadline && q.deadline !== row.deadline);
+                // A Quest ID of the extension's own "name :: reply" form that no row holds (the row it named was
+                // folded into another, or a swipe dropped it) is that quest under its name, not a new copy.
+                if (!row && !byId.length && / :: /.test(String(q.questId || ''))) {
+                    const same = rows.filter(x => !separateKeys.has(x.key) && questKey(x.name) === questKey(q.name));
+                    const openSame = same.filter(x => !['done', 'ended', 'failed'].includes((questReportedState(x.state)?.cls || x.cls)));
+                    row = openSame.length === 1 ? openSame[0] : !openSame.length && same.length ? same[same.length - 1] : null;
+                }
                 if (!row) { let key = q.questId && !rows.some(x => lockKey(x.key) === lockKey(q.questId)) ? lockKey(q.questId) : q.key || questKey(q.name);
                     const base = key + ' :: ' + m.id;
                     for (let n = 1; rows.some(x => x.key === key); n++) key = base + (n > 1 ? ' :: ' + n : '');
