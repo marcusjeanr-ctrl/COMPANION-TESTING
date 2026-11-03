@@ -2148,7 +2148,7 @@ export function setup(ctx) {
         requestState();
     };
     for (const ev of ['MESSAGE_SWIPED', 'SWIPE_EDITED', 'MESSAGE_DELETED']) evUnsubs.push(ctx.events.on(ev, onChatEvent));
-    evUnsubs.push(ctx.events.on('CHAT_SWITCHED', () => syncChat()));
+    evUnsubs.push(ctx.events.on('CHAT_SWITCHED', () => { fieldDrafts.clear(); syncChat(); }));
     evUnsubs.push(ctx.events.on('PERSONA_CHANGED', () => requestState({ refreshName: true })));
     evUnsubs.push(ctx.events.on('GENERATION_STARTED', (p) => {
         if (p?.chatId === state.chatId) { state.expectPush = false; }
@@ -2197,6 +2197,10 @@ export function setup(ctx) {
     // ── rendering ──
     let pendingRender = false;
     let deferredEl = null;
+    const fieldDrafts = new Map();   // what the player has typed into the panel's boxes, until they clear or submit it
+    root.addEventListener('input', e => { const el = e.target; if (!el || !/INPUT|TEXTAREA|SELECT/.test(el.tagName) || /checkbox|radio/.test(el.type)) return;
+        const sec = el.closest('details')?.dataset?.openKey || '', id = el.getAttribute('aria-label') || el.getAttribute('placeholder') || el.name || '';
+        if (id) { const k = `${sec}|${el.tagName}|${id}`; if (el.value) fieldDrafts.set(k, el.value); else fieldDrafts.delete(k); } }, true);
     function render(fromBackend = false) {
         if (!panelVisible) { hiddenRender = true; return; }
         applyLang();
@@ -2217,10 +2221,21 @@ export function setup(ctx) {
         pendingRender = false;
         deferredEl = null;
         const scroll = tab.root.scrollTop;
+        // Half-typed fields survive a repaint: a reply landing, or moving from one box of a form to the next,
+        // redraws the panel, and the new boxes used to come back empty.
+        const keyOf = el => { const sec = el.closest('details')?.dataset?.openKey || ''; const id = el.getAttribute('aria-label') || el.getAttribute('placeholder') || el.name || ''; return id ? `${sec}|${el.tagName}|${id}` : null; };
+        for (const el of root.querySelectorAll('input:not([type=checkbox]):not([type=radio]), textarea, select')) { const k = keyOf(el); if (k && fieldDrafts.has(k)) { if (el.value) fieldDrafts.set(k, el.value); else fieldDrafts.delete(k); } }
+        const was = document.activeElement && root.contains(document.activeElement) ? document.activeElement : null;
+        const wasKey = was && keyOf(was), wasSel = was && typeof was.selectionStart === 'number' ? [was.selectionStart, was.selectionEnd] : null;
         root.replaceChildren(...(state.view === 'settings' ? renderSettings() : state.view === 'guide' ? renderGuide() : state.view === 'sandbox' ? renderSandbox() : renderTrackers()).filter(Boolean));   // a switched-off card is simply absent
         const dossier=renderNpcDossier();if(dossier)root.appendChild(dossier);
         const finder = state.view === 'trackers' ? renderFind() : null; if (finder) root.appendChild(finder);
         if (state.view === 'settings') settingsSearch();
+        if (fieldDrafts.size || wasKey) for (const el of root.querySelectorAll('input:not([type=checkbox]):not([type=radio]), textarea, select')) {
+            const k = keyOf(el); if (!k) continue;
+            if (fieldDrafts.has(k) && el.value !== fieldDrafts.get(k)) el.value = fieldDrafts.get(k);
+            if (k === wasKey && document.activeElement !== el) { el.focus({ preventScroll: true }); if (wasSel) try { el.setSelectionRange(wasSel[0], wasSel[1]); } catch { /* number fields have no selection */ } }
+        }
         tab.root.scrollTop = scroll;
         if (state.jumpTo) {
             const id = state.jumpTo; state.jumpTo = null;
