@@ -5441,7 +5441,18 @@ export function setup(ctx) {
         const used = new Set();
         const boxRow = new Map();   // container name → its own item row
         for (const cn of g.containers) { const box = g.items.find(it => low(it.name) === low(cn)); if (box) boxRow.set(low(cn), box); }
-        const contentsOf = cn => g.items.filter(it => it.state === 'in container' && it.inside && low(it.inside) === low(cn));
+        // A sheathed item sits under the one thing you carry that its "where" names ("baldric across the back" →
+        // the leather baldric), like a bag's contents. Display only, and only when exactly one item fits.
+        const holderOf = new Map();
+        const wordIn = (text, w) => w.length > 2 && new RegExp(`(^|[^\\p{L}])${w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}($|[^\\p{L}])`, 'u').test(text);
+        for (const it of g.items) {
+            if (it.state !== 'sheathed' || !it.where) continue;
+            const where = low(it.where);
+            const fits = g.items.filter(o => o !== it && o.state && o.state !== 'gone' && o.state !== 'sheathed' &&
+                (wordIn(where, low(o.name)) || wordIn(where, low(o.name).replace(/\s*\([^)]*\)\s*$/, '').split(/\s+/).pop())));
+            if (fits.length === 1) { holderOf.set(it.key, fits[0]); boxRow.set(low(fits[0].name), fits[0]); }
+        }
+        const contentsOf = cn => g.items.filter(it => (it.state === 'in container' && it.inside && low(it.inside) === low(cn)) || (holderOf.has(it.key) && low(holderOf.get(it.key).name) === low(cn)));
         const nestable = new Set();
         for (const cn of boxRow.keys()) {
             // walk up: the bag, the bag it is in, … ; coming back to itself is a loop → not nestable
@@ -5451,7 +5462,7 @@ export function setup(ctx) {
             }
             if (!loop) nestable.add(cn);
         }
-        const nestedUnderRow = it => it.state === 'in container' && it.inside && nestable.has(low(it.inside));
+        const nestedUnderRow = it => (it.state === 'in container' && it.inside && nestable.has(low(it.inside))) || (holderOf.has(it.key) && nestable.has(low(holderOf.get(it.key).name)));
         const boxItemRow = (it, depth) => {
             const cn = low(it.name);
             if (!nestable.has(cn) || depth > 4) return gearRow(g, it);
@@ -5496,7 +5507,7 @@ export function setup(ctx) {
                 if (loose.length) out.push(h('div', { class: 'rpgc-gear-group' }, h('h4', null, '👜 Packed away'), h('ul', null, loose.map(it => gearRow(g, it)))));
                 continue;
             }
-            const list = g.items.filter(it => (st === null ? !it.state : it.state === st) && !used.has(it.key));
+            const list = g.items.filter(it => (st === null ? !it.state : it.state === st) && !used.has(it.key) && !nestedUnderRow(it));
             if (!list.length) continue;
             out.push(h('div', { class: 'rpgc-gear-group' + (st === 'in hand' ? ' hands' : '') }, h('h4', null, title), h('ul', null, list.map(rowFor))));
         }
