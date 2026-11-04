@@ -32,6 +32,11 @@ Compatibility with the Mushoku Tensei RPG "Six-Sided World" v1.1 card and its fo
 - **Person cards**: a bond that only changed wording ("Younger sister" ↔ "Younger sister, minor") no longer shows as a change, and only the latest bond change is kept.
 
 **Fixes from live play (fourth RC pass)**
+- **Wounds: a treated wound with a note no longer "heals".** After the supper skip, the Condition line read "Left forearm break-fall bruise — Treated (cold-soaked, wrapped)". The comma inside the brackets broke the wound match, so Wounds showed the bruise as healed and listed a brand-new condition named "… — Treated". Now a bracketed note stays part of the same wound, and its age and history carry on.
+- **Agenda: a standing routine is never "late".** The reporter re-sent the two-month "Training schedule" with only the day's hours ("dawn to ninth bell …; ninth bell to midday …"). At supper it showed as ⚠️ Late, What's next listed it as due, and the narrator would have been told it was late. A schedule, routine or "every morning" item now stays 🔁 Ongoing. "Schedule a meeting…" isn't treated as a routine.
+- **Agenda: timing text no longer cut mid-word.** It used to stop at 60 characters ("…ninth bell t"). The limit is now 140.
+- **Time-skip recap: routines stay open.** The recap asks the narrator to settle what falls inside a skip, which could have closed the training schedule after one day. Ongoing items are now marked "it runs on through the skip; keep it open until it ends".
+- **Present reminder: softer wording.** The side panel can list someone only seen from a window (Aurelia during the lesson) or heard through a door (Aurelius before dawn). The reminder now says to list them only if they're in the scene with Marcus.
 - **Keeping the HUD in step with the story.** These now go to the narrator on their own, as a story reminder on the next reply, and show in World State's *Worth a look*:
   - **a wound the story shows that the Condition line forgot** (Marcus's arm "stinging red to the elbow" after the break-falls)
   - **a wound the story healed that is still on Condition**
@@ -49,7 +54,7 @@ Compatibility with the Mushoku Tensei RPG "Six-Sided World" v1.1 card and its fo
   - a rank past the card's age cap (at 12: sword up to Advanced)
 
   "True: Advanced (potential: Saint)" isn't flagged. Nothing is changed automatically, and the narrator's counting rules are untouched.
-- **New regression suite** `tools/test_live_play_audit.cjs` (21 checks: gear guesses, Training line, discarded swipes, HUD reminders), now part of `run_tests.cjs`.
+- **New regression suite** `tools/test_live_play_audit.cjs` (24 checks: gear guesses, Training line, discarded swipes, HUD reminders, wounds and routines), now part of `run_tests.cjs`.
 - **Training card: half sessions.** "Water Magic → Saint (1.5/60 sessions)" (a good teacher counts a day as 1.5) was not read, so the Water line vanished from the card. Decimal counts are read now.
 - **Spellbook: a short spell name.** "raise a Shield" beside Water Ball and Water Arrow became a separate "Shield" spell. A bare name is matched to the spell of the same school cast beside it (Water Shield), or to the one spell it ends, when there is only one.
 - **What's next:** a promise with a time coming up (Aurelius's sword session at the ninth bell) shows under Coming up with its countdown; an ongoing arrangement no longer shows there.

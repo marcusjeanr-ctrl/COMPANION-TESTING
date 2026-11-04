@@ -18,7 +18,7 @@ ctx.globalThis = ctx;
 vm.createContext(ctx);
 vm.runInContext(source.slice(0, startup) + `
 globalThis.__t = { gearRead, getSwipeData, mtTraining, hmsTimeline, worldLines,
-  hmsHudSync: typeof hmsHudSync === 'function' ? hmsHudSync : () => [], hmsStoryReminders,
+  hmsHudSync: typeof hmsHudSync === 'function' ? hmsHudSync : () => [], hmsStoryReminders, hmsReadWounds, hmsAgendaPanel, hudRead: typeof hmsHudRead === 'function' ? hmsHudRead : null,
   hmsTrainingChecks: typeof hmsTrainingChecks === 'function' ? hmsTrainingChecks : () => [],
   gearMentioned: typeof gearMentioned === 'function' ? gearMentioned : () => true };`, ctx);
 const t = ctx.__t;
@@ -142,7 +142,7 @@ check('someone named in the scene but missing from Present is reminded; a role i
     const chat = [user('go'), reply({}, 'Yard.'), user('shop'), reply({ characters: [{ name: 'Ferren' }, { name: 'Paper-seller' }, { name: 'Marcus Veyrath' }, { name: 'Aurelius Veyrath' }] }, 'Ferren holds out the hazel.', { time: '12:00' })];
     const p = sync(chat).filter(x => x.kind === 'present');
     assert.equal(p.length, 1); assert.match(p[0].text, /^Ferren is in the scene/);
-    assert.match(tell(chat), /Ferren is in this scene/);
+    assert.match(tell(chat), /Ferren: if they are in the scene with Marcus Veyrath/);
 });
 check('a dead person on Present is reminded', () => {
     const chat = [user('go'), reply({ deaths: ['Halvin'] }, 'The smith is gone.'), user('later'), reply({}, 'The forge is cold.', { time: '12:00', present: 'Aurelius Veyrath (45, b. K371), Halvin (50)' })];
@@ -161,6 +161,28 @@ check('a quiet reply sends no HUD reminder', () => {
     const chat = [user('go'), reply({ characters: [{ name: 'Aurelius Veyrath' }], hurtSeen: [] }, 'Yard.', owns), user('eat'), reply({ characters: [{ name: 'Aurelius Veyrath' }], hurtSeen: [] }, 'Lunch.', { ...owns, time: '12:00' })];
     assert.deepEqual(sync(chat), []);
     assert.doesNotMatch(tell(chat), /keep the HUD with the story/);
+});
+
+// ── export 4 (after the supper skip) ──
+check('a treated wound with a bracketed note stays the same wound (no false "healed")', () => {
+    const tl = t.hmsTimeline([user('a'), reply({}, 'Supper.', { condition: 'Left forearm break-fall bruise — Treated (cold-soaked, wrapped)' })]);
+    const w = JSON.parse(JSON.stringify(t.hmsReadWounds(tl[tl.length - 1].hud)));
+    assert.equal(w.length, 1); assert.equal(w[0].name, 'Left forearm break-fall bruise'); assert.equal(w[0].cls, 'treated');
+});
+const sched = { key: 'training schedule', what: 'Training schedule', with: 'Aurelius Veyrath and Seraphina Veyrath', when: 'dawn to ninth bell with Seraphina and the yard; ninth bell to midday with Aurelius and the sword', kind: 'event', state: 'open' };
+check('a standing training schedule is ongoing, never late, and the narrator is not told it is due', () => {
+    const chat = [user('a'), reply({ agenda: [sched] }, 'Breakfast.', { time: '08:00' }), user('skip to supper'), reply({ agenda: [sched] }, 'Supper.', { time: '17:35' })];
+    const a = JSON.parse(JSON.stringify(t.hmsAgendaPanel(chat, {}, {})));
+    const it = a.items.find(x => x.what === 'Training schedule');
+    assert.equal(it.status, 'ongoing');
+    assert.match(it.when, /to midday with Aurelius and the sword$/);
+    const r = JSON.parse(JSON.stringify(t.hmsStoryReminders(chat, {}, 'Marcus Veyrath').parts)).join('\n');
+    assert.doesNotMatch(r, /due now/);
+});
+check('a time-skip recap keeps a routine open', () => {
+    const chat = [user('a'), reply({ agenda: [sched] }, 'Breakfast.', { time: '08:00' }), user('(Time skip: until supper.)')];
+    const r = JSON.parse(JSON.stringify(t.hmsStoryReminders(chat, {}, 'Marcus Veyrath').parts)).join('\n');
+    assert.match(r, /Training schedule.*ongoing: it runs on through the skip; keep it open/);
 });
 
 for (const r of results) console.log(`  ✓ ${r}`);

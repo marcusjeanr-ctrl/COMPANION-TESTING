@@ -11820,7 +11820,7 @@ function hmsWoundTag(tag) {
 }
 
 // A Condition entry tagged like a wound ("Cracked rib — Treated") is a wound; states stay conditions.
-const HMS_CONDITION_WOUND_RE = /^(.*\S)\s+[—–-]\s+(raw|untreated|treated|healing|bandaged|splinted|stitched)\b[^,]*$/i;
+const HMS_CONDITION_WOUND_RE = /^(.*\S)\s+[—–-]\s+(raw|untreated|treated|healing|bandaged|splinted|stitched)\b(?:[^,(]|\([^)]*\))*$/i;
 function hmsConditionParts(l) {
     const text = hudSemanticText(l.text);
     if (!/^\s*(?:[^\p{L}\p{N}\s]\s*)?conditions?\s*:/iu.test(text)) return null;
@@ -14022,7 +14022,7 @@ function agendaNormalize(list) {
         const moved = ['moved', 'postponed', 'rescheduled'].includes(rawState);
         const state = ['started', 'active', 'underway'].includes(rawState) ? 'in_progress' : ['abandoned', 'canceled'].includes(rawState) ? 'cancelled' : moved ? 'open' : rawState;
         if (e.accepted === false || reportSpeculative(e) || (state && !AGENDA_STATES.includes(state))) continue;
-        const row = { key, what, with: partyText(e.with ?? e.who, 60), where: partyText(e.where, 80), when: partyText(e.when, 60), due: partyText(e.due, 40),
+        const row = { key, what, with: partyText(e.with ?? e.who, 60), where: partyText(e.where, 80), when: partyText(e.when, 140), due: partyText(e.due, 40),
             kind: AGENDA_KINDS.includes(kind) ? kind : 'meeting', state: AGENDA_STATES.includes(state) ? state : 'open' };
         if (moved) row.moved = true;
         // Identity duplicates may carry an outcome/correction later in the same
@@ -14464,7 +14464,9 @@ function hmsAgendaPanel(chat, st, cfg, forDisplay = false) {
     const { items, now, lastId } = agendaRead(chat, st);
     const out = items.map(it => {
         const dueIn = it.dueAt !== null && it.dueAt !== undefined && now !== null ? it.dueAt - now : null;
-        const ongoing = ['open', 'in_progress'].includes(it.state) && (dueIn === null || /^\s*(?:for\s+)?(?:the\s+next\s+)?(?:\d+|one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|a few)\s+(?:days?|weeks?|months?|years?)\s*[,;]/i.test(String(it.when || ''))) && /^\s*(?:for\s+)?(?:the\s+next\s+)?(?:\d+|one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|a few)\s+(?:days?|weeks?|months?|years?)\s*(?:$|[,;])|\b(?:daily|every (?:day|morning|evening|night|week)|each (?:day|morning|evening|night)|until (?:the )?(?:departure|seedwake|spring)|ongoing)\b/i.test(String(it.when || ''));
+        // A standing routine ("Training schedule: dawn to ninth bell …", "every morning") runs on; it is never late.
+        const routine = ['open', 'in_progress'].includes(it.state) && (/\b(?:schedule|routine|regimen|rota)\b/i.test(String(it.what || '')) && !/^\s*(?:re)?schedul(?:e|ing)\b/i.test(String(it.what || '')) || /\b(?:daily|every\s+(?:day|morning|evening|night)|each\s+(?:day|morning|evening))\b/i.test(String(it.when || '')));
+        const ongoing = routine || ['open', 'in_progress'].includes(it.state) && (dueIn === null || /^\s*(?:for\s+)?(?:the\s+next\s+)?(?:\d+|one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|a few)\s+(?:days?|weeks?|months?|years?)\s*[,;]/i.test(String(it.when || ''))) && /^\s*(?:for\s+)?(?:the\s+next\s+)?(?:\d+|one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|a few)\s+(?:days?|weeks?|months?|years?)\s*(?:$|[,;])|\b(?:daily|every (?:day|morning|evening|night|week)|each (?:day|morning|evening|night)|until (?:the )?(?:departure|seedwake|spring)|ongoing)\b/i.test(String(it.when || ''));
         const status = ongoing ? 'ongoing' : it.state !== 'open' ? it.state : dueIn === null ? 'unset' : dueIn < -60 ? 'overdue' : dueIn <= 180 ? 'soon' : 'upcoming';
         const row = { key: it.key, what: it.what, with: it.with, where: it.where, when: it.when, dueIn, kind: it.kind, state: it.state, status, from: it.from, mine: !!it.mine, isNew: it.changedIn === lastId && !!lastId };
         // Days until a commitment whose day the story named but not its hour ("in two days"), counted from today's HUD date.
@@ -14513,7 +14515,7 @@ async function hmsAgendaEdit(chatId, p) {
     if (p.op === 'add') {
         if (!what) return;
         const tl = hmsTimeline(chat);
-        const row = { what, with: partyText(p.with, 60), where: partyText(p.where, 80), when: partyText(p.when, 60), kind: AGENDA_KINDS.includes(p.kind) ? p.kind : 'promise', at: tl.length ? tl[tl.length - 1].clock : null };
+        const row = { what, with: partyText(p.with, 60), where: partyText(p.where, 80), when: partyText(p.when, 140), kind: AGENDA_KINDS.includes(p.kind) ? p.kind : 'promise', at: tl.length ? tl[tl.length - 1].clock : null };
         if (!g.added.some(a => lockKey(a.what) === key && ['with', 'where', 'when'].every(f => lockKey(a[f] || '') === lockKey(row[f] || '')))) {
             row.key = agendaItemKey(g.added, { ...row, key: `manual :: ${key} :: ${lockKey(row.with || '')} :: ${lockKey(row.where || '')} :: ${lockKey(row.when || '')}` });
             g.added.push(row);
@@ -18937,9 +18939,9 @@ function hmsHudSync(chat, st, userName) {
     if (present.length && uniq.length) {
         const who = n => { const b = known.first.get(lockKey(n)); return b ? `${n} (${hmsBirthText(b)})` : n; };
         out.push({ kind: 'present', auto: true,
-            text: `${uniq.join(', ')} ${uniq.length === 1 ? 'is' : 'are'} in the scene but not on the Present line.`,
+            text: `${uniq.join(', ')} ${uniq.length === 1 ? 'is' : 'are'} in the scene (by the side panel) but not on the Present line.`,
             fix: `(OOC fix: add ${uniq.map(who).join(', ')} to the Present line${uniq.some(n => !known.first.has(lockKey(n))) ? ', with age and birth year' : ''}.)`,
-            tell: `${uniq.map(who).join(', ')} ${uniq.length === 1 ? 'is' : 'are'} in this scene: list ${uniq.length === 1 ? 'them' : 'them'} on the Present line with age and birth year, unless they have left.` });
+            tell: `${uniq.map(who).join(', ')}: if ${uniq.length === 1 ? 'they are' : 'they are'} in the scene with ${userName} (not only seen from a window or heard from outside), list ${uniq.length === 1 ? 'them' : 'them'} on the Present line with age and birth year.` });
     }
     // a training session kept this reply, with no skill on the Training line counted today (warning only)
     const keptNow = (Array.isArray(d.agenda) ? d.agenda : []).filter(a => a && /\b(?:train(?:ing)?|lessons?|drills?|sessions?|practice|sparring)\b/i.test(String(a.what || '')) && String(a.state || '').toLowerCase() === 'kept');
@@ -19030,7 +19032,7 @@ function hmsStoryReminders(chat, st, userName) {
         let bdays = [];
         try { bdays = hmsBirthdays(chat, st, userName).filter(b => b.inMonths !== null && b.inMonths <= 12).slice(0, 6); } catch { bdays = []; }
         const lines = [
-            ...open.map(x => `- ${x.what}${x.with ? ` (with ${x.with})` : ''}${x.when ? `: ${x.when}` : ''}`),
+            ...open.map(x => `- ${x.what}${x.with ? ` (with ${x.with})` : ''}${x.when ? `: ${x.when}` : ''}${x.status === 'ongoing' ? ' (ongoing: it runs on through the skip; keep it open until it ends)' : ''}`),
             ...away.map(x => `- ${x.name}: ${x.where || 'left somewhere'}`),
             ...bdays.map(b => `- ${b.name} turns ${b.turns} in Month ${b.month}, K${b.year}`)
         ];
