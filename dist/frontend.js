@@ -841,6 +841,7 @@ button.rpgc-chip.intel:hover { border-color: var(--lumiverse-accent, #7aa2f7); }
 .rpgc-tools>summary:hover{color:var(--lumiverse-text,#eee)}
 .rpgc-tools[open]{display:flex;flex-direction:column;gap:8px;padding:8px;border:1px dashed var(--lumiverse-border,#333);border-radius:10px}
 .rpgc-sec{transition:border-color .2s,box-shadow .2s}
+.rpgc-todo{list-style:none;margin:0;padding:0}.rpgc-todo li{padding:3px 4px;border-radius:6px;cursor:pointer}.rpgc-todo li:hover{background:color-mix(in srgb,currentColor 8%,transparent)}
 .rpgc-sec[open]{box-shadow:0 2px 10px -8px #000c}
 .rpgc-sec>summary{border-radius:inherit}
 .rpgc-sec>summary:hover{background:color-mix(in srgb,currentColor 5%,transparent)}
@@ -1334,7 +1335,7 @@ function rememberedOpen(initial) {
 }
 
 // 3.5.0: each card carries a medallion, so the eye finds a card by shape before reading it.
-const SECTION_SIGIL = { world: '🌍', worldcard: '📜', map: '🗺️', atlas: '🧭', agenda: '📅', you: '🧍', gear: '🎒', holdings: '🏰', money: '🪙', dnd: '🎲',
+const SECTION_SIGIL = { todo: '📝', world: '🌍', worldcard: '📜', map: '🗺️', atlas: '🧭', agenda: '📅', you: '🧍', gear: '🎒', holdings: '🏰', money: '🪙', dnd: '🎲',
     people: '👥', relweb: '🕸️', family: '🏡', factions: '⚜️', secrets: '🗝️', phone: '📱', body: '❤️', injuries: '🩹', mind: '🧠', survival: '🔥',
     magic: '✨', techniques: '⚔️', abilities: '💠', quests: '🎯', chronicle: '📖', chapter: '🔖', party: '🛡️', danger: '⚠️' };
 function section(id, title, openState, extra, ...content) {
@@ -4384,7 +4385,7 @@ export function setup(ctx) {
         // 3.5.0: only the chosen view is built (All keeps the classic order).
         noteSeen();
         const cards = [
-            ['scene', renderRecap], ['scene', renderNow], ['scene', renderLooseEnds], ['scene', renderWorldState], ['scene', renderWorldCard], ['scene', renderMap], ['journey', renderAtlas], ['journey', renderAgenda],
+            ['scene', renderRecap], ['scene', renderNow], ['scene', renderTodo], ['scene', renderLooseEnds], ['scene', renderWorldState], ['scene', renderWorldCard], ['scene', renderMap], ['journey', renderAtlas], ['journey', renderAgenda],
             ['journey', () => h('div', { class: 'rpgc-row rpgc-journey-top', 'data-open-key': 'recap-btn' }, h('button', { class: 'rpgc-btn', onclick: () => { state.recap = { since: null }; goTo('scene'); } }, '📜 ' + T('Previously…')))],
             ['you', renderYou], ['you', renderGear], ['you', renderHoldings], ['you', renderMoney], ['you', renderDnd],
             ['people', renderPeopleAll], ['people', renderRelationshipWeb], ['people', renderFamily], ['people', renderFactions], ['people', renderSecrets], ['people', renderPhone],
@@ -4469,6 +4470,15 @@ export function setup(ctx) {
             try { state.looseDismissed = new Set(JSON.parse(localStorage.getItem('rpgc-loose:' + state.chatId) || '[]')); } catch { state.looseDismissed = new Set(); }
         }
         return state.looseDismissed;
+    }
+    // Things to do: what is open right now, gathered from the panels. Each line opens the card it came from.
+    function renderTodo() {
+        const list = Array.isArray(state.hms?.todo) ? state.hms.todo : [];
+        if (!list.length) return null;
+        return section('todo', T('Things to do'), state.open, String(list.length),
+            h('ul', { class: 'rpgc-todo' }, list.map(x => h('li', { class: 'go', role: 'button', tabindex: '0', title: T('Open where it lives'),
+                onclick: () => goTo(x.go[0], x.go[1]), onkeydown: (e) => { if (e.key === 'Enter') goTo(x.go[0], x.go[1]); } },
+                h('span', { 'aria-hidden': 'true' }, x.icon + ' '), h('b', null, x.text), x.sub ? h('span', { class: 'rpgc-note' }, ` \u00B7 ${x.sub}`) : null))));
     }
     function renderLooseEnds() {
         const list = looseEnds();
@@ -5392,18 +5402,6 @@ export function setup(ctx) {
             const det = h('details', { class: 'rpgc-subdet' }, h('summary', null, `Done (${done.length})`), h('ul', { class: 'rpgc-agenda-group done' }, done.map(agendaRow)));
             det.open = state.open['agenda-done'] === true;
             det.dataset.openKey = 'agenda-done'; det.addEventListener('toggle', () => { state.open['agenda-done'] = det.open; });
-            out.push(det);
-        }
-        // Birthdays coming up: you, your family and everyone Friendly or closer, from the HUD's birth years
-        const bdays = Array.isArray(a.birthdays) ? a.birthdays : [];
-        if (bdays.length) {
-            const MONTHS = ['', 'Month 1', 'Month 2', 'Month 3', 'Month 4', 'Month 5', 'Month 6', 'Month 7', 'Month 8', 'Month 9', 'Month 10', 'Month 11', 'Month 12'];
-            const det = h('details', { class: 'rpgc-subdet' }, h('summary', null, `🎂 ${T('Birthdays')} (${bdays.length})`),
-                h('ul', { class: 'rpgc-agenda-group' }, bdays.map(b => h('li', null, h('b', null, b.name),
-                    b.turns !== null ? ` · ${TT('turns {0}', b.turns)} · ${MONTHS[b.month] || ''}, K${b.year}${b.inMonths === 0 ? ` · ${T('this month')}` : b.inMonths === 1 ? ` · ${T('next month')}` : ` · ${TT('in {0} months', b.inMonths)}`}`
-                        : ` · ${TT('born K{0}', b.born)} · ${T('month not known yet')}`))));
-            det.open = state.open['agenda-bdays'] === true;
-            det.dataset.openKey = 'agenda-bdays'; det.addEventListener('toggle', () => { state.open['agenda-bdays'] = det.open; });
             out.push(det);
         }
         const whatIn = h('input', { type: 'text', placeholder: 'A promise or appointment', 'aria-label': 'A promise or appointment', maxlength: '90', style: 'flex:1 1 100%;min-width:0' });

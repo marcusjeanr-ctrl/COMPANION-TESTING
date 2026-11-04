@@ -11505,8 +11505,9 @@ function hmsPanelStateRead(chatId, chat, st) {
             let checks = [], birthdays = [];
             try { checks = hmsChecks(chat, st, gear); } catch (e) { logW(`[RPG Companion HMS] Checks failed: ${e?.message || e}`); }
             try { birthdays = hmsBirthdays(chat, st, userNameCache.get(chatId) || null); } catch (e) { logW(`[RPG Companion HMS] Birthdays failed: ${e?.message || e}`); }
-            if (agenda) agenda.birthdays = birthdays;
-            return { systems, party, relations, family, gear, agenda, holdings, money, factions, secrets, comms, you, magic, techniques, map, minds, buildings, checks };
+            let todo = [];
+            try { todo = hmsTodo(chat, { agenda, gear, systems, relations, family, birthdays }); } catch (e) { logW(`[RPG Companion HMS] Things to do failed: ${e?.message || e}`); }
+            return { systems, party, relations, family, gear, agenda, holdings, money, factions, secrets, comms, you, magic, techniques, map, minds, buildings, checks, todo };
         })()
     };
 }
@@ -18708,6 +18709,48 @@ function hmsStoryReminders(chat, st, userName) {
         if (lines.length) { parts.push(`[RPG Companion: if this reply skips time]\nThese are open. Settle whichever falls inside the skip (kept, missed, delivered, celebrated), as the world would:\n${lines.join('\n')}`); names.push('time-skip recap'); }
     }
     return { parts, names };
+}
+
+/** Things to do: what is open right now, gathered from the panels (agenda, gear, quests, letters, people, birthdays, training). Read-only. */
+function hmsTodo(chat, p) {
+    const out = [];
+    const tl = hmsTimeline(chat);
+    const last = tl.length ? tl[tl.length - 1] : null;
+    const agenda = p.agenda && Array.isArray(p.agenda.items) ? p.agenda.items : [];
+    const dayText = x => x.status === 'overdue' ? 'late' : x.dueIn !== null && x.dueIn !== undefined ? (x.dueIn <= 0 ? 'now' : `in ${hmsSpan(x.dueIn)}`) : Number.isFinite(x.dayIn) ? agendaDayText(x.dayIn) : (x.when || null);
+    for (const x of agenda.filter(x => (x.state === 'open' || x.state === 'in_progress') && x.kind !== 'letter')) {
+        const near = x.state === 'in_progress' || x.status === 'overdue' || x.status === 'soon' || (Number.isFinite(x.dueIn) && x.dueIn <= 2 * 1440) || (x.dueIn === null && Number.isFinite(x.dayIn) && x.dayIn <= 2);
+        if (near) out.push({ kind: 'due', icon: x.status === 'overdue' ? '⚠️' : '📅', text: `${x.what}${x.with ? ` (with ${x.with})` : ''}`, sub: x.state === 'in_progress' ? 'in progress' : dayText(x), go: ['journey', 'agenda'] });
+    }
+    for (const x of (p.gear && Array.isArray(p.gear.gone) ? p.gear.gone : []).filter(x => x.owned && (x.onHud || (Number.isFinite(x.ago) && x.ago <= 7 * 1440))))
+        out.push({ kind: 'collect', icon: '🎒', text: x.name, sub: x.where || 'left somewhere', go: ['you', 'gear'] });
+    for (const q of (p.systems && Array.isArray(p.systems.quests) ? p.systems.quests : []).filter(q => !q.state || q.state === 'active' || q.cls === 'active').slice(0, 3))
+        out.push({ kind: 'quest', icon: '🎯', text: q.name, sub: q.objective || null, go: ['journey', 'quests'] });
+    for (const x of agenda.filter(x => x.kind === 'letter' && (x.state === 'open' || x.state === 'in_progress')))
+        out.push({ kind: 'letter', icon: '✉️', text: x.what, sub: x.when || x.with || null, go: ['journey', 'agenda'] });
+    // the people who matter, not on any Present line for a while
+    if (tl.length > 20) {
+        const want = new Map();
+        for (const m of (p.family && Array.isArray(p.family.members) ? p.family.members : [])) if (m && m.name && m.status !== 'dead') want.set(lockKey(m.name), m.name);
+        for (const r of (p.relations && Array.isArray(p.relations.people) ? p.relations.people : [])) if (r && r.name && ['Friend', 'Close', 'Devoted'].includes(r.standing)) want.set(lockKey(r.name), r.name);
+        for (const [k, name] of want) {
+            const first = k.split(' ')[0];
+            let seen = -1;
+            for (let i = tl.length - 1; i >= 0 && seen < 0; i--) if (hmsPresentPeople(tl[i].hud).some(x => { const n = lockKey(x.name); return n === k || n.split(' ')[0] === first; })) seen = i;
+            const since = seen < 0 ? null : tl.length - 1 - seen;
+            if (since !== null && since >= 20) out.push({ kind: 'people', icon: '👤', text: name, sub: `not seen in ${since} replies`, go: ['people', 'people'] });
+        }
+    }
+    for (const b of (Array.isArray(p.birthdays) ? p.birthdays : []).filter(b => b.inMonths !== null && b.inMonths <= 2))
+        out.push({ kind: 'birthday', icon: '🎂', text: b.you ? `You turn ${b.turns}` : `${b.name} turns ${b.turns}`, sub: b.inMonths === 0 ? 'this month' : b.inMonths === 1 ? 'next month' : 'in 2 months', go: ['journey', 'agenda'] });
+    if (last) {
+        const line = last.hud.lines.map(l => hudSemanticText(String(l.text || ''))).find(t => /^\s*Training:/i.test(t));
+        if (line) for (const part of line.replace(/^\s*Training:\s*/i, '').split(/\s*[·|;]\s*/)) {
+            const m = part.match(/^(.+?)\s*(?:→|->|⟶)\s*(.+?)\s*\(\s*(\d+)\s*\/\s*(\d+)\s*sessions?\s*\)/i);
+            if (m) out.push({ kind: 'training', icon: '⚔️', text: `${m[1].trim()} → ${m[2].trim()}`, sub: `${m[3]}/${m[4]} sessions`, go: ['you', 'you'] });
+        }
+    }
+    return out.slice(0, 16);
 }
 
 function pinsReminder(st) {
