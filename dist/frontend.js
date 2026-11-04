@@ -4488,10 +4488,21 @@ export function setup(ctx) {
             out.push(h('p', { class: 'rpgc-note' }, ideas.stale ? T('These ideas are from before the last reply; ask again for fresh ones.') : T('Only you see these. Pick one and write it as your own action.')));
         } else if (!busy) out.push(h('p', { class: 'rpgc-note' }, T('Ideas come from the Companion’s own model, one call when you press the button. The story never sees them.')));
         if (list.length) {
-            out.push(h('h4', null, T('Open right now')));
-            out.push(h('ul', { class: 'rpgc-todo' }, list.map(x => h('li', { class: 'go', role: 'button', tabindex: '0', title: T('Open where it lives'),
+            // grouped and folded: open once you want the detail; it starts open only while there are no ideas yet
+            const GROUPS = [['due', '📅 ' + T('Coming up')], ['collect', '🎒 ' + T('Things to get back')], ['quest', '🎯 ' + T('Quest')], ['letter', '✉️ ' + T('Letters')],
+                ['people', '👤 ' + T('Not seen in a while')], ['birthday', '🎂 ' + T('Birthdays')], ['training', '⚔️ ' + T('Training')]];
+            const row = x => h('li', { class: 'go', role: 'button', tabindex: '0', title: T('Open where it lives'),
                 onclick: () => goTo(x.go[0], x.go[1]), onkeydown: (e) => { if (e.key === 'Enter') goTo(x.go[0], x.go[1]); } },
-                h('span', { 'aria-hidden': 'true' }, x.icon + ' '), h('b', null, x.text), x.sub ? h('span', { class: 'rpgc-note' }, ` \u00B7 ${x.sub}`) : null))));
+                h('span', { 'aria-hidden': 'true' }, x.icon + ' '), h('b', null, x.text), x.sub ? h('span', { class: 'rpgc-note' }, ` \u00B7 ${x.sub}`) : null);
+            const body = [];
+            for (const [k, title] of GROUPS) {
+                const rows = list.filter(x => x.kind === k || (k === 'due' && !GROUPS.some(g => g[0] === x.kind)));
+                if (rows.length) body.push(h('h4', null, `${title} (${rows.length})`), h('ul', { class: 'rpgc-todo' }, rows.map(row)));
+            }
+            const det = h('details', { class: 'rpgc-subdet' }, h('summary', null, `${T('Open right now')} (${list.length})`), ...body);
+            det.open = state.open['todo-open'] !== undefined ? state.open['todo-open'] : !(ideas && ideas.items.length);
+            det.dataset.openKey = 'todo-open'; det.addEventListener('toggle', () => { state.open['todo-open'] = det.open; });
+            out.push(det);
         }
         return section('todo', T('Things to do'), state.open, ideas && ideas.items.length ? `💡 ${ideas.items.length}` : list.length ? String(list.length) : null, ...out);
     }
@@ -4691,13 +4702,25 @@ export function setup(ctx) {
             if (groups.completed.length) items.push(folded('quests-completed', 'Completed ({0})', groups.completed, true));
             if (groups.ended.length) items.push(folded('quests-ended', 'Ended ({0})', groups.ended, false));
         }
-        for (const g of objectives) {
+        const objRow = o => h('li', { class: o.status },
+            h('span', { class: 'mark', 'aria-hidden': 'true' }, o.status === 'done' ? '\u2713' : o.status === 'active' ? '\u25B8' : '\u25CB'),
+            h('span', { class: 'sr' }, o.status === 'done' ? 'Done: ' : o.status === 'active' ? 'In progress: ' : 'Not started: '),
+            o.text);
+        objectives.forEach((g, gi) => {
             items.push(h('h4', null, g.title));
-            items.push(h('ul', { class: 'rpgc-objs' }, g.items.map(o => h('li', { class: o.status },
-                h('span', { class: 'mark', 'aria-hidden': 'true' }, o.status === 'done' ? '\u2713' : o.status === 'active' ? '\u25B8' : '\u25CB'),
-                h('span', { class: 'sr' }, o.status === 'done' ? 'Done: ' : o.status === 'active' ? 'In progress: ' : 'Not started: '),
-                o.text))));
-        }
+            // what is still to do stays in view; finished steps fold away once there are a few
+            const done = g.items.filter(o => o.status === 'done'), rest = g.items.filter(o => o.status !== 'done');
+            if (done.length > 3 || (done.length && rest.length > 6)) {
+                if (rest.length) items.push(h('ul', { class: 'rpgc-objs' }, rest.slice(0, 6).map(objRow)));
+                const extra = rest.slice(6);
+                const key = 'objs-done-' + gi;
+                const det = h('details', { class: 'rpgc-subdet' }, h('summary', null, `${T('Finished steps')} (${done.length})${extra.length ? ` · ${TT('{0} more ahead', extra.length)}` : ''}`),
+                    extra.length ? h('ul', { class: 'rpgc-objs' }, extra.map(objRow)) : null, h('ul', { class: 'rpgc-objs' }, done.map(objRow)));
+                det.open = state.open[key] === true;
+                det.dataset.openKey = key; det.addEventListener('toggle', () => { state.open[key] = det.open; });
+                items.push(det);
+            } else items.push(h('ul', { class: 'rpgc-objs' }, g.items.map(objRow)));
+        });
         if (dropped.length) {
             items.push(h('div', { class: 'rpgc-status warning', role: 'status' }, `${dropped.length === 1 ? 'A quest' : dropped.length + ' quests'} left the HUD while still live. The printed name is what loads a quest\u2019s entry, so if it is not over, the story can no longer see it.`));
             items.push(h('div', { class: 'rpgc-guard' }, dropped.map(j => h('div', { class: 'item' },
@@ -5185,7 +5208,7 @@ export function setup(ctx) {
             p.bars.length ? h('div', { class: 'rpgc-relgrid' }, p.bars.map(relBar)) : null,
             dossier.length ? h('div', { class: 'rpgc-dossier' }, dossier.map(([k, v]) => h('div', { class: 'row' + (/secret/i.test(k) ? ' secret' : '') }, h('span', { class: 'k' }, k), h('span', { class: 'v' }, String(v))))) : null,
             p.why ? h('div', { class: 'rpgc-pconcern' }, p.why) : null,
-            p.events.length ? h('p', { class: 'rpgc-note' }, p.events.slice(-3).join(' \u00B7 ')) : null,
+            relEventsShown(p.events).length ? h('p', { class: 'rpgc-note' }, relEventsShown(p.events).join(' \u00B7 ')) : null,
             bondEditor(p));
     }
     function renderPeopleLayout(list, layout) {
@@ -5883,7 +5906,17 @@ export function setup(ctx) {
             b.locked ? h('span', { class: 'rpgc-chip', title: b.lock || '' }, '🔒 ', b.lockText) : b.ripe ? h('span', { class: 'rpgc-chip warm', title: 'Planted a while ago and free to pay off' }, 'ripe') : h('span', { class: 'rpgc-chip' }, `${b.age} repl${b.age === 1 ? 'y' : 'ies'}`),
             b.status === 'live' ? drop(b) : null);
         const liveGroups = entries => state.open.quests === false ? entries.map(entry => ({entry,count:1,members:[entry]})) : displayPlanted(entries);
-        if (c.chamber.length || c.locked.length) out.push(h('ul', { class: 'rpgc-list rpgc-chekhov' }, ...liveGroups(c.chamber).map(g => row(g.entry, g.entry.ripe ? 'ripe' : '', '▸', g)), ...liveGroups(c.locked).map(g => row(g.entry, 'locked', '▸', g))));
+        if (c.chamber.length || c.locked.length) {
+            // ripe ones and the first few stay in view; the rest fold under "More planted details"
+            const rows = [...liveGroups(c.chamber).map(g => row(g.entry, g.entry.ripe ? 'ripe' : '', '▸', g)), ...liveGroups(c.locked).map(g => row(g.entry, 'locked', '▸', g))];
+            const shown = rows.filter((r, i) => i < 5 || r.classList.contains('ripe')), more = rows.filter(r => !shown.includes(r));
+            out.push(h('ul', { class: 'rpgc-list rpgc-chekhov' }, ...shown));
+            if (more.length) {
+                const det = simSubdet('chekhov-more', `${T('More planted details')} (${more.length})`);
+                det.appendChild(h('ul', { class: 'rpgc-list rpgc-chekhov' }, ...more));
+                out.push(det);
+            }
+        }
         if (c.fired.length) {
             const det = simSubdet('chekhov-fired', `Paid off (${c.fired.length})`);
             let filled = false;
@@ -6710,6 +6743,20 @@ export function setup(ctx) {
 
     // Present characters, Party and People describe the same people. One card each: the relationship
     // first, then what the party reading adds, then who they are in the scene right now.
+    // Display only: a bond that only changed wording ("Younger sister" ↔ "Younger sister, minor") is not shown as a
+    // change, and only the latest real bond change is kept, so a card does not fill up with the same line.
+    function relEventsShown(events) {
+        const words = t => String(t || '').toLowerCase().replace(/[^\p{L}\p{N} ]+/gu, ' ').split(/\s+/).filter(Boolean);
+        const sameish = (a, b) => { const x = words(a), y = words(b); return x.every(w => y.includes(w)) || y.every(w => x.includes(w)); };
+        const out = []; let bond = null;
+        for (const e of events || []) {
+            const m = String(e).match(/^Bond:\s*(.*?)\s*\u2192\s*(.*)$/);
+            if (m) { if (!sameish(m[1], m[2])) bond = e; continue; }
+            out.push(e);
+        }
+        if (bond) out.push(bond);
+        return out.slice(-3);
+    }
     function renderPeopleAll() {
         const s = S();
         if (!s) return null;
@@ -6763,16 +6810,43 @@ export function setup(ctx) {
             if (view) out.push(view);
             if (rest.length) out.push(h('div', { class: 'rpgc-cards' }, rest.map(personMerged)));
         } else {
-            const cards = h('div', { class: 'rpgc-cards' }, list.map(x => { const card = here(x) || f === 'here' ? personMerged(x) : foldPerson(personMerged(x), x);
-                card.dataset.find = String(x.name || '').toLowerCase(); return card; }));
+            const cardOf = x => { const card = here(x) || f === 'here' ? personMerged(x) : foldPerson(personMerged(x), x);
+                card.dataset.find = String(x.name || '').toLowerCase(); return card; };
+            const allCards = [];
             // a name search once the cast is large; it only hides cards, nothing is re-read
             if (list.length > 8) {
                 const findBox = h('input', { type: 'search', class: 'rpgc-people-find', placeholder: 'Find someone', 'aria-label': 'Find someone' });
                 findBox.addEventListener('input', () => { const q = findBox.value.trim().toLowerCase();
-                    for (const c of cards.children) c.hidden = !!q && !String(c.dataset.find || '').includes(q); });
+                    for (const c of allCards) c.hidden = !!q && !String(c.dataset.find || '').includes(q);
+                    for (const g of out.filter(el => el && el.classList && el.classList.contains('rpgc-pgroup'))) { if (q) g.open = true; } });
                 out.push(findBox);
             }
-            out.push(cards);
+            if (f === 'all' && list.length > 6) {
+                // Grouped for reading only: who is here, family, close, known, against you. Each person shows once.
+                const fam = new Set(((state.hms && state.hms.family && state.hms.family.members) || []).map(m => String(m.name || '').toLowerCase()));
+                const isFam = x => { const n = String(x.name || '').toLowerCase(); return [...fam].some(m => m === n || m.startsWith(n + ' ') || n.startsWith(m + ' ') || m.split(' ')[0] === n.split(' ')[0]); };
+                const standing = x => (x.rel && x.rel.standing) || '';
+                const against = x => (x.rel && x.rel.tone === 'neg') || /^(Nemesis|Enemy|Hostile|Wary)$/.test(standing(x));
+                const close = x => /^(Friendly|Friend|Close|Devoted)$/.test(standing(x)) || !!x.member;
+                const groups = [['here', '📍 ' + T('Here now'), here], ['family', '🏠 ' + T('Family'), isFam], ['against', '⚔️ ' + T('Against you'), against],
+                    ['close', '🤝 ' + T('Friends and close'), close], ['known', '👥 ' + T('Others you know'), () => true]];
+                const left = new Set(list);
+                for (const [gk, title, test] of groups) {
+                    const members = [...left].filter(test);
+                    if (!members.length) continue;
+                    for (const m of members) left.delete(m);
+                    const cards = members.map(cardOf); allCards.push(...cards);
+                    const key = 'pgroup-' + gk;
+                    const det = h('details', { class: 'rpgc-subdet rpgc-pgroup' }, h('summary', null, `${title} (${members.length})`), h('div', { class: 'rpgc-cards' }, cards));
+                    det.open = state.open[key] !== undefined ? state.open[key] : gk !== 'known';
+                    det.dataset.openKey = key; det.addEventListener('toggle', () => { state.open[key] = det.open; });
+                    out.push(det);
+                }
+            } else {
+                const cards = h('div', { class: 'rpgc-cards' }, list.map(cardOf));
+                allCards.push(...cards.children);
+                out.push(cards);
+            }
         }
         if (partyOn) {
             const input = h('input', { type: 'text', placeholder: 'Add a party member', 'aria-label': 'Add a party member' });

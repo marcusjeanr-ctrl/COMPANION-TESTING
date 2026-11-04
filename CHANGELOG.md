@@ -14,6 +14,12 @@ Compatibility with the Mushoku Tensei RPG "Six-Sided World" v1.1 card and its fo
 - **HUD: Card.** The new card style is understood, also as `[HUD = CARD]`; the Companion's card stays out of the way of any other style the bot names (Classic, Visual, Compact, Panel), and draws when the style is Card or none is named.
 - **Backup** (Settings): save what the Companion keeps for this chat to a file, and restore it.
 
+**Less clutter (display only; nothing about tracking changes)**
+- **People** in the All filter is grouped once the cast passes six: Here now, Family, Against you, Friends and close, Others you know. Each group folds and is remembered; Others starts closed. Find still searches everyone.
+- **Things to do**: the open list folds under "Open right now", grouped (Coming up, Things to get back, Quest, Letters, Not seen in a while, Birthdays, Training).
+- **Quests**: finished steps fold away once there are a few; the planted-details list shows the ripe ones and the first five, the rest under "More planted details".
+- **Person cards**: a bond that only changed wording ("Younger sister" ↔ "Younger sister, minor") no longer shows as a change, and only the latest bond change is kept.
+
 **Fixes from live play (fourth RC pass)**
 - **HUD card and the bot's Panel:** the Companion's HUD card steps aside for the Six-Sided card's own Panel HUD (its regex scripts) also when the start command sets the style among other settings ("Canon: Living | HUD: Panel") or only the HUD's Game Mode line says "HUD: Panel". It used to see "HUD: Panel" only on a line of its own, and drew its card over the bot's panel.
 - **Gear:** a detail the HUD gives in brackets ("Plain road sword (Halvin's mark)") shows beside the item's name; one that says how it is carried still sets that instead.
