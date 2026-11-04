@@ -13683,6 +13683,25 @@ function gearRead(chat, st, cfg) {
     return cache.get(st);
 }
 const GEAR_STOP_WORDS = new Set(['the', 'and', 'with', 'from', 'for', 'his', 'her', 'its', 'their', 'your', 'my', 'of', 'in', 'on', 'small', 'large', 'old', 'new', 'little', 'big']);
+/** Does the text speak of this item? Its name, one of its words before its noun ("road sword"), or the noun
+ *  as the player's own ("your sword"; not "your wooden sword", "his sword" or a bare "the sword"). */
+function gearMentioned(text, name) {
+    const t = String(text || '').toLowerCase();
+    const bare = lockKey(gearBare(name)).replace(/\s*\([^)]*\)\s*/g, ' ').trim();
+    if (!bare) return false;
+    if (t.includes(bare)) return true;
+    const words = bare.split(/\s+/), head = words.pop();
+    if (!head || head.length < 3) return false;
+    // A plain "the sword" is any sword (a wooden one, the style's name). The item itself is named by
+    // its last two words ("road sword") or as the player's own ("your sword", "my sword").
+    const esc = w => w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    for (const w of words) if (w.length > 3 && !/^(?:with|from|plain|small|large|good|fine|that|this)$/.test(w) && new RegExp(`\\b${esc(w)}\\s+${esc(head)}`).test(t)) return true;
+    const other = /^(?:wooden|practice|training|toy|spare|second|other|another|borrowed|his|her|their|father's|mother's)$/;
+    const re = new RegExp(`\\b(?:your|my)\\s+((?:[a-z'’-]+\\s+){0,2})${head.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}s?\\b`, 'g');
+    let m;
+    while ((m = re.exec(t))) { const mods = m[1].trim().split(/\s+/).filter(Boolean); if (!mods.some(w => other.test(w))) return true; }
+    return false;
+}
 function gearReadUncached(chat, st, cfg) {
     const g = st && isPlainObject(st.gear) ? st.gear : {};
     const pk = st && isPlainObject(st.pockets) ? st.pockets : {};
@@ -13757,7 +13776,16 @@ function gearReadUncached(chat, st, cfg) {
             if (r.state === 'in container' && r.inside && !find(gearBare(r.inside)) && !/\b(pocket|bolso|bolsillo)\b/i.test(r.inside)) { const box = ensure(r.inside, 'story'); if (box && !box.state) box.state = 'on body'; }
             // "on body" means slung/strapped; reported with a desk or shelf as its place, it was set down there.
             const setDown = String(r.state || '').toLowerCase() === 'on body' && GEAR_FURNITURE_RE.test(r.where || '') && !GEAR_BODY_RE.test(r.where || '');
-            apply(it, setDown ? 'stowed' : r.state, r.where, r.inside, at, m.id, idx);
+            const toState = setDown ? 'stowed' : r.state;
+            // Put down, left or gone needs the story to say so. A guess ("left behind before the drills") about an
+            // item this reply's own HUD still carries, with no word of it in the reply or the player's message, is
+            // not a change: the HUD stands.
+            if (['stowed', 'dropped', 'gone'].includes(String(toState || '').toLowerCase()) && e && e.hud && gearFromHud(e.hud).some(x => find(gearBare(x.name)) === it)) {
+                const prevUser = (() => { for (let i = idx - 1; i >= 0; i--) if (chat[i] && chat[i].role === 'user') return textOf(chat[i].content); return ''; })();
+                const said = stripThink(textOf(m.content)).replace(COMPANION_RE, '').split(/^\s*\*\*\*\s*$/m).slice(1).join('\n') + '\n' + prevUser;
+                if (!gearMentioned(said, it.name) && !gearFromHud(e.hud).some(x => find(gearBare(x.name)) === it && gearMentioned(said, x.name))) continue;
+            }
+            apply(it, toState, r.where, r.inside, at, m.id, idx);
         }
     }
     // the old Carried row: what you added there by hand still counts, and what you removed there is gone
@@ -13842,7 +13870,7 @@ function gearRequest(chat, st, userName, cfg) {
     const gc = gearCfg(cfg);
     if (!gc.on || !gc.ask) return null;
     const json = `"gear": [{"item": "short name, the same every reply (\"coin purse\", not \"coin purse — three silver\")", "state": "${GEAR_STATES.join('|')}", "where": "location or null", "inside": "container or null"}]`;
-    let rules = `"gear": changed possession states from established player actions/narration. An item only tried, examined or handled and then put back (a shop's wares, someone else's things) is not gear: never report it. in hand=held; worn=clothing/armour; sheathed=sheath/holster (where names what holds it: baldric, scabbard, belt); on body=slung/strapped with where; in container=inside names it; stowed=off-person storage, or left with someone to keep, mend or hold for you (where = who has it); dropped=set down; gone=transferred away, consumed/lost/destroyed. Storage/unequipping retain ownership. Nearby/NPC-owned/offered items and plans confer none. Unopened gifts need accepted transfer. Do not infer consent from narrator-assigned decisions or undo explicit physical facts. Reuse HUD/Gear-now names. [] if unchanged; damage alone never removes gear. HUD ownership is authoritative.`;
+    let rules = `"gear": changed possession states from established player actions/narration. An item only tried, examined or handled and then put back (a shop's wares, someone else's things) is not gear: never report it. in hand=held; worn=clothing/armour; sheathed=sheath/holster (where names what holds it: baldric, scabbard, belt); on body=slung/strapped with where; in container=inside names it; stowed=off-person storage, or left with someone to keep, mend or hold for you (where = who has it); report a change only when the story shows it, never a guess about where something must be; dropped=set down; gone=transferred away, consumed/lost/destroyed. Storage/unequipping retain ownership. Nearby/NPC-owned/offered items and plans confer none. Unopened gifts need accepted transfer. Do not infer consent from narrator-assigned decisions or undo explicit physical facts. Reuse HUD/Gear-now names. [] if unchanged; damage alone never removes gear. HUD ownership is authoritative.`;
     if (gc.tell && chat && st) {
         let now = [];
         try { now = gearRead(chat, st).items.filter(it => it.state && it.state !== 'gone'); } catch { now = []; }
@@ -18798,9 +18826,50 @@ function hmsChecks(chat, st, gear) {
         const gap = last.clock - prev.clock;
         if (ooc && gap > 30 && !passes) out.push({ kind: 'ooc', fix: `(OOC fix: OOC messages pass no time. The time is ${hmsClockText(prev.hud)} plus only what the story itself took.)`, text: `The clock moved ${hmsSpan(gap)} across a stretch with ${ooc} OOC message${ooc === 1 ? '' : 's'}. OOC turns are not meant to pass time.` });
     }
+    // the Training line (Six-Sided v1.1): one session is one focused day, 1.5 with a good teacher; the count never runs back
+    try { out.push(...hmsTrainingChecks(tl)); } catch { /* display only */ }
     // the HUD still carrying what the story says is not on you
     const stale = gear && Array.isArray(gear.gone) ? gear.gone.filter(x => x.onHud) : [];
     if (stale.length) out.push({ kind: 'gear', fix: `(OOC fix: ${stale.map(x => x.where ? `the ${x.name} is ${/^(with|at|in|on|returned|left)\b/i.test(x.where) ? '' : 'at '}${x.where}` : `the ${x.name} is not on me`).join('; ')}. Remove ${stale.length === 1 ? 'it' : 'them'} from Equipment until I have ${stale.length === 1 ? 'it' : 'them'} again.)`, text: `The HUD's Equipment line still lists ${stale.map(x => x.where ? `${x.name} (${x.where})` : x.name).join(', ')}. Gear has ${stale.length === 1 ? 'it' : 'them'} as not on you; edit the line, or the narrator may treat ${stale.length === 1 ? 'it' : 'them'} as carried.` });
+    return out;
+}
+const MT_RANKS = ['beginner', 'intermediate', 'advanced', 'saint', 'king', 'emperor', 'god'];
+const MT_SESSIONS = { intermediate: 10, advanced: 25, saint: 60, king: 150 };
+function mtRankIdx(w) { const t = String(w || '').toLowerCase().replace(/imperial/, 'emperor').replace(/divine/, 'god'); return MT_RANKS.findIndex(r => new RegExp(`\\b${r}\\b`).test(t)); }
+/** Training-line slips: a count past what the days allow, a count that went back, a wrong session total, a rank past the age cap. */
+function hmsTrainingChecks(tl) {
+    const out = [];
+    const last = tl.length ? tl[tl.length - 1] : null;
+    if (!last) return out;
+    const lines = worldLines(last.hud);
+    const now = mtTraining(lines);
+    let prev = null;
+    for (let i = tl.length - 2; i >= 0 && i >= tl.length - 40; i--) { const t = mtTraining(worldLines(tl[i].hud)); if (t.length) { prev = { tr: t, e: tl[i] }; break; } }
+    const days = prev && Number.isFinite(last.clock) && Number.isFinite(prev.e.clock) ? Math.max(0, (last.clock - prev.e.clock) / 1440) : null;
+    for (const t of now) {
+        const want = MT_SESSIONS[MT_RANKS[mtRankIdx(t.next)]];
+        if (want && t.needed !== want) out.push({ kind: 'training', text: `Training: ${t.skill} → ${t.next} shows ${t.needed} sessions needed; the card's count to ${t.next} is ${want}.`, fix: `(OOC fix: ${t.skill} → ${t.next} needs ${want} sessions: keep the Training line at ${t.done}/${want}.)` });
+        const p = prev ? prev.tr.find(x => lockKey(x.skill) === lockKey(t.skill)) : null;
+        if (!p || mtRankIdx(p.next) !== mtRankIdx(t.next)) continue;
+        const up = Math.round((t.done - p.done) * 10) / 10;
+        if (up < 0) out.push({ kind: 'training', text: `Training: ${t.skill} went back from ${p.done} to ${t.done} sessions.`, fix: `(OOC fix: ${t.skill} → ${t.next} stays at ${p.done}/${t.needed} sessions plus any session done since; the count never goes back.)` });
+        else if (days !== null && up > 1.5 * Math.max(1, Math.ceil(days - 0.05))) out.push({ kind: 'training', text: `Training: ${t.skill} went up ${up} sessions in ${days < 1 ? 'less than a day' : `${Math.round(days)} day${Math.round(days) === 1 ? '' : 's'}`}; a session is one focused day (1.5 with a good teacher).`, fix: `(OOC fix: ${t.skill} was ${p.done}/${t.needed}; count only the focused days of practice the story shows, 1 each or 1.5 with a good teacher.)` });
+    }
+    // the card's age caps (most lenient reading: magic with Legend Start)
+    const ageM = lines.map(l => String(l).match(/^Race:.*\bAge:\s*(\d+)/i) || String(l).match(/^Age:\s*(\d+)/i)).find(Boolean);
+    const age = ageM ? Number(ageM[1]) : null;
+    if (age !== null) {
+        const swordCap = age < 5 ? -1 : age < 10 ? 1 : age < 15 ? 2 : age < 20 ? 4 : 6;
+        const magicCap = age < 5 ? 2 : age < 10 ? 3 : age < 15 ? 4 : age < 20 ? 5 : 6;
+        for (const [re, cap, what] of [[/^Sword Style:\s*(.+)$/i, swordCap, 'sword'], [/^Magic Tiers:\s*(.+)$/i, magicCap, 'magic']]) {
+            const row = lines.map(l => String(l).match(re)).find(Boolean);
+            if (!row || /potential|True:/i.test(row[1])) continue;
+            for (const m of row[1].matchAll(/([^,()·]+?)\s*\(([^)]+)\)/g)) {
+                const r = mtRankIdx(m[2]);
+                if (r > cap) out.push({ kind: 'training', text: `${m[1].trim()} (${m[2].trim()}) is past the card's cap at age ${age}: ${what} up to ${cap < 0 ? 'none' : MT_RANKS[cap].replace(/^./, c => c.toUpperCase())}.`, fix: `(OOC fix: at ${age}, ${what} is capped at ${cap < 0 ? 'none' : MT_RANKS[cap].replace(/^./, c => c.toUpperCase())}; show ${m[1].trim()} as "True: ${cap < 0 ? 'none' : MT_RANKS[cap].replace(/^./, c => c.toUpperCase())} (potential: ${m[2].trim()})" and keep the sessions counting.)` });
+            }
+        }
+    }
     return out;
 }
 function hmsClockText(hud) {

@@ -32,6 +32,15 @@ Compatibility with the Mushoku Tensei RPG "Six-Sided World" v1.1 card and its fo
 - **Person cards**: a bond that only changed wording ("Younger sister" ↔ "Younger sister, minor") no longer shows as a change, and only the latest bond change is kept.
 
 **Fixes from live play (fourth RC pass)**
+- **Gear: a guess no longer moves your sword.** After Aurelius's training the side panel said the Plain road sword was "left behind before the drills", though the reply never said so and its own HUD still listed the sword. The sword went to Gone, What's next asked you to collect it, and the narrator was about to be told to drop it from Equipment. Now an item the reply's HUD still carries only moves when the reply or your message actually names it (its name, "road sword", "your sword"). A wooden practice sword, "his sword", or a bare "the sword" doesn't count. Real hand-offs still work: your mother taking the travel bundle, the wand going back to Ferren. A rule was also added to the reporter: report a change only when the story shows it.
+- **Training line checks (display only).** World State's *Worth a look* now flags Training-line slips, each with a Copy fix:
+  - a count that goes up more than the days allow (one session per focused day, 1.5 with a good teacher)
+  - a count that goes back
+  - a session total that doesn't match the card (Intermediate 10, Advanced 25, Saint 60, King 150)
+  - a rank past the card's age cap (at 12: sword up to Advanced)
+
+  "True: Advanced (potential: Saint)" isn't flagged. Nothing is changed automatically, and the narrator's counting rules are untouched.
+- **New regression suite** `tools/test_live_play_audit.cjs` (14 checks: gear guesses, Training line, discarded swipes), now part of `run_tests.cjs`.
 - **Training card: half sessions.** "Water Magic → Saint (1.5/60 sessions)" (a good teacher counts a day as 1.5) was not read, so the Water line vanished from the card. Decimal counts are read now.
 - **Spellbook: a short spell name.** "raise a Shield" beside Water Ball and Water Arrow became a separate "Shield" spell. A bare name is matched to the spell of the same school cast beside it (Water Shield), or to the one spell it ends, when there is only one.
 - **What's next:** a promise with a time coming up (Aurelius's sword session at the ninth bell) shows under Coming up with its countdown; an ongoing arrangement no longer shows there.
