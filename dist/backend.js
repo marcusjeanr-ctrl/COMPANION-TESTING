@@ -10221,12 +10221,17 @@ function worldMushoku(chatId, lines, st, chat = null) {
 
 /** "Training: Healing → Advanced (7/25 sessions)": one row per skill (the card shows at most two). */
 function mtTraining(lines) {
+    // every skill on a Training line: "Training: Sword God → Saint (0/60 sessions) · Water Magic → Saint (0/60 sessions)"
     const out = [];
     for (const l of lines) {
-        const m = String(l).match(/^Training:\s*(.+?)\s*(?:→|->|⟶)\s*(.+?)\s*\(\s*(\d+)\s*\/\s*(\d+)\s*sessions?\s*\)/i);
-        if (m && !out.some(x => x.skill === m[1].trim())) out.push({ skill: m[1].trim(), next: m[2].trim(), done: Number(m[3]), needed: Number(m[4]) });
+        const t = String(l);
+        if (!/^Training:/i.test(t)) continue;
+        for (const part of t.replace(/^Training:\s*/i, '').split(/\s*[·|;]\s*/)) {
+            const m = part.match(/^(.+?)\s*(?:→|->|⟶)\s*(.+?)\s*\(\s*(\d+)\s*\/\s*(\d+)\s*sessions?\s*\)/i);
+            if (m && !out.some(x => x.skill === m[1].trim())) out.push({ skill: m[1].trim(), next: m[2].trim(), done: Number(m[3]), needed: Number(m[4]) });
+        }
     }
-    return out.slice(0, 4);
+    return out.slice(0, 12);
 }
 /** "Noble — Upper Noble, House Veyrath (Asura), Younger Child" / "Commoner — Farmer" / "Slave — owner". */
 function mtStanding(text) {
@@ -18744,13 +18749,6 @@ function hmsTodo(chat, p) {
     }
     for (const b of (Array.isArray(p.birthdays) ? p.birthdays : []).filter(b => b.inMonths !== null && b.inMonths <= 2))
         out.push({ kind: 'birthday', icon: '🎂', text: b.you ? `You turn ${b.turns}` : `${b.name} turns ${b.turns}`, sub: b.inMonths === 0 ? 'this month' : b.inMonths === 1 ? 'next month' : 'in 2 months', go: ['journey', 'agenda'] });
-    if (last) {
-        const line = last.hud.lines.map(l => hudSemanticText(String(l.text || ''))).find(t => /^\s*Training:/i.test(t));
-        if (line) for (const part of line.replace(/^\s*Training:\s*/i, '').split(/\s*[·|;]\s*/)) {
-            const m = part.match(/^(.+?)\s*(?:→|->|⟶)\s*(.+?)\s*\(\s*(\d+)\s*\/\s*(\d+)\s*sessions?\s*\)/i);
-            if (m) out.push({ kind: 'training', icon: '⚔️', text: `${m[1].trim()} → ${m[2].trim()}`, sub: `${m[3]}/${m[4]} sessions`, go: ['you', 'you'] });
-        }
-    }
     return out.slice(0, 16);
 }
 

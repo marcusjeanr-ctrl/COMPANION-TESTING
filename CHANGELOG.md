@@ -15,6 +15,8 @@ Compatibility with the Mushoku Tensei RPG "Six-Sided World" v1.1 card and its fo
 - **Backup** (Settings): save what the Companion keeps for this chat to a file, and restore it.
 
 **Less clutter (display only; nothing about tracking changes)**
+- **Training** has its own card in the You view, under Combat techniques: every skill on the HUD's Training line (all of them, not only the first), sessions done toward the next rank, and when a rank still needs its proof. It left the World card and Things to do.
+- **Things to do**: each group (Coming up, Things to get back, and the rest) is its own dropdown, closed until you open it, and remembered.
 - **People** in the All filter is grouped once the cast passes six: Here now, Family, Against you, Friends and close, Others you know. Each group folds and is remembered; Others starts closed. Find still searches everyone.
 - **Things to do**: the open list folds under "Open right now", grouped (Coming up, Things to get back, Quest, Letters, Not seen in a while, Birthdays, Training).
 - **Quests**: finished steps fold away once there are a few; the planted-details list shows the ripe ones and the first five, the rest under "More planted details".

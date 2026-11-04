@@ -1335,7 +1335,7 @@ function rememberedOpen(initial) {
 }
 
 // 3.5.0: each card carries a medallion, so the eye finds a card by shape before reading it.
-const SECTION_SIGIL = { todo: '📝', world: '🌍', worldcard: '📜', map: '🗺️', atlas: '🧭', agenda: '📅', you: '🧍', gear: '🎒', holdings: '🏰', money: '🪙', dnd: '🎲',
+const SECTION_SIGIL = { training: '🏋️', todo: '📝', world: '🌍', worldcard: '📜', map: '🗺️', atlas: '🧭', agenda: '📅', you: '🧍', gear: '🎒', holdings: '🏰', money: '🪙', dnd: '🎲',
     people: '👥', relweb: '🕸️', family: '🏡', factions: '⚜️', secrets: '🗝️', phone: '📱', body: '❤️', injuries: '🩹', mind: '🧠', survival: '🔥',
     magic: '✨', techniques: '⚔️', abilities: '💠', quests: '🎯', chronicle: '📖', chapter: '🔖', party: '🛡️', danger: '⚠️' };
 function section(id, title, openState, extra, ...content) {
@@ -4390,7 +4390,7 @@ export function setup(ctx) {
             ['journey', () => h('div', { class: 'rpgc-row rpgc-journey-top', 'data-open-key': 'recap-btn' }, h('button', { class: 'rpgc-btn', onclick: () => { state.recap = { since: null }; goTo('scene'); } }, '📜 ' + T('Previously…')))],
             ['you', renderYou], ['you', renderGear], ['you', renderHoldings], ['you', renderMoney], ['you', renderDnd],
             ['people', renderPeopleAll], ['people', renderRelationshipWeb], ['people', renderFamily], ['people', renderFactions], ['people', renderSecrets], ['people', renderPhone],
-            ['you', renderBody], ['you', renderInjuries], ['you', renderMind], ['you', renderSurvival], ['you', renderMagic], ['you', renderTechniques], ['you', renderAbilities],
+            ['you', renderBody], ['you', renderInjuries], ['you', renderMind], ['you', renderSurvival], ['you', renderMagic], ['you', renderTechniques], ['you', renderAbilities], ['you', renderTraining],
             ['journey', () => s.showQuests ? renderHmsQuests() : null], ['journey', renderChronicle], ['journey', renderChapter]];
         const order = view === 'journey' ? ['recap-btn', 'agenda', 'quests', 'chronicle', 'chapter', 'atlas'] : null;
         const built = [];
@@ -4497,7 +4497,12 @@ export function setup(ctx) {
             const body = [];
             for (const [k, title] of GROUPS) {
                 const rows = list.filter(x => x.kind === k || (k === 'due' && !GROUPS.some(g => g[0] === x.kind)));
-                if (rows.length) body.push(h('h4', null, `${title} (${rows.length})`), h('ul', { class: 'rpgc-todo' }, rows.map(row)));
+                if (!rows.length) continue;
+                const key = 'todo-g-' + k;
+                const g = h('details', { class: 'rpgc-subdet' }, h('summary', null, `${title} (${rows.length})`), h('ul', { class: 'rpgc-todo' }, rows.map(row)));
+                g.open = state.open[key] === true;           // closed until you open it; remembered
+                g.dataset.openKey = key; g.addEventListener('toggle', () => { state.open[key] = g.open; });
+                body.push(g);
             }
             const det = h('details', { class: 'rpgc-subdet' }, h('summary', null, `${T('Open right now')} (${list.length})`), ...body);
             det.open = state.open['todo-open'] !== undefined ? state.open['todo-open'] : !(ideas && ideas.items.length);
@@ -6614,10 +6619,7 @@ export function setup(ctx) {
             if (w.martial.length) { out.push(rankedList('Sword styles', w.martial, 'mt-tech-', 'techniques')); if (w.triangle) out.push(h('p', { class: 'rpgc-note' }, h('b', null, 'The triangle: '), w.triangle)); }
             if (w.magic.length) out.push(rankedList('Magic', w.magic, 'spells-', 'spells'));
             if (w.languages.length) out.push(wRow('Languages', ...w.languages.map(l => h('span', { class: 'rpgc-chip' }, l.fluency ? `${l.name} \u00B7 ${l.fluency}` : l.name))));
-            // Six-Sided v1.1: sessions toward the next rank, read from the HUD's Training line
-            for (const tr of (w.training || [])) out.push(h('div', { class: 'rpgc-wrow' }, h('span', { class: 'lbl' }, T('Training')),
-                levelBar(Math.min(100, tr.done / Math.max(1, tr.needed) * 100), tr.done >= tr.needed ? 'ok' : ''),
-                h('span', { class: 'val' }, `${tr.skill} \u2192 ${tr.next} \u00B7 ${tr.done}/${tr.needed}${tr.done >= tr.needed ? ' \u00B7 ' + T('needs its proof') : ''}`)));
+            // Training has its own card in the You view
             if (w.standing) out.push(wRow(T('Standing'), h('b', null, [w.standing.kind, w.standing.rank].filter(Boolean).join(' \u00B7 ') || w.standing.text),
                 w.standing.house ? h('span', { class: 'rpgc-chip' }, w.standing.nation ? `${w.standing.house} (${w.standing.nation})` : w.standing.house) : null,
                 w.standing.birth ? h('span', { class: 'rpgc-chip kind' }, w.standing.birth) : null));
@@ -7842,6 +7844,18 @@ html,body{background:${panelBg}!important;}`;
     // The spell list: what the bot's lorebook describes, against the ranks your HUD shows.
     const SPELL_STATUS = { mastered: 'Mastered', known: 'Known', study: 'Studying', reach: 'Within reach', unranked: 'Rank unknown', open: 'In the lorebook', next: 'Next rank', locked: 'Locked', special: 'Special' };
     // Sword techniques: the same list, for the sword styles and the HUD's rank in each.
+    // Training: every skill the HUD's Training line tracks, sessions toward the next rank (Six-Sided v1.1)
+    function renderTraining() {
+        const list = state.world && Array.isArray(state.world.training) ? state.world.training : [];
+        if (!list.length) return null;
+        const ready = list.filter(t => t.done >= t.needed).length;
+        return section('training', T('Training'), state.open, ready ? TT('{0} ready', ready) : TT('{0} skills', list.length),
+            ...list.map(t => h('div', { class: 'rpgc-vital ' + (t.done >= t.needed ? 'ok' : '') },
+                h('div', { class: 'head' }, h('span', { class: 'lbl' }, `${t.skill} \u2192 ${t.next}`), h('span', { class: 'num' }, `${t.done} / ${t.needed}`)),
+                levelBar(Math.min(100, t.done / Math.max(1, t.needed) * 100), t.done >= t.needed ? 'ok' : ''),
+                t.done >= t.needed ? h('p', { class: 'rpgc-note' }, T('Sessions done: the rank still needs its proof in the story.')) : h('p', { class: 'rpgc-note' }, TT('{0} sessions to go', t.needed - t.done)))),
+            h('p', { class: 'rpgc-note' }, T('Read from the HUD\u2019s Training line. A new skill shows here as soon as the narrator adds it.')));
+    }
     function renderTechniques() {
         const L = techOf();
         const c = sysCfg().magic || {};
