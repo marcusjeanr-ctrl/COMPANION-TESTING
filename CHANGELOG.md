@@ -11,6 +11,13 @@ Built on 1.1.0 RC2. Report: `docs/release/1.2.0-INTEGRATION-REPORT.md`.
 - **Compact: the Skills row reaches Abilities.** In Compact, the merged `Skills:` row showed raw chips ("💧Water Adv"); Abilities now shows Water: Advanced, Earth: Intermediate and so on, as in Classic.
 - **Clock warning on other calendars** now shows the day ("22 Eleasis, 1492 DR 06:40 … 21 Eleasis 09:20"), so a day going back no longer reads like a later time.
 
+- **Party Mode (newest card):** `Player:` lines belong to the players; another player's skills and wounds no longer land on your sheet. Your own Player line shows as a line; tracking it needs a live Party export.
+- **"Magic Swordsmanship"** keeps its full name in Combat techniques (it showed as a school called "Magic").
+
+**Card and preset (versioned copies; originals untouched)**
+- **HMS Reporter 1.1.1-beta:** the Light/Normal/Deep plan says every HUD counter is the last HUD's number plus this turn (time skips add everything inside them).
+- **Six-Sided World "(HMS 1.2 test)" `1.1-hms1`**, built by `tools/ecosystem/make_card_test_copy.py`: Training counts carry forward; bruises and strains are minor wounds on Condition; who is Present; creatures and groups in brackets. Lorebook and mechanics byte-identical.
+
 **New checks**
 - `tools/test_card_coverage.cjs`: every slot of the Six-Sided HUD template in Classic/Panel, Compact and Visual; style switches; the Present forms the card allows; people vs groups.
 - `tools/test_lifecycle.cjs`: discarded swipes, regenerations with state kept between pushes, repeats, backup/restore, OOC turns, hypothetical vs shown deaths, year rollover, long skips, request size.
