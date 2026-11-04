@@ -123,6 +123,8 @@ check('a learned spell written with its school and rank is the same spell (expor
     const r = spellsFrom([spellEntry('Earth Wall', 'Earth', 'Intermediate'), spellEntry('Earth Pillar', 'Earth', 'Intermediate')], [{ spells: ['Earth Pillar'], learned: ['Earth Wall — Earth, Intermediate'] }]);
     assert(r.known.includes('earth wall'), 'Earth Wall was not learned');
     assert.equal(r.known.filter(k => /earth wall/.test(k)).length, 1, `two Earth Walls: ${r.known.join(', ')}`);
+    const p = spellsFrom([spellEntry('Earth Wall', 'Earth', 'Intermediate')], [{ learned: ['Earth Wall (Earth, Intermediate)'] }]);
+    assert.deepEqual(p.known.filter(k => /earth wall/.test(k)), ['earth wall'], `bracketed form: ${p.known.join(', ')}`);
 });
 check('without spell references nothing is filtered', () => {
     const r = spellsFrom([], [{ spells: ['Fire', 'Water', 'Cure'] }]);

@@ -13712,8 +13712,9 @@ function gearRead(chat, st, cfg) {
     return cache.get(st);
 }
 const GEAR_STOP_WORDS = new Set(['the', 'and', 'with', 'from', 'for', 'his', 'her', 'its', 'their', 'your', 'my', 'of', 'in', 'on', 'small', 'large', 'old', 'new', 'little', 'big']);
-/** Does the text speak of this item? Its name, one of its words before its noun ("road sword"), or the noun
- *  as the player's own ("your sword"; not "your wooden sword", "his sword" or a bare "the sword"). */
+/** Does the text speak of this item? Its name, one of its words before its noun ("road sword"), the noun as the
+ *  player's own ("your sword"; not "your wooden sword" or "his sword"), or "the wand" in a sentence that moves it
+ *  ("you give the wand back"). A bare "the sword" anywhere else is any sword. */
 function gearMentioned(text, name) {
     const t = String(text || '').toLowerCase();
     const bare = lockKey(gearBare(name)).replace(/\s*\([^)]*\)\s*/g, ' ').trim();
@@ -13729,6 +13730,14 @@ function gearMentioned(text, name) {
     const re = new RegExp(`\\b(?:your|my)\\s+((?:[a-z'’-]+\\s+){0,2})${head.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}s?\\b`, 'g');
     let m;
     while ((m = re.exec(t))) { const mods = m[1].trim().split(/\s+/).filter(Boolean); if (!mods.some(w => other.test(w))) return true; }
+    // "the wand" in a sentence that moves it ("You give the wand back to Ferren", "you set the bundle on the shelf")
+    const MOVE = /\b(?:give|gives|gave|given|hand|hands|handed|return|returns|returned|leave|leaves|left|set|sets|put|puts|drop|drops|dropped|lend|lends|lent|trade|trades|traded|sell|sells|sold|pass|passes|passed|hang|hangs|hung|stow|stows|stowed|pack|packs|packed|take|takes|took|taken)\b/;
+    for (const sn of t.split(/(?<=[.!?])\s+|\n+/)) {
+        if (!MOVE.test(sn)) continue;
+        const r2 = new RegExp(`\\bthe\\s+((?:[a-z'’-]+\\s+){0,2})${esc(head)}s?\\b`, 'g');
+        let k;
+        while ((k = r2.exec(sn))) { const mods = k[1].trim().split(/\s+/).filter(Boolean); if (!mods.some(w => other.test(w))) return true; }
+    }
     return false;
 }
 function gearReadUncached(chat, st, cfg) {
@@ -13848,6 +13857,19 @@ function gearReadUncached(chat, st, cfg) {
         // the HUD says you still have it: STATE IS GOD. Except where the reply that said it went (handed back,
         // sold, given away) already carried it on its own HUD: the narrator copies the HUD forward, so a listing
         // that never changed since is a stale copy, not the item coming back.
+        // Put away, left or handed back (Ferren's drawer) before the HUD began listing it again, and listed on every HUD
+        // since: the narrator added it back, newer than the report that took it away (the wand came home in a time skip).
+        let relisted = false;
+        if (['stowed', 'dropped', 'gone'].includes(it.state) && Number.isFinite(it.idx) && it.idx >= 0) {
+            let since = null, gap = false;
+            for (let k = tl.length - 1; k >= 0; k--) {
+                const t = tl[k];
+                if (!gearFromHud(t.hud).some(y => { const f = find(gearBare(y.name)); return f === it || lockKey(gearBare(y.name)) === it.key; })) { gap = true; break; }
+                since = idxOf.has(t.msg.id) ? idxOf.get(t.msg.id) : since;
+            }
+            relisted = gap && since !== null && since > it.idx;
+        }
+        if (relisted) { it.state = null; it.where = null; }
         if (it.state === 'gone' && !(it.msgId && hudListedWhenGone(it))) it.state = null;
         if (!it.state && x.hint) it.state = x.hint;
         for (const c of x.contents) { const inner = ensure(c, 'hud'); if (inner) { inner.onHud = true; if (!inner.state || inner.state === 'gone') { inner.state = 'in container'; inner.inside = it.name; } } }
@@ -17471,7 +17493,7 @@ function spellStoryFoldUncached(chat, chatId = null) {
         const sameSchool = list => { const named = list.map(n => resolve.reference(n)).filter(Boolean); const first = named.map(r => spellKey(r.name).split(' ')[0]);
             return list.map(n => { if (typeof n !== 'string' || resolve.reference(n)) return n; for (const w of first) { const t = resolve.reference(`${w} ${n}`); if (t) return t.name; } return n; }); };
         // "Earth Wall — Earth, Intermediate": the name only, without the school and rank the reporter wrote after it
-        const bareName = n => typeof n === 'string' ? n.split(/\s+[—–]\s+|\s+-\s+(?=[A-Z])/)[0].trim() || n : n;
+        const bareName = n => typeof n === 'string' ? n.split(/\s+[—–]\s+|\s+-\s+(?=[A-Z])/)[0].replace(/\s*\((?=[^)]*\b(?:Beginner|Elementary|Intermediate|Advanced|Saint|King|Emperor|Imperial|God|technique|Style|school|tier)\b)[^)]*\)\s*$/i, '').trim() || n : n;
         for (const k of ['spells', 'learned', 'mastered']) if (Array.isArray(y[k])) y = { ...y, [k]: y[k].map(bareName) };
         if (Array.isArray(y.spells)) y = { ...y, spells: sameSchool(y.spells) };
         if (Array.isArray(y.learned)) y = { ...y, learned: sameSchool(y.learned) };

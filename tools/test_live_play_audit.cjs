@@ -67,6 +67,8 @@ check('the mention test: own item yes, someone else\'s or a practice one no', ()
     assert.equal(t.gearMentioned('you set the road sword down', 'Plain road sword'), true);
     assert.equal(t.gearMentioned('his own sword on his shoulder; your wooden sword in the snow', 'Plain road sword'), false);
     assert.equal(t.gearMentioned('the sword is finished when your feet are under you', 'Plain road sword'), false);
+    assert.equal(t.gearMentioned('You give the wand back to Ferren for trueing.', 'ash wand'), true);
+    assert.equal(t.gearMentioned('He throws you the second wooden sword. You finish the sword and abandon the body.', 'Plain road sword'), false);
 });
 
 // ── Training line (Six-Sided v1.1): display-only checks ──
@@ -230,6 +232,18 @@ check('an item packed with the bags is not something to collect (export 7)', () 
         { name: 'ash wand', owned: true, onHud: false, ago: 60, where: "Ferren's drawer" }] } };
     const td = JSON.parse(JSON.stringify(t.hmsTodo([], p))).filter(x => x.kind === 'collect').map(x => x.text);
     assert.deepEqual(td, ['ash wand']);
+});
+
+check('an item handed back, then put back on the HUD later, is carried again (export 8 wand)', () => {
+    const chat = [user('a'), reply({ gear: [{ name: 'ash wand', state: 'in hand' }] }, 'Ferren hands you the wand.', { equipment: 'Plain road sword, ash wand' }),
+        user('b'), reply({ gear: [{ name: 'ash wand', state: 'gone', where: "returned to Ferren's drawer" }] }, 'You give the wand back to Ferren for trueing.', { equipment: 'Plain road sword, ash wand', time: '10:00' }),
+        user('c'), reply({}, 'The yard.', { equipment: 'Plain road sword', time: '11:00' }),
+        user('(Time skip)'), reply({}, 'The wand comes home trued.', { equipment: 'Plain road sword, trued ash wand', month: 2, time: '12:00' })];
+    const st = gearState(chat, 'trued ash wand') ?? gearState(chat, 'ash wand');
+    assert.ok(st !== 'gone' && st !== 'stowed', `state ${st}`);
+    // a HUD that never stopped listing it is still a stale copy
+    const stale = chat.slice(0, 4).concat([user('c'), reply({}, 'The yard.', { equipment: 'Plain road sword, ash wand', time: '11:00' })]);
+    assert.equal(gearState(stale, 'ash wand'), 'gone');
 });
 
 for (const r of results) console.log(`  ✓ ${r}`);
