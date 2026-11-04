@@ -11424,6 +11424,11 @@ function hmsPanelStateRead(chatId, chat, st) {
         active: true,
         messageId: msg ? msg.id : null,
         hud: hud ? { lines: hud.lines, time: hud.time, location: hud.location, arc: hud.arc, quests: hud.quests, fromHtml: !!hud.find.fromHtml } : null,
+        hudChanged: (() => { try {
+            const tl = hmsTimeline(chat); if (!hud || tl.length < 2) return null;
+            const prev = tl[tl.length - 2].hud, before = new Map(prev.lines.filter(l => !l.block).map(l => [l.key, String(l.text).trim()]));
+            return hud.lines.filter(l => !l.block && before.get(l.key) !== String(l.text).trim()).map(l => l.key);
+        } catch { return null; } })(),
         noHud: hud ? null : hudDiagnosis(msg),
         guard,
         ...(() => { const warnings = consistencyWarnings(chatId, chat, hud, guard); return warnings.length ? {consistency:warnings} : {}; })(),
@@ -13102,6 +13107,9 @@ function hmsRelationsPanel(chat, st, cfg, classic = false) {
     }
     const roster = partyRoster(st);
     const out = [];
+    // where each reply happened: the last step of the HUD's location path ("Veyrath Hall, the study" → "Veyrath Hall")
+    const placeAt = new Map();
+    try { for (const e of hmsTimeline(chat)) { const pl = hmsPlaceName(e.hud); if (pl) placeAt.set(e.msg.id, pl); } } catch { /* optional */ }
     for (const p of people.values()) {
         const rs = p.readings;
         const cur = rs[rs.length - 1], prev = rs.length > 1 ? rs[rs.length - 2] : null;
@@ -13121,6 +13129,7 @@ function hmsRelationsPanel(chat, st, cfg, classic = false) {
                 .filter(b => b.value !== null && b.value !== undefined),
             events: [], alerts: []
         };
+        { const n = new Map(); let best = null; for (const r of rs) { const pl = placeAt.get(r.msgId); if (!pl) continue; n.set(pl, (n.get(pl) || 0) + 1); if (!best || n.get(pl) >= n.get(best)) best = pl; } view.place = best; }
         if (rs.length === 1) view.events.push(`Met — ${cur.standing || 'first impression'}`);
         // The card's own HUD stage for this person (Six-Sided v1.1 Bonds): shown beside the standing, with its steps.
         {
@@ -18628,15 +18637,16 @@ function hmsChecks(chat, st, gear) {
         if (p.age === null || p.born === null) continue;
         const want = cal.year - p.born - (p.month && cal.month < p.month ? 1 : 0);
         const slack = p.month ? 0 : 1;
-        if (Math.abs(p.age - want) > slack + (p.approx ? 1 : 0)) out.push({ kind: 'age', text: `${p.name}: ${p.age} on the Present line, but born K${p.born} makes ${p.approx ? 'about ' : ''}${want} in K${cal.year}.` });
+        if (Math.abs(p.age - want) > slack + (p.approx ? 1 : 0)) out.push({ kind: 'age', text: `${p.name}: ${p.age} on the Present line, but born K${p.born} makes ${p.approx ? 'about ' : ''}${want} in K${cal.year}.`, fix: `(OOC fix: ${p.name} is ${p.age}, born K${cal.year - p.age}.)` });
     }
     // a named person with no birth year
-    const noBirth = hmsPresentPeople(last.hud).filter(p => p.born === null && hmsNamedPerson(p.name)).map(p => p.name);
-    if (noBirth.length) out.push({ kind: 'birth', text: `No birth year on the Present line for ${noBirth.join(', ')}. The narrator is reminded to fix one; if it still does not, a quick OOC fix keeps the age steady.` });
+    const noBirthP = hmsPresentPeople(last.hud).filter(p => p.born === null && hmsNamedPerson(p.name));
+    const noBirth = noBirthP.map(p => p.name);
+    if (noBirth.length) out.push({ kind: 'birth', fix: `(OOC fix: ${noBirthP.map(p => p.age !== null && cal ? `${p.name} is ${p.age}, born K${cal.year - p.age}` : `${p.name} is __, born K___`).join('; ')}.)`, text: `No birth year on the Present line for ${noBirth.join(', ')}. The narrator is reminded to fix one; if it still does not, a quick OOC fix keeps the age steady.` });
     // the clock going backwards
     if (tl.length > 1 && last.reset && worldOf(worldLines(last.hud)) !== 'rezero') {
         const prev = tl[tl.length - 2];
-        out.push({ kind: 'clock', text: `The clock went back: ${hmsClockText(prev.hud)} in the reply before, ${hmsClockText(last.hud)} now.` });
+        out.push({ kind: 'clock', fix: `(OOC fix: the time is ${hmsClockText(prev.hud)} or later; time never goes back.)`, text: `The clock went back: ${hmsClockText(prev.hud)} in the reply before, ${hmsClockText(last.hud)} now.` });
     }
     // time passing while the player asked OOC questions
     if (tl.length > 1 && Number.isFinite(last.clock) && Number.isFinite(tl[tl.length - 2].clock)) {
@@ -18644,11 +18654,11 @@ function hmsChecks(chat, st, gear) {
         const a = chat.indexOf(prev.msg), b = chat.indexOf(last.msg);
         const ooc = a >= 0 && b > a ? chat.slice(a + 1, b).filter(m => m.role === 'user' && isOocText(textOf(m.content))).length : 0;
         const gap = last.clock - prev.clock;
-        if (ooc && gap > 30) out.push({ kind: 'ooc', text: `The clock moved ${hmsSpan(gap)} across a stretch with ${ooc} OOC message${ooc === 1 ? '' : 's'}. OOC turns are not meant to pass time.` });
+        if (ooc && gap > 30) out.push({ kind: 'ooc', fix: `(OOC fix: OOC messages pass no time. The time is ${hmsClockText(prev.hud)} plus only what the story itself took.)`, text: `The clock moved ${hmsSpan(gap)} across a stretch with ${ooc} OOC message${ooc === 1 ? '' : 's'}. OOC turns are not meant to pass time.` });
     }
     // the HUD still carrying what the story says is not on you
     const stale = gear && Array.isArray(gear.gone) ? gear.gone.filter(x => x.onHud) : [];
-    if (stale.length) out.push({ kind: 'gear', text: `The HUD's Equipment line still lists ${stale.map(x => x.where ? `${x.name} (${x.where})` : x.name).join(', ')}. Gear has ${stale.length === 1 ? 'it' : 'them'} as not on you; edit the line, or the narrator may treat ${stale.length === 1 ? 'it' : 'them'} as carried.` });
+    if (stale.length) out.push({ kind: 'gear', fix: `(OOC fix: ${stale.map(x => x.where ? `the ${x.name} is ${/^(with|at|in|on|returned|left)\b/i.test(x.where) ? '' : 'at '}${x.where}` : `the ${x.name} is not on me`).join('; ')}. Remove ${stale.length === 1 ? 'it' : 'them'} from Equipment until I have ${stale.length === 1 ? 'it' : 'them'} again.)`, text: `The HUD's Equipment line still lists ${stale.map(x => x.where ? `${x.name} (${x.where})` : x.name).join(', ')}. Gear has ${stale.length === 1 ? 'it' : 'them'} as not on you; edit the line, or the narrator may treat ${stale.length === 1 ? 'it' : 'them'} as carried.` });
     return out;
 }
 function hmsClockText(hud) {
@@ -18733,7 +18743,9 @@ function hmsTodo(chat, p) {
     const last = tl.length ? tl[tl.length - 1] : null;
     const agenda = p.agenda && Array.isArray(p.agenda.items) ? p.agenda.items : [];
     const dayText = x => x.status === 'overdue' ? 'late' : x.dueIn !== null && x.dueIn !== undefined ? (x.dueIn <= 0 ? 'now' : `in ${hmsSpan(x.dueIn)}`) : Number.isFinite(x.dayIn) ? agendaDayText(x.dayIn) : (x.when || null);
-    for (const x of agenda.filter(x => (x.state === 'open' || x.state === 'in_progress') && x.kind !== 'letter')) {
+    for (const x of agenda.filter(x => (x.state === 'open' || x.state === 'in_progress') && x.kind === 'promise'))
+        out.push({ kind: 'promise', icon: '🤞', text: `${x.what}${x.with ? ` (${x.with})` : ''}`, sub: x.when || (x.dueIn !== null && x.dueIn !== undefined || Number.isFinite(x.dayIn) ? dayText(x) : 'no date'), go: ['journey', 'agenda'] });
+    for (const x of agenda.filter(x => (x.state === 'open' || x.state === 'in_progress') && x.kind !== 'letter' && x.kind !== 'promise')) {
         const near = x.state === 'in_progress' || x.status === 'overdue' || x.status === 'soon' || (Number.isFinite(x.dueIn) && x.dueIn <= 2 * 1440) || (x.dueIn === null && Number.isFinite(x.dayIn) && x.dayIn <= 2);
         if (near) out.push({ kind: 'due', icon: x.status === 'overdue' ? '⚠️' : '📅', text: `${x.what}${x.with ? ` (with ${x.with})` : ''}`, sub: x.state === 'in_progress' ? 'in progress' : dayText(x), go: ['journey', 'agenda'] });
     }
@@ -18758,7 +18770,7 @@ function hmsTodo(chat, p) {
     }
     for (const b of (Array.isArray(p.birthdays) ? p.birthdays : []).filter(b => b.inMonths !== null && b.inMonths <= 2))
         out.push({ kind: 'birthday', icon: '🎂', text: b.you ? `You turn ${b.turns}` : `${b.name} turns ${b.turns}`, sub: b.inMonths === 0 ? 'this month' : b.inMonths === 1 ? 'next month' : 'in 2 months', go: ['journey', 'agenda'] });
-    return out.slice(0, 16);
+    return out.slice(0, 24);
 }
 
 /** "Suggest things to do": one call on the Companion's own model, only when the player asks. Never reaches the story. */
@@ -18804,6 +18816,15 @@ Answer with only a JSON array: [{"do": "a short action in the second person, und
     await saveChatState(chatId, st);
 }
 
+/** The place a HUD is set in: the last step of its location path, before any comma or dash. */
+function hmsPlaceName(hud) {
+    if (!hud) return null;
+    const line = hud.lines.map(l => String(l.text || '')).find(t => /^\s*(?:◆|📍)/.test(t)) || (hud.location ? String(hud.location) : '');
+    if (!line) return null;
+    const last = line.replace(/^\s*(?:◆|📍)\s*/, '').split(/\s*(?:→|->|›|>)\s*/).filter(Boolean).pop() || '';
+    const name = last.split(/\s*(?:,|\s[—–-]\s)\s*/)[0].trim();
+    return name && name.length <= 40 ? name.replace(/^the\s+/i, (m) => m) : null;
+}
 function pinsReminder(st) {
     const pins = Object.values(st.pins || {}).filter(p => p && p.text);
     if (!pins.length) return null;

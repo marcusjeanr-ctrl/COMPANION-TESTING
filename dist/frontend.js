@@ -841,7 +841,7 @@ button.rpgc-chip.intel:hover { border-color: var(--lumiverse-accent, #7aa2f7); }
 .rpgc-tools>summary:hover{color:var(--lumiverse-text,#eee)}
 .rpgc-tools[open]{display:flex;flex-direction:column;gap:8px;padding:8px;border:1px dashed var(--lumiverse-border,#333);border-radius:10px}
 .rpgc-sec{transition:border-color .2s,box-shadow .2s}
-.rpgc-todo{list-style:none;margin:0;padding:0}.rpgc-todo li{padding:3px 4px;border-radius:6px}.rpgc-todo li.go:hover{background:color-mix(in srgb,currentColor 8%,transparent)}.rpgc-todo li.go{cursor:pointer}.rpgc-todo.ideas li{cursor:default}
+.rpgc-todo{list-style:none;margin:0;padding:0}.rpgc-pfold:not([open])>summary .head{flex-wrap:nowrap;overflow:hidden;white-space:nowrap}.rpgc-pfold:not([open])>summary .head .rpgc-chip.kind,.rpgc-pfold:not([open])>summary .head .rpgc-chip.minor{display:none}.rpgc-pfold:not([open])>summary .head .rpgc-chip.bond{max-width:9em;overflow:hidden;text-overflow:ellipsis}.rpgc-pfold:not([open])>summary .head .meta{overflow:hidden;text-overflow:ellipsis;min-width:0}.rpgc-fixbtn{margin-left:6px;padding:1px 8px;font-size:.85em}.rpgc-todo li{padding:3px 4px;border-radius:6px}.rpgc-todo li.go:hover{background:color-mix(in srgb,currentColor 8%,transparent)}.rpgc-todo li.go{cursor:pointer}.rpgc-todo.ideas li{cursor:default}
 .rpgc-sec[open]{box-shadow:0 2px 10px -8px #000c}
 .rpgc-sec>summary{border-radius:inherit}
 .rpgc-sec>summary:hover{background:color-mix(in srgb,currentColor 5%,transparent)}
@@ -2209,6 +2209,7 @@ export function setup(ctx) {
     // a gap under a short or closed card beside a long one; each card now spans the rows its own height needs,
     // so the next card moves up into the space. Recomputed whenever a card opens, closes or changes size.
     const ROW_UNIT = 4, COL_GAP = 12;
+    let renderedViewKey = null; const viewScroll = {};
     let viewObserver = null, viewFit = null;
     // Opening or closing a card re-fits at once. Waiting for the resize watcher alone left the other cards
     // under an opened one for a moment (or until the next refresh, where the watcher is slow or missing).
@@ -2261,6 +2262,10 @@ export function setup(ctx) {
         pendingRender = false;
         deferredEl = null;
         const scroll = tab.root.scrollTop;
+        // each view remembers where you were: switching tabs brings you back to the same spot
+        const viewKey = state.view === 'trackers' ? 'v:' + (state.viewTab || '') : state.view;
+        if (renderedViewKey) viewScroll[renderedViewKey] = scroll;
+        const viewChanged = renderedViewKey !== null && viewKey !== renderedViewKey;
         // Half-typed fields survive a repaint: a reply landing, or moving from one box of a form to the next,
         // redraws the panel, and the new boxes used to come back empty.
         const keyOf = el => { const sec = el.closest('details')?.dataset?.openKey || ''; const id = el.getAttribute('aria-label') || el.getAttribute('placeholder') || el.name || ''; return id ? `${sec}|${el.tagName}|${id}` : null; };
@@ -2277,12 +2282,13 @@ export function setup(ctx) {
             if (k === wasKey && document.activeElement !== el) { el.focus({ preventScroll: true }); if (wasSel) try { el.setSelectionRange(wasSel[0], wasSel[1]); } catch { /* number fields have no selection */ } }
         }
         layoutViewColumns();
-        tab.root.scrollTop = scroll;
+        tab.root.scrollTop = viewChanged ? (viewScroll[viewKey] || 0) : scroll;
+        renderedViewKey = viewKey;
         if (state.jumpTo) {
             const id = state.jumpTo; state.jumpTo = null;
             const el = id === '__top' ? null : [...root.querySelectorAll('details')].find(d => d.dataset.openKey === id);
             if (el) { el.scrollIntoView?.({ block: 'start', behavior: 'smooth' }); el.classList.add('rpgc-flash'); setTimeout(() => el.classList.remove('rpgc-flash'), 1200); }
-            else tab.root.scrollTop = 0;
+            else if (!viewChanged) tab.root.scrollTop = 0;
         }
         updateWeather();
     }
@@ -4161,7 +4167,16 @@ export function setup(ctx) {
                 blk = null;
                 rows.push(hudLineEl(l));
             }
-            content.push(h('div', { class: 'rpgc-hud' }, rows));
+            // what moved since the reply before stays in view; the whole HUD is one click away
+            const changed = Array.isArray(state.hms?.hudChanged) ? new Set(state.hms.hudChanged) : null;
+            if (changed && changed.size < hud.lines.filter(l => !l.block).length) {
+                const now = hud.lines.filter(l => !l.block && changed.has(l.key)).map(hudLineEl);
+                content.push(h('div', { class: 'rpgc-hud' }, now.length ? now : [h('p', { class: 'rpgc-note' }, T('Nothing on the HUD changed this reply.'))]));
+                const all = h('details', { class: 'rpgc-subdet' }, h('summary', null, TT('Show all {0} lines', hud.lines.filter(l => !l.block).length)), h('div', { class: 'rpgc-hud' }, rows));
+                all.open = state.open['hud-all'] === true;
+                all.dataset.openKey = 'hud-all'; all.addEventListener('toggle', () => { state.open['hud-all'] = all.open; });
+                content.push(all);
+            } else content.push(h('div', { class: 'rpgc-hud' }, rows));
             const sysw = sysOf();
             if (sysw && sysw.rolls && sysw.rolls.length) content.push(h('div', { class: 'rpgc-rolls' }, sysw.rolls.map(r => h('div', { class: 'rpgc-rollline ' + (/SUCC|CRIT|PASS|HIT/.test(r.result) ? 'win' : /FAIL|MISS/.test(r.result) ? 'lose' : '') },
                 '\uD83C\uDFB2 ', h('b', null, r.what), ` ${r.total}${r.dc !== null ? ` vs DC ${r.dc}` : ''} \u2192 `, h('b', null, r.result)))));
@@ -4169,7 +4184,13 @@ export function setup(ctx) {
             if (!Object.keys(state.hms.pins || {}).length) content.push(h('p', { class: 'rpgc-note' }, 'Pin a line to have it carried forward unchanged every turn.'));
         }
         const checks = Array.isArray(state.hms?.checks) ? state.hms.checks : [];
-        if (checks.length) content.push(h('div', { class: 'rpgc-checks' }, h('b', null, T('Worth a look')), h('ul', null, checks.map(c => h('li', { class: 'rpgc-note' }, c.text)))));
+        if (checks.length) content.push(h('div', { class: 'rpgc-checks' }, h('b', null, T('Worth a look')), h('ul', null, checks.map(c => h('li', { class: 'rpgc-note' }, c.text,
+            c.fix ? h('button', { class: 'rpgc-btn rpgc-fixbtn', title: c.fix, onclick: async (e) => {
+                const b = e.currentTarget;
+                try { await navigator.clipboard.writeText(c.fix); b.textContent = T('Copied: paste it in the chat'); }
+                catch { b.textContent = c.fix; }
+                setTimeout(() => { if (b.isConnected) b.textContent = T('Copy fix'); }, 2500);
+            } }, T('Copy fix')) : null)))));
         if (hud && hud.fromHtml) content.push(h('p', { class: 'rpgc-note' }, 'This HUD was written in HTML and is read through it. The guard can flag dropped lines here, but cannot put them back into the reply.'));
         return section('world', 'World State', state.open, hud && hud.time ? hud.time : null, ...content);
     }
@@ -4482,14 +4503,14 @@ export function setup(ctx) {
         const out = [];
         out.push(h('div', { class: 'rpgc-row' }, h('button', { class: 'rpgc-btn', disabled: busy || !state.chatId ? true : null,
             onclick: () => { state.todoBusy = state.chatId; render(); send({ type: 'todo_ideas', chatId: state.chatId }); } },
-            busy ? T('Thinking of ideas…') : ideas ? '💡 ' + T('New ideas') : '💡 ' + T('Suggest things to do'))));
+            busy ? T('Thinking of ideas…') : ideas ? '💡 ' + T('New ideas') : '💡 ' + T('Give me ideas'))));
         if (ideas && ideas.items.length) {
             out.push(h('ul', { class: 'rpgc-todo ideas' }, ideas.items.map(x => h('li', null, h('b', null, x.do), x.why ? h('span', { class: 'rpgc-note' }, ` \u00B7 ${x.why}`) : null))));
             out.push(h('p', { class: 'rpgc-note' }, ideas.stale ? T('These ideas are from before the last reply; ask again for fresh ones.') : T('Only you see these. Pick one and write it as your own action.')));
         } else if (!busy) out.push(h('p', { class: 'rpgc-note' }, T('Ideas come from the Companion’s own model, one call when you press the button. The story never sees them.')));
         if (list.length) {
             // grouped and folded: open once you want the detail; it starts open only while there are no ideas yet
-            const GROUPS = [['due', '📅 ' + T('Coming up')], ['collect', '🎒 ' + T('Things to get back')], ['quest', '🎯 ' + T('Quest')], ['letter', '✉️ ' + T('Letters')],
+            const GROUPS = [['due', '📅 ' + T('Coming up')], ['promise', '🤞 ' + T('Promises')], ['collect', '🎒 ' + T('Things to get back')], ['quest', '🎯 ' + T('Quest')], ['letter', '✉️ ' + T('Letters')],
                 ['people', '👤 ' + T('Not seen in a while')], ['birthday', '🎂 ' + T('Birthdays')], ['training', '⚔️ ' + T('Training')]];
             const row = x => h('li', { class: 'go', role: 'button', tabindex: '0', title: T('Open where it lives'),
                 onclick: () => goTo(x.go[0], x.go[1]), onkeydown: (e) => { if (e.key === 'Enter') goTo(x.go[0], x.go[1]); } },
@@ -4504,12 +4525,12 @@ export function setup(ctx) {
                 g.dataset.openKey = key; g.addEventListener('toggle', () => { state.open[key] = g.open; });
                 body.push(g);
             }
-            const det = h('details', { class: 'rpgc-subdet' }, h('summary', null, `${T('Open right now')} (${list.length})`), ...body);
+            const det = h('details', { class: 'rpgc-subdet' }, h('summary', null, `📌 ${T('Open threads')} (${list.length})`), ...body);
             det.open = state.open['todo-open'] !== undefined ? state.open['todo-open'] : !(ideas && ideas.items.length);
             det.dataset.openKey = 'todo-open'; det.addEventListener('toggle', () => { state.open['todo-open'] = det.open; });
             out.push(det);
         }
-        return section('todo', T('Things to do'), state.open, ideas && ideas.items.length ? `💡 ${ideas.items.length}` : list.length ? String(list.length) : null, ...out);
+        return section('todo', T('What\u2019s next'), state.open, ideas && ideas.items.length ? `💡 ${ideas.items.length}` : list.length ? String(list.length) : null, ...out);
     }
     function renderLooseEnds() {
         const list = looseEnds();
@@ -5185,7 +5206,7 @@ export function setup(ctx) {
         return h('span', { class: 'rpgc-hearts', 'aria-label': `${full} of 5 hearts` }, '\u2665'.repeat(full), h('span', { class: 'off' }, '\u2665'.repeat(5 - full)));
     }
     function personMeta(p) {
-        return [p.present ? T('here') : p.lastSeen !== null ? (fmtSpan(p.lastSeen) ? TT('seen {0} ago', fmtSpan(p.lastSeen)) : T('just now')) : null, p.metAgo ? TT('met {0} ago', fmtSpan(p.metAgo)) : null, p.party ? T('party') : null].filter(Boolean).join(' \u00B7 ');
+        return [p.present ? T('here') : p.lastSeen !== null ? (fmtSpan(p.lastSeen) ? TT('seen {0} ago', fmtSpan(p.lastSeen)) : T('just now')) : null, !p.present && p.place ? p.place : null, p.metAgo ? TT('met {0} ago', fmtSpan(p.metAgo)) : null, p.party ? T('party') : null].filter(Boolean).join(' \u00B7 ');
     }
     function bondEditor(p) {
         const bondIn = h('input', { type: 'text', value: p.pinned && p.pinned.bond ? p.pinned.bond : '', placeholder: p.bond || 'e.g. family — daughter to you', 'aria-label': `Bond with ${p.name}` });
@@ -6813,7 +6834,9 @@ export function setup(ctx) {
             if (rest.length) out.push(h('div', { class: 'rpgc-cards' }, rest.map(personMerged)));
         } else {
             const cardOf = x => { const card = here(x) || f === 'here' ? personMerged(x) : foldPerson(personMerged(x), x);
-                card.dataset.find = String(x.name || '').toLowerCase(); return card; };
+                // found by name, role, bond, standing or place ("maid", "Roa", "sister")
+                const r = x.rel || {}, d = r.details || {};
+                card.dataset.find = [x.name, r.bond, r.standing, r.place, ...Object.values(d).filter(v => typeof v === 'string')].filter(Boolean).join(' ').toLowerCase(); return card; };
             const allCards = [];
             // a name search once the cast is large; it only hides cards, nothing is re-read
             if (list.length > 8) {
@@ -6830,8 +6853,15 @@ export function setup(ctx) {
                 const standing = x => (x.rel && x.rel.standing) || '';
                 const against = x => (x.rel && x.rel.tone === 'neg') || /^(Nemesis|Enemy|Hostile|Wary)$/.test(standing(x));
                 const close = x => /^(Friendly|Friend|Close|Devoted)$/.test(standing(x)) || !!x.member;
+                const seenN = x => (x.rel && Number.isFinite(x.rel.seen)) ? x.rel.seen : 99;
+                const placeOf = x => (x.rel && x.rel.place) || null;
                 const groups = [['here', '📍 ' + T('Here now'), here], ['family', '🏠 ' + T('Family'), isFam], ['against', '⚔️ ' + T('Against you'), against],
-                    ['close', '🤝 ' + T('Friends and close'), close], ['known', '👥 ' + T('Others you know'), () => true]];
+                    ['close', '🤝 ' + T('Friends and close'), close], ['once', '👋 ' + T('Met once'), x => seenN(x) <= 2]];
+                // the rest by where they are usually seen (Veyrath Hall, the north-row market…), biggest first
+                const restPlaces = new Map();
+                for (const x of list) { const pl = placeOf(x); if (pl) restPlaces.set(pl, (restPlaces.get(pl) || 0) + 1); }
+                for (const [pl] of [...restPlaces].sort((a, b) => b[1] - a[1])) groups.push(['place-' + pl.toLowerCase().replace(/[^a-z0-9]+/g, '-'), '🏘️ ' + pl, x => placeOf(x) === pl]);
+                groups.push(['known', '👥 ' + T('Others you know'), () => true]);
                 const left = new Set(list);
                 for (const [gk, title, test] of groups) {
                     const members = [...left].filter(test);
@@ -6840,7 +6870,7 @@ export function setup(ctx) {
                     const cards = members.map(cardOf); allCards.push(...cards);
                     const key = 'pgroup-' + gk;
                     const det = h('details', { class: 'rpgc-subdet rpgc-pgroup' }, h('summary', null, `${title} (${members.length})`), h('div', { class: 'rpgc-cards' }, cards));
-                    det.open = state.open[key] !== undefined ? state.open[key] : gk !== 'known';
+                    det.open = state.open[key] !== undefined ? state.open[key] : ['here', 'family', 'against', 'close'].includes(gk);
                     det.dataset.openKey = key; det.addEventListener('toggle', () => { state.open[key] = det.open; });
                     out.push(det);
                 }
