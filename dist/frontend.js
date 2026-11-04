@@ -6851,7 +6851,10 @@ export function setup(ctx) {
             // who has died: a family member the Family card marks dead, or anyone marked by hand here
             const famDead = new Set(((state.hms && state.hms.family && state.hms.family.members) || []).filter(m => m && m.status === 'dead').map(m => String(m.name || '').toLowerCase()));
             const isDead = x => !!(x.rel && x.rel.dead) || famDead.has(String(x.name || '').toLowerCase());
-            const deadMark = x => x.rel && x.rel.key ? h('div', { class: 'rpgc-row rpgc-deadmark' }, h('button', { class: 'rpgc-btn', onclick: (e) => { e.stopPropagation(); send({ type: 'person_dead', chatId: state.chatId, key: x.rel.key, dead: !x.rel.dead }); } },
+            // the story marks deaths by itself; this is only for when it gets one wrong
+            const deadMark = x => x.rel && x.rel.key ? h('div', { class: 'rpgc-row rpgc-deadmark' },
+                x.rel.dead && x.rel.diedFrom === 'story' ? h('span', { class: 'rpgc-note' }, T('The story reported this death.')) : null,
+                h('button', { class: 'rpgc-btn', onclick: (e) => { e.stopPropagation(); send({ type: 'person_dead', chatId: state.chatId, key: x.rel.key, dead: !x.rel.dead, storySaysDead: x.rel.diedFrom === 'story' }); } },
                 x.rel.dead ? T('Not dead after all') : '🕯️ ' + T('Mark as passed away'))) : null;
             const cardOf = x => { const card0 = personMerged(x); const dm = deadMark(x); if (dm) card0.appendChild(dm);
                 const card = here(x) || f === 'here' ? card0 : foldPerson(card0, x);

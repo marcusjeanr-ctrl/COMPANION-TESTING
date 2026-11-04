@@ -5369,7 +5369,7 @@ async function runSeparateUpdate(chatId, targetId = null) {
             const existing = getSwipeData(msg) || {};
             const info = { ...(existing.infoBox || {}) };
             if (comp.weather) info.weather = { forecast: comp.weather, emoji: '' };
-            await setSwipeData(chatId, msg, { ...existing, characters: comp.characters || existing.characters || null, infoBox: info, survival: abilityReportMerge(comp.you, existing.survival), party: comp.party || existing.party || null, relations: comp.relations || existing.relations || null, family: Array.isArray(comp.family) ? comp.family : (existing.family || null), gear: Array.isArray(comp.gear) ? comp.gear : (existing.gear || null), agenda: agendaRefreshReport(comp.agenda, existing.agenda, msg), holdings: Array.isArray(comp.holdings) ? comp.holdings : (existing.holdings || null), money: Array.isArray(comp.money) ? comp.money : (existing.money || null), factions: Array.isArray(comp.factions) ? comp.factions : (existing.factions || null), secrets: Array.isArray(comp.secrets) ? comp.secrets : (existing.secrets || null), contacts: comp.contacts || existing.contacts || null, quests: comp.quests || existing.quests || null,
+            await setSwipeData(chatId, msg, { ...existing, characters: comp.characters || existing.characters || null, infoBox: info, survival: abilityReportMerge(comp.you, existing.survival), party: comp.party || existing.party || null, relations: comp.relations || existing.relations || null, deaths: Array.isArray(comp.deaths) ? comp.deaths : (existing.deaths || null), family: Array.isArray(comp.family) ? comp.family : (existing.family || null), gear: Array.isArray(comp.gear) ? comp.gear : (existing.gear || null), agenda: agendaRefreshReport(comp.agenda, existing.agenda, msg), holdings: Array.isArray(comp.holdings) ? comp.holdings : (existing.holdings || null), money: Array.isArray(comp.money) ? comp.money : (existing.money || null), factions: Array.isArray(comp.factions) ? comp.factions : (existing.factions || null), secrets: Array.isArray(comp.secrets) ? comp.secrets : (existing.secrets || null), contacts: comp.contacts || existing.contacts || null, quests: comp.quests || existing.quests || null,
                 plot: comp.plot || existing.plot || null, objectives: comp.objectives || existing.objectives || null, injuries: comp.injuries || existing.injuries || null,
                 moments: Array.isArray(comp.moments) ? comp.moments : (existing.moments || null),
                 inbox: Array.isArray(comp.inbox) ? comp.inbox : (existing.inbox || null),
@@ -10649,6 +10649,7 @@ function parseCompanion(text, roster = [], relSt = null, immSt = null) {
         if (res.party) res.found = true;
     }
     if (Array.isArray(obj.relations)) { res.relations = relNormalize(obj.relations, null, relSt); if (res.relations) res.found = true; }
+    if (Array.isArray(obj.deaths)) res.deaths = obj.deaths.filter(n => typeof n === 'string' && n.trim()).map(n => n.replace(/\s+/g, ' ').trim().slice(0, 60)).slice(0, 12);
     // The minor guard covers character stats too: no arousal-type stat survives on a minor.
     if (res.characters) {
         const minors = new Set([...(res.relations || []).filter(r => r.minor).map(r => r.key), ...Object.entries(relPins(relSt)).filter(([, v]) => v && v.minor).map(([k]) => k)]);
@@ -11262,6 +11263,7 @@ async function hmsHandleReplyInner(chatId, chat, msg, generationType) {
         survival: abilityReportMerge(res.comp.you, prev.survival),
         party: res.comp.party || prev.party || null,
         relations: res.comp.relations || prev.relations || null,
+        deaths: Array.isArray(res.comp.deaths) ? res.comp.deaths : (prev.deaths || null),
         family: Array.isArray(res.comp.family) ? res.comp.family : (prev.family || null),
         gear: Array.isArray(res.comp.gear) ? res.comp.gear : (prev.gear || null),
         agenda: Array.isArray(res.comp.agenda) ? res.comp.agenda : (prev.agenda || null),
@@ -12953,8 +12955,9 @@ function relRequest(chat, userName, cfg, st = null, classic = false) {
     const rc = relCfg(cfg, classic);
     if (!rc.on || !rc.ladder.length) return null;
     const barFmt = rc.bars.map(b => `"${b.id}": ${b.two ? '-100..100' : '0..100'}`).join(', ');
-    const json = `"relations": [{"name": "exact name", "standing": "${rc.ladder.join('|')}", "bond": "kind of relationship, their entry's words", "minor": false, "mood": "1-3 words"${barFmt ? ', ' + barFmt + ', "reasons": {"bar": "why it moved"}' : ''}, "why": "what changed, or null"}]`;
+    const json = `"deaths": ["exact name"],\n"relations": [{"name": "exact name", "standing": "${rc.ladder.join('|')}", "bond": "kind of relationship, their entry's words", "minor": false, "mood": "1-3 words"${barFmt ? ', ' + barFmt + ', "reasons": {"bar": "why it moved"}' : ''}, "why": "what changed, or null"}]`;
     let rules = `In "relations", add one entry for every named character in this scene who dealt with ${userName}, never ${userName}. `;
+    rules += `In "deaths", the exact names of characters this reply shows dying, or in which ${userName} learns someone has died (seen, a letter, news, a body); [] otherwise. Never someone only feared dead, missing, rumoured, or dying but not yet dead. `;
     rules += `"standing": closeness/regard, never romance; devotion can be familial, friendly or sworn. It is the lasting relationship, not this scene's manner: keep the previous standing unless something in this reply changes the relationship itself, and then move one step. A strict, demanding, testing or cold manner that fits who they are belongs in "mood", not standing. `;
     rules += `"bond": established relationship/contract in the character entry's words. Romance requires explicit establishment. `;
     rules += `"minor": true if under 18 or apparently so. Minors and family never receive romance or desire. `;
@@ -13108,6 +13111,9 @@ function hmsRelationsPanel(chat, st, cfg, classic = false) {
     const roster = partyRoster(st);
     const out = [];
     // where each reply happened: the last step of the HUD's location path ("Veyrath Hall, the study" → "Veyrath Hall")
+    // who the story reported dead, and in which reply (by position)
+    const diedAt = new Map(), idxOfMsg = new Map();
+    (chat || []).forEach((m, i) => { idxOfMsg.set(m.id, i); if (m.role !== 'assistant') return; const d = getSwipeData(m)?.deaths; if (Array.isArray(d)) for (const n of d) diedAt.set(lockKey(n), i); });
     const placeAt = new Map();
     try { for (const e of hmsTimeline(chat)) { const pl = hmsPlaceName(e.hud); if (pl) placeAt.set(e.msg.id, pl); } } catch { /* optional */ }
     for (const p of people.values()) {
@@ -13129,7 +13135,14 @@ function hmsRelationsPanel(chat, st, cfg, classic = false) {
                 .filter(b => b.value !== null && b.value !== undefined),
             events: [], alerts: []
         };
-        view.dead = !!(st && isPlainObject(st.peopleDead) && st.peopleDead[p.key]);   // marked by hand in People
+        {
+            const hand = st && isPlainObject(st.peopleDead) ? st.peopleDead[p.key] : null;
+            const died = diedAt.get(p.key);
+            const last = rs.length ? idxOfMsg.get(rs[rs.length - 1].msgId) : -1;
+            // the story's report, unless they are seen alive in a later reply; your own mark always wins
+            view.dead = hand ? !hand.alive : (died !== undefined && !(last > died && rs[rs.length - 1].msgId !== died));
+            view.diedFrom = !hand && view.dead ? 'story' : hand && !hand.alive ? 'you' : null;
+        }
         { const n = new Map(); let best = null; for (const r of rs) { const pl = placeAt.get(r.msgId); if (!pl) continue; n.set(pl, (n.get(pl) || 0) + 1); if (!best || n.get(pl) >= n.get(best)) best = pl; } view.place = best; }
         if (rs.length === 1) view.events.push(`Met — ${cur.standing || 'first impression'}`);
         // The card's own HUD stage for this person (Six-Sided v1.1 Bonds): shown beside the standing, with its steps.
@@ -19361,7 +19374,10 @@ spindle.onFrontendMessage(async (payload, userId) => {
                 if (!payload.chatId || typeof payload.key !== 'string' || !payload.key) return;
                 const st = await getChatState(payload.chatId);
                 if (!isPlainObject(st.peopleDead)) st.peopleDead = {};
-                if (payload.dead) st.peopleDead[payload.key.slice(0, 120)] = { at: new Date().toISOString() }; else delete st.peopleDead[payload.key];
+                const k = payload.key.slice(0, 120);
+                if (payload.dead) st.peopleDead[k] = { at: new Date().toISOString() };
+                else if (payload.storySaysDead) st.peopleDead[k] = { alive: true, at: new Date().toISOString() };   // the story said dead; you say no
+                else delete st.peopleDead[k];
                 await saveChatState(payload.chatId, st);
                 await pushState(payload.chatId);
                 break;
