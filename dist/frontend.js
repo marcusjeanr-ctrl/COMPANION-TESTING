@@ -841,7 +841,7 @@ button.rpgc-chip.intel:hover { border-color: var(--lumiverse-accent, #7aa2f7); }
 .rpgc-tools>summary:hover{color:var(--lumiverse-text,#eee)}
 .rpgc-tools[open]{display:flex;flex-direction:column;gap:8px;padding:8px;border:1px dashed var(--lumiverse-border,#333);border-radius:10px}
 .rpgc-sec{transition:border-color .2s,box-shadow .2s}
-.rpgc-todo{list-style:none;margin:0;padding:0}.rpgc-pfold:not([open])>summary .head{flex-wrap:nowrap;overflow:hidden;white-space:nowrap}.rpgc-pfold:not([open])>summary .head .rpgc-chip.kind,.rpgc-pfold:not([open])>summary .head .rpgc-chip.minor{display:none}.rpgc-pfold:not([open])>summary .head .rpgc-chip.bond{max-width:9em;overflow:hidden;text-overflow:ellipsis}.rpgc-pfold:not([open])>summary .head .meta{overflow:hidden;text-overflow:ellipsis;min-width:0}.rpgc-deadmark{margin-top:6px;justify-content:flex-end}.rpgc-deadmark .rpgc-btn{font-size:.85em;opacity:.8}.rpgc-fixbtn{margin-left:6px;padding:1px 8px;font-size:.85em}.rpgc-todo li{padding:3px 4px;border-radius:6px}.rpgc-todo li.go:hover{background:color-mix(in srgb,currentColor 8%,transparent)}.rpgc-todo li.go{cursor:pointer}.rpgc-todo.ideas li{cursor:default}
+.rpgc-todo{list-style:none;margin:0;padding:0}.rpgc-pfold:not([open])>summary .head{flex-wrap:nowrap;overflow:hidden;white-space:nowrap}.rpgc-pfold:not([open])>summary .head .rpgc-chip.kind,.rpgc-pfold:not([open])>summary .head .rpgc-chip.minor{display:none}.rpgc-pfold:not([open])>summary .head .rpgc-chip.bond{max-width:9em;overflow:hidden;text-overflow:ellipsis}.rpgc-pfold:not([open])>summary .head .meta{overflow:hidden;text-overflow:ellipsis;min-width:0}.rpgc-deadmark{margin-top:6px;justify-content:flex-end}.rpgc-deadmark .rpgc-btn{font-size:.85em;opacity:.8}.rpgc-fixline{display:block;width:100%;margin-top:4px;font:inherit;font-size:.9em;resize:none}.rpgc-fixbtn{margin-left:6px;padding:1px 8px;font-size:.85em}.rpgc-todo li{padding:3px 4px;border-radius:6px}.rpgc-todo li.go:hover{background:color-mix(in srgb,currentColor 8%,transparent)}.rpgc-todo li.go{cursor:pointer}.rpgc-todo.ideas li{cursor:default}
 .rpgc-sec[open]{box-shadow:0 2px 10px -8px #000c}
 .rpgc-sec>summary{border-radius:inherit}
 .rpgc-sec>summary:hover{background:color-mix(in srgb,currentColor 5%,transparent)}
@@ -4186,10 +4186,12 @@ export function setup(ctx) {
         const checks = Array.isArray(state.hms?.checks) ? state.hms.checks : [];
         if (checks.length) content.push(h('div', { class: 'rpgc-checks' }, h('b', null, T('Worth a look')), h('ul', null, checks.map(c => h('li', { class: 'rpgc-note' }, c.text,
             c.fix ? h('button', { class: 'rpgc-btn rpgc-fixbtn', title: c.fix, onclick: async (e) => {
-                const b = e.currentTarget;
-                try { await navigator.clipboard.writeText(c.fix); b.textContent = T('Copied: paste it in the chat'); }
-                catch { b.textContent = c.fix; }
-                setTimeout(() => { if (b.isConnected) b.textContent = T('Copy fix'); }, 2500);
+                const b = e.currentTarget, li = b.closest('li');
+                const ok = await copyText(c.fix);
+                b.textContent = ok ? T('Copied: paste it in the chat') : T('Select the line below and copy it');
+                // the line itself, ready to select, in case this browser blocks copying
+                if (li && !li.querySelector('.rpgc-fixline')) { const box = h('textarea', { class: 'rpgc-fixline', readonly: true, rows: 2 }, c.fix); li.appendChild(box); if (!ok) { box.focus(); box.select(); } }
+                setTimeout(() => { if (b.isConnected) b.textContent = T('Copy fix'); }, 3000);
             } }, T('Copy fix')) : null)))));
         if (hud && hud.fromHtml) content.push(h('p', { class: 'rpgc-note' }, 'This HUD was written in HTML and is read through it. The guard can flag dropped lines here, but cannot put them back into the reply.'));
         return section('world', 'World State', state.open, hud && hud.time ? hud.time : null, ...content);
@@ -4495,6 +4497,18 @@ export function setup(ctx) {
     }
     // Things to do: ideas for what to do next (on request, from the Companion's own model; never sent to the story),
     // and under them what is open right now, gathered from the panels. Each open line opens the card it came from.
+    // Copy text: the clipboard API where the host allows it, else the older select-and-copy way.
+    async function copyText(text) {
+        try { if (navigator.clipboard && window.isSecureContext !== false) { await navigator.clipboard.writeText(text); return true; } } catch { /* blocked here: try the old way */ }
+        try {
+            const ta = document.createElement('textarea');
+            ta.value = text; ta.setAttribute('readonly', ''); ta.style.cssText = 'position:fixed;top:0;left:0;opacity:0;pointer-events:none';
+            document.body.appendChild(ta); ta.select(); ta.setSelectionRange(0, text.length);
+            const ok = document.execCommand && document.execCommand('copy');
+            ta.remove();
+            return !!ok;
+        } catch { return false; }
+    }
     function renderTodo() {
         if (!state.hms) return null;
         const list = Array.isArray(state.hms.todo) ? state.hms.todo : [];
@@ -7064,7 +7078,7 @@ export function setup(ctx) {
                 /"with RBD"/.test(w) ? h('button', { class: 'rpgc-btn', style: 'margin-left:6px', onclick: () => { if (!ng.mods.includes('with RBD')) ng.mods = ['with RBD', ...ng.mods]; ng.edited = null; ngCheckSoon(); render(); } }, 'Add "with RBD"') : null)),
             h('div', { class: 'rpgc-row' },
                 h('button', { class: 'rpgc-btn primary', disabled: !ngText().trim() ? true : null, onclick: () => send({ type: 'newgame_start', chatId: state.chatId, text: ngText() }) }, 'Start the game'),
-                h('button', { class: 'rpgc-btn', onclick: async () => { try { await navigator.clipboard.writeText(ngText()); } catch { /* no clipboard */ } } }, 'Copy'),
+                h('button', { class: 'rpgc-btn', onclick: async () => { await copyText(ngText()); } }, 'Copy'),
                 h('button', { class: 'rpgc-btn', onclick: () => { state.ng = null; render(); } }, 'Clear'))));
         // A story from another chat: the bot's Start Continuer line, the old HUD, and the last messages.
         if (C.continuer) {
@@ -7090,7 +7104,7 @@ export function setup(ctx) {
                         rs.warn = false;
                         send({ type: 'newgame_start', chatId: state.chatId, text: resumeText() });
                     } }, 'Resume the campaign'),
-                    h('button', { class: 'rpgc-btn', onclick: async () => { try { await navigator.clipboard.writeText(resumeText()); } catch { /* no clipboard */ } } }, 'Copy')));
+                    h('button', { class: 'rpgc-btn', onclick: async () => { await copyText(resumeText()); } }, 'Copy')));
             det.open = state.open['ng:resume'] === true || !!rs.warn;
             det.addEventListener('toggle', () => { state.open['ng:resume'] = det.open; });
             out.push(det);
