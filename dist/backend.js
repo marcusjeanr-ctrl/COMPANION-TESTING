@@ -13819,12 +13819,15 @@ function hmsGearPanel(chat, st, cfg) {
     const SPENT_RE = /\b(sold|eaten|ate|drunk|drank|given (?:away|as)|gift(?:ed)?|traded|spent|broke|broken|destroyed|lost|burn(?:t|ed)?|used up|consumed|stolen|thrown|smashed)\b/i;
     const owned = it => it.state === 'stowed' || it.state === 'dropped' || (it.state === 'gone' && KEPT_RE.test(it.where || '') && !SPENT_RE.test(it.where || ''));
     const away = it => it.state === 'gone' || it.state === 'stowed' || (it.state === 'dropped' && ago(it.at) !== null && ago(it.at) >= DAY);
-    const list = items.filter(it => !away(it)).map(it => ({
+    // Put back on someone else's rail, rack or stall (a smith's display blade tried and returned): never yours
+    const shopItem = it => (it.state === 'dropped' || it.state === 'stowed' || it.state === 'gone') && !it.mine &&
+        /\b[\p{Lu}][\p{L}'’-]*['’]s\s+(?:rail|rack|stall|counter|display|stand|table|bench|shop|wares|cart)\b/u.test(it.where || '') && !/\b(?:drawer|keeping|trueing|repair|mending|kept|holding)\b/i.test(it.where || '');
+    const list = items.filter(it => !away(it) && !shopItem(it)).map(it => ({
         key: it.key, name: it.name, note: it.note || null, state: it.state, where: it.where, inside: it.inside, from: it.from, onHud: it.onHud, mine: !!it.mine,
         ago: ago(it.at), changedNow: !!lastId && it.msgId === lastId && it.history.length > 0,
         history: it.history.slice(-5).map(h => ({ state: h.state, where: h.where, inside: h.inside, ago: ago(h.at), you: !!h.you }))
     }));
-    const gone = items.filter(away).sort((a, b) => a.idx - b.idx).slice(-20).map(it => ({ key: it.key, name: it.name, ago: ago(it.at), where: it.where || null, owned: owned(it), onHud: !!it.onHud }));
+    const gone = items.filter(it => away(it) && !shopItem(it)).sort((a, b) => a.idx - b.idx).slice(-20).map(it => ({ key: it.key, name: it.name, ago: ago(it.at), where: it.where || null, owned: owned(it), onHud: !!it.onHud }));
     const containers = [...new Set(list.filter(x => x.state === 'in container' && x.inside).map(x => x.inside))];
     for (const it of list) if (/\b(bag|backpack|pack|pouch|satchel|sack|purse|chest|box|case|quiver|bandolier|bag of holding|inventory)\b/i.test(it.name) && !containers.some(cn => relSameWords(cn, it.name))) containers.push(it.name);
     return { items: list, gone, containers, ask: gc.ask, tell: gc.tell };
@@ -14740,6 +14743,8 @@ function moneyPreserveCorrectionAnchors(st, previous) {
 }
 
 /** The ledger and the debts, rebuilt from the chat as it stands. */
+const MONEY_PLAIN_WORDS = new Set(['plain', 'road', 'lighter', 'heavier', 'small', 'large', 'little', 'good', 'cheap', 'fine', 'with', 'from', 'that', 'this', 'their', 'cost', 'paid', 'price', 'house', 'share', 'part', 'some', 'more', 'extra', 'half']);
+const MONEY_REPEATS_RE = /\b(?:meal|food|supper|dinner|lunch|breakfast|drink|ale|beer|wine|cider|mead|bread|room|bed|night|lodging|inn|fee|toll|fare|ride|bath|tip|alms|wage|wages|pay|rent)\b/i;
 /** One key per currency: "copper", "coppers" and "Copper" are the same coin. */
 function moneyCurKey(c) { const k = lockKey(c || '?').replace(/\s+/g, ' '); return k.length > 3 && /[^s]s$/.test(k) ? k.slice(0, -1) : k; }
 function moneyRead(chat, st) {
@@ -14776,8 +14781,15 @@ function moneyRead(chat, st) {
     const list = shown.filter(x => {
         if (x.from !== 'story') return true;
         const at = replyAt.get(x.msgId);
-        if (at !== undefined && keptStory.some(y => y.msgId !== x.msgId && at - y.reply > 0 && at - y.reply <= 2 && y.amount === x.amount &&
-            moneyCurKey(y.currency) === moneyCurKey(x.currency) && (y.kind || '') === (x.kind || '') && (y.dir || '') === (x.dir || '') && sameWith(y.with, x.with))) return false;
+        const same = y => y.amount === x.amount && moneyCurKey(y.currency) === moneyCurKey(x.currency) && (y.kind || '') === (x.kind || '') && (y.dir || '') === (x.dir || '') && sameWith(y.with, x.with);
+        if (at !== undefined && keptStory.some(y => y.msgId !== x.msgId && at - y.reply > 0 && at - y.reply <= 2 && same(y))) return false;
+        // The same thing bought again later the same day (the story recounting a purchase: "Halvin took 3 silver for
+        // the sword") is still one purchase: same amount, currency, person, and the same item named. Meals, drinks,
+        // rooms and fees can truly repeat, so they are left alone.
+        const things = w => new Set(String(w || '').toLowerCase().replace(/['’]s\b/g, '').split(/[^a-z]+/).filter(t => t.length > 3 && !MONEY_PLAIN_WORDS.has(t)));
+        const mine = things(x.what);
+        if (at !== undefined && mine.size && !MONEY_REPEATS_RE.test(String(x.what || '')) && keptStory.some(y => y.msgId !== x.msgId && same(y) &&
+            (!Number.isFinite(x.at) || !Number.isFinite(y.at) || Math.abs(x.at - y.at) <= 1440) && [...things(y.what)].some(t => mine.has(t)))) return false;
         keptStory.push({ ...x, reply: at });
         return true;
     });
@@ -14798,7 +14810,9 @@ function moneyRead(chat, st) {
     for (const x of list) {
         const k = curKey(x.currency);
         if (!curName.has(k) || String(x.currency || '').length < String(curName.get(k)).length) {
-            const was = curName.get(k), now = x.currency || '?';
+            const was = curName.get(k), raw = x.currency || '?';
+            // "coppers" shows as "copper": one name per coin, singular
+            const now = raw.length > 3 && /[^s]s$/i.test(raw) && raw.toLowerCase().slice(0, -1) === k ? raw.slice(0, -1) : raw;
             if (was !== undefined && totals[was]) { totals[now] = totals[was]; delete totals[was]; }
             curName.set(k, now);
         }
@@ -14855,7 +14869,7 @@ function moneyRequest(chat, st, userName, cfg) {
     const mc = moneyCfg(cfg);
     if (!mc.on || !mc.ask) return null;
     const json = `"money": [{"amount": 0, "currency": "as the story names it", "kind": "${MONEY_KINDS.join('|')}", "dir": "in|out", "what": "for what, a few words", "with": "who, or null"}]`;
-    let rules = `"money": every sum that changed hands for ${userName} in ${userName}'s own last message or in this reply — pay, a reward, a sale ("income"); a purchase, a fee, a bribe, rent ("expense"); money ${userName} now owes ("debt") or lent to someone ("loan"); a debt paid back ("repaid", "dir" in when paid to ${userName}). Real amounts only, as the story states them; [] when no money moved. The HUD's balance stays the record of what ${userName} has.`;
+    let rules = `"money": every sum that changed hands for ${userName} in ${userName}'s own last message or in this reply — pay, a reward, a sale ("income"); a purchase, a fee, a bribe, rent ("expense"); money ${userName} now owes ("debt") or lent to someone ("loan"); a debt paid back ("repaid", "dir" in when paid to ${userName}). Real amounts only, as the story states them; [] when no money moved. A payment only told about, remembered or recounted ("Halvin took 3 silver for the sword") is not new: report money only when it moves now. The HUD's balance stays the record of what ${userName} has.`;
     if (mc.tell && chat && st) {
         let r = null;
         try { r = moneyRead(chat, st); } catch { r = null; }

@@ -32,6 +32,9 @@ Compatibility with the Mushoku Tensei RPG "Six-Sided World" v1.1 card and its fo
 - **Person cards**: a bond that only changed wording ("Younger sister" ↔ "Younger sister, minor") no longer shows as a change, and only the latest bond change is kept.
 
 **Fixes from live play (fourth RC pass)**
+- **Finances: a recounted purchase no longer counts twice.** Telling your father "Halvin took 3 silver for the sword" was logged as a second sword and baldric (silver out 6, copper out 24). The reporter is told a payment only recounted is not new, and the same item bought again from the same person the same day for the same sum is one purchase (meals, drinks, rooms and fees can still repeat). Coin names show singular ("copper", not "coppers").
+- **Gear: a shop's wares tried and put back** ("Plain steel sword … dropped at Halvin's rail") no longer sit in your carried list.
+- **Phone card** stays folded while you have no device (a world like Mushoku's has none); it opens as before once the story gives you one.
 - **HUD card and the bot's Panel:** the Companion's HUD card steps aside for the Six-Sided card's own Panel HUD (its regex scripts) also when the start command sets the style among other settings ("Canon: Living | HUD: Panel") or only the HUD's Game Mode line says "HUD: Panel". It used to see "HUD: Panel" only on a line of its own, and drew its card over the bot's panel.
 - **Gear:** a detail the HUD gives in brackets ("Plain road sword (Halvin's mark)") shows beside the item's name; one that says how it is carried still sets that instead.
 - **Gear:** a sword sheathed "at the hip" with no holder named sits under the one baldric, scabbard or sword belt you carry; and where the HUD says it hangs ("Plain road sword (Halvin's mark) on hip") is no longer part of its name.

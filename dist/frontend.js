@@ -6042,7 +6042,8 @@ export function setup(ctx) {
         if (!p.device) {
             out.push(h('p', { class: 'rpgc-note' }, 'You have nothing to reach anyone with. When the story gives you a phone, a paired mirror or the like \u2014 and it shows on your HUD \u2014 this wakes up. If the story already gave you one, name it here:'));
             out.push(h('div', { class: 'rpgc-row' }, devIn, h('button', { class: 'rpgc-btn primary', onclick: setDev }, 'I have this')));
-            return section('phone', p.title || 'Phone', state.open, null, ...out);
+            // nothing to reach anyone with yet: the card stays folded until you open it
+            return section('phone', p.title || 'Phone', { get phone() { return state.open.phone === true; }, set phone(v) { state.open.phone = v; } }, T('none yet'), ...out);
         }
         const devSet = h('details', { class: 'rpgc-subdet' }, h('summary', null, p.device.from === 'chat' ? 'Your device (set by you)' : 'Use another device'),
             h('p', { class: 'rpgc-note' }, 'For this chat only. The story still decides whether a message gets through.'),
