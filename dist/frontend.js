@@ -6873,9 +6873,12 @@ export function setup(ctx) {
                 const groups = [['here', '📍 ' + T('Here now'), here], ['family', '🏠 ' + T('Family'), isFam], ['against', '⚔️ ' + T('Against you'), against],
                     ['close', '🤝 ' + T('Friends and close'), close], ['once', '👋 ' + T('Met once'), x => seenN(x) <= 2]];
                 // the rest by where they are usually seen (Veyrath Hall, the north-row market…), biggest first
+                // only places with 3 or more people still to place get a group, and at most the 5 biggest
+                const taken = new Set();
+                for (const [, , test] of groups) for (const x of list) if (!taken.has(x) && test(x)) taken.add(x);
                 const restPlaces = new Map();
-                for (const x of list) { const pl = placeOf(x); if (pl) restPlaces.set(pl, (restPlaces.get(pl) || 0) + 1); }
-                for (const [pl] of [...restPlaces].sort((a, b) => b[1] - a[1])) groups.push(['place-' + pl.toLowerCase().replace(/[^a-z0-9]+/g, '-'), '🏘️ ' + pl, x => placeOf(x) === pl]);
+                for (const x of list) { const pl = placeOf(x); if (pl && !taken.has(x)) restPlaces.set(pl, (restPlaces.get(pl) || 0) + 1); }
+                for (const [pl] of [...restPlaces].filter(([, n]) => n >= 3).sort((a, b) => b[1] - a[1]).slice(0, 5)) groups.push(['place-' + pl.toLowerCase().replace(/[^a-z0-9]+/g, '-'), '🏘️ ' + pl, x => placeOf(x) === pl]);
                 groups.push(['known', '👥 ' + T('Others you know'), () => true]);
                 const left = new Set(list);
                 for (const [gk, title, test] of groups) {
