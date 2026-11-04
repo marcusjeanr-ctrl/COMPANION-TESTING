@@ -11,6 +11,7 @@ Built on 1.1.0 RC2. Report: `docs/release/1.2.0-INTEGRATION-REPORT.md`.
 - **Compact: the Skills row reaches Abilities.** In Compact, the merged `Skills:` row showed raw chips ("💧Water Adv"); Abilities now shows Water: Advanced, Earth: Intermediate and so on, as in Classic.
 - **Clock warning on other calendars** now shows the day ("22 Eleasis, 1492 DR 06:40 … 21 Eleasis 09:20"), so a day going back no longer reads like a later time.
 
+- **Physical skills aren't spells (export 9).** "Bracer wand flick", reported as a reliable skill, landed in the Spellbook, and "Break-falls" or "Sword God recovery after a strike" showed nowhere. Plain body and gear handling (flick, draw, break-fall, footwork, parry, stance, unarmed…) now goes to Abilities → Martial, unless an element names it as magic. "Sword God Style toward Saint" folds under the style's row.
 - **Party Mode (newest card):** `Player:` lines belong to the players; another player's skills and wounds no longer land on your sheet. Your own Player line shows as a line; tracking it needs a live Party export.
 - **"Magic Swordsmanship"** keeps its full name in Combat techniques (it showed as a school called "Magic").
 

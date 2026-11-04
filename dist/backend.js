@@ -17318,6 +17318,10 @@ function spellResolver(chatId) {
         if (cache.techKeys.has(key)) return 'martial';
         // Unknown magical names remain usable; only explicit physical descriptions are rerouted.
         if (/\b(?:spell|magic|magical|casting)\b/i.test(name)) return 'magic';
+        // Body and gear handling the story names in plain words ("Bracer wand flick", "Break-fall", "Quick draw") is
+        // physical skill, not a spell, unless an element says otherwise.
+        if (!/\b(?:water|earth|fire|wind|ice|stone|rock|healing|lightning|frost|flame|mana)\b/i.test(name)
+            && /\b(?:flick|quick.?draw|draw(?:ing)?|sheath(?:e|ing)?|bracer|baldric|break.?falls?|footwork|grappl(?:e|ing)|throws?|parr(?:y|ies|ying)|dodg(?:e|ing)|stance|unarmed|escapes?|kicks?|punch(?:es)?|strikes?|guard)\b/i.test(name)) return 'martial';
         return /\b(?:touki|swordsmanship|swordplay)\b|\b(?:shoulder|physical|sword|blade)\s+feint\b|\bfeint\b.{0,60}\bfootwork\b|\brhythm.breaking footwork\b|\bsword (?:god )?style\b|\b(?:diagonal|hip.driven|compact|sword|blade)\b.{0,60}\b(?:cuts?|slashes?)\b|\bflank (?:advance|step|movement)\b|\b(?:grounding|lowered.center|center recovery)\b.{0,60}\b(?:force|absorption|pressure)\b|\babsorb(?:ing)?\b.{0,100}\b(?:counter.pressure|lowered center)\b|\bbreak(?:ing)?\b.{0,60}\bopponent['’]s footing\b/i.test(name) ? 'martial' : 'magic';
     };
     // Normalize report names once per catalog, not by matching spell names inside prose.

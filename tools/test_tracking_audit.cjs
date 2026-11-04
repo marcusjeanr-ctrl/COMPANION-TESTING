@@ -126,6 +126,11 @@ check('a learned spell written with its school and rank is the same spell (expor
     const p = spellsFrom([spellEntry('Earth Wall', 'Earth', 'Intermediate')], [{ learned: ['Earth Wall (Earth, Intermediate)'] }]);
     assert.deepEqual(p.known.filter(k => /earth wall/.test(k)), ['earth wall'], `bracketed form: ${p.known.join(', ')}`);
 });
+check('a physical skill the reporter names is not a spell (export 9 "Bracer wand flick")', () => {
+    const r = spellsFrom([spellEntry('Earth Wall', 'Earth', 'Intermediate')], [{ spells: [], learned: ['Earth Wall'], abilities: [{ name: 'Bracer wand flick', owner: 'you', state: 'reliable', evidence: 'wand flicked, seated again' }, { name: 'Break-falls', owner: 'you', state: 'practiced', evidence: 'break-falls from the knees' }] }]);
+    for (const k of ['bracer wand flick', 'break falls', 'break-falls']) assert(!r.known.includes(k), `${k} landed in the Spellbook: ${r.known.join(', ')}`);
+    assert(r.known.includes('earth wall'));
+});
 check('without spell references nothing is filtered', () => {
     const r = spellsFrom([], [{ spells: ['Fire', 'Water', 'Cure'] }]);
     assert.deepEqual(r.known, ['cure', 'fire', 'water']);

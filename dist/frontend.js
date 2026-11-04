@@ -4967,7 +4967,7 @@ export function setup(ctx) {
         if (!groups.length && !(sys.attributes || []).length) return null;
         // The reporter words the same practice a new way each reply ("Sword God Style footwork", "Sword God Style
         // under Aurelius's drill"). Display only: those fold under the style's own row; a named move stays its own.
-        const PRACTICE_RE = /^(?:(?:basic|basics|footwork|drills?|practice|training|forms?|stance(?: work)?|recovery|conditioning|sparring|lessons?|sessions?|exercises?|fundamentals|refinement|timing)\b|(?:under|with|from)\b.*\b(?:drills?|training|lessons?|instruction|teaching|eye)\b|(?:drills?|training|practice) (?:under|with)\b)/i;
+        const PRACTICE_RE = /^(?:(?:basic|basics|footwork|drills?|practice|training|forms?|stance(?: work)?|recovery|conditioning|sparring|lessons?|sessions?|exercises?|fundamentals|refinement|timing|toward\s+\w+)\b|(?:under|with|from)\b.*\b(?:drills?|training|lessons?|instruction|teaching|eye)\b|(?:drills?|training|practice) (?:under|with)\b)/i;
         const keyOf = n => String(n || '').toLowerCase().replace(/[’']s\b/g, '').replace(/[^a-z0-9]+/g, ' ').trim();
         const foldGroup = items => {
             const kept = [], under = new Map();

@@ -124,6 +124,14 @@ const A = { gear: [{ name: 'silver locket', state: 'worn' }], deaths: ['Halvin']
         L.set(chat); assert.deepEqual(facts(await L.push()).wounds, []);
     });
 
+    await check('a physical skill the reporter names stays out of the Spellbook (export 9 "Bracer wand flick")', async () => {
+        L.setState({}); L.set([...base(), user('I drill.'), reply({ survival: { spells: [], learned: [], mastered: [], study: [], abilities: [
+            { name: 'Bracer wand flick', owner: 'you', state: 'reliable', historical: false, evidence: "the stiff lip catching the wand's butt into your palm on the turn of the wrist" },
+            { name: 'Break-falls', owner: 'you', state: 'practiced', historical: false, evidence: 'break-falls from the knees' }] } }, "Wenna's bracer, the stiff lip catching the wand's butt into your palm on the turn of the wrist. Then break-falls from the knees.", { time: '10:00' })]);
+        const st = JSON.parse(JSON.stringify(await L.push()));
+        const book = (st.hms.magic.spellbook || []).map(x => x.name);
+        assert.ok(!book.some(n => /flick|break/i.test(n)), `in the Spellbook: ${book.join(', ')}`);
+    });
     // ── time ──
     await check('a year rollover is not the clock going back; the player\'s birthday month raises the age check', async () => {
         L.setState({}); L.set([user('a'), reply({}, 'Snow.', { year: 416, month: 12, day: 30, time: '23:00' }), user('b'), reply({}, 'New year.', { year: 417, month: 1, day: 1, time: '07:00', age: 13 })]);
