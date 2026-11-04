@@ -7380,6 +7380,39 @@ function rewriteHud(content, mutate) {
     return { content: next, hud: parseHud(next), changed: true };
 }
 
+/** Keep ages steady: put a known birth year back on the Present line, and the age that goes with it.
+ *  Known = set on a People card, else the birth year the HUD gave most often. Only the bracket after a
+ *  name is touched, and only when it holds nothing but an age and a birth year (or nothing at all). */
+function applyAges(items, known, cal) {
+    if (!cal) return false;
+    let changed = false;
+    for (const it of items) {
+        if (it.block || !/^\s*Present:/i.test(hudSemanticText(String(it.text || '')))) continue;
+        let text = it.text;
+        const people = hmsPresentPeople({ lines: [{ text: hudSemanticText(text) }] });
+        for (const p of people) {
+            const k = known.get(lockKey(p.name));
+            if (!k || !Number.isFinite(k.born)) continue;
+            const exact = cal.year - k.born - (k.month && cal.month < k.month ? 1 : 0);
+            // a "~" birth year or no month: the narrator's age stands if it fits, else the year's arithmetic
+            const age = !k.month && p.age !== null && (p.age === exact || p.age === exact - 1) ? p.age : Math.max(0, exact);
+            const want = `${age}, b. ${k.approx ? '~' : ''}K${k.born}${k.month ? `, Month ${k.month}` : ''}`;
+            const name = p.name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+            const simple = new RegExp(`(${name})\\s*\\((?:\\s*(?:—|–|-|~?\\d{1,4})?\\s*(?:,\\s*b\\.\\s*~?\\s*K\\.?\\s*\\d{3,4}(?:\\s*,?\\s*Month\\s*\\d{1,2})?)?\\s*)\\)`);
+            const bare = new RegExp(`(${name})(?=\\s*(?:[,;]|$))`);
+            const next = simple.test(text) ? text.replace(simple, `$1 (${want})`) : !new RegExp(`${name}\\s*\\(`).test(text) ? text.replace(bare, `$1 (${want})`) : text;
+            if (next !== text) { text = next; changed = true; }
+        }
+        it.text = text;
+    }
+    return changed;
+}
+async function hmsKnownAgesFor(chatId, st) {
+    const known = new Map();
+    try { for (const [k, p] of hmsKnownBirths(hmsTimeline(await chatApi.getMessages(chatId))).first) known.set(k, { born: p.born, month: p.month, approx: p.approx }); } catch { /* optional */ }
+    for (const [k, v] of Object.entries(isPlainObject(st.peopleBorn) ? st.peopleBorn : {})) if (v && Number.isFinite(v.born)) known.set(k, { born: v.born, month: Number.isFinite(v.month) ? v.month : null, approx: false });
+    return known;
+}
 function applyPins(items, pins, restored) {
     let changed = false;
     for (const [key, pin] of Object.entries(pins || {})) {
@@ -11074,6 +11107,14 @@ async function hmsProcessContent(chatId, content, prevHud, generationType, commi
             out = r.content;
             hud = r.hud || hud;
         }
+        // ages and birth years the HUD already gave, kept steady (and growing with the calendar)
+        try {
+            const cal = hmsCalNow(hud);
+            if (cal && generationType !== 'continue') {
+                const known = await hmsKnownAgesFor(chatId, st);
+                if (known.size) { const r = rewriteHud(out, items => applyAges(items, known, cal)); if (r.changed) { out = r.content; hud = r.hud || hud; guard.agesKept = true; } }
+            }
+        } catch (e) { logW(`[RPG Companion HMS] Age repair skipped: ${e?.message || e}`); }
         if (settings.hmsGuard && prevHud) {
             if (isHudSwap(prevHud, hud)) guard.swapped = true;
             else guard.missing = diffHud(prevHud, hud).filter(m => !guard.restored.includes(m.key));
@@ -13141,6 +13182,7 @@ function hmsRelationsPanel(chat, st, cfg, classic = false) {
             const last = rs.length ? idxOfMsg.get(rs[rs.length - 1].msgId) : -1;
             // the story's report, unless they are seen alive in a later reply; your own mark always wins
             view.dead = hand ? !hand.alive : (died !== undefined && !(last > died && rs[rs.length - 1].msgId !== died));
+            view.bornSet = st && isPlainObject(st.peopleBorn) && st.peopleBorn[p.key] ? st.peopleBorn[p.key] : null;
             view.diedFrom = !hand && view.dead ? 'story' : hand && !hand.alive ? 'you' : null;
         }
         { const n = new Map(); let best = null; for (const r of rs) { const pl = placeAt.get(r.msgId); if (!pl) continue; n.set(pl, (n.get(pl) || 0) + 1); if (!best || n.get(pl) >= n.get(best)) best = pl; } view.place = best; }
@@ -18672,6 +18714,7 @@ function hmsChecks(chat, st, gear) {
     }
     // a named person with no birth year: one the HUD gave before was dropped (put it back), or there never was one
     const known = hmsKnownBirths(tl);
+    for (const [k, v] of Object.entries(isPlainObject(st && st.peopleBorn) ? st.peopleBorn : {})) if (v && Number.isFinite(v.born)) known.first.set(k, { name: k, age: null, born: v.born, month: v.month || null, approx: false });
     const noBirthAll = hmsPresentPeople(last.hud).filter(p => p.born === null && hmsNamedPerson(p.name));
     const dropped = noBirthAll.filter(p => known.first.has(lockKey(p.name)));
     const noBirthP = noBirthAll.filter(p => !known.first.has(lockKey(p.name)));
@@ -19404,6 +19447,17 @@ spindle.onFrontendMessage(async (payload, userId) => {
                 break;
             }
 
+            case 'person_born': {
+                if (!payload.chatId || typeof payload.key !== 'string' || !payload.key) return;
+                const st = await getChatState(payload.chatId);
+                if (!isPlainObject(st.peopleBorn)) st.peopleBorn = {};
+                const born = Number(payload.born), month = Number(payload.month);
+                if (Number.isFinite(born) && born > 0 && born < 100000) st.peopleBorn[payload.key.slice(0, 120)] = { born: Math.round(born), month: Number.isFinite(month) && month >= 1 && month <= 12 ? Math.round(month) : null };
+                else delete st.peopleBorn[payload.key];
+                await saveChatState(payload.chatId, st);
+                await pushState(payload.chatId);
+                break;
+            }
             case 'person_dead': {
                 if (!payload.chatId || typeof payload.key !== 'string' || !payload.key) return;
                 const st = await getChatState(payload.chatId);

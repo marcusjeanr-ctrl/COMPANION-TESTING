@@ -6866,11 +6866,24 @@ export function setup(ctx) {
             const famDead = new Set(((state.hms && state.hms.family && state.hms.family.members) || []).filter(m => m && m.status === 'dead').map(m => String(m.name || '').toLowerCase()));
             const isDead = x => !!(x.rel && x.rel.dead) || famDead.has(String(x.name || '').toLowerCase());
             // the story marks deaths by itself; this is only for when it gets one wrong
+            // a birth year you set: the Companion keeps it on the Present line from then on
+            const bornSet = x => {
+                if (!x.rel || !x.rel.key) return null;
+                const cur = x.rel.bornSet;
+                const yIn = h('input', { type: 'number', min: '1', step: '1', placeholder: T('Birth year'), 'aria-label': `${T('Birth year')}: ${x.name}`, value: cur ? String(cur.born) : '', style: 'width:7em' });
+                const mIn = h('input', { type: 'number', min: '1', max: '12', step: '1', placeholder: T('Month'), 'aria-label': `${T('Birth month')}: ${x.name}`, value: cur && cur.month ? String(cur.month) : '', style: 'width:5em' });
+                const det = h('details', { class: 'rpgc-subdet' }, h('summary', null, cur ? `🎂 ${T('Birth year set')}: K${cur.born}${cur.month ? `, ${T('Month')} ${cur.month}` : ''}` : '🎂 ' + T('Set the birth year')),
+                    h('p', { class: 'rpgc-note' }, T('Kept on the Present line from the next reply on, with the age worked out from the calendar. Leave it empty to go back to the one the story gave.')),
+                    h('div', { class: 'rpgc-row' }, 'K', yIn, mIn,
+                        h('button', { class: 'rpgc-btn', onclick: (e) => { e.stopPropagation(); send({ type: 'person_born', chatId: state.chatId, key: x.rel.key, born: yIn.value ? Number(yIn.value) : null, month: mIn.value ? Number(mIn.value) : null }); } }, T('Save'))));
+                const key = 'born-' + x.rel.key; det.open = state.open[key] === true; det.dataset.openKey = key; det.addEventListener('toggle', () => { state.open[key] = det.open; });
+                return det;
+            };
             const deadMark = x => x.rel && x.rel.key ? h('div', { class: 'rpgc-row rpgc-deadmark' },
                 x.rel.dead && x.rel.diedFrom === 'story' ? h('span', { class: 'rpgc-note' }, T('The story reported this death.')) : null,
                 h('button', { class: 'rpgc-btn', onclick: (e) => { e.stopPropagation(); send({ type: 'person_dead', chatId: state.chatId, key: x.rel.key, dead: !x.rel.dead, storySaysDead: x.rel.diedFrom === 'story' }); } },
                 x.rel.dead ? T('Not dead after all') : '🕯️ ' + T('Mark as passed away'))) : null;
-            const cardOf = x => { const card0 = personMerged(x); const dm = deadMark(x); if (dm) card0.appendChild(dm);
+            const cardOf = x => { const card0 = personMerged(x); const bs = bornSet(x); if (bs) card0.appendChild(bs); const dm = deadMark(x); if (dm) card0.appendChild(dm);
                 const card = here(x) || f === 'here' ? card0 : foldPerson(card0, x);
                 // found by name, role, bond, standing or place ("maid", "Roa", "sister")
                 const r = x.rel || {}, d = r.details || {};
