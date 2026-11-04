@@ -6833,6 +6833,21 @@ export function setup(ctx) {
             if (view) out.push(view);
             if (rest.length) out.push(h('div', { class: 'rpgc-cards' }, rest.map(personMerged)));
         } else {
+            // The household comes before "where seen most": someone whose role names the family's house
+            // ("Guard of House Veyrath", "Maid of House Veyrath") belongs where the family lives, even if the
+            // story mostly showed them out on an errand.
+            {
+                const famNames = ((state.hms && state.hms.family && state.hms.family.members) || []).map(m => String(m.name || ''));
+                const surnames = new Set(famNames.map(n => n.trim().split(/\s+/).slice(1).pop()).filter(w => w && w.length > 2).map(w => w.toLowerCase()));
+                const homeCount = new Map();
+                for (const x of list) { const n = String(x.name || '').toLowerCase(); if (x.rel && x.rel.place && famNames.some(f => f.toLowerCase() === n || f.toLowerCase().startsWith(n + ' ') || n.startsWith(f.toLowerCase() + ' '))) homeCount.set(x.rel.place, (homeCount.get(x.rel.place) || 0) + 1); }
+                const home = [...homeCount].sort((a, b) => b[1] - a[1])[0]?.[0] || null;
+                if (home && surnames.size) for (const x of list) {
+                    if (!x.rel) continue;
+                    const role = [x.rel.bond, ...Object.values(x.rel.details || {}).filter(v => typeof v === 'string')].join(' ').toLowerCase();
+                    if ([...surnames].some(sn => new RegExp(`\\b(?:house|of)\\s+${sn}\\b|\\b${sn}\\s+(?:household|hall|estate|manor|staff|guard|maid|servant)`).test(role))) x.rel.place = home;
+                }
+            }
             const cardOf = x => { const card = here(x) || f === 'here' ? personMerged(x) : foldPerson(personMerged(x), x);
                 // found by name, role, bond, standing or place ("maid", "Roa", "sister")
                 const r = x.rel || {}, d = r.details || {};
