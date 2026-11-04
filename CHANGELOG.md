@@ -32,6 +32,8 @@ Compatibility with the Mushoku Tensei RPG "Six-Sided World" v1.1 card and its fo
 - **Person cards**: a bond that only changed wording ("Younger sister" ↔ "Younger sister, minor") no longer shows as a change, and only the latest bond change is kept.
 
 **Fixes from live play (fourth RC pass)**
+- **Agenda near-duplicates.** The reporter is told not to add an item that repeats an open one in other words, and What's next shows such a pair once (keeping the one with a time).
+- **Secrets.** Plans, terms or facts said openly, or told to the people they concern, are not reported as secrets.
 - **Finances: a recounted purchase no longer counts twice.** Telling your father "Halvin took 3 silver for the sword" was logged as a second sword and baldric (silver out 6, copper out 24). The reporter is told a payment only recounted is not new, and the same item bought again from the same person the same day for the same sum is one purchase (meals, drinks, rooms and fees can still repeat). Coin names show singular ("copper", not "coppers").
 - **Gear: a shop's wares tried and put back** ("Plain steel sword … dropped at Halvin's rail") no longer sit in your carried list.
 - **Phone card** stays folded while you have no device (a world like Mushoku's has none); it opens as before once the story gives you one.

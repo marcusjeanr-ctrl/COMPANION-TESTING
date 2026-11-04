@@ -14423,7 +14423,7 @@ function agendaRequest(chat, st, userName, cfg) {
     if (!ac.on || !ac.ask) return null;
     const json = `"agenda": [{"what": "what was agreed or set, a few words", "with": "who, or null", "where": "where, or null", "when": "story wording; keep approximate times", "due": "confirmed exact HUD date/time or null", "kind": "${AGENDA_KINDS.join('|')}", "state": "${AGENDA_STATES.join('|')}|moved"}]`;
     let rules = `"agenda": appointments, promises and set times involving ${userName} — only agreed commitments, externally established deadlines or activities actually begun; omit suggestions and unaccepted invitations. Changes are made, started, kept, broken, moved or called off in ${userName}'s own last message or in this reply ("I'll meet you at the river tomorrow", "the exam is on Friday", "be back before dark"). One entry for each that changed, reusing the same "what" for one already listed; [] when nothing changed. "in_progress" once an ongoing activity actually starts; "kept" once it finishes or a one-off appointment is fulfilled, "missed" when its time passed without it, "cancelled" when called off. Use "moved" for an existing commitment's changed schedule/context. Keep vague times vague; never invent a clock.`;
-    rules += ` Something of ${userName}'s left with someone to be finished, mended or kept, with a time to get it back, is an "errand" too ("Ash wand back from Ferren", "when" as the story says). Letters ${userName} writes, sends, receives or promises (by courier, by hand) are kind "letter" ("Letter to Valeriana", "Letter from Father"): open until sent or received, then kept.`;
+    rules += ` Something of ${userName}'s left with someone to be finished, mended or kept, with a time to get it back, is an "errand" too ("Ash wand back from Ferren", "when" as the story says). Letters ${userName} writes, sends, receives or promises (by courier, by hand) are kind "letter" ("Letter to Valeriana", "Letter from Father"): open until sent or received, then kept. Never add an item that repeats one already open in other words ("Training schedule" and "Aurelius taking the sword training" are one): use the open item's own "what" and update it.`;
     if (ac.tell && chat && st) {
         let open = [];
         try { open = hmsAgendaPanel(chat, st).items.filter(x => x.state === 'open' || x.state === 'in_progress'); } catch { open = []; }
@@ -15163,7 +15163,7 @@ function secretRequest(chat, st, userName, cfg) {
     const sc = secretCfg(cfg);
     if (!sc.on || !sc.ask) return null;
     const json = `"secrets": [{"secret": "the secret, a few words", "whose": "${userName}, or whose secret it is", "known_by": ["who now knows it"], "how": "how they found out, one line"}]`;
-    let rules = `"secrets": when someone finds out a secret of ${userName}'s, or ${userName} finds out someone else's secret, in ${userName}'s own last message or this reply — overheard, confessed, deduced, read, spied, told. "known_by" lists who knows it now (include ${userName} for another's secret). Only a real discovery shown in the story; [] when nobody learned anything.`;
+    let rules = `"secrets": when someone finds out a secret of ${userName}'s, or ${userName} finds out someone else's secret, in ${userName}'s own last message or this reply — overheard, confessed, deduced, read, spied, told. "known_by" lists who knows it now (include ${userName} for another's secret). Only a real discovery shown in the story; [] when nobody learned anything. A secret is something kept hidden from someone: plans, terms or facts said openly, or told to the people they concern, are not secrets.`;
     if (sc.tell && chat && st) {
         let it = [];
         try { it = secretRead(chat, st, userName).items; } catch { it = []; }
@@ -18876,7 +18876,18 @@ function hmsTodo(chat, p) {
     }
     for (const b of (Array.isArray(p.birthdays) ? p.birthdays : []).filter(b => b.inMonths !== null && b.inMonths <= 2))
         out.push({ kind: 'birthday', icon: '🎂', text: b.you ? `You turn ${b.turns}` : `${b.name} turns ${b.turns}`, sub: b.inMonths === 0 ? 'this month' : b.inMonths === 1 ? 'next month' : 'in 2 months', go: ['journey', 'agenda'] });
-    return out.slice(0, 24);
+    // near-duplicates (the same appointment reported twice in other words) show once
+    const words = t => new Set(String(t || '').toLowerCase().replace(/\([^)]*\)/g, ' ').split(/[^a-z]+/).filter(w => w.length > 3 && !['with', 'from', 'until', 'after', 'before', 'tomorrow', 'today'].includes(w)));
+    const shown = [];
+    // the one with a time to it (coming up) wins over the open-ended promise it repeats
+    for (const x of [...out.filter(x => x.kind === 'due'), ...out.filter(x => x.kind !== 'due')]) {
+        if (['due', 'promise'].includes(x.kind)) {
+            const a = words(x.text);
+            if (a.size && shown.some(y => ['due', 'promise'].includes(y.kind) && (() => { const b = words(y.text); let n = 0; for (const w of a) if (b.has(w)) n++; return n >= 2 && n / Math.min(a.size, b.size) >= 0.6; })())) continue;
+        }
+        shown.push(x);
+    }
+    return out.filter(x => shown.includes(x)).slice(0, 24);
 }
 
 /** "Suggest things to do": one call on the Companion's own model, only when the player asks. Never reaches the story. */
