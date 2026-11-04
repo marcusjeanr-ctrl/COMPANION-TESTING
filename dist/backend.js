@@ -13129,6 +13129,7 @@ function hmsRelationsPanel(chat, st, cfg, classic = false) {
                 .filter(b => b.value !== null && b.value !== undefined),
             events: [], alerts: []
         };
+        view.dead = !!(st && isPlainObject(st.peopleDead) && st.peopleDead[p.key]);   // marked by hand in People
         { const n = new Map(); let best = null; for (const r of rs) { const pl = placeAt.get(r.msgId); if (!pl) continue; n.set(pl, (n.get(pl) || 0) + 1); if (!best || n.get(pl) >= n.get(best)) best = pl; } view.place = best; }
         if (rs.length === 1) view.events.push(`Met — ${cur.standing || 'first impression'}`);
         // The card's own HUD stage for this person (Six-Sided v1.1 Bonds): shown beside the standing, with its steps.
@@ -18759,7 +18760,8 @@ function hmsTodo(chat, p) {
     if (tl.length > 20) {
         const want = new Map();
         for (const m of (p.family && Array.isArray(p.family.members) ? p.family.members : [])) if (m && m.name && m.status !== 'dead') want.set(lockKey(m.name), m.name);
-        for (const r of (p.relations && Array.isArray(p.relations.people) ? p.relations.people : [])) if (r && r.name && ['Friend', 'Close', 'Devoted'].includes(r.standing)) want.set(lockKey(r.name), r.name);
+        for (const r of (p.relations && Array.isArray(p.relations.people) ? p.relations.people : [])) if (r && r.name && !r.dead && ['Friend', 'Close', 'Devoted'].includes(r.standing)) want.set(lockKey(r.name), r.name);
+        for (const r of (p.relations && Array.isArray(p.relations.people) ? p.relations.people : [])) if (r && r.dead) want.delete(lockKey(r.name));
         for (const [k, name] of want) {
             const first = k.split(' ')[0];
             let seen = -1;
@@ -19355,6 +19357,15 @@ spindle.onFrontendMessage(async (payload, userId) => {
                 break;
             }
 
+            case 'person_dead': {
+                if (!payload.chatId || typeof payload.key !== 'string' || !payload.key) return;
+                const st = await getChatState(payload.chatId);
+                if (!isPlainObject(st.peopleDead)) st.peopleDead = {};
+                if (payload.dead) st.peopleDead[payload.key.slice(0, 120)] = { at: new Date().toISOString() }; else delete st.peopleDead[payload.key];
+                await saveChatState(payload.chatId, st);
+                await pushState(payload.chatId);
+                break;
+            }
             case 'rel_pin': {
                 if (!payload.chatId || typeof payload.name !== 'string') return;
                 await hmsRelPin(payload.chatId, payload);

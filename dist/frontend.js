@@ -841,7 +841,7 @@ button.rpgc-chip.intel:hover { border-color: var(--lumiverse-accent, #7aa2f7); }
 .rpgc-tools>summary:hover{color:var(--lumiverse-text,#eee)}
 .rpgc-tools[open]{display:flex;flex-direction:column;gap:8px;padding:8px;border:1px dashed var(--lumiverse-border,#333);border-radius:10px}
 .rpgc-sec{transition:border-color .2s,box-shadow .2s}
-.rpgc-todo{list-style:none;margin:0;padding:0}.rpgc-pfold:not([open])>summary .head{flex-wrap:nowrap;overflow:hidden;white-space:nowrap}.rpgc-pfold:not([open])>summary .head .rpgc-chip.kind,.rpgc-pfold:not([open])>summary .head .rpgc-chip.minor{display:none}.rpgc-pfold:not([open])>summary .head .rpgc-chip.bond{max-width:9em;overflow:hidden;text-overflow:ellipsis}.rpgc-pfold:not([open])>summary .head .meta{overflow:hidden;text-overflow:ellipsis;min-width:0}.rpgc-fixbtn{margin-left:6px;padding:1px 8px;font-size:.85em}.rpgc-todo li{padding:3px 4px;border-radius:6px}.rpgc-todo li.go:hover{background:color-mix(in srgb,currentColor 8%,transparent)}.rpgc-todo li.go{cursor:pointer}.rpgc-todo.ideas li{cursor:default}
+.rpgc-todo{list-style:none;margin:0;padding:0}.rpgc-pfold:not([open])>summary .head{flex-wrap:nowrap;overflow:hidden;white-space:nowrap}.rpgc-pfold:not([open])>summary .head .rpgc-chip.kind,.rpgc-pfold:not([open])>summary .head .rpgc-chip.minor{display:none}.rpgc-pfold:not([open])>summary .head .rpgc-chip.bond{max-width:9em;overflow:hidden;text-overflow:ellipsis}.rpgc-pfold:not([open])>summary .head .meta{overflow:hidden;text-overflow:ellipsis;min-width:0}.rpgc-deadmark{margin-top:6px;justify-content:flex-end}.rpgc-deadmark .rpgc-btn{font-size:.85em;opacity:.8}.rpgc-fixbtn{margin-left:6px;padding:1px 8px;font-size:.85em}.rpgc-todo li{padding:3px 4px;border-radius:6px}.rpgc-todo li.go:hover{background:color-mix(in srgb,currentColor 8%,transparent)}.rpgc-todo li.go{cursor:pointer}.rpgc-todo.ideas li{cursor:default}
 .rpgc-sec[open]{box-shadow:0 2px 10px -8px #000c}
 .rpgc-sec>summary{border-radius:inherit}
 .rpgc-sec>summary:hover{background:color-mix(in srgb,currentColor 5%,transparent)}
@@ -6848,7 +6848,13 @@ export function setup(ctx) {
                     if ([...surnames].some(sn => new RegExp(`\\b(?:house|of)\\s+${sn}\\b|\\b${sn}\\s+(?:household|hall|estate|manor|staff|guard|maid|servant)`).test(role))) x.rel.place = home;
                 }
             }
-            const cardOf = x => { const card = here(x) || f === 'here' ? personMerged(x) : foldPerson(personMerged(x), x);
+            // who has died: a family member the Family card marks dead, or anyone marked by hand here
+            const famDead = new Set(((state.hms && state.hms.family && state.hms.family.members) || []).filter(m => m && m.status === 'dead').map(m => String(m.name || '').toLowerCase()));
+            const isDead = x => !!(x.rel && x.rel.dead) || famDead.has(String(x.name || '').toLowerCase());
+            const deadMark = x => x.rel && x.rel.key ? h('div', { class: 'rpgc-row rpgc-deadmark' }, h('button', { class: 'rpgc-btn', onclick: (e) => { e.stopPropagation(); send({ type: 'person_dead', chatId: state.chatId, key: x.rel.key, dead: !x.rel.dead }); } },
+                x.rel.dead ? T('Not dead after all') : '🕯️ ' + T('Mark as passed away'))) : null;
+            const cardOf = x => { const card0 = personMerged(x); const dm = deadMark(x); if (dm) card0.appendChild(dm);
+                const card = here(x) || f === 'here' ? card0 : foldPerson(card0, x);
                 // found by name, role, bond, standing or place ("maid", "Roa", "sister")
                 const r = x.rel || {}, d = r.details || {};
                 card.dataset.find = [x.name, r.bond, r.standing, r.place, ...Object.values(d).filter(v => typeof v === 'string')].filter(Boolean).join(' ').toLowerCase(); return card; };
@@ -6873,14 +6879,18 @@ export function setup(ctx) {
                 const groups = [['here', '📍 ' + T('Here now'), here], ['family', '🏠 ' + T('Family'), isFam], ['against', '⚔️ ' + T('Against you'), against],
                     ['close', '🤝 ' + T('Friends and close'), close], ['once', '👋 ' + T('Met once'), x => seenN(x) <= 2]];
                 // the rest by where they are usually seen (Veyrath Hall, the north-row market…), biggest first
+                const deadFirst = isDead;
                 // only places with 3 or more people still to place get a group, and at most the 5 biggest
                 const taken = new Set();
+                for (const x of list) if (deadFirst(x)) taken.add(x);
                 for (const [, , test] of groups) for (const x of list) if (!taken.has(x) && test(x)) taken.add(x);
                 const restPlaces = new Map();
                 for (const x of list) { const pl = placeOf(x); if (pl && !taken.has(x)) restPlaces.set(pl, (restPlaces.get(pl) || 0) + 1); }
                 for (const [pl] of [...restPlaces].filter(([, n]) => n >= 3).sort((a, b) => b[1] - a[1]).slice(0, 5)) groups.push(['place-' + pl.toLowerCase().replace(/[^a-z0-9]+/g, '-'), '🏘️ ' + pl, x => placeOf(x) === pl]);
                 groups.push(['known', '👥 ' + T('Others you know'), () => true]);
+                groups.unshift(['dead', '🕯️ ' + T('Passed away'), isDead]);   // taken first, shown last
                 const left = new Set(list);
+                const deadGroup = [];
                 for (const [gk, title, test] of groups) {
                     const members = [...left].filter(test);
                     if (!members.length) continue;
@@ -6890,8 +6900,9 @@ export function setup(ctx) {
                     const det = h('details', { class: 'rpgc-subdet rpgc-pgroup' }, h('summary', null, `${title} (${members.length})`), h('div', { class: 'rpgc-cards' }, cards));
                     det.open = state.open[key] !== undefined ? state.open[key] : ['here', 'family', 'against', 'close'].includes(gk);
                     det.dataset.openKey = key; det.addEventListener('toggle', () => { state.open[key] = det.open; });
-                    out.push(det);
+                    if (gk === 'dead') deadGroup.push(det); else out.push(det);
                 }
+                out.push(...deadGroup);
             } else {
                 const cards = h('div', { class: 'rpgc-cards' }, list.map(cardOf));
                 allCards.push(...cards.children);
