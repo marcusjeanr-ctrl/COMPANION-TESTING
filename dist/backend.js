@@ -14301,6 +14301,18 @@ function agendaRead(chat, st) {
             if (linked?.size === 1) return [...linked][0];
         }
         const matches = items.filter(x => (lockKey(x.what) === key || agendaSame(lockKey(x.what), key) || row && (agendaTitleEquivalent(x, row) || agendaTitleRefines(x, row))) && compatible(x, row, dueAt));
+        if (!matches.length && row) {
+            // A short title that is the head of an open item's longer one, with the same people
+            // ("Training schedule" / "Training schedule: dawn to ninth bell with Seraphina …"): the same item.
+            const head = t => agendaTextKey(String(t || '').split(/\s*[:—–]\s*/)[0]);
+            const same = items.filter(x => ['open', 'in_progress'].includes(x.state) && (() => {
+                const A = agendaTextKey(x.what), B = agendaTextKey(row.what);
+                if (A === B) return false;
+                const [sh, lo] = A.length < B.length ? [A, B] : [B, A];
+                return sh.split(' ').length >= 2 && (head(lo === A ? x.what : row.what) === sh) && (!row.with || !x.with || agendaPeopleSame(row.with, x.with));
+            })());
+            if (same.length === 1) return same[0];
+        }
         return matches.length === 1 ? matches[0] : matches.length ? undefined : null;
     };
     for (const m of msgs) {
@@ -14358,8 +14370,12 @@ function agendaRead(chat, st) {
             }
             if (scenePlace) it.scenePlace = scenePlace;
             it.what = r.what; // The first key remains stable; show the latest confirmed description.
-            if (scheduleDay !== null) it.scheduleDay = scheduleDay;
-            if (r.when || r.due) it.dayNamed = agendaNamesDay(r.due) || agendaNamesDay(r.when) || (it.dayNamed && !!keepDayOf(r.when));
+            // A later wording with no day of its own ("spring courier runs" after "in two months") keeps the day
+            // already known, unless the story moved the appointment.
+            const namesDay = agendaNamesDay(r.due) || agendaNamesDay(r.when);
+            const keepDay = it.dayNamed && !namesDay && dueAt === null && !r.moved && !moved;
+            if (scheduleDay !== null && !keepDay) it.scheduleDay = scheduleDay;
+            if (r.when || r.due) it.dayNamed = namesDay || keepDay || (it.dayNamed && !!keepDayOf(r.when));
             if (r.with) it.with = r.with;
             if (r.where) it.where = r.moved || moved ? r.where : agendaPlaceDetail(it.where, r.where);
             const keepClock = dueAt === null && (it.dueAt != null && agendaBellClock(r.when) !== null && agendaBellClock(r.when) === agendaClockPart(it.when) ||
@@ -14407,8 +14423,8 @@ function hmsAgendaPanel(chat, st, cfg, forDisplay = false) {
     const { items, now, lastId } = agendaRead(chat, st);
     const out = items.map(it => {
         const dueIn = it.dueAt !== null && it.dueAt !== undefined && now !== null ? it.dueAt - now : null;
-        const ongoing = it.state === 'open' && dueIn === null && /^\s*(?:for\s+)?(?:the\s+next\s+)?(?:\d+|one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|a few)\s+(?:days?|weeks?|months?|years?)\s*$|\b(?:daily|every (?:day|morning|evening|night|week)|each (?:day|morning|evening|night)|until (?:the )?(?:departure|seedwake|spring)|ongoing)\b/i.test(String(it.when || ''));
-        const status = it.state !== 'open' ? it.state : ongoing ? 'ongoing' : dueIn === null ? 'unset' : dueIn < -60 ? 'overdue' : dueIn <= 180 ? 'soon' : 'upcoming';
+        const ongoing = ['open', 'in_progress'].includes(it.state) && (dueIn === null || /^\s*(?:for\s+)?(?:the\s+next\s+)?(?:\d+|one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|a few)\s+(?:days?|weeks?|months?|years?)\s*[,;]/i.test(String(it.when || ''))) && /^\s*(?:for\s+)?(?:the\s+next\s+)?(?:\d+|one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|a few)\s+(?:days?|weeks?|months?|years?)\s*(?:$|[,;])|\b(?:daily|every (?:day|morning|evening|night|week)|each (?:day|morning|evening|night)|until (?:the )?(?:departure|seedwake|spring)|ongoing)\b/i.test(String(it.when || ''));
+        const status = ongoing ? 'ongoing' : it.state !== 'open' ? it.state : dueIn === null ? 'unset' : dueIn < -60 ? 'overdue' : dueIn <= 180 ? 'soon' : 'upcoming';
         const row = { key: it.key, what: it.what, with: it.with, where: it.where, when: it.when, dueIn, kind: it.kind, state: it.state, status, from: it.from, mine: !!it.mine, isNew: it.changedIn === lastId && !!lastId };
         // Days until a commitment whose day the story named but not its hour ("in two days"), counted from today's HUD date.
         if (dueIn === null && it.dayNamed && Number.isFinite(it.scheduleDay) && now !== null) row.dayIn = it.scheduleDay - Math.floor(now / 1440);
@@ -18169,6 +18185,10 @@ function agendaClockPart(text) {
     const numbers = { one: 1, two: 2, three: 3, four: 4, five: 5, six: 6, seven: 7, eight: 8, nine: 9, ten: 10, eleven: 11, twelve: 12 };
     const word = t.match(/\b(half past|quarter past|quarter to)\s+(one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve)\b/);
     if (word) return (numbers[word[2]] - (word[1] === 'quarter to' ? 1 : 0)) * 60 + (word[1] === 'half past' ? 30 : word[1] === 'quarter to' ? 45 : 15);
+    // "the ninth bell", "tenth bell": the hour the bell rings (a range takes its start: "ninth bell to midday")
+    const ORD = { first: 1, second: 2, third: 3, fourth: 4, fifth: 5, sixth: 6, seventh: 7, eighth: 8, ninth: 9, tenth: 10, eleventh: 11, twelfth: 12 };
+    const bell = t.match(/\b(first|second|third|fourth|fifth|sixth|seventh|eighth|ninth|tenth|eleventh|twelfth)\s+bell\b/);
+    if (bell && t.indexOf(bell[0]) <= (t.search(/\bnoon\b|\bmidday\b|\bmidnight\b/) < 0 ? Infinity : t.search(/\bnoon\b|\bmidday\b|\bmidnight\b/))) return ORD[bell[1]] * 60;
     if (/\bnoon\b/.test(t)) return 720;
     if (/\bmidnight\b/.test(t)) return 0;
     return null;

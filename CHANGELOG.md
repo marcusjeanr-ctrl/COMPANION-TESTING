@@ -35,7 +35,10 @@ Compatibility with the Mushoku Tensei RPG "Six-Sided World" v1.1 card and its fo
 - **Agenda, sorted properly.**
   - Something due *today* with no hour ("tomorrow", said yesterday) is under **📌 Today**, no longer under "Soon (next 3 hours)".
   - Dates weeks, months or years ahead count down: "in two months, with the spring runs" is now "in 59 days" under Coming up (30-day months, 360-day years), as are "in three weeks", "next month", "in a year".
-  - An arrangement that runs for a while ("two months", "daily", "every morning", "until the departure") is **🔁 Ongoing**, not a date with no time.
+  - A short title that heads an open item's longer one, with the same people ("Training schedule" / "Training schedule: dawn to ninth bell …"), updates that item instead of making a second one.
+  - A later wording with no day of its own ("spring courier runs" after "in two months") keeps the countdown, unless the story moved the appointment.
+  - Bells tell the time: "the ninth bell" is nine o'clock, so "ninth bell to midday" counts down to 09:00.
+  - An arrangement that runs for a while ("two months", "daily", "every morning", "until the departure") is **🔁 Ongoing**, not a date with no time, also while it is under way and with detail after a comma ("two months, dawn to ninth bell …").
 - **Agenda near-duplicates.** The reporter is told not to add an item that repeats an open one in other words, and What's next shows such a pair once (keeping the one with a time).
 - **Secrets.** Plans, terms or facts said openly, or told to the people they concern, are not reported as secrets.
 - **Finances: a recounted purchase no longer counts twice.** Telling your father "Halvin took 3 silver for the sword" was logged as a second sword and baldric (silver out 6, copper out 24). The reporter is told a payment only recounted is not new, and the same item bought again from the same person the same day for the same sum is one purchase (meals, drinks, rooms and fees can still repeat). Coin names show singular ("copper", not "coppers").
