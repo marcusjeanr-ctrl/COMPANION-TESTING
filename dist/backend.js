@@ -10260,7 +10260,7 @@ function mtTraining(lines) {
         const t = String(l);
         if (!/^Training:/i.test(t)) continue;
         for (const part of t.replace(/^Training:\s*/i, '').split(/\s*[·|;]\s*/)) {
-            const m = part.match(/^(.+?)\s*(?:→|->|⟶)\s*(.+?)\s*\(\s*(\d+)\s*\/\s*(\d+)\s*sessions?\s*\)/i);
+            const m = part.match(/^(.+?)\s*(?:→|->|⟶)\s*(.+?)\s*\(\s*(\d+(?:\.\d+)?)\s*\/\s*(\d+)\s*sessions?\s*\)/i);
             if (m && !out.some(x => x.skill === m[1].trim())) out.push({ skill: m[1].trim(), next: m[2].trim(), done: Number(m[3]), needed: Number(m[4]) });
         }
     }
@@ -17188,6 +17188,11 @@ function spellResolver(chatId) {
             const baseKey = spellKey(base), target = index.get(baseKey);
             return target ? { key: target.key, name: target.name } : { key: baseKey, name: base };
         }
+        // a short name the story used for a known spell ("Shield" for Water Shield): the one reference it ends
+        if (key && key.split(' ').length <= 2) {
+            const ends = catalog.filter(row => row.key.endsWith(' ' + key));
+            if (ends.length === 1) return { key: ends[0].key, name: ends[0].name };
+        }
         return { key, name: label };
     };
     let cache = spellRecordIndexes.get(index);
@@ -17374,12 +17379,17 @@ function spellStoryFoldUncached(chat, chatId = null) {
             if (target.key) established.set(target.key, { ...target, ...(note ? { note } : {}), msgId: m.id, at: order.get(m.id) });
         }
         const d = getSwipeData(m);
-        const y = d && isPlainObject(d.survival) ? d.survival : null;
+        let y = d && isPlainObject(d.survival) ? d.survival : null;
         if (!y) continue;
         const assessments = abilityEvidenceRows(m, d, playerName);
         const rejectedClaims = new Set(assessments.filter(row => row.state === 'unverified').flatMap(row => resolve.records(row.name).map(target => target.key)));
         // The spell list is repeated every reply: it adds a spell the first time, and a repeat
         // never re-dates when it was learned (which would hide later practice on it).
+        // "Water Ball, Shield, Water Arrow": a bare "Shield" cast beside Water spells is the Water Shield
+        const sameSchool = list => { const named = list.map(n => resolve.reference(n)).filter(Boolean); const first = named.map(r => spellKey(r.name).split(' ')[0]);
+            return list.map(n => { if (typeof n !== 'string' || resolve.reference(n)) return n; for (const w of first) { const t = resolve.reference(`${w} ${n}`); if (t) return t.name; } return n; }); };
+        if (Array.isArray(y.spells)) y = { ...y, spells: sameSchool(y.spells) };
+        if (Array.isArray(y.learned)) y = { ...y, learned: sameSchool(y.learned) };
         for (const n of Array.isArray(y.spells) ? y.spells : []) for (const target of resolve.records(n)) if (!named(target) && !learned.has(target.key)) continue; else if (!rejectedClaims.has(target.key) && learned.has(target.key)) { const prev = learned.get(target.key); if (!prev.note && target.note) prev.note = target.note; }
         else if (!rejectedClaims.has(target.key)) learned.set(target.key, { ...target, ...((target.note || learned.get(target.key)?.note || established.get(target.key)?.note) ? { note: target.note || learned.get(target.key)?.note || established.get(target.key)?.note } : {}), msgId: m.id, at: order.get(m.id), newlyLearned: false });
         for (const n of Array.isArray(y.learned) ? y.learned : []) for (const target of resolve.records(n)) if (named(target) && !rejectedClaims.has(target.key)) learned.set(target.key, { ...target, msgId: m.id, at: order.get(m.id), newlyLearned: true });
@@ -18878,9 +18888,11 @@ function hmsTodo(chat, p) {
     const last = tl.length ? tl[tl.length - 1] : null;
     const agenda = p.agenda && Array.isArray(p.agenda.items) ? p.agenda.items : [];
     const dayText = x => x.status === 'overdue' ? 'late' : x.dueIn !== null && x.dueIn !== undefined ? (x.dueIn <= 0 ? 'now' : `in ${hmsSpan(x.dueIn)}`) : Number.isFinite(x.dayIn) ? agendaDayText(x.dayIn) : (x.when || null);
-    for (const x of agenda.filter(x => (x.state === 'open' || x.state === 'in_progress') && x.kind === 'promise'))
+    // a promise with a time coming up ("Aurelius takes the sword from the ninth bell") is under Coming up instead
+    const nearTime = x => x.status === 'overdue' || x.status === 'soon' || (Number.isFinite(x.dueIn) && x.dueIn <= 2 * 1440) || (x.dueIn === null && Number.isFinite(x.dayIn) && x.dayIn <= 2);
+    for (const x of agenda.filter(x => (x.state === 'open' || x.state === 'in_progress') && x.kind === 'promise' && !nearTime(x)))
         out.push({ kind: 'promise', icon: '🤞', text: `${x.what}${x.with ? ` (${x.with})` : ''}`, sub: x.when || (x.dueIn !== null && x.dueIn !== undefined || Number.isFinite(x.dayIn) ? dayText(x) : 'no date'), go: ['journey', 'agenda'] });
-    for (const x of agenda.filter(x => (x.state === 'open' || x.state === 'in_progress') && x.kind !== 'letter' && x.kind !== 'promise')) {
+    for (const x of agenda.filter(x => (x.state === 'open' || x.state === 'in_progress') && x.kind !== 'letter' && (x.kind !== 'promise' || nearTime(x)) && x.status !== 'ongoing')) {
         const near = x.state === 'in_progress' || x.status === 'overdue' || x.status === 'soon' || (Number.isFinite(x.dueIn) && x.dueIn <= 2 * 1440) || (x.dueIn === null && Number.isFinite(x.dayIn) && x.dayIn <= 2);
         if (near) out.push({ kind: 'due', icon: x.status === 'overdue' ? '⚠️' : '📅', text: `${x.what}${x.with ? ` (with ${x.with})` : ''}`, sub: x.state === 'in_progress' ? 'in progress' : dayText(x), go: ['journey', 'agenda'] });
     }

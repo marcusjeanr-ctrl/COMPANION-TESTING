@@ -32,6 +32,9 @@ Compatibility with the Mushoku Tensei RPG "Six-Sided World" v1.1 card and its fo
 - **Person cards**: a bond that only changed wording ("Younger sister" ↔ "Younger sister, minor") no longer shows as a change, and only the latest bond change is kept.
 
 **Fixes from live play (fourth RC pass)**
+- **Training card: half sessions.** "Water Magic → Saint (1.5/60 sessions)" (a good teacher counts a day as 1.5) was not read, so the Water line vanished from the card. Decimal counts are read now.
+- **Spellbook: a short spell name.** "raise a Shield" beside Water Ball and Water Arrow became a separate "Shield" spell. A bare name is matched to the spell of the same school cast beside it (Water Shield), or to the one spell it ends, when there is only one.
+- **What's next:** a promise with a time coming up (Aurelius's sword session at the ninth bell) shows under Coming up with its countdown; an ongoing arrangement no longer shows there.
 - **Agenda, sorted properly.**
   - Something due *today* with no hour ("tomorrow", said yesterday) is under **📌 Today**, no longer under "Soon (next 3 hours)".
   - Dates weeks, months or years ahead count down: "in two months, with the spring runs" is now "in 59 days" under Coming up (30-day months, 360-day years), as are "in three weeks", "next month", "in a year".
