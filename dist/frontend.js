@@ -1578,10 +1578,11 @@ function appointmentDelta(item, clock) {
 function agendaDisplayTiming(item, clock, hud) {
     const delta = appointmentDelta(item, clock);
     if (item.state !== 'open') return {delta,status:item.status,dayOnly:false};
+    if (item.status === 'ongoing') return {delta:null,status:'ongoing',dayOnly:false};
     if (delta !== null) return {delta,status:delta < -60 ? 'overdue' : delta <= 180 ? 'soon' : 'upcoming',dayOnly:false};
     const unknown = {delta:null,status:'unset',dayOnly:false};
     if (item.dueAt != null || item.dueIn != null) return unknown;
-    if (Number.isFinite(item.dayIn)) return {delta:null,status:item.dayIn > 0 ? 'upcoming' : item.dayIn < 0 ? 'overdue' : 'soon',dayOnly:true,dayIn:item.dayIn};
+    if (Number.isFinite(item.dayIn)) return {delta:null,status:item.dayIn > 0 ? 'upcoming' : item.dayIn < 0 ? 'overdue' : 'today',dayOnly:true,dayIn:item.dayIn};
     const raw = String(item.displayDueDate || item.due || item.when || '').trim();
     // "K417-04-14", or the HUD's own "K417, Month 4, Day 14" / "K417, Bloomtide (Month 4), Day 14" / "K417 Month 4 Day 14 morning".
     const k = raw.match(/^K\.?\s*(\d{3,4})-(\d{1,2})-(\d{1,2})$/i) || raw.match(/^K\.?\s*(\d{3,4})\s*,?\s*(?:[^,(]*\(\s*)?Month\s*(\d{1,2})\s*\)?\s*,?\s*Day\s*(\d{1,2})\b/i);
@@ -1604,7 +1605,7 @@ function agendaDisplayTiming(item, clock, hud) {
     if (!valid(target) || !valid(current)) return unknown;
     const order = date => date[0]*10000 + date[1]*100 + date[2];
     const difference = order(target)-order(current);
-    return {delta:null,status:difference > 0 ? 'upcoming' : difference < 0 ? 'overdue' : 'soon',dayOnly:true};
+    return {delta:null,status:difference > 0 ? 'upcoming' : difference < 0 ? 'overdue' : 'today',dayOnly:true};
 }
 
 function nextAppointment(items, clock) {
@@ -5466,7 +5467,7 @@ export function setup(ctx) {
             return {...item,status:timing.status,agendaTiming:timing};
         });
         const out = [];
-        const groups = [['in_progress', '▶ In progress'], ['overdue', '⚠️ Late'], ['soon', '⏰ Soon (next 3 hours)'], ['upcoming', '📅 Coming up'], ['unset', '❔ No set time']];
+        const groups = [['in_progress', '▶ In progress'], ['overdue', '⚠️ Late'], ['soon', '⏰ Soon (next 3 hours)'], ['today', '📌 Today'], ['upcoming', '📅 Coming up'], ['ongoing', '🔁 Ongoing'], ['unset', '❔ No set time']];
         for (const [st, title] of groups) {
             const list = rows.filter(x => x.status === st);
             if (list.length) out.push(h('div', { class: 'rpgc-agenda-group ' + st }, h('h4', null, title), h('ul', null, list.map(agendaRow))));

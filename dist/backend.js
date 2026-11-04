@@ -13915,13 +13915,22 @@ function agendaScheduleDay(due, when, at, hud = null) {
     if (!t) return null;
     const days = t.match(/\bin\s+(\d+|one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|an?)\s+days?\b/i);
     if (days) return Math.floor(at / 1440) + (/^\d+$/.test(days[1]) ? Number(days[1]) : AGENDA_NUM[days[1].toLowerCase()]);
+    // "in two months", "in three weeks", "in a year", "next month": a day that far ahead (30-day months, 360-day years)
+    const span = t.match(/\bin\s+(\d+|one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|an?|a few)\s+(weeks?|months?|years?)\b/i);
+    if (span) {
+        const n = /^\d+$/.test(span[1]) ? Number(span[1]) : /few/i.test(span[1]) ? 3 : AGENDA_NUM[span[1].toLowerCase()];
+        const unit = /^week/i.test(span[2]) ? 7 : /^month/i.test(span[2]) ? 30 : 360;
+        if (Number.isFinite(n)) return Math.floor(at / 1440) + n * unit;
+    }
+    if (/\bnext month\b/i.test(t)) return Math.floor(at / 1440) + 30;
+    if (/\bnext year\b/i.test(t)) return Math.floor(at / 1440) + 360;
     return Math.floor(at / 1440) + (/\bday after tomorrow\b/i.test(t) ? 2 : /\btomorrow\b/i.test(t) ? 1 : /\bnext week\b/i.test(t) ? 7 : 0);
 }
 
 // 3.4.0: does the wording name a calendar day ("in two days", "tomorrow", "Day 14", "K417-04-14")?
 // Only then is the resolved day shown as a countdown; "shortly" or "this evening" never become a date.
 function agendaNamesDay(text) {
-    return /\b(?:in\s+(?:\d+|one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|an?)\s+days?|tomorrow|day after tomorrow|next week|Day\s*:?\s*\d+|Month\s*\d+)\b|\bK\.?\s*\d{3,4}-\d{1,2}-\d{1,2}\b/i.test(String(text || ''));
+    return /\b(?:in\s+(?:\d+|one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|an?|a few)\s+(?:days?|weeks?|months?|years?)|tomorrow|day after tomorrow|next (?:week|month|year)|Day\s*:?\s*\d+|Month\s*\d+)\b|\bK\.?\s*\d{3,4}-\d{1,2}-\d{1,2}\b/i.test(String(text || ''));
 }
 // A wording with no day of its own ("at dawn", "morning") keeps a day named earlier.
 function keepDayOf(text) { return /^(?:at\s+)?(?:dawn|sunrise|morning|noon|midday|afternoon|evening|dusk|sunset|night)$/i.test(String(text || '').trim()); }
@@ -14398,7 +14407,8 @@ function hmsAgendaPanel(chat, st, cfg, forDisplay = false) {
     const { items, now, lastId } = agendaRead(chat, st);
     const out = items.map(it => {
         const dueIn = it.dueAt !== null && it.dueAt !== undefined && now !== null ? it.dueAt - now : null;
-        const status = it.state !== 'open' ? it.state : dueIn === null ? 'unset' : dueIn < -60 ? 'overdue' : dueIn <= 180 ? 'soon' : 'upcoming';
+        const ongoing = it.state === 'open' && dueIn === null && /^\s*(?:for\s+)?(?:the\s+next\s+)?(?:\d+|one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|a few)\s+(?:days?|weeks?|months?|years?)\s*$|\b(?:daily|every (?:day|morning|evening|night|week)|each (?:day|morning|evening|night)|until (?:the )?(?:departure|seedwake|spring)|ongoing)\b/i.test(String(it.when || ''));
+        const status = it.state !== 'open' ? it.state : ongoing ? 'ongoing' : dueIn === null ? 'unset' : dueIn < -60 ? 'overdue' : dueIn <= 180 ? 'soon' : 'upcoming';
         const row = { key: it.key, what: it.what, with: it.with, where: it.where, when: it.when, dueIn, kind: it.kind, state: it.state, status, from: it.from, mine: !!it.mine, isNew: it.changedIn === lastId && !!lastId };
         // Days until a commitment whose day the story named but not its hour ("in two days"), counted from today's HUD date.
         if (dueIn === null && it.dayNamed && Number.isFinite(it.scheduleDay) && now !== null) row.dayIn = it.scheduleDay - Math.floor(now / 1440);
@@ -14411,7 +14421,7 @@ function hmsAgendaPanel(chat, st, cfg, forDisplay = false) {
         }
         return row;
     });
-    const rank = { in_progress: -1, overdue: 0, soon: 1, upcoming: 2, unset: 3, kept: 4, missed: 5, cancelled: 6 };
+    const rank = { in_progress: -1, overdue: 0, soon: 1, today: 1.5, upcoming: 2, ongoing: 2.5, unset: 3, kept: 4, missed: 5, cancelled: 6 };
     out.sort((a, b) => (rank[a.status] - rank[b.status]) || ((a.dueIn ?? 1e12) - (b.dueIn ?? 1e12)));
     return { items: out.slice(0, 60), ask: ac.ask, tell: ac.tell, clock: now !== null };
 }
