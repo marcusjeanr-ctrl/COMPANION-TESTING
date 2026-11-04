@@ -1,6 +1,6 @@
 # HMS Rehberi
 
-**RPG Companion HMS Edition 1.0** ve **HMS Reporter beta**
+**RPG Companion HMS Edition 1.1.0 RC** ve **HMS Reporter beta**
 
 Bu rehber bir HMS oyununun nasıl çalıştığını, nasıl kurulacağını ve her parçanın ne yaptığını anlatır.
 Önce **Buradan başla** kısmını oku. Diğer kısımları ihtiyaç duydukça kullan.
@@ -15,7 +15,7 @@ Bir HMS oyununun üç parçası vardır. Her parçanın tek bir işi vardır.
 | --- | --- | --- |
 | **Bot** | Karakter kartı ve lorebook'ları: Re:Zero, Mushoku Tensei, Classroom of the Elite ya da Overlord | Dünya ve kuralları. Her yanıtın en üstüne **WORLD STATE HUD**'u yazar. |
 | **HMS Reporter beta** | Bir preset: Lumiverse'ün gönderdiği prompt | HUD'un altındaki hikâyenin nasıl yazıldığı: üslup, sesler, uzunluk, düşünme. |
-| **RPG Companion HMS Edition 1.0** | Bir eklenti: yan panel | HUD'u okur ve kartlar hâlinde gösterir. İnsanları, ne hissettiklerini ve ne bildiklerini, görevleri, dövüşleri ve daha fazlasını izler. Oyuna başlamana ve soru sormana yardım eder. |
+| **RPG Companion HMS Edition 1.1.0 RC** | Bir eklenti: yan panel | HUD'u okur ve kartlar hâlinde gösterir. İnsanları, ne hissettiklerini ve ne bildiklerini, görevleri, dövüşleri ve daha fazlasını izler. Oyuna başlamana ve soru sormana yardım eder. |
 
 ### Kim yönetiyor
 
@@ -264,6 +264,12 @@ Preset o zaman karakter dışı bir cevap ister: HUD yok, hikâye yok, gizli blo
 Panel her şey için bir kart gösterir. Bir kart yalnızca gösterecek bir şeyi olduğunda görünür.
 Katlamak ya da açmak için bir kartın başlığına tıkla.
 
+### Görünümler, Şimdi, Bul ve Daha önce…
+Bir HMS sohbetinde kartlar görünümlerde toplanır: **Sahne** (Daha önce…, Şimdi kartı, açık uçlar, World State, dünya kartı, harita), **Sen** (sen, teçhizat, varlıklar, finans, D&D, beden, yaralar, zihin, hayatta kalma, büyü, kılıç teknikleri, yetenekler), **Kişiler** (kişiler, ilişki ağı, aile, gruplar, sırlar, telefon), **Yolculuk** (ajanda, görevler, Kronik, bölümler, atlas) ve **Tümü** (tüm kartlar tek sayfada). Dar bir panelde görünümler üstte bir çubuktur; geniş bir panelde (kendi pencere, büyütülmüş yüzen) yan bir şerit olur ve kartlar iki sütuna dizilir. Bir görünümdeki sayı orada bekleyenleri sayar.
+**Şimdi** kartı nerede olduğunu bir bakışta gösterir: yer, saate ve havaya göre değişen bir gökyüzü altında HUD saati ve sıradaki önemli şeyler. Kartını açmak için bir satıra tıkla.
+Birkaç saat sonra bir sohbete dönünce Sahne **Daha önce…** ile açılır: son önemli anlar, hikâyenin durumu ve açık konular. Yolculuk’taki Daha önce… düğmesi bunu her zaman gösterir.
+**Bul** (üst çubukta ⌕ veya Ctrl/⌘+K) kişileri, görevleri, randevuları, teçhizatı, büyüleri, yerleri ve Kronik anlarını arar; Enter sonucu bulunduğu yerde açar (bir kişi dosyasını açar). **Araçlar** panel modunu, test bölgesini, Yeniden oku’yu ve karakter sayfasını toplar. Ayarların kendi arama kutusu var; Ayarlar → Oyun stili → Görünüm Modern, Hikâye kitabı, Minimal veya Otomatik seçer.
+
 ### Yeni oyun
 Yalnızca yeni bir sohbette. Bölüm 3'e bak.
 
@@ -277,13 +283,14 @@ HUD, satır satır.
 - **Arc satırı kontrolü**, Arc satırı hiçbir ark loru yüklemediğinde uyarır ve tek tıkla düzeltir.
 
 ### Dünya kartı
-Her dünya için bir kart: **Re:Zero**, **Overlord**, **Classroom of the Elite**, **Mushoku Tensei**, **Undertale**, **Dark Souls** ve **Skyrim**.
+Her dünya için bir kart: **Re:Zero**, **Overlord**, **Classroom of the Elite**, **Mushoku Tensei**, **Undertale**, **Dark Souls**, **Skyrim** ve **Baldur's Gate 3**.
 O dünyanın HUD'daki kendi istatistiklerini, lorebook'larından açıklanmış hâlde gösterir. Birkaç örnek:
 
 - Re:Zero: ölümler ve kayıt noktası, Yetkiler, ruh sözleşmeleri ve rütbeleri.
 - Overlord: seviyeler ve sınıflar, tuttuklarına dair bir kontrolle.
 - Classroom of the Elite: takvim, sınıf sıralamaları, Private Points, sınav.
 - Mushoku Tensei: kılıç stilleri ve büyü rütbeleri, İnsan-Tanrı'nın tavsiyesi ve destanın zaman çizelgesi: 22 arc'lık bir çubukta yıl (K.), şu anki arc ve sıradakine kaç yıl kaldığı. Arc'lar ve yılları lorebook'un "[WORLD STATE — ARC N: …]" girdilerinden, yoksa kanon listesinden gelir.
+- Baldur's Gate 3: perde ve bölüm, Harptos tarihi, HP, AC ve sonraki seviyeye kalan XP, büyü yuvaları ve sınıf kaynakları, iribaş ve güçleri, yoldaş onayı, kamp, anlaşmalar, Kara Dürtü ve geri sayım. Oyun stili D&D'yi otomatik açar: D&D kartı sayfanı HUD'dan okur (Role'den sınıf ve seviye, sınıfın kurtarma zarları, beceriler ve Stats satırındaki altı puan), zarın sonucu bota kontrol olarak gider ve hikâyede başlayan bir dövüş sıra tabanlı pencereyi açar.
 
 ### Harita
 Odada herkesin nerede durduğu. Başta kapalıdır: Ayarlar → Sohbet ve panel ekleri → **Harita**.
@@ -296,6 +303,7 @@ Botun yer kitabı, harita olarak. Nerede olduğunu, etrafındaki odaları ve her
 İçeri girmek için bir yere tıkla, çıkmak için **Yukarı**.
 
 ### Sen
+Üstte kim olduğun yer alır: adın ve HUD’dan (HUD’un söylemediği için personandan) yaşın, ırkın, cinsiyetin, sınıfın veya rolün, doğumun, kökenin, hanen, unvanların ve benzerleri; ardından şimdiye kadarki hikâye: günler, yanıtlar, tanışılan kişiler ve biten görevler.
 Kendi durumun: sağlık ve diğer havuzlar, ölçerler, ruh hâli, stres ve akıl sağlığı.
 Seviye ve deneyim yalnızca seviyesi olan dünyalarda görünür.
 **Standart teçhizat**, botun sende olduğunu varsaydığı şeyleri listeler. **Taşınan**, hikâyede aldığın küçük şeyleri listeler. Ekleyip çıkarabilirsin.
@@ -404,8 +412,9 @@ Büyü havuzları, gelenekler, bekleme süreleri ve büyülerini öğrenen bir b
 
 **Öğrenme.** Bir büyüyü çalışmak için 📖'ya bas. Her yanıttan önce modele ne çalıştığın, lorebook'taki etkisi ve sözüyle birlikte, ve öğrenmenin pratik ve rütbe gerektirdiği kuralı hatırlatılır. Yan panel bloğu ilerlemeyi (büyünün altında bir çubuk) ve büyüyü ilk kez temiz bir şekilde yaptığında büyünün kendisini bildirir: Biliniyor'a ve Kronik'e geçer. ✓ bir büyüyü elle öğrenildi olarak işaretler; ✕ kaldırır. HUD'da bir okulun rütbesi yükseldiğinde kart bunun hangi büyüleri açtığını söyler. Bildiğin büyüler dövüş hazırlığına da verilir. Dövüş menüsünde görünmek ya da yalnızca denemek asla öğrenmek sayılmaz; hikâyenin seni çalışırken gösterdiği bir büyü kendiliğinden Çalışılıyor'a geçer. Her boyuttaki lorebook'lar yalnızca ilk 200 girdi değil, tamamen okunur.
 
-### Kılıç teknikleri
+### Dövüş teknikleri
 Büyülerle aynı liste, kılıç stilleri için. Teknikler lorebook'tan gelir: `Style: Sword God · Rank: Saint` ile `[TECHNIQUE — Longsword of Light]`, ya da "Sword God Technique: Silent Strike." ve "… technique of the Water God Style, achieved at the Saint tier" gibi düz metin. HUD'un `Sword Style:` (ya da `Martial Style:`) satırı her stildeki rütbeni verir; böylece her teknik Biliniyor, Çalışılıyor, Erişilebilir, Sonraki rütbe, Kilitli ya da Rütbe bilinmiyor olarak görünür. Çalışma, ✓ ve ✕ büyülerdeki gibi çalışır; hikâye ilk temiz uygulamayı bildirdiğinde teknik Biliniyor olur ve Kronik'e girer. Ek bir lorebook, *Mushoku Tensei - Sword Techniques (Mazaki)*, Sword God, Water God ve North God stillerinin her tekniğine bir rütbe verir ve Ars Greyrat'ın kurduğu Greyrat Stilini ekler (hayran eklemesi).
+Üç kılıç stilinin yanında aynı `Sword Style` satırından **Superd Spear**, **Beastfolk CQC** ve **Demon Brawling**'i, HUD'un `Touki (Battle Aura):` satırından da **Touki**'yi (Locked, Awakening, Active, Mastered) okur. Bir stilde **God** rütbesinde, lorebook'un rütbe vermediği teknikler dahil hepsi erişilebilir. Ek lorebook *Mushoku Tensei - Combat Techniques (Mazaki)* her tekniğe rütbe verir ve Superd, beastfolk, iblis, Touki ve Dragon Race tekniklerini ekler. Eklentinin zip dosyasında, `lorebooks` klasöründe gelir ve Mazaki'nin Six-Sided World botunun içinde zaten vardır.
 
 ### Yetenekler
 HUD'dan okunan güçlerin, becerilerin ve niteliklerin.

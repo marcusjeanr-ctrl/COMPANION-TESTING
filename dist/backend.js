@@ -214,7 +214,7 @@ const HMS_SYS_DEFAULTS = {
     },
     carriers: 'Arc, Quests, Memory, Blessings, Game Mode, [AUTHORITY], [DIVINE PROTECTION], [SPIRIT CONTRACT], Gamemode, Now Playing, [MENTAL COUNCIL]',
     // Lines that legitimately vanish when their state ends: listed softly as cleared, not as drops.
-    selfClearing: 'Injuries, Condition, Exam, [STATUS], [WARNING], [EVENT]',
+    selfClearing: 'Injuries, Condition, Exam, [STATUS], [WARNING], [EVENT], Training, Present, Active Paths, Next Canon Event, Next Turning Point, Canon Begins, Canon reference, World event, [TURNING POINT], [⚠️ TURNING POINT]',
     injuries: { enabled: true, tellModel: true },
     you: { enabled: true, tellModel: true, xpCurve: '100, 300, 600, 1000, 1500, 2100, 2800, 3600, 4500, 5500' },
     magic: { enabled: true },
@@ -942,6 +942,7 @@ function stripHiddenTags(text) {
 
 function stripForDisplay(text) {
     let out = stripTrackerBlocks(stripCompanion(stripLeakedReasoning(collapseDuplicateHudHeads(text))));
+    out = out.replace(/^[ \t]*<\/([a-z][\w-]*)>[ \t]*\r?\n?/gim, (m, tag) => new RegExp(`<${tag}(?:[\\s>])`, 'i').test(out) ? m : '');
     // unterminated fenced block at the very start (streaming)
     const lead = out.match(/^\s*```(?:json)?\s*\n?[\s\S]*$/i);
     if (lead && !/```[\s\S]*```/.test(out)) {
@@ -2057,7 +2058,10 @@ function messageSource(msg) {
     return source;
 }
 function trackingMessageVisible(msg) {
-    return !!msg && !['save', 'help'].includes(msg._rpgcPurpose) && msg.hidden !== true && msg.is_hidden !== true && msg.metadata?.hidden !== true && msg.extra?.hidden !== true;
+    // A message hidden from the prompt still happened in the story: summary tools (Summaryception and
+    // the like) hide every reply they have summarised, and dropping those made the panel forget people,
+    // money, gear and the start command as a chat grew. Only the extension's own save and help turns are out.
+    return !!msg && !['save', 'help'].includes(msg._rpgcPurpose);
 }
 // Lexical evidence only: en, pt-BR, es, ru and tr. Water alone is not drinking.
 const SURVIVAL_FLAG_EVIDENCE = Object.freeze({
@@ -2598,6 +2602,7 @@ async function pushState(chatId, snapshot = null) {
         const cs = await getChatState(chatId);
         refreshThoughtsCache(chatId, chat);
         const userName = await getUserName(chatId);
+        try { await personaFor(chatId); } catch { /* the You card goes without it */ }
         const payload = withReadPass(chat, () => ({
             type: 'state',
             chatId,
@@ -2625,7 +2630,7 @@ async function pushState(chatId, snapshot = null) {
                 try {
                     const m = latestHudMessage(chat);
                     const lines = worldLines(m ? parseHud(textOf(m.content)) : null);
-                    return worldFind(lines, /^\[D&D CHARACTER SHEET\]$/i) ? worldDndSheet(lines) : null;
+                    return worldFind(lines, /^\[D&D CHARACTER SHEET\]$/i) ? worldDndSheet(lines) : hudDndSheetGeneric(lines);
                 } catch { return null; }
             })(),
             song: cs.song || null,
@@ -2678,7 +2683,7 @@ async function pushState(chatId, snapshot = null) {
 // Demo mode plays scripted turns (no tokens); Live mode asks the model, with a small
 // world narrator standing in for a bot card.
 
-const RPGC_VERSION = '1.0.1';
+const RPGC_VERSION = '1.1.0';
 const diagLog = [];
 function diagPush(kind, m) { diagLog.push({ at: new Date().toISOString(), kind, text: String(m).slice(0, 400) }); if (diagLog.length > 60) diagLog.shift(); }
 function logW(m) { diagPush('warn', m); return spindle.log.warn(m); }
@@ -2767,6 +2772,7 @@ const tzOV = (day, time, place, extra) => `### WORLD STATE ###\nDay: ${day} | Ti
 const tzCO = (d, time, place, extra) => `### WORLD STATE ###\nYear 1/3 · Month 2/12 · May ${d} | ${time}\n◆ The ANHS Program → Campus → ${place}\nCohort: 1-DELTA | Standing: Class 1-D | Seat 21\nStandings 5/1 \u2014 ALPHA 1004 (A) \u00B7 BRAVO 663 (B) \u00B7 CHARLIE 492 (C) \u00B7 DELTA 87 (D)\nArc 2: The Midterm Pressure\nPrivate Points: ${extra.pp || '48,200'}\nSurveillance: ${extra.surv || 'Watched (hallway camera)'}\nEquipment: School smartphone | Uniform\n${extra.more || ''}***\n`;
 const tzUT = (area, extra) => `### WORLD STATE ###\n\u25C6 Mt. Ebott \u2192 The Underground \u2192 ${area}\nLV: ${extra.lv || 2} | EXP: ${extra.exp || 20} | NEXT: ${extra.next || 10} | G: ${extra.g || 42}\nHP: ${extra.hp || '24/24'}\nSOUL: Red \u2014 Determination\nRoute: ${extra.route || 'Neutral'} | Kills: ${extra.kills || '1'}\nSAVE: ${extra.save || 'Snowdin \u2014 Town'}\nAT: 10 (1) | DF: 10 (2)\nWeapon: Tough Glove | Armor: Manly Bandanna\nItems: Monster Candy, Cinnamon Bun\n${extra.more || ''}***\n`;
 const tzDS = (area, extra) => `### WORLD STATE ###\n\u25C6 Lordran \u2192 ${area}\nLevel: ${extra.lv || 31} | Souls: ${extra.souls || '4,120'}\nHP: ${extra.hp || '780/780'} | Stamina: ${extra.st || '110/110'}\nEstus Flask: ${extra.estus || '5/5'} (+2)\nHumanity: ${extra.hum || 2} | Form: ${extra.form || 'Human'}\nBonfire: ${extra.bonfire || 'Firelink Shrine'}\nCovenant: Warriors of Sunlight (Rank 1)\nDeaths: ${extra.deaths || 12}\nStats: VIT 20 | ATT 10 | END 22 | STR 18 | DEX 14 | RES 11 | INT 9 | FTH 12\nWeapon: Longsword +5 | Shield: Grass Crest Shield\n${extra.more || ''}***\n`;
+const tzBG = (extra) => `### WORLD STATE ###\nDay: ${extra.day || 2} | Date: ${extra.date || '21 Eleasis, 1492 DR'} | Time: ${extra.time || '09:20 (Morning)'} | Weather: Clear, smoke on the wind\n\u25C6 Fa\u00EBr\u00FBn \u2192 Sword Coast \u2192 Chionthar Wilderness \u2192 ${extra.place || 'Emerald Grove \u2192 Druid Grove'}\nArc: Act I \u00B7 ${extra.arc || 'A1-04 \"The Emerald Grove\"'}\nGame Mode: Canon Run | Canon: Keep | Difficulty: Balanced | Narrative: Strict Agency\nRole: Tav \u00B7 Half-Elf (High) \u00B7 Cleric ${extra.lv || 2} (Life Domain, Lathander) \u00B7 Acolyte\nHealth: ${extra.health || '100'}/100 | HP: ${extra.hp || '17/17'} | AC: 18 | Level: ${extra.lv || 2} | XP: ${extra.xp || '520/900'}\nStats: STR 13 \u00B7 DEX 10 \u00B7 CON 15 \u00B7 INT 8 \u00B7 WIS 17 \u00B7 CHA 12\nResources: Spell Slots \u2014 L1 ${extra.slots || '3/3'} | Short Rests \u2014 ${extra.rests || '2/2'} | Inspiration \u2014 ${extra.insp || '1'} | Channel Divinity \u2014 1/1\nTadpole: ${extra.tadpole || 'Dormant'} | Powers: ${extra.powers || 'none'} | Call: ${extra.call || 'Silent'}\nCondition: ${extra.cond || 'Healthy'}\nSkills: Insight (Proficient), Religion (Proficient), Medicine (Proficient), Persuasion (Proficient)\nLanguages: Common (Native), Elvish (Fluent), Celestial (Basic)\nEquipment: mace, scale mail, shield, holy symbol of Lathander, healer's kit\nSupplies: Camp \u2014 ${extra.camp || '25'} \u00B7 Gold \u2014 ${extra.gold || '48'} \u00B7 Potions \u2014 2 \u00B7 Scrolls \u2014 1 \u00B7 Ammo \u2014 none\nParty: Shadowheart \u2014 ${extra.sh || 'Neutral'} \u00B7 Astarion \u2014 ${extra.as || 'Low'} \u00B7 Lae'zel \u2014 Neutral\nNext Canon Event: The Rite of Thorns \u2014 when the grove's gates close\nCountdown: Ceremorphosis (feared) \u2014 days, maybe less\nStanding: Emerald Grove \u2014 ${extra.grove || 'Wary'} \u00B7 Absolute cult \u2014 unaware of you\nQuests: Find a healer for the tadpole \u2014 active; Save the refugees \u2014 active\n${extra.more || ''}Thread: ${extra.thread || 'Will Kagha listen?'}\n***\n`;
 const tzSK = (place, extra) => `### WORLD STATE ###\n4th of Last Seed, 4E 201 | ${extra.time || '10:00'}\n\u25C6 Skyrim \u2192 Whiterun Hold \u2192 ${place}\nLevel: ${extra.lv || 18} (Next: ${extra.next || 40}%) | Race: Nord | Standing Stone: The Warrior\nHealth: ${extra.hp || '270/270'} | Magicka: ${extra.mp || '110/110'} | Stamina: ${extra.st || '230/230'}\nDragon Souls: ${extra.souls || 2} | Perks: ${extra.perks || 1} unspent\nShouts: Unrelenting Force (${extra.fus || 2}/3), Whirlwind Sprint (1/3)\nSkills: One-Handed 52 \u00B7 Block 41 \u00B7 Heavy Armor 38 \u00B7 Smithing 45 \u00B7 Archery 33\nBounty: ${extra.bounty || 'Whiterun 40'}\nFactions: Companions (Whelp)\nGold: ${extra.gold || '612'} | Carry: 214/300\n${extra.more || ''}***\n`;
 const tzMT = (day, time, extra) => `### WORLD STATE ###\nYear: K.414 | Day: ${day} | Time: ${time}\nLocation: \u25C6 Six-Faced World \u2192 Central Continent \u2192 Asura Kingdom (Fittoa Region) \u2192 Buena Village \u2192 ${extra.place || 'The Greyrat House'}\nBirth: K.407 | Race: Human | Age: 7 | Origin: Native (Reincarnated)\nCurrent Arc: Arc 2-B: Hearth & Home\nMana Capacity: Laplace Factor (Growing)\nCasting Method: Voiceless (Silent)\nTouki: None (Unavailable)\nMartial Style: Sword God Style: ${extra.sword || 'Beginner'}\nMagic School: Water: Saint, Fire: Advanced, Earth: Advanced, Wind: Advanced, Healing: ${extra.heal || 'Elementary'}\nLanguages: Human God (Native), Demon God (Fluent)${extra.lang || ''}\nEquipment: Roxy's wand \u2014 keepsake / magic focus, Migurd amulet \u2014 Roxy's parting gift\n${extra.more || ''}Memory: Memory 1\n***\n`;
 
@@ -2903,6 +2909,21 @@ const SANDBOX_WORLDS = {
             (d) => tzSK('the road to Riverwood', { time: '14:30', souls: 3, fus: 3, perks: 2, next: 55 }) + 'Wings over the watchtower. The dragon falls, and its soul pours into you like wind through an open door. FUS RO DAH, whole at last.' +
                 tzBlock({ characters: [{ name: 'Lydia', thoughts: { content: 'Dragonborn. It is true, then.' } }],
                     relations: [{ name: 'Lydia', standing: 'Devoted', bond: 'housecarl', minor: false, mood: 'awed', affection: 45, trust: 70, respect: 75, desire: 0, tension: 0, jealousy: 0, fear: 0, reasons: { respect: 'She watched you take the dragon\u2019s soul' } }] })
+        ]
+    },
+    bg3: {
+        name: 'Baldur\u2019s Gate 3', party: ['Shadowheart', 'Astarion', "Lae'zel"],
+        narrator: 'You narrate a Baldur\u2019s Gate 3 story on the Sword Coast in 1492 DR, as D&D 5e. The protagonist is USER, a Half-Elf Life Cleric of Lathander with a mind flayer tadpole behind the eye. Shadowheart, Astarion and Lae\'zel travel with USER. Begin every reply with this HUD, keep every line that still applies, then a line of *** and the prose:\n' + tzBG({}).replace(/\n\*\*\*\n$/, '') + '\n***\nShow every roll like the game: "\uD83C\uDFB2 Persuasion \u2014 d20 (14) + 5 = 19 vs DC 15 \u2014 Success".',
+        script: [
+            (d) => tzBG({}) + 'The druids\u2019 grove smells of moss and blood. Kagha does not lower her blade; behind her, the tieflings clutch their children.\n\n\uD83C\uDFB2 Persuasion \u2014 d20 (14) + 3 = 17 vs DC 15 \u2014 Success\n\n"Speak quickly, outsider," she says. Shadowheart lifts an eyebrow at you. Astarion yawns.' +
+                tzBlock({ characters: [{ name: 'Shadowheart', details: { Outfit: 'Sharran half-plate, hood down', Position: 'At your shoulder', Agenda: 'Keep the artefact hidden' }, thoughts: { content: 'Let them argue. As long as nobody asks about what is in my pack.' } },
+                    { name: 'Astarion', details: { Outfit: 'Fine doublet, rapier', Position: 'Leaning on a tree', Agenda: 'Find out how far the tadpole lets him go' }, thoughts: { content: 'Druids. Wonderful. Bark and sermons.' } }],
+                    relations: [{ name: 'Shadowheart', standing: 'Neutral', bond: 'companion', minor: false, mood: 'guarded', affection: 30, trust: 20, respect: 30, desire: 5, tension: 10, jealousy: 0, fear: 0 },
+                        { name: 'Astarion', standing: 'Wary', bond: 'companion', minor: false, mood: 'bored', affection: 15, trust: 5, respect: 20, desire: 10, tension: 20, jealousy: 0, fear: 0 }],
+                    party: [{ name: 'Shadowheart', register: 'Guarded', band: 'Sharran cleric' }, { name: 'Astarion', register: 'Playful', band: 'Vampire spawn (hidden)' }] }),
+            (d) => tzBG({ day: 3, date: '22 Eleasis, 1492 DR', time: '06:40 (Dawn)', place: 'Camp \u2192 Riverside', lv: 3, hp: '24/24', xp: '980/2700', slots: '4/4', insp: '2', tadpole: 'Stirring', powers: 'Transfuse Health', call: 'Whispering', sh: 'Medium', as: 'Neutral', grove: 'Friendly', camp: '15', gold: '112', more: '[ROMANCE: Shadowheart \u2014 first kiss]\n', thread: 'What did the Dream Visitor want?' }) + 'Dawn over the river. Shadowheart sits apart, turning the artefact over in her hands, and does not hide it when you come near this time.\n\nIn the night, a beautiful stranger walked through your dream and asked you to trust the tadpole. You woke with a new power at your fingertips.' +
+                tzBlock({ characters: [{ name: 'Shadowheart', thoughts: { content: 'I should not have kissed them. I should not want to again.' } }],
+                    relations: [{ name: 'Shadowheart', standing: 'Warm', bond: 'companion', minor: false, mood: 'flustered', affection: 55, trust: 40, respect: 40, desire: 35, tension: 15, jealousy: 0, fear: 0, reasons: { desire: 'A kiss under the stars' } }] })
         ]
     },
     classic: {
@@ -3166,6 +3187,7 @@ registerInterceptorKeep(async (messages, context) => {
 
         const hmsOn = isHmsChat(chatId, messages, chat);
         for (const m of messages) injNoteCore(chatId, textOf(m.content));     // a bot that keeps its own wounds
+        if (chatId) { const hs = hudStyleFor(messages.filter(m => m && m.role === 'user')); if (hs) hudStyleCache.set(chatId, hs); }
         let contextName = 'RPG Companion: scene context';
         const trailingName = hmsOn ? 'side-panel request' : 'tracker instructions';
         // A preset with the {{rpgc_request}} slot (HMS Reporter) already carries this reply's request:
@@ -3194,6 +3216,9 @@ registerInterceptorKeep(async (messages, context) => {
                     ctxParts.push((settings.customWorldMovesPrompt || '').trim() || DEFAULT_WORLD_MOVES_PROMPT);
                     ctxNames.push('world moves');
                 }
+            }
+            if (gt !== 'continue') {
+                try { const r = hmsStoryReminders(chat, await getChatState(chatId), userName); if (r.parts.length) { ctxParts.push(...r.parts); ctxNames.push(...r.names); } } catch (e) { logW(`[RPG Companion HMS] Story reminders failed: ${e?.message || e}`); }
             }
             if (commsCfg().on && gt !== 'continue') {
                 const lastUser = [...chat].reverse().find(m => m.role === 'user');
@@ -3572,14 +3597,49 @@ function hudCardHtml(hud, rawHud, cfg = chatDisplayCfg()) {
         html += `<span class="rh-blk"><span class="h">${escapeHtml(title)}</span>${body.join('')}</span>`;
     }
     if (rows.some(r => r.startsWith('<div class="rh-row rh-c"')) || mods.some(m => m.includes(' rh-c'))) html += '<span class="rh-legend"><span class="dot">•</span> keeps its lorebook entry loading</span>';
-    html += `<details class="rh-raw"${cfg.hudRawOpen ? ' open' : ''}><summary>Show the HUD as text</summary><pre>${escapeHtml(rawHud)}</pre></details>`;
+    html += `<details class="rh-raw"${cfg.hudRawOpen ? ' open' : ''}><summary>Show the HUD as text</summary><pre>${escapeHtml(rawHud).replace(/^#/gm, '&#35;')}</pre></details>`;   // a card's display regex (Six-Sided "HMS Panel") must not redraw the copy as a live HUD
     html += '</div>';
     return `<style>${HUD_CARD_CSS}</style>${html}`;
 }
 
+/**
+ * The HUD style the player chose in this chat ("HUD: Panel" in a start command, or a later "[HUD = PANEL]"),
+ * newest first; null when the chat never names one.
+ */
+function hudStyleFor(chat) {
+    // The player's start command or a later switch ("HUD: Panel" on its own line, or among other settings
+    // as "Canon: Living | HUD: Panel"), else the style the latest HUD itself reports on its Game Mode line.
+    const STYLE_RE = /\[\s*HUD\s*=\s*(CLASSIC|VISUAL|COMPACT|PANEL|CARD)\s*\]|(?:^|\|)[ \t]*HUD:\s*(Classic|Visual|Compact|Panel|Card)\b/gim;
+    let fromHud = null;
+    for (let i = (chat || []).length - 1; i >= 0; i--) {
+        const m = chat[i];
+        if (!m) continue;
+        const t = textOf(m.content);
+        if (!(m.is_user || m.role === 'user')) {
+            if (!fromHud && HUD_HEAD_RE.test(t)) { const g = t.match(/^[ \t]*Game Mode:[^\n]*?\bHUD:\s*(Classic|Visual|Compact|Panel|Card)\b/im); fromHud = g ? g[1].toLowerCase() : ''; }
+            continue;
+        }
+        const all = [...t.matchAll(STYLE_RE)];
+        if (all.length) { const x = all[all.length - 1]; return (x[1] || x[2]).toLowerCase(); }
+    }
+    return fromHud || null;
+}
+const hudStyleCache = new Map();   // chatId -> 'panel' | 'classic' | … | null
+async function hudStyleOf(chatId) {
+    if (!chatId) return null;
+    if (hudStyleCache.has(chatId)) return hudStyleCache.get(chatId);
+    let style = null;
+    try { style = hudStyleFor(await chatApi.getMessages(chatId)); } catch { style = null; }
+    if (style) hudStyleCache.set(chatId, style);       // not found yet: look again next time, a later HUD may say
+    while (hudStyleCache.size > 64) hudStyleCache.delete(hudStyleCache.keys().next().value);
+    return style;
+}
 /** Replaces the plain-text HUD in a displayed reply with the card. Leaves anything it cannot read alone. */
-function renderHudCard(text, cfg = chatDisplayCfg()) {
+function renderHudCard(text, cfg = chatDisplayCfg(), style = null) {
     if (!cfg.hudCard || !text || !HUD_HEAD_RE.test(text)) return text;
+    // The bot names its own HUD look (Classic, Visual, Compact, or Panel through its display scripts): leave it as the
+    // bot draws it. "HUD: Card", or no style named, is the extension's card.
+    if (style && style !== 'card') return text;
     const f = findHud(text);
     if (!f || f.fromHtml || !f.sepFound || /🌐/.test(f.headLine)) return text; // Visual HUD already provides its own layout
     const hud = parseHud(text);
@@ -5206,7 +5266,7 @@ spindle.registerMessageContentProcessor(async (ctx) => {
     i18nApply();
     if (settings.enabled) {
         const dc = chatDisplayCfg();
-        try { out = renderHudCard(out, dc); } catch (e) { logW(`[RPG Companion HMS] HUD card failed: ${e?.message || e}`); }
+        try { out = renderHudCard(out, dc, dc.hudCard && HUD_HEAD_RE.test(out) ? await hudStyleOf(ctx.chatId) : null); } catch (e) { logW(`[RPG Companion HMS] HUD card failed: ${e?.message || e}`); }
         try { out = await renderDialogue(out, ctx.chatId, ctx.messageId, dc); } catch (e) { logW(`[RPG Companion HMS] Dialogue display failed: ${e?.message || e}`); }
     }
     const under = settings.enabled ? chatDisplayCfg() : null;
@@ -5309,8 +5369,8 @@ async function runSeparateUpdate(chatId, targetId = null) {
             const existing = getSwipeData(msg) || {};
             const info = { ...(existing.infoBox || {}) };
             if (comp.weather) info.weather = { forecast: comp.weather, emoji: '' };
-            await setSwipeData(chatId, msg, { ...existing, characters: comp.characters || existing.characters || null, infoBox: info, survival: abilityReportMerge(comp.you, existing.survival), party: comp.party || existing.party || null, relations: comp.relations || existing.relations || null, family: Array.isArray(comp.family) ? comp.family : (existing.family || null), gear: Array.isArray(comp.gear) ? comp.gear : (existing.gear || null), agenda: agendaRefreshReport(comp.agenda, existing.agenda, msg), holdings: Array.isArray(comp.holdings) ? comp.holdings : (existing.holdings || null), money: Array.isArray(comp.money) ? comp.money : (existing.money || null), factions: Array.isArray(comp.factions) ? comp.factions : (existing.factions || null), secrets: Array.isArray(comp.secrets) ? comp.secrets : (existing.secrets || null), contacts: comp.contacts || existing.contacts || null, quests: comp.quests || existing.quests || null,
-                plot: comp.plot || existing.plot || null, objectives: comp.objectives || existing.objectives || null, injuries: comp.injuries || existing.injuries || null,
+            await setSwipeData(chatId, msg, { ...existing, characters: comp.characters || existing.characters || null, infoBox: info, survival: abilityReportMerge(comp.you, existing.survival), party: comp.party || existing.party || null, relations: comp.relations || existing.relations || null, deaths: Array.isArray(comp.deaths) ? comp.deaths : (existing.deaths || null), family: Array.isArray(comp.family) ? comp.family : (existing.family || null), gear: Array.isArray(comp.gear) ? comp.gear : (existing.gear || null), agenda: agendaRefreshReport(comp.agenda, existing.agenda, msg), holdings: Array.isArray(comp.holdings) ? comp.holdings : (existing.holdings || null), money: Array.isArray(comp.money) ? comp.money : (existing.money || null), factions: Array.isArray(comp.factions) ? comp.factions : (existing.factions || null), secrets: Array.isArray(comp.secrets) ? comp.secrets : (existing.secrets || null), contacts: comp.contacts || existing.contacts || null, quests: comp.quests || existing.quests || null,
+                plot: comp.plot || existing.plot || null, objectives: comp.objectives || existing.objectives || null, injuries: comp.injuries || existing.injuries || null, hurtSeen: Array.isArray(comp.hurtSeen) ? comp.hurtSeen : (existing.hurtSeen || null),
                 moments: Array.isArray(comp.moments) ? comp.moments : (existing.moments || null),
                 inbox: Array.isArray(comp.inbox) ? comp.inbox : (existing.inbox || null),
                 pos: comp.pos || existing.pos || null,
@@ -5394,7 +5454,8 @@ async function runSeparateUpdate(chatId, targetId = null) {
             contacts: ex.contacts || existing.contacts || null,
             plot: ex.plot || existing.plot || null,
             objectives: ex.objectives || existing.objectives || null,
-            injuries: ex.injuries || existing.injuries || null
+            injuries: ex.injuries || existing.injuries || null,
+            hurtSeen: Array.isArray(ex.hurtSeen) ? ex.hurtSeen : (existing.hurtSeen || null)
         });
         await readingsAfterReply(chatId, fresh, msg, ex.injuries || null, null);
         { const raw = stripThink(String(res?.content || '')), from = raw.indexOf('{');
@@ -6941,8 +7002,32 @@ function mtRankRows(text, ranks) {
         const m = part.match(/^(.+?)\s*:\s*(.+)$/) || part.match(/^(.+?)\s*\(([^)]+)\)$/) || part.match(/^(.+?)\s+[—–-]\s+(.+)$/);
         if (!m) return null;
         const rank = ranks.find(x => new RegExp(`\\b${x}\\b`, 'i').test(m[2])) || (/beginner/i.test(m[2]) ? ranks[0] : null);
-        return { name: m[1].trim(), rank: m[2].trim(), step: rank ? ranks.indexOf(rank) : null };
+        return { name: m[1].trim(), rank: m[2].trim(), step: rank ? ranks.indexOf(rank) : spellMtStep(m[2]) };
     }).filter(Boolean);
+}
+
+// Six-Sided v1.1 Compact merges Sword Style, Magic Tiers and Voiceless Casting into one row:
+// "Skills: 💧Water Saint · 🪨Earth Adv · ⚔️Sword God Int · 🤫 Voiceless", with short tiers. Null unless
+// every part is a school or style with a Mushoku rank (so "Skills: One-Handed 52 · Block 41" is not one).
+const MT_SKILL_SHORT = { beg: 'Beginner', beginner: 'Beginner', elementary: 'Beginner', int: 'Intermediate', intermediate: 'Intermediate', adv: 'Advanced', advanced: 'Advanced',
+    saint: 'Saint', king: 'King', imp: 'Imperial', imperial: 'Imperial', emp: 'Emperor', emperor: 'Emperor', div: 'Divine', divine: 'Divine', god: 'God' };
+function mtSkillsLine(text) {
+    const m = String(text || '').replace(/\*\*/g, '').match(/^\s*(?:[^\p{L}\s]+\s*)?Skills\s*:\s*(.+)$/iu);
+    if (!m || /\b(?:Shown|True)\s*:/i.test(m[1])) return null;
+    const out = { magic: [], martial: [], voiceless: false };
+    for (const raw of m[1].split(/\s*[·|;]\s*/)) {
+        const part = raw.trim();
+        if (!part) continue;
+        const sword = /^\s*⚔/.test(part);
+        const bare = part.replace(/^[^\p{L}]+/u, '').trim();
+        if (/^voiceless(?:\s+casting)?$/i.test(bare)) { out.voiceless = true; continue; }
+        const r = bare.match(/^(.+?)\s+([A-Za-z]+)\.?$/);
+        const rank = r && MT_SKILL_SHORT[r[2].toLowerCase()];
+        // a school carries its icon or is a known element; a style carries ⚔️
+        if (!rank || (!sword && bare === part && !SPELL_ELEMENTS.test(r[1].trim()))) return null;
+        (sword ? out.martial : out.magic).push([r[1].trim(), rank]);
+    }
+    return out.magic.length || out.martial.length ? out : null;
 }
 
 function mushokuLocationSegments(segments) {
@@ -6959,6 +7044,13 @@ function mushokuLocationSegments(segments) {
             else current += ch;
         }
         if (current.trim()) out.push(current.trim());
+    }
+    // Six-Sided v1.1 Compact: "◆ [Spot], [Region] ([Continent])" has no arrows and runs specific → general.
+    // Read it general → specific like every other style, the bracketed continent as its own top level.
+    if (segments.length === 1 && out.length > 1) {
+        const general = out.reverse();
+        const top = general[0].match(/^(.+?)\s*\(([^()]+)\)$/);
+        return top ? [top[2].trim(), top[1].trim(), ...general.slice(1)] : general;
     }
     return out;
 }
@@ -7039,6 +7131,31 @@ function collapseDuplicateHudHeads(text) {
     return out.join('\n');
 }
 
+/**
+ * A model sometimes leaves a blank line inside the HUD ("- Ledger: empty", blank, "📖 Canon reference: …").
+ * The HUD goes on when the wall comes within a short run of lines and every line before it looks like a
+ * HUD line (a label, a marker, a bracket tag or a sub-line), never prose. Without a wall, or with any
+ * prose-like line in between, the blank line ends the HUD as before.
+ */
+function hudBlankInside(src, from) {
+    let p = from, seen = 0;
+    while (p < src.length && seen < 30) {
+        let n = src.indexOf('\n', p);
+        if (n === -1) n = src.length;
+        const r = src.slice(p, n).replace(/\r$/, '');
+        p = n + 1;
+        if (!r.trim()) continue;
+        if (HUD_SEP_RE.test(r)) return seen > 0;
+        if (HUD_HEAD_RE.test(r) || !hudLineShaped(r)) return false;
+        seen++;
+    }
+    return false;
+}
+function hudLineShaped(raw) {
+    const t = hudSemanticText(raw);
+    if (!t || t.length > 240) return false;
+    return /^[^\s:"'*][^:"]{0,44}:(?:\s|$)/.test(t) || LOC_MARK_RE.test(t) || /^\[[^\]]+\]$/.test(t) || /^\s*[-•]\s+\S/.test(raw) || /^[\p{Extended_Pictographic}]/u.test(String(raw).trim());
+}
 function findHudAt(src, m) {
     let pos = m.index + m[0].length;
     if (src[pos] === '\r') pos++;
@@ -7066,7 +7183,7 @@ function findHudAt(src, m) {
                     if (r2.trim()) { nextRaw = r2; break; }
                     p2 = n2 + 1;
                 }
-                if (nextRaw === null || !HUD_SEP_RE.test(nextRaw)) { bodyEnd = pos; break; }
+                if (nextRaw === null || (!HUD_SEP_RE.test(nextRaw) && !hudBlankInside(src, nl + 1))) { bodyEnd = pos; break; }
             }
         } else {
             lines.push(raw);
@@ -7084,6 +7201,10 @@ function hudSemanticText(raw) {
     return source.replace(/\*\*/g, '')
         .replace(/^[\s\p{Extended_Pictographic}\uFE0F\u200D\u2640-\u2642\u23F0-\u23FF\u2694\u26A0\u26D4\u2728\uFE0E]+/u, '')
         .replace(/\s+[·]\s+/g, visual ? ' | ' : '$&')
+        // Six-Sided v1.1 joins slots on one row in every style ("Standing: … · Faction: …", "… · Guild: F",
+        // Compact "… · Touki (Battle Aura): Locked"). A "·" followed by a label separates fields; any other
+        // "·" stays in its value ("Skills: One-Handed 52 · Block 41").
+        .replace(/\s+·\s+(?=[^\s·|:][^·|:\n]{0,39}:\s)/g, ' | ')
         .trim();
 }
 
@@ -7144,7 +7265,7 @@ function parseHud(text) {
         l.key = next;
     }
     const loc = lines.find(l => l.kind === 'location');
-    const arc = lines.find(l => l.key === 'arc');
+    const arc = lines.find(l => l.key === 'arc') || lines.find(l => l.key === 'era / arc');
     let time = null;
     for (const l of lines.slice(0, 3)) {
         const tm = l.text.match(/\b(\d{1,2}:\d{2})(?:\s*([AaPp][Mm]))?/);
@@ -7159,7 +7280,7 @@ function parseHud(text) {
         }
     }
     let arcText = null;
-    if (arc) arcText = arc.fields && arc.fields[0].label && /^(current\s+)?arc$/i.test(arc.fields[0].label) ? arc.fields[0].value : arc.text.trim();
+    if (arc) arcText = arc.fields && arc.fields[0].label && /^(?:(?:current\s+)?arc|era\s*\/\s*arc)$/i.test(arc.fields[0].label) ? arc.fields[0].value : arc.text.trim();
     const quests = questsLine ? questsLine.split(/\s*;\s*|\s+\|\s+|\s+·\s+/).map(q => q.trim()).filter(Boolean).map(q => {
         const m = q.match(/^(.*\S)\s+[—–-]\s+(.+)$/);
         return m ? { name: m[1].trim(), state: m[2].trim().toLowerCase() } : { name: q, state: null };
@@ -7170,6 +7291,20 @@ function parseHud(text) {
     return { lines, find: f, time, location: mushoku && location ? mushokuLocationSegments(location) : location, arc: arcText, quests };
 }
 
+/** 'visual' (icons and bold labels), 'compact' (Six-Sided v1.1's merged Skills row) or 'plain'. */
+const hudLayoutCache = new WeakMap();
+function hudLayout(hud) {
+    if (!hud || typeof hud !== 'object') return 'plain';
+    if (!hudLayoutCache.has(hud)) hudLayoutCache.set(hud, hudLayoutRead(hud));
+    return hudLayoutCache.get(hud);
+}
+function hudLayoutRead(hud) {
+    const lines = (hud && hud.lines || []).filter(l => !l.block);
+    if (lines.filter(l => /^\s*[\p{Extended_Pictographic}]/u.test(l.text) && /\*\*[^*]+:\*\*/.test(l.text)).length >= 3) return 'visual';
+    if (lines.some(l => mtSkillsLine(l.text)) && !lines.some(l => /^(?:magic tiers|sword style)$/.test(l.key))) return 'compact';
+    return 'plain';
+}
+
 /**
  * True when the HUD was replaced wholesale rather than edited — a sanctioned
  * template swap (Re:Zero's WHDAAA theater) or a Start Handler rebuild. Restoring
@@ -7178,6 +7313,7 @@ function parseHud(text) {
  */
 function isHudSwap(prevHud, curHud) {
     if (!prevHud || !curHud) return false;
+    if (hudLayout(prevHud) !== hudLayout(curHud)) return true;
     if (curHud.lines.some(l => /^\s*game mode\s*:/i.test(l.text) && /WHDAAA/i.test(l.text))) {
         return !prevHud.lines.some(l => /WHDAAA/i.test(l.text));
     }
@@ -7196,6 +7332,10 @@ function diffHud(prevHud, curHud) {
     // live under their own module. Diffing them would flag every XP tick as a drop.
     const prevLines = prevHud.lines.filter(l => !l.block);
     const curKeys = new Set(curHud.lines.filter(l => !l.block).map(l => l.key));
+    // Six-Sided v1.1 Compact prints Memory and Equipment only on the turn they change.
+    if (hudLayout(prevHud) === 'compact' && hudLayout(curHud) === 'compact') { curKeys.add('memory'); curKeys.add('equipment'); }
+    // A Condition line is printed only while something is wrong: it going away means healed, not dropped.
+    for (const k of ['condition', 'conditions', 'injuries', 'wounds']) curKeys.add(k);
     const out = [];
     prevLines.forEach((l, i) => {
         if (!curKeys.has(l.key)) out.push({ key: l.key, text: l.text, kind: l.kind, after: i > 0 ? prevLines[i - 1].key : null });
@@ -7206,7 +7346,7 @@ function diffHud(prevHud, curHud) {
 function insertHudItem(items, entry) {
     if (items.some(i => i.key === entry.key)) return false;
     // Inline blocks sit last, directly above the wall; a restored line never lands inside or below one.
-    const blockStart = items.findIndex(i => i.block);
+    const blockStart = items.findIndex(i => i.block && !i.divider);
     const end = blockStart >= 0 ? blockStart : items.length;
     let idx = entry.after ? items.findIndex(i => i.key === entry.after && !i.block) : -1;
     if (idx >= 0) idx = Math.min(idx + 1, end);
@@ -7223,7 +7363,7 @@ function insertHudItem(items, entry) {
 function rewriteHud(content, mutate) {
     const hud = parseHud(content);
     if (!hud) return { content, hud: null, changed: false };
-    const items = hud.lines.map(l => ({ key: l.key, text: l.text, kind: l.kind, block: l.block || null }));
+    const items = hud.lines.map(l => ({ key: l.key, text: l.text, kind: l.kind, block: l.block || null, divider: !!l.divider }));
     const changed = mutate(items);
     if (!changed) return { content, hud, changed: false };
     // A plain field edit should keep the existing Visual label and icon. Values,
@@ -7243,6 +7383,39 @@ function rewriteHud(content, mutate) {
     return { content: next, hud: parseHud(next), changed: true };
 }
 
+/** Keep ages steady: put a known birth year back on the Present line, and the age that goes with it.
+ *  Known = set on a People card, else the birth year the HUD gave most often. Only the bracket after a
+ *  name is touched, and only when it holds nothing but an age and a birth year (or nothing at all). */
+function applyAges(items, known, cal) {
+    if (!cal) return false;
+    let changed = false;
+    for (const it of items) {
+        if (it.block || !/^\s*Present:/i.test(hudSemanticText(String(it.text || '')))) continue;
+        let text = it.text;
+        const people = hmsPresentPeople({ lines: [{ text: hudSemanticText(text) }] });
+        for (const p of people) {
+            const k = known.get(lockKey(p.name));
+            if (!k || !Number.isFinite(k.born)) continue;
+            const exact = cal.year - k.born - (k.month && cal.month < k.month ? 1 : 0);
+            // a "~" birth year or no month: the narrator's age stands if it fits, else the year's arithmetic
+            const age = !k.month && p.age !== null && (p.age === exact || p.age === exact - 1) ? p.age : Math.max(0, exact);
+            const want = `${age}, b. ${k.approx ? '~' : ''}K${k.born}${k.month ? `, Month ${k.month}` : ''}`;
+            const name = p.name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+            const simple = new RegExp(`(${name})\\s*\\((?:\\s*(?:—|–|-|~?\\d{1,4})?\\s*(?:,\\s*b\\.\\s*~?\\s*K\\.?\\s*\\d{3,4}(?:\\s*,?\\s*Month\\s*\\d{1,2})?)?\\s*)\\)`);
+            const bare = new RegExp(`(${name})(?=\\s*(?:[,;]|$))`);
+            const next = simple.test(text) ? text.replace(simple, `$1 (${want})`) : !new RegExp(`${name}\\s*\\(`).test(text) ? text.replace(bare, `$1 (${want})`) : text;
+            if (next !== text) { text = next; changed = true; }
+        }
+        it.text = text;
+    }
+    return changed;
+}
+async function hmsKnownAgesFor(chatId, st) {
+    const known = new Map();
+    try { for (const [k, p] of hmsKnownBirths(hmsTimeline(await chatApi.getMessages(chatId))).first) known.set(k, { born: p.born, month: p.month, approx: p.approx }); } catch { /* optional */ }
+    for (const [k, v] of Object.entries(isPlainObject(st.peopleBorn) ? st.peopleBorn : {})) if (v && Number.isFinite(v.born)) known.set(k, { born: v.born, month: Number.isFinite(v.month) ? v.month : null, approx: false });
+    return known;
+}
 function applyPins(items, pins, restored) {
     let changed = false;
     for (const [key, pin] of Object.entries(pins || {})) {
@@ -8412,7 +8585,33 @@ function chaptersPanel(st, chat) {
 const CHRON_IMP = { begin: 6, loop: 9, death: 9, arc: 8, rank: 7, gained: 7, questNew: 5, questDone: 7, questFailed: 7, met: 5, metAgain: 4, standing: 6, standingBig: 8, bondKind: 8,
     threadNew: 4, threadDone: 7, objDone: 4, objFailed: 5, place: 4, moment: 8, note: 9, star: 10, debt: 6, paid: 6, maskOff: 5 };
 const CHRON_SEND = { off: 99, key: 7, most: 5, all: 1 };
-const CHRON_RANK_RE = /^(standing|rank|guild rank|adventurer rank|class|title|tier|cohort|grade|race|level|lvl|lv|overall lvl|job lvl|racial lvl|job level|racial level|realm|cultivation)$/i;
+const CHRON_RANK_RE = /^(standing|rank|guild rank|adventurer rank|class|title|tier|cohort|grade|race|level|lvl|lv|overall lvl|job lvl|racial lvl|job level|racial level|realm|cultivation|guild|faction|sword style|martial style|magic tiers|magic school|touki|touki \(battle aura\))$/i;
+/** Compact's merged Skills row read as the Magic Tiers and Sword Style it stands for. */
+function chronCompactFields(h, mp) {
+    if (mp.has('magic tiers') && mp.has('sword style')) return;
+    for (const l of h.lines) {
+        const cs = mtSkillsLine(hudSemanticText(l.text));
+        if (!cs) continue;
+        const rows = list => list.map(([a, b]) => `${a} (${b})`).join(', ');
+        if (cs.magic.length && !mp.has('magic tiers')) mp.set('magic tiers', { label: 'Magic Tiers', value: rows(cs.magic) });
+        if (cs.martial.length && !mp.has('sword style')) mp.set('sword style', { label: 'Sword Style', value: rows(cs.martial) });
+        return;
+    }
+}
+/**
+ * For ranked lists (Magic Tiers, Sword Style): true when some school or style moved a step, false when only
+ * the wording changed, null for any other field.
+ */
+function chronRankSig(key, a, b) {
+    const ladder = /^(magic tiers|magic school)$/.test(key) ? MT_MAGIC : /^(sword style|martial style)$/.test(key) ? MT_MARTIAL : null;
+    if (!ladder) return null;
+    const sig = v => new Map(mtRankRows(String(v).replace(/\s+\|\s+/g, ', '), ladder).map(r => [techStyleKey(r.name), r.step]));
+    const x = sig(a), y = sig(b);
+    if (!x.size || !y.size) return null;
+    for (const [k, step] of y) if (x.has(k) && step !== null && x.get(k) !== step) return true;
+    for (const k of y.keys()) if (!x.has(k)) return true;
+    return false;
+}
 const CHRON_POWER_RE = /^\[(AUTHORITY|DIVINE PROTECTION|SPIRIT CONTRACT|CONTRACT|BLESSING|TITLE|PACT|CURSE|WORLD ITEM|DEMON EYE)\b[^:\]]*:\s*([^\]]+)\]/i;
 const CHRON_SENT_MAX = 4000;
 const chronSyncing = new Set();
@@ -8556,13 +8755,17 @@ function chronicleBuild(chat, st, userName = null) {
                 if (!firstHud) { const segs = hud.location.filter(s => !/^\[/.test(s)); add('place', `First time at ${placeNow}${segs.length > 1 ? ` (${segs[segs.length - 2]})` : ''}.`, CHRON_IMP.place, { place: placeNow }); }
             }
             // ranks, levels, standing; a death the clock did not show; a power gained
-            const fields = (h) => { const mp = new Map(); for (const l of h.lines) if (l.kind === 'field' && !l.block) for (const f of l.fields || []) if (f.label) mp.set(f.label.trim().toLowerCase(), { label: f.label.trim(), value: String(f.value || '').trim() }); return mp; };
+            const fields = (h) => { const mp = new Map(); for (const l of h.lines) if (l.kind === 'field' && !l.block) for (const f of l.fields || []) if (f.label) mp.set(f.label.trim().toLowerCase(), { label: f.label.trim(), value: String(f.value || '').trim() }); chronCompactFields(h, mp); return mp; };
             const now = fields(hud);
-            if (prevHud && !swap) {
+            if (prevHud) {
                 const was = fields(prevHud);
                 for (const [k, v] of now) {
                     const p = was.get(k);
                     if (!p || !p.value || !v.value || relSameWords(p.value, v.value)) continue;
+                    // A HUD style switch rewrites every line; only a real step in a rank survives it.
+                    const sig = chronRankSig(k, p.value, v.value);
+                    if (sig === false) continue;
+                    if (swap && sig !== true) continue;
                     if (/^deaths?$/.test(k)) {
                         const num = (x) => { const mt = String(x).replace(/,/g, '').match(/-?\d+/); return mt ? Number(mt[0]) : null; };
                         const a = num(p.value), b = num(v.value);
@@ -8571,6 +8774,18 @@ function chronicleBuild(chat, st, userName = null) {
                     }
                     if (CHRON_RANK_RE.test(k) && v.value.length <= 80) add('milestone', `${v.label}: ${p.value} → ${v.value}.`, CHRON_IMP.rank);
                 }
+            }
+            // training toward a rank (Six-Sided v1.1): when it begins and when the sessions are done
+            for (const tr of (hud.lines.some(l => /^\W*\**\s*Training\b/i.test(l.text)) ? mtTraining(worldLines(hud)) : [])) {
+                const tk = 'tr:' + lockKey(`${tr.skill}>${tr.next}`), had = kin.get(tk);
+                if (!had && prevHud) add('milestone', `Training began: ${tr.skill} \u2192 ${tr.next} (${tr.done}/${tr.needed} sessions).`, CHRON_IMP.threadNew);
+                if (tr.done >= tr.needed && had !== 'done') { if (prevHud || had) add('milestone', `Training complete: ${tr.skill} \u2192 ${tr.next} — the rank now needs its proof.`, CHRON_IMP.objDone); kin.set(tk, 'done'); }
+                else if (!had) kin.set(tk, 'on');
+            }
+            // a step in a HUD bond (Six-Sided v1.1 Bonds)
+            if (prevHud) for (const b of hudBondsOf(hud)) {
+                const pb = hudBondsOf(prevHud).find(x => lockKey(x.name) === lockKey(b.name));
+                if (pb && !relSameWords(pb.stage, b.stage)) add('bond', `HUD bond — ${b.name}: ${pb.stage} \u2192 ${b.stage}.`, CHRON_IMP.standing, { who: [b.name] });
             }
             for (const l of hud.lines) {
                 const pm = String(l.text || '').trim().match(CHRON_POWER_RE);
@@ -9234,7 +9449,8 @@ const WORLD_COVERS = {
     mushoku: ['MARTIAL STYLE', 'MAGIC SCHOOL', 'TOUKI', 'CASTING METHOD', 'MANA CAPACITY', 'DEMON EYE', 'CURSE', 'BLESSING', 'CONTRACTS', 'TERM', 'ADVENTURER'],
     undertale: ['SOUL', 'ROUTE', 'KILLS', 'WEAPON', 'ARMOR'],
     darksouls: ['COVENANT', 'HUMANITY', 'FORM', 'HOLLOWING', 'WEAPON'],
-    skyrim: ['SHOUTS', 'SHOUT', 'SKILLS', 'STANDING STONE', 'FACTIONS', 'AFFLICTION', 'RACE', 'PERKS', 'PERK']
+    skyrim: ['SHOUTS', 'SHOUT', 'SKILLS', 'STANDING STONE', 'FACTIONS', 'AFFLICTION', 'RACE', 'PERKS', 'PERK'],
+    bg3: ['TADPOLE', 'POWERS', 'CALL', 'RESOURCES', 'PACT', 'URGE', 'ROMANCE', 'CAMP', 'COUNTDOWN', 'NEXT CANON EVENT', 'STATS']
 };
 
 // ── Undertale, Dark Souls and Skyrim ──
@@ -9325,6 +9541,137 @@ function worldSkyrim(chatId, lines) {
     };
 }
 
+// ── Baldur's Gate 3 (the HMS BG3 card): the world card, and the D&D sheet read from its HUD ──
+
+const BG3_TADPOLE = ['None', 'Dormant', 'Stirring', 'Awakened', 'Half-Illithid'];
+const BG3_APPROVAL = ['Despise', 'Low', 'Neutral', 'Medium', 'High', 'Exceptional'];
+const BG3_STANDING = ['At War', 'Hostile', 'Wary', 'Neutral', 'Friendly', 'Allied', 'Sworn'];
+const BG3_XP = [0, 300, 900, 2700, 6500, 14000, 23000, 34000, 48000, 64000, 85000, 100000];
+// 5e saving-throw proficiencies by class (a multiclass keeps its first class's saves)
+const DND_CLASS_SAVES = { barbarian: ['str', 'con'], bard: ['dex', 'cha'], cleric: ['wis', 'cha'], druid: ['int', 'wis'], fighter: ['str', 'con'], monk: ['str', 'dex'],
+    paladin: ['wis', 'cha'], ranger: ['str', 'dex'], rogue: ['dex', 'int'], sorcerer: ['con', 'cha'], warlock: ['wis', 'cha'], wizard: ['int', 'wis'], artificer: ['con', 'int'] };
+const DND_CLASS_RE = /\b(Barbarian|Bard|Cleric|Druid|Fighter|Monk|Paladin|Ranger|Rogue|Sorcerer|Warlock|Wizard|Artificer)\s+(\d{1,2})\b(?:\s*\(([^)]*)\))?/gi;
+
+/** "Role: Tav · Half-Elf (High) · Cleric 3 (Life Domain, Lathander) / Fighter 1 · Acolyte" → origin, race, classes, background. */
+function bg3Role(text) {
+    if (!text) return null;
+    const parts = String(text).split(/\s*·\s*/).map(x => x.trim()).filter(Boolean);
+    const classes = [];
+    for (const m of String(text).matchAll(DND_CLASS_RE)) classes.push({ name: m[1].charAt(0).toUpperCase() + m[1].slice(1).toLowerCase(), level: Number(m[2]), sub: m[3] ? m[3].split(/\s*,\s*/)[0].trim() : null, note: m[3] ? m[3].split(/\s*,\s*/).slice(1).join(', ') || null : null });
+    const classIdx = parts.findIndex(p => /\b(Barbarian|Bard|Cleric|Druid|Fighter|Monk|Paladin|Ranger|Rogue|Sorcerer|Warlock|Wizard|Artificer)\b/i.test(p));
+    return { origin: parts[0] || null, race: classIdx > 1 ? parts.slice(1, classIdx).join(' · ') : (parts[1] && classIdx !== 1 ? parts[1] : null),
+        classes, background: classIdx >= 0 && parts[classIdx + 1] ? parts.slice(classIdx + 1).join(' · ') : null };
+}
+
+/** "Stats: STR 8 · DEX 16 · CON 14 · INT 10 · WIS 12 · CHA 16" (scores, or "+3" modifiers, or "[+3]"). */
+function dndStatsLine(text) {
+    const out = { scores: {}, mods: {} };
+    for (const m of String(text || '').matchAll(/\b(STR|DEX|CON|INT|WIS|CHA)\b\s*[:=]?\s*\[?\s*([+-]?\d{1,2})\s*\]?(?:\s*\(\s*([+-]\d{1,2})\s*\))?/gi)) {
+        const id = m[1].toLowerCase(), v = m[2];
+        if (/^[+-]/.test(v)) out.mods[id] = Number(v);
+        else { out.scores[id] = Number(v); out.mods[id] = m[3] ? Number(m[3]) : Math.floor((Number(v) - 10) / 2); }
+    }
+    return out;
+}
+
+/**
+ * A D&D sheet from a HUD that prints a class and level but no sheet block of its own (the BG3 card):
+ * level and proficiency from Level, saves from the first class, skills from "Skills: Insight (Proficient)…",
+ * scores from a Stats line when the HUD prints one.
+ */
+function hudDndSheetGeneric(lines) {
+    const roleM = worldFind(lines, /^Role:\s*(.+)$/i);
+    const role = roleM ? bg3Role(roleM[1]) : null;
+    const lvlM = worldFind(lines, /(?:^|\|\s*)Level:\s*(\d{1,2})\b/i);
+    const level = lvlM ? Number(lvlM[1]) : role && role.classes.length ? role.classes.reduce((a, c) => a + c.level, 0) : null;
+    if (!role || !role.classes.length || !level) return null;
+    const stats = dndStatsLine((worldFind(lines, /^(?:Stats|Ability Scores|Abilities):\s*(.+)$/i) || [])[1]);
+    const skillsM = worldFind(lines, /^Skills:\s*(.+)$/i);
+    const skills = {};
+    if (skillsM) for (const x of skillsM[1].split(/\s*,\s*(?![^()]*\))/)) {
+        const m = x.match(/^(.+?)\s*(?:\(([^)]*)\))?\s*$/);
+        if (!m) continue;
+        const name = m[1].replace(/\*+$/, '').trim().toLowerCase();
+        if (!name || /^\(/.test(name)) continue;
+        skills[name] = /expert/i.test(m[2] || '') || /\*$/.test(m[1]) ? 2 : 1;
+    }
+    const first = role.classes[0];
+    return { klass: role.classes.map(c => `${c.name} ${c.level}${c.sub ? ` (${c.sub})` : ''}`).join(' / '), level, pb: 2 + Math.floor((Math.max(1, Math.min(20, level)) - 1) / 4),
+        mods: stats.mods, scores: stats.scores, saves: DND_CLASS_SAVES[first.name.toLowerCase()] || [], skills, from: 'role' };
+}
+
+function worldBg3(chatId, lines) {
+    const dayM = worldFind(lines, /^Day:\s*(\d+)/i);
+    const dateM = worldFind(lines, /(?:^|\|\s*)Date:\s*([^|]+)/i);
+    const timeM = worldFind(lines, /(?:^|\|\s*)Time:\s*([\d:]+)\s*(?:\(([^)]+)\))?/i);
+    const arcM = worldFind(lines, /^Arc:\s*(?:(Act\s+[IVX]+)\s*·\s*([A-Z0-9-]+)\s*(?:["“]([^"”]+)["”])?|Sandbox\s*·\s*(.+))\s*$/i);
+    const modeM = worldFind(lines, /^Game Mode:\s*(.+)$/i);
+    const mode = {};
+    if (modeM) {
+        const parts = modeM[1].split(/\s*\|\s*/);
+        mode.run = parts[0].trim();
+        for (const p of parts.slice(1)) { const k = p.match(/^(Canon|Difficulty|Narrative|Voice)\s*:\s*(.+)$/i); if (k) mode[k[1].toLowerCase()] = k[2].trim(); }
+    }
+    const roleM = worldFind(lines, /^Role:\s*(.+)$/i);
+    const hpM = worldFind(lines, /(?:^|\|\s*)HP:\s*(-?\d+)\s*\/\s*(\d+)/i);
+    const acM = worldFind(lines, /(?:^|\|\s*)AC:\s*(\d+)/i);
+    const lvlM = worldFind(lines, /(?:^|\|\s*)Level:\s*(\d+)/i);
+    const xpM = worldFind(lines, /(?:^|\|\s*)XP:\s*([\d,]+)\s*\/\s*([\d,]+)/i);
+    const resM = worldFind(lines, /^Resources:\s*(.+)$/i);
+    const resources = [];
+    if (resM) for (const p of resM[1].split(/\s*\|\s*/)) {
+        const k = p.match(/^(.+?)\s*[—–-]\s*(.+)$/);
+        if (!k) continue;
+        const label = k[1].trim(), val = k[2].trim();
+        if (/^spell slots$/i.test(label)) {
+            for (const s of val.split(/\s*,\s*/)) { const q = s.match(/^L(\d)\s+(\d+)\s*\/\s*(\d+)/i); if (q) resources.push({ label: `L${q[1]} slots`, cur: Number(q[2]), max: Number(q[3]), kind: 'slot' }); }
+            continue;
+        }
+        const q = val.match(/^(\d+)\s*\/\s*(\d+)/);
+        if (q) resources.push({ label, cur: Number(q[1]), max: Number(q[2]), kind: /short rest/i.test(label) ? 'rest' : 'class' });
+        else if (/^\d+$/.test(val)) resources.push({ label, cur: Number(val), max: /inspiration/i.test(label) ? 4 : null, kind: /inspiration/i.test(label) ? 'insp' : 'class' });
+        else resources.push({ label, text: val, kind: 'class' });
+    }
+    const tadM = worldFind(lines, /^Tadpole:\s*([^|]+?)(?:\s*\|\s*Powers:\s*([^|]+?))?(?:\s*\|\s*Call:\s*(.+))?$/i);
+    const tadState = tadM ? tadM[1].trim() : null;
+    const tadStep = tadState ? BG3_TADPOLE.findIndex(x => x.toLowerCase() === tadState.toLowerCase()) : -1;
+    const powers = tadM && tadM[2] && !/^none$/i.test(tadM[2].trim()) ? tadM[2].split(/\s*,\s*/).map(x => x.trim()).filter(Boolean).map(n => ({ name: n, lore: worldLore(chatId, n) })) : [];
+    const partyM = worldFind(lines, /^Party:\s*(.+)$/i);
+    const party = partyM ? partyM[1].split(/\s*·\s*/).map(x => {
+        const m = x.match(/^(.+?)\s*[—–-]\s*(.+)$/);
+        const band = m ? m[2].trim() : null;
+        const step = band ? BG3_APPROVAL.findIndex(b => b.toLowerCase() === band.toLowerCase()) : -1;
+        return { name: (m ? m[1] : x).trim(), band, step: step >= 0 ? step : null };
+    }).filter(p => p.name) : [];
+    const campM = worldFind(lines, /^Camp:\s*(.+)$/i);
+    const supM = worldFind(lines, /^Supplies:\s*(.+)$/i);
+    const supplies = supM ? supM[1].split(/\s*·\s*/).map(x => { const m = x.match(/^(.+?)\s*[—–-]\s*(.+)$/); return m ? { label: m[1].trim(), value: m[2].trim() } : null; }).filter(Boolean) : [];
+    const standM = worldFind(lines, /^Standing:\s*(.+)$/i);
+    const standing = standM ? standM[1].split(/\s*·\s*/).map(x => {
+        const m = x.match(/^(.+?)\s*[—–-]\s*(.+)$/);
+        const lv = m ? m[2].trim() : null;
+        const step = lv ? BG3_STANDING.findIndex(b => b.toLowerCase() === lv.toLowerCase()) : -1;
+        return { name: (m ? m[1] : x).trim(), level: lv, step: step >= 0 ? step : null };
+    }) : [];
+    const one = (re) => { const m = worldFind(lines, re); return m ? m[1].trim() : null; };
+    const tag = (name) => worldAll(lines, new RegExp(`^\\[${name}:\\s*([^\\]]+)\\]`, 'i')).map(m => m[1].trim());
+    const lvl = lvlM ? Number(lvlM[1]) : null;
+    const xp = xpM ? { cur: worldNum(xpM[1]), next: worldNum(xpM[2]) } : null;
+    let xpPct = null;
+    if (xp && lvl && xp.next) { const base = BG3_XP[lvl - 1] ?? 0; xpPct = Math.max(0, Math.min(100, Math.round((xp.cur - base) / Math.max(1, xp.next - base) * 100))); }
+    return {
+        day: dayM ? Number(dayM[1]) : null, date: dateM ? dateM[1].trim() : null, time: timeM ? timeM[1] : null, period: timeM && timeM[2] ? timeM[2] : null,
+        act: arcM ? (arcM[1] || 'Sandbox') : null, code: arcM ? arcM[2] || null : null, chapter: arcM ? arcM[3] || arcM[4] || null : null,
+        mode: modeM ? { run: mode.run || null, canon: mode.canon || null, difficulty: mode.difficulty || null, narrative: mode.narrative || null } : null,
+        role: roleM ? bg3Role(roleM[1]) : null,
+        hp: hpM ? { cur: Number(hpM[1]), max: Number(hpM[2]) } : null, ac: acM ? Number(acM[1]) : null, level: lvl, xp, xpPct, levelUp: !!(xp && xp.next && xp.cur >= xp.next && lvl && lvl < 12),
+        resources, tadpole: tadState ? { state: tadState, step: tadStep, call: tadM[3] ? tadM[3].trim() : null, removed: /removed/i.test(tadState) } : null, powers,
+        party, camp: campM ? campM[1].split(/\s*,\s*/).map(x => x.trim()).filter(Boolean) : [], supplies, standing,
+        next: one(/^Next Canon Event:\s*(.+)$/i), countdown: one(/^Countdown:\s*(.+)$/i), thread: one(/^Thread:\s*(.+)$/i),
+        pacts: tag('PACT'), urge: tag('URGE')[0] || null, romances: tag('ROMANCE'), divergences: tag('DIVERGENCE'), changes: tag('CHANGE')
+    };
+}
+
 /** Does this HUD belong to a story where time can run backwards (Return by Death, Undertale's SAVE and RESET)? */
 function hudCanRewind(hud) {
     if (!hud) return false;
@@ -9339,7 +9686,7 @@ const WORLD_STANDARD_ISSUE = {
         note: 'Standard issue. The bot assumes every student carries these and puts one on the HUD only when something happens to it (confiscated, cracked, torn).' }
 };
 function worldStandardIssue(hud) { try { return hud ? WORLD_STANDARD_ISSUE[worldOf(worldLines(hud))] || null : null; } catch { return null; } }
-const WORLD_LABEL = { rezero: 'Re:Zero', overlord: 'Overlord', cote: 'Classroom of the Elite', mushoku: 'Mushoku Tensei', undertale: 'Undertale', darksouls: 'Dark Souls', skyrim: 'Skyrim' };
+const WORLD_LABEL = { rezero: 'Re:Zero', overlord: 'Overlord', cote: 'Classroom of the Elite', mushoku: 'Mushoku Tensei', undertale: 'Undertale', darksouls: 'Dark Souls', skyrim: 'Skyrim', bg3: 'Baldur\u2019s Gate 3' };
 const RZ_RANKS = ['Lesser', 'Quasi', 'Full', 'Great', 'Sovereign'];
 const MT_MARTIAL = ['Beginner', 'Intermediate', 'Advanced', 'Saint', 'King', 'Emperor', 'God'];
 const MT_MAGIC = ['Elementary', 'Intermediate', 'Advanced', 'Saint', 'King', 'Emperor', 'God'];
@@ -9359,6 +9706,7 @@ function worldOf(lines) {
         mushoku: 2 * /^(?:Year:\s*K\.|Armored Dragon Calendar:\s*K)/m.test(t) + /^Mana Capacity:/m.test(t) + 2 * /Six-Faced World|Central Continent\s*→\s*Asura Kingdom/i.test(t) + /\[HITOGAMI:|^(?:Martial Style|Sword Style|Magic School|Magic Tiers|Touki(?: \(Battle Aura\)?):)/m.test(t),
         undertale: 2 * /^(LV|LOVE):\s*\d+/m.test(t) + /^SOUL:/m.test(t) + /^Route:/m.test(t) + 2 * /\bThe Underground\b|Snowdin|Waterfall|Hotland|New Home|Mt\.? Ebott/i.test(t),
         darksouls: 2 * /(^|\|\s*)Souls:\s*[\d,]+/m.test(t) + /Estus/i.test(t) + /^(Bonfire|Last Bonfire):/m.test(t) + /Humanity:|Hollowing|\bEmbered\b/i.test(t) + 2 * /Lordran|Lothric|Drangleic|Firelink|Age of Fire|Kiln of the First Flame/i.test(t),
+        bg3: 2 * /Fa(?:er|e)r[u\u00FB]n/i.test(t) + 2 * /\b14\d\d DR\b/.test(t) + /^Tadpole:/m.test(t) + /^Arc:\s*(?:Act\s+[IVX]+|Sandbox)/m.test(t) + /^Party:.*[\u2014\u2013-]\s*(?:Despise|Low|Neutral|Medium|High|Exceptional)\b/m.test(t),
         skyrim: 2 * /\bMagicka\b/i.test(t) + /Dragon Souls:/i.test(t) + /^Shouts?:/m.test(t) + /Standing Stone/i.test(t) + 2 * /\bSkyrim\b|Tamriel|Whiterun|Solitude|Windhelm|Riften|Markarth/i.test(t)
     };
     let best = null, top = 1;
@@ -9838,6 +10186,10 @@ function mtSaga(chatId, year, arcLine, date = null) {
 }
 
 function worldMushoku(chatId, lines, st, chat = null) {
+    // A row can carry several slots ("Memory: … | Game Mode: …", "Mana Capacity: … | Touki (Battle Aura): …"):
+    // each later field is also read as its own line, after the real lines so they keep priority.
+    const compactSkills = lines.map(mtSkillsLine).find(Boolean) || null;
+    lines = lines.concat(lines.flatMap(l => l.split(/\s+\|\s+(?=[^|:]{1,40}:)/).slice(1)));
     const yr = worldFind(lines, /^Year:\s*K\.?\s*(\d+)\s*\|\s*Day:\s*(\d+)(?:\s*\|\s*Time:\s*([\d:]+)\s*(?:\(([^)]+)\))?)?/i);
     const date = mtCalendar(lines.join('\n'));
     const birth = worldFind(lines, /^Birth:\s*K\.?\s*(\d+)\s*\|\s*Race:\s*([^|]+?)\s*\|\s*Age:\s*(\d+)\s*\|\s*Origin:\s*(.+)$/i);
@@ -9850,17 +10202,25 @@ function worldMushoku(chatId, lines, st, chat = null) {
         || worldFind(lines, /(?:^|\|\s*)Guild:\s*([FEDCBAS])(?:-Rank)?(?=\s*(?:\(|\||$))/i);
     const one = (re) => { const m = worldFind(lines, re); return m ? m[1].trim() : null; };
     const hg = worldFind(lines, /^\[HITOGAMI:\s*([^\]]+)\]/i);
+    const clockPeriod = worldFind(lines, /\bTime:\s*\d{1,2}:\d{2}\s*\(([^)]+)\)/i);
+    const manaRow = one(/^Mana Capacity:\s*(.+)$/i);
+    // Compact writes "Mana Capacity: Vast | Half | Rested": the second unlabelled part is the reserve.
+    const manaParts = String(manaRow || '').split(/\s+\|\s+/);
+    const compactReserve = manaParts.slice(1).find(x => /^(?:Full|High|Half|Low|Empty)\b/i.test(x)) || null;
+    const compactRows = (list) => list.map(([name, rank]) => `${name} (${rank})`).join(', ');
+    const standingRow = one(/^Standing:\s*([^|]+)/i);
     const dreams = hg ? (hg[1].match(/Dreams:\s*(\d+)/i) || [])[1] : null;
     const w = isPlainObject(st.world) ? st.world : {};
     return {
-        year: date ? date.year : null, month: date ? date.month : null, monthName: date ? date.monthName : null, day: date ? date.day : null, period: yr && yr[4] ? yr[4] : null,
+        year: date ? date.year : null, month: date ? date.month : null, monthName: date ? date.monthName : null, day: date ? date.day : null, period: yr && yr[4] ? yr[4] : clockPeriod ? clockPeriod[1].trim() : null,
         birth: birth ? Number(birth[1]) : born ? Number(born[2]) : bornField ? Number(bornField[1]) : null, birthMonth: born && born[3] ? Number(born[3]) : bornField && bornField[2] ? Number(bornField[2]) : null, race: birth ? birth[2].trim() : race ? race[1].trim() : null, age: birth ? Number(birth[3]) : born ? Number(born[1]) : ageField ? Number(ageField[1]) : null, origin: birth ? birth[4].trim() : origin ? origin[1].trim() : null,
         adventurer: adv ? { rank: adv[1], party: adv[3] ? adv[3].trim() : (adv[2] && /solo/i.test(adv[2]) ? null : null), solo: !!(adv[2] && /solo/i.test(adv[2])), clan: adv[4] ? adv[4].trim() : null } : null,
-        mana: mtPowerViews(one(/^Mana Capacity:\s*(.+)$/i)).actual || null, reserve: one(/\bReserve:\s*([^|]+)/i), casting: one(/^Casting Method:\s*(.+)$/i) || (one(/^Voiceless Casting:\s*(.+)$/i) ? `Voiceless (${one(/^Voiceless Casting:\s*(.+)$/i)})` : null), touki: mtPowerViews(one(/^Touki(?: \(Battle Aura\))?:\s*(.+)$/i)).actual || null, canon: one(/^Canon:\s*([^|]+)/i), agency: one(/^Narrative Mode:\s*([^|]+)/i),
+        mana: mtPowerViews(manaRow).actual.split(/\s+\|\s+/)[0] || null, reserve: one(/\bReserve:\s*([^|]+)/i) || compactReserve, casting: one(/^Casting Method:\s*(.+)$/i) || (one(/^Voiceless Casting:\s*(.+)$/i) ? `Voiceless (${one(/^Voiceless Casting:\s*(.+)$/i)})` : compactSkills && compactSkills.voiceless ? 'Voiceless (Active)' : null), touki: mtPowerViews(one(/^Touki(?: \(Battle Aura\))?:\s*(.+)$/i)).actual || null, canon: one(/^Canon:\s*([^|]+)/i), agency: one(/^Narrative Mode:\s*([^|]+)/i),
         manaLore: mtManaTierLore(chatId, mtPowerViews(one(/^Mana Capacity:\s*(.+)$/i)).actual), toukiLore: /^none/i.test(mtPowerViews(one(/^Touki(?: \(Battle Aura\))?:\s*(.+)$/i)).actual || 'none') ? null : worldLore(chatId, 'touki'),
         martial: (() => {
             const sword = one(/^Sword Style:\s*(.+)$/i);
-            const list = mtRankRows(sword || one(/^Martial Style:\s*(.+)$/i), MT_MARTIAL);
+            // a model that drifts to "Martial:" still names the same thing (the card lists this drift as an error)
+            const list = mtRankRows(sword || one(/^Martial Style:\s*(.+)$/i) || (compactSkills ? compactRows(compactSkills.martial) : null) || one(/^Martial:\s*(.+)$/i), MT_MARTIAL);
             const idx = worldSpellIndex(chatId, /^\s*#+\s*Master Technique Index/i) || techIndexFromCatalog(chatId);
             if (idx) for (const m of list) {
                 const rows = idx[m.name.toLowerCase()] || idx[techStyleKey(m.name)] || [];
@@ -9871,7 +10231,7 @@ function worldMushoku(chatId, lines, st, chat = null) {
         })(),
         triangle: (() => { const idx = worldSpellIndex(chatId, /^\s*#+\s*Master Technique Index/i); return idx && idx._triangle ? idx._triangle : null; })(),
         magic: (() => {
-            const tiers = one(/^Magic Tiers:\s*(.+)$/i);
+            const tiers = one(/^Magic Tiers:\s*(.+)$/i) || (compactSkills && compactSkills.magic.length ? compactRows(compactSkills.magic) : null) || one(/^Magic:\s*((?:(?!\bGate:).)+)$/i);
             const list = mtRankRows((/\b(?:Shown|True):/i.test(tiers || '') ? tiers : (tiers || one(/^Magic School:\s*(.+)$/i) || '').replace(/\s+\|\s+/g, ', ')), MT_MAGIC);
             const idx = worldSpellIndex(chatId) || spellIndexFromCatalog(chatId);
             if (idx) for (const m of list) {
@@ -9881,7 +10241,7 @@ function worldMushoku(chatId, lines, st, chat = null) {
             }
             return list;
         })(),
-        languages: (one(/^Languages:\s*(.+)$/i) || '').split(/\s*,\s*/).filter(Boolean).map(x => { const m = x.match(/^(.+?)\s*\(([^)]+)\)$/); return m ? { name: m[1].trim(), fluency: m[2].trim() } : { name: x.trim(), fluency: null }; }),
+        languages: hmsSplitTop(one(/^Languages:\s*(.+)$/i) || '', /\s*,\s*/g).filter(Boolean).map(x => { const m = x.match(/^(.+?)\s*\(([^)]+)\)$/); return m ? { name: m[1].trim(), fluency: m[2].trim() } : { name: x.trim(), fluency: null }; }),
         contracts: one(/^Contracts:\s*(.+)$/i) || worldAll(lines, /^\[(?:SUMMON PACT|SPIRIT):\s*([^\]]+)\]$/i).map(m => m[1].trim()).join('; ') || null,
         eyes: worldAll(lines, /^(?:\[DEMON EYE:\s*([^\]]+)\]|\[?DEMON EYE\]?:\s*(.+))/i).map(m => { const text = (m[1] || m[2]).trim(); return { text, lore: worldLore(chatId, text.split(/\s*[\u2014\u2013-]\s*/)[0]) }; }),
         marks: worldAll(lines, /^(?:\[(CURSE(?:\s*\/\s*BLESSING)?|BLESSING):\s*([^\]]+)\]|\[?(CURSE(?:\s*\/\s*BLESSING)?|BLESSING)\]?:\s*(.+))/i).map(m => { const name = (m[2] || m[4]).trim(); return { kind: (m[1] || m[3]).toUpperCase().replace(/\s*\/\s*/, ' / '), name, lore: worldLore(chatId, name) }; }),
@@ -9889,8 +10249,46 @@ function worldMushoku(chatId, lines, st, chat = null) {
         term: (() => { const m = worldFind(lines, /^Term:\s*(.+?)\s*\|\s*Role:\s*(.+)$/i); return m ? { term: m[1].trim(), role: m[2].trim() } : null; })(),
         hitogami: hg ? { state: hg[1].trim(), dreams: dreams ? Number(dreams) : null } : null,
         saga: (() => { try { const saga = mtSaga(chatId, date ? date.year : null, (one(/^(?:(?:Current )?Arc|Era\s*\/\s*Arc):\s*(.+)$/i) || lines.find(line => /^(?:Arc\s+\d|Era\s+\d|Sandbox:)/i.test(line)) || null), date); if (saga) { saga.canonMode = one(/^Canon:\s*([^|]+)/i); saga.events = chat ? mtEventLedger(chat) : []; } return saga; } catch { return null; } })(),
-        advice: (Array.isArray(w.advice) ? w.advice : []).slice(-12).reverse()
+        advice: (Array.isArray(w.advice) ? w.advice : []).slice(-12).reverse(),
+        training: mtTraining(lines), standing: mtStanding(standingRow), faction: one(/^Faction:\s*(.+)$/i) && !/^(none|no|-|—)$/i.test(one(/^Faction:\s*(.+)$/i)) ? one(/^Faction:\s*(.+)$/i) : null,
+        familyPlots: chat ? mtStartLines(chat, /^Family Plot:\s*(.+)$/i) : []
     };
+}
+
+/** "Training: Healing → Advanced (7/25 sessions)": one row per skill (the card shows at most two). */
+function mtTraining(lines) {
+    // every skill on a Training line: "Training: Sword God → Saint (0/60 sessions) · Water Magic → Saint (0/60 sessions)"
+    const out = [];
+    for (const l of lines) {
+        const t = String(l);
+        if (!/^Training:/i.test(t)) continue;
+        for (const part of t.replace(/^Training:\s*/i, '').split(/\s*[·|;]\s*/)) {
+            const m = part.match(/^(.+?)\s*(?:→|->|⟶)\s*(.+?)\s*\(\s*(\d+(?:\.\d+)?)\s*\/\s*(\d+)\s*sessions?\s*\)/i);
+            if (m && !out.some(x => x.skill === m[1].trim())) out.push({ skill: m[1].trim(), next: m[2].trim(), done: Number(m[3]), needed: Number(m[4]) });
+        }
+    }
+    return out.slice(0, 12);
+}
+/** "Noble — Upper Noble, House Veyrath (Asura), Younger Child" / "Commoner — Farmer" / "Slave — owner". */
+function mtStanding(text) {
+    const t = String(text || '').trim();
+    if (!t) return null;
+    const m = t.match(/^(Noble|Commoner|Slave|Royal(?:\s+Blood)?)\s*[—–-]\s*(.+)$/i);
+    if (!m) return { kind: null, rank: null, house: null, nation: null, birth: null, text: t };
+    const kind = m[1].replace(/\s+Blood$/i, '').replace(/^./, c => c.toUpperCase());
+    const parts = hmsSplitTop(m[2], /\s*,\s*/g);
+    if (!/^noble|^royal/i.test(kind)) return { kind, rank: parts[0] || null, house: null, nation: null, birth: parts.slice(1).join(', ') || null, text: t };
+    const houseIdx = parts.findIndex(x => /\bHouse\b/i.test(x));
+    const houseRaw = houseIdx >= 0 ? parts[houseIdx] : null;
+    const hm = houseRaw ? houseRaw.match(/^(.*?)\s*\(([^)]+)\)\s*$/) : null;
+    return { kind, rank: houseIdx > 0 ? parts.slice(0, houseIdx).join(', ') : (houseIdx < 0 ? parts[0] || null : null),
+        house: hm ? hm[1].trim() : houseRaw, nation: hm ? hm[2].trim() : null, birth: houseIdx >= 0 ? parts.slice(houseIdx + 1).join(', ') || null : parts.slice(1).join(', ') || null, text: t };
+}
+/** Lines of the player's start command ("Mushoku_Start_Handler" … ) that match, in order. */
+function mtStartLines(chat, re) {
+    const start = (chat || []).find(m => m && (m.is_user || m.role === 'user') && /\b\w+_Start_Handler\b/.test(textOf(m.content)));
+    if (!start) return [];
+    return textOf(start.content).split('\n').map(l => l.trim().match(re)).filter(Boolean).map(x => x[1].trim()).slice(0, 8);
 }
 
 /** The panel payload for the world card, or null when the HUD is not one of the four. */
@@ -9923,13 +10321,15 @@ function worldPanel(chatId, chat, st) {
     else if (id === 'undertale') Object.assign(out, worldUndertale(chatId, lines));
     else if (id === 'darksouls') Object.assign(out, worldDarkSouls(chatId, lines));
     else if (id === 'skyrim') Object.assign(out, worldSkyrim(chatId, lines));
+    else if (id === 'bg3') Object.assign(out, worldBg3(chatId, lines));
     // A D&D character sheet some Re:Zero modes print: the D&D card reads it instead of your own numbers.
-    const sheet = worldFind(lines, /^\[D&D CHARACTER SHEET\]$/i) ? worldDndSheet(lines) : null;
+    // A HUD that prints a class and level (BG3) gives one too: level, saves, skills and any Stats line.
+    const sheet = worldFind(lines, /^\[D&D CHARACTER SHEET\]$/i) ? worldDndSheet(lines) : hudDndSheetGeneric(lines);
     if (sheet) out.dndSheet = sheet;
     // HUD lines this card shows in full; the Abilities card leaves them to it.
     out.covers = WORLD_COVERS[id] || [];
     // Inline blocks this card renders in full; the World State shows a pointer instead of repeating them.
-    out.blocks = [out.godmother ? 'THE GODMOTHER' : null, out.database ? 'SCHOOL DATABASE' : null, sheet ? 'D&D CHARACTER SHEET' : null].filter(Boolean);
+    out.blocks = [out.godmother ? 'THE GODMOTHER' : null, out.database ? 'SCHOOL DATABASE' : null, sheet && sheet.from !== 'role' ? 'D&D CHARACTER SHEET' : null].filter(Boolean);
     return out;
 }
 
@@ -10028,7 +10428,7 @@ function injHudOwns(hud) {
 }
 // The core's own injury law ("Injuries: [wound] — [Tag]", "INJURIES / CONDITION") or the Re:Zero
 // lorebook's [HMS_INJURY_*] entries: the bot keeps wounds itself.
-const INJ_CORE_RE = /\bInjuries:\s*\[wound\]|INJURIES\s*\/\s*CONDITION/i;
+const INJ_CORE_RE = /\bInjuries:\s*\[wound\]|INJURIES\s*\/\s*CONDITION|\bCondition:\s*\[wound\b/i;
 const injOwnedChats = new Set();
 /** Note a bot that keeps its own wounds, from its card or the assembled prompt. */
 function injNoteCore(chatId, text) {
@@ -10041,13 +10441,22 @@ function injBotOwns(chat, chatId = chatIdOf(chat)) {
     for (const m of chat || []) {
         if (!m || m.role !== 'assistant') continue;
         const t = textOf(m.content);
-        if (!/\b(?:Injuries|Injury|Wounds|Wound)\s*:/i.test(t)) continue;
+        if (!/\b(?:Injuries|Injury|Wounds|Wound|Conditions?)\s*:/i.test(t)) continue;
         if (injHudOwns(parseHud(t))) { owns = true; break; }
     }
     if (!owns && chatId) owns = getLorePool(chatId).some(e => /^\s*\[HMS_INJURY_/i.test(e.comment || '') || (e.key || []).some(k => /^\s*Injuries\s*:/i.test(k)) || INJ_CORE_RE.test(e.content || ''));
     if (owns && chatId) injOwnedChats.add(chatId);
     return owns;
 }
+/** The HUD keeps the wounds (a Condition line), but the reporter is still asked what it saw, so a wound the
+ *  HUD forgot can be put back on it. The report is never applied to the injury state. */
+function injWitnessRequest(userName) {
+    return {
+        json: '"hurtSeen": [{"where": "body part", "what": "a few words", "kind": "wound|fracture|sprain|burn|internal|other", "severity": "minor|moderate|severe|critical", "status": "raw|treated|permanent|scar"}]',
+        rules: `"hurtSeen" lists what the story shows hurt on ${userName} at the end of this reply, old ones still healing included, worded the same way each time; empty when unhurt. A bruise, welt, strain, scrape or burn the story shows (from training, a fall, a blow) counts as minor; tiredness or sore muscles alone do not. The HUD's Condition line keeps the wounds; this list is only checked against it.`
+    };
+}
+function injWitness(chat) { return injCfg().on && Array.isArray(chat) && injBotOwns(chat); }
 function injActive(chat) {
     if (!injCfg().on || !Array.isArray(chat)) return false;
     return !injBotOwns(chat);
@@ -10055,7 +10464,7 @@ function injActive(chat) {
 function injRequest(userName) {
     return {
         json: '"injuries": [{"where": "body part", "what": "the injury, a few words", "kind": "wound|fracture|sprain|burn|internal|other", "severity": "minor|moderate|severe|critical", "status": "raw|treated|permanent|scar"}]',
-        rules: `"injuries" lists every injury ${userName} carries at the end of this reply, old ones still healing included, worded the same way each time; empty when unhurt. Status follows the body's law: raw until tended; any basic field care (bandage, splint, stitches) makes it treated that turn; treated is not healed; leave an injury out once it has healed, or at once when healing magic closes it. Severed limbs, destroyed eyes and tissue that died are permanent. A healed moderate-or-worse wound may stay as a scar (cosmetic, no penalty).`
+        rules: `"injuries" lists every injury ${userName} carries at the end of this reply, old ones still healing included, worded the same way each time; empty when unhurt. A bruise, welt, strain, scrape or burn the story shows (from training, a fall, a blow) is a minor injury; tiredness or sore muscles alone are not. Status follows the body's law: raw until tended; any basic field care (bandage, splint, stitches) makes it treated that turn; treated is not healed; leave an injury out once it has healed, or at once when healing magic closes it. Severed limbs, destroyed eyes and tissue that died are permanent. A healed moderate-or-worse wound may stay as a scar (cosmetic, no penalty).`
     };
 }
 function injNormalize(list) {
@@ -10285,6 +10694,7 @@ function parseCompanion(text, roster = [], relSt = null, immSt = null) {
         if (res.party) res.found = true;
     }
     if (Array.isArray(obj.relations)) { res.relations = relNormalize(obj.relations, null, relSt); if (res.relations) res.found = true; }
+    if (Array.isArray(obj.deaths)) res.deaths = obj.deaths.filter(n => typeof n === 'string' && n.trim()).map(n => n.replace(/\s+/g, ' ').trim().slice(0, 60)).slice(0, 12);
     // The minor guard covers character stats too: no arousal-type stat survives on a minor.
     if (res.characters) {
         const minors = new Set([...(res.relations || []).filter(r => r.minor).map(r => r.key), ...Object.entries(relPins(relSt)).filter(([, v]) => v && v.minor).map(([k]) => k)]);
@@ -10308,6 +10718,7 @@ function parseCompanion(text, roster = [], relSt = null, immSt = null) {
     if (Array.isArray(obj.objectives)) { res.objectives = objectivesNormalize(obj.objectives); if (res.objectives) res.found = true; }
     if (Array.isArray(obj.moments)) { res.moments = momentsNormalize(obj.moments) || []; res.found = true; }
     if (Array.isArray(obj.injuries)) { res.injuries = injNormalize(obj.injuries); res.found = true; }
+    if (Array.isArray(obj.hurtSeen)) res.hurtSeen = injNormalize(obj.hurtSeen);
     // Minds (FrankenSIM): what moved inside the people of this reply, their agendas, what they learned, what was planted
     if (Array.isArray(obj.minds)) { res.minds = simMindsNormalize(obj.minds) || []; res.found = true; }
     if (Array.isArray(obj.agendas)) { res.agendas = simAgendasNormalize(obj.agendas) || []; res.found = true; }
@@ -10459,7 +10870,7 @@ function classicExtrasRequestRead(st, chat, userName) {
     const com = commsRequest(chat, st, userName);
     const fight = immCfg().askEachTurn ? immRequest(st, userName) : null;
     const plot = plotRequest(userName);
-    const inj = injActive(chat) ? injRequest(userName) : null;
+    const inj = injActive(chat) ? injRequest(userName) : injWitness(chat) ? injWitnessRequest(userName) : null;
     for (const x of [party, rel, fam, gear, hold, agenda, money, factions, secrets, com, fight, plot, inj]) if (x) { parts.push(x.json); rules.push(x.rules); }
     if (!parts.length) return '';
     return `\nIn the same JSON object, also include these keys:\n{${parts.join(',\n ')}}\n${rules.join('\n')}\n`;
@@ -10480,7 +10891,8 @@ function classicExtras(parsed, st) {
         fight: parsed.fight && immActive(st) ? immNormalize(parsed.fight, st.immersive) : null,
         plot: parsed.plot ? plotNormalize(parsed.plot) : null,
         objectives: parsed.objectives ? objectivesNormalize(parsed.objectives) : null,
-        injuries: Array.isArray(parsed.injuries) ? injNormalize(parsed.injuries) : null
+        injuries: Array.isArray(parsed.injuries) ? injNormalize(parsed.injuries) : null,
+        hurtSeen: Array.isArray(parsed.hurtSeen) ? injNormalize(parsed.hurtSeen) : null
     };
     if (out.party) partyFill(out.party, out.relations, parsed.characters, partyRoster(st));
     return out;
@@ -10566,7 +10978,7 @@ function buildCompanionInstructionRead(committed, userName, locks, st = null, ch
         const yf = [];
         if (wantSurvival) yf.push('"slept": false, "ate": false, "drank": false, "rested": false', `"mind": "${HMS_MIND_SCALE.join('|')}"`);
         if (yc.on) { yf.push(wantSurvival ? '"mood": "1-3 words", "sanity": 0..100' : '"mood": "1-3 words", "stress": "L", "sanity": 0..100'); if (askXp) yf.push('"xp": 0, "xpWhy": "or null"'); yf.push('"got": [], "lost": []'); }
-        if (magicSeen) yf.push('"spells": ["one individual magical spell name per entry; no physical/Touki maneuvers; include confirmed prior knowledge; no grouped lists, school/style ranks, casting methods, NPC, hypothetical or failed-only mentions"]');
+        if (magicSeen) yf.push('"spells": ["one individual magical spell name per entry, only spells this reply or the player message just before it names; no physical/Touki maneuvers; never list spells from memory; no grouped lists, school/style ranks, casting methods, NPC, hypothetical or failed-only mentions"]');
         if (abilitiesSeen) yf.push('"abilities": [{"name":"individual ability", "owner":"you", "state":"known|practiced|attempted|reliable|mastered|forgotten", "historical":false, "evidence":"short exact quote from this reply, <=160 chars"}]');
         const studying = magicSeen ? spellStudyActive(chat, st).map(x => x.name).slice(0, 8) : [];
         if (abilitiesSeen || studying.length) yf.push(`"learned": ["explicitly earned player learning this turn under the card rules; practice success alone is not learning; not historical knowledge"], "study": [{"spell": "${abilitiesSeen ? 'ability deliberately practiced/taught now' : `one of: ${studying.join(', ')}`}", "progress": "explicit measured percentage or null", "note": "practice evidence or null; when the story states what is left, end with it in the story's words (e.g. \\"4 more study sessions or practical casts left\\")"}]`);
@@ -10579,7 +10991,7 @@ function buildCompanionInstructionRead(committed, userName, locks, st = null, ch
     if (plotReq) parts.push(plotReq.json);
     const momReq = chronMomentsRequest(userName);
     if (momReq) parts.push(momReq.json);
-    const injReq = injActive(chat) ? injRequest(userName) : null;
+    const injReq = injActive(chat) ? injRequest(userName) : injWitness(chat) ? injWitnessRequest(userName) : null;
     if (injReq) parts.push(injReq.json);
     if (wantQuests) parts.push('"quests": [{"id": "existing ID or null for a new assignment", "name": "…", "objective": "current step", "progress": "measured 0..100 or null", "giver": "or null", "where": "or null", "deadline": "in-world time or null", "reward": "or null", "category": "main|side|personal|party", "state": "active|completed|failed|abandoned|closed or null"}]');
     if (party) parts.push(party.json);
@@ -10631,6 +11043,7 @@ function buildCompanionInstructionRead(committed, userName, locks, st = null, ch
     if (yc.on) s += `\n"you" also holds ${userName}'s own state at the end of this reply: mood, ${wantSurvival ? '' : 'stress (L), '}sanity (100 steady, 0 broken)${askXp ? ', and xp earned in this reply for a real accomplishment (0 if none) with why' : ''}. "got" and "lost": physical things ${userName} was handed, picked up, gave away, used up or lost — in their own last message or on screen in this reply — that the HUD does not list (a handout, a key, a note, a booklet), a few words each; [] when nothing changed hands. A message, a notice or news is not a thing.`;
     if (abilitiesSeen) s += '\n"you.abilities": one confirmed player spell/technique/skill per row; no ranks, casting labels, NPCs, catalog entries, instructions or hypotheticals. historical:true for past records, not new learning/current study. Attempts are not knowledge; reliability is not mastery. Exact quote required. Absence is not loss.';
     if (abilitiesSeen) s += '\nStudy requires practice begun now, not assigned/future lessons, demonstrations or failed combat alone. Never invent percentages. Omit empty study/learning.';
+    if (yc.on) s += `\nA time skip, montage or "over the month" summary in this reply is part of this turn: report what it shows ${userName} practicing, attempting or learning the same way as a scene (an attempt stays an attempt; a spell is learned only when the story says so). Its healed wounds and new gear count too, and so do sleep, meals and drinks in its ordinary days.`;
     if (wantQuests) s += '\nQuest progress is for the whole quest, not the current step. Do not lower it unless the quest restarted.';
     if (wantQuests) s += '\n"quests": accepted goals only. Reuse a Known quest ID for the same assignment despite new titles, progress or stages; null for a genuinely separate assignment. Names are labels, not IDs. Progress requires a measured percentage, else null. Report ended scene-level goals even when omitted from the HUD; use closed if the scene ended without a confirmed success/failure. Preserve broader quests and future commitments. No rewards from completion alone.';
     if (wantQuests && chat) {
@@ -10709,6 +11122,14 @@ async function hmsProcessContent(chatId, content, prevHud, generationType, commi
             out = r.content;
             hud = r.hud || hud;
         }
+        // ages and birth years the HUD already gave, kept steady (and growing with the calendar)
+        try {
+            const cal = hmsCalNow(hud);
+            if (cal && generationType !== 'continue') {
+                const known = await hmsKnownAgesFor(chatId, st);
+                if (known.size) { const r = rewriteHud(out, items => applyAges(items, known, cal)); if (r.changed) { out = r.content; hud = r.hud || hud; guard.agesKept = true; } }
+            }
+        } catch (e) { logW(`[RPG Companion HMS] Age repair skipped: ${e?.message || e}`); }
         if (settings.hmsGuard && prevHud) {
             if (isHudSwap(prevHud, hud)) guard.swapped = true;
             else guard.missing = diffHud(prevHud, hud).filter(m => !guard.restored.includes(m.key));
@@ -10898,6 +11319,8 @@ async function hmsHandleReplyInner(chatId, chat, msg, generationType) {
         survival: abilityReportMerge(res.comp.you, prev.survival),
         party: res.comp.party || prev.party || null,
         relations: res.comp.relations || prev.relations || null,
+        deaths: Array.isArray(res.comp.deaths) ? res.comp.deaths : (prev.deaths || null),
+        hurtSeen: Array.isArray(res.comp.hurtSeen) ? res.comp.hurtSeen : (prev.hurtSeen || null),
         family: Array.isArray(res.comp.family) ? res.comp.family : (prev.family || null),
         gear: Array.isArray(res.comp.gear) ? res.comp.gear : (prev.gear || null),
         agenda: Array.isArray(res.comp.agenda) ? res.comp.agenda : (prev.agenda || null),
@@ -11060,11 +11483,17 @@ function hmsPanelStateRead(chatId, chat, st) {
         active: true,
         messageId: msg ? msg.id : null,
         hud: hud ? { lines: hud.lines, time: hud.time, location: hud.location, arc: hud.arc, quests: hud.quests, fromHtml: !!hud.find.fromHtml } : null,
+        hudChanged: (() => { try {
+            const tl = hmsTimeline(chat); if (!hud || tl.length < 2) return null;
+            const prev = tl[tl.length - 2].hud, before = new Map(prev.lines.filter(l => !l.block).map(l => [l.key, String(l.text).trim()]));
+            return hud.lines.filter(l => !l.block && before.get(l.key) !== String(l.text).trim()).map(l => l.key);
+        } catch { return null; } })(),
         noHud: hud ? null : hudDiagnosis(msg),
         guard,
         ...(() => { const warnings = consistencyWarnings(chatId, chat, hud, guard); return warnings.length ? {consistency:warnings} : {}; })(),
         pins,
         questNotes: st.questNotes || [],
+        todoIdeas: isPlainObject(st.todoIdeas) ? { ...st.todoIdeas, stale: !!st.todoIdeas.at && st.todoIdeas.at !== (hmsTimeline(chat).at(-1)?.msg.id || null) } : null,
         atlas: (() => { try { return atlasHereInfo(chatId, hud, chat); } catch (e) { logW(`[RPG Companion HMS] Atlas read failed: ${e?.message || e}`); return null; } })(),
         arcCheck: (() => { try { return arcCheck(chatId, hud); } catch { return null; } })(),
         mapBank: (() => { try { if (!posCfg().bank || !hud) return null; const rooms = mapBankList(hud); const k = posRoomKey(hud); return { rooms, here: mapBankKey(hud), chatRoom: !!(k && isPlainObject(st.rooms) && st.rooms[k]) }; } catch { return null; } })(),
@@ -11102,6 +11531,7 @@ function hmsPanelStateRead(chatId, chat, st) {
                 you = hmsYouPanel(chat, st, null, sysNow); magic = hmsMagicPanel(chat, st, null, sysNow, chatId);
                 if (magicCfg().on && sysNow) { try { techniques = techListPanel(chatId, chat, st, sysNow); } catch (e) { logW(`[RPG Companion HMS] Technique list failed: ${e?.message || e}`); } }
                 if (you && comms && comms.balance) you.balance = comms.balance;
+                if (you) { try { you.identity = youIdentity(chatId, chat, tl, sysNow, relations, systems); } catch (e) { logW(`[RPG Companion HMS] You identity read failed: ${e?.message || e}`); } }
                 if (systems && hmsCfg().abilities.enabled !== false) {
                     const category = hmsParseVocab(hmsCfg().abilities.vocabulary).find(g => /martial/i.test(g.name));
                     const items = category ? martialAbilityItems(chatId, chat, st) : [];
@@ -11142,7 +11572,12 @@ function hmsPanelStateRead(chatId, chat, st) {
             } catch (e) { logW(`[RPG Companion HMS] You/Magic read failed: ${e?.message || e}`); }
             // A party member in agony or at the end of their strength is a danger, not a mood.
             if (systems && party) for (const m of party.members) for (const a of m.alerts) if (a.sev === 'high' && ['hunger', 'fatigue', 'pain'].includes(a.dim)) systems.danger.push(a.text);
-            return { systems, party, relations, family, gear, agenda, holdings, money, factions, secrets, comms, you, magic, techniques, map, minds, buildings };
+            let checks = [], birthdays = [];
+            try { checks = hmsChecks(chat, st, gear, userNameCache.get(chatId) || null); } catch (e) { logW(`[RPG Companion HMS] Checks failed: ${e?.message || e}`); }
+            try { birthdays = hmsBirthdays(chat, st, userNameCache.get(chatId) || null); } catch (e) { logW(`[RPG Companion HMS] Birthdays failed: ${e?.message || e}`); }
+            let todo = [];
+            try { todo = hmsTodo(chat, { agenda, gear, systems, relations, family, birthdays }); } catch (e) { logW(`[RPG Companion HMS] Things to do failed: ${e?.message || e}`); }
+            return { systems, party, relations, family, gear, agenda, holdings, money, factions, secrets, comms, you, magic, techniques, map, minds, buildings, checks, todo };
         })()
     };
 }
@@ -11228,6 +11663,20 @@ const HMS_BLOCK_FENCE_RE = /^\s*[─━═]{5,}\s*$/;
  * its rows move live — so the guard and pins must leave its rows alone.
  */
 function hmsMarkBlocks(lines) {
+    // A fenced region with no [Title] that is followed by more HUD lines is a divider band (Six-Sided
+    // v1.1 Visual draws two ━━━ rules around its stat rows): the rules are decoration, the rows are lines.
+    // An inline block is titled, or sits last, directly above the wall.
+    const fences = lines.map((l, i) => HMS_BLOCK_FENCE_RE.test(l.text) ? i : -1).filter(i => i >= 0);
+    for (let f = 0; f + 1 < fences.length; f += 2) {
+        const open = fences[f], close = fences[f + 1];
+        const first = lines[open + 1];
+        const titled = !!(first && open + 1 < close && /^\[([^\]]{2,80})\]$/.test(first.text.trim()));
+        if (titled || !lines.slice(close + 1).some(l => !HMS_BLOCK_FENCE_RE.test(l.text))) continue;
+        for (const i of [open, close]) { lines[i].block = 'fence'; lines[i].divider = true; }
+    }
+    return hmsMarkBlocksIn(lines.filter(l => !l.divider));
+}
+function hmsMarkBlocksIn(lines) {
     let inBlock = false, title = null, idx = 0;
     const blocks = [];
     let cur = null;
@@ -11368,18 +11817,35 @@ function hmsWoundTag(tag) {
     if (/magic-?\s*healed|\bhealed\b|closed/.test(t)) return 'healed';
     if (/permanent|malunion|lost for good/.test(t)) return 'permanent';
     if (/cosmetic/.test(t)) return 'cosmetic';
-    if (/treated|bandaged|splinted|stitched|dressed|stable|set\b/.test(t)) return 'treated';
+    if (/treated|bandaged|splinted|stitched|dressed|stable|set\b|\bhealing\b/.test(t)) return 'treated';
     if (/raw|untreated|open|fresh|bleeding/.test(t)) return 'raw';
     return 'other';
 }
 
+// A Condition entry tagged like a wound ("Cracked rib — Treated") is a wound; states stay conditions.
+const HMS_CONDITION_WOUND_RE = /^(.*\S)\s+[—–-]\s+(raw|untreated|treated|healing|bandaged|splinted|stitched)\b(?:[^,(]|\([^)]*\))*$/i;
+function hmsConditionParts(l) {
+    const text = hudSemanticText(l.text);
+    if (!/^\s*(?:[^\p{L}\p{N}\s]\s*)?conditions?\s*:/iu.test(text)) return null;
+    let body = hmsAfterLabel(text, text.match(/conditions?/i)[0]);
+    body = body.split(/\s+\|\s+(?=[^|:]{1,40}:)/)[0];
+    return hmsSplitTop(body, /,\s*/g);
+}
 function hmsReadWounds(hud) {
     const out = [];
     for (const l of hud.lines) {
         if (l.block === 'fence') continue;
-        if (!/^\s*(?:[^\p{L}\p{N}\s]\s*)?(injuries|injury|wounds?)\s*:/iu.test(l.text)) continue;
-        const label = l.text.match(/(injuries|injury|wounds?)/i)[1];
-        let body = hmsAfterLabel(l.text, label);
+        for (const part of hmsConditionParts(l) || []) {
+            const m = part.match(HMS_CONDITION_WOUND_RE);
+            if (m) out.push({ name: m[1].trim(), tag: part.slice(m[1].length).replace(/^\s*[—–-]\s*/, '').trim(), cls: hmsWoundTag(m[2]), text: part, key: lockKey(m[1].trim()) });
+        }
+    }
+    for (const l of hud.lines) {
+        if (l.block === 'fence') continue;
+        const text = hudSemanticText(l.text);
+        if (!/^\s*(?:[^\p{L}\p{N}\s]\s*)?(injuries|injury|wounds?)\s*:/iu.test(text)) continue;
+        const label = text.match(/(injuries|injury|wounds?)/i)[1];
+        let body = hmsAfterLabel(text, label);
         // An Injuries line can share its row with other fields ("… | Condition: …").
         body = body.split(/\s+\|\s+(?=[^|:]{1,40}:)/)[0];
         for (const part of hmsSplitTop(body, /,\s*/g)) {
@@ -11445,10 +11911,12 @@ function hmsReadConditions(hud, cfg) {
     }
     for (const l of hud.lines) {
         if (l.block === 'fence') continue;
-        if (!/^\s*(?:[^\p{L}\p{N}\s]\s*)?conditions?\s*:/iu.test(l.text)) continue;
-        let body = hmsAfterLabel(l.text, l.text.match(/conditions?/i)[0]);
+        const text = hudSemanticText(l.text);
+        if (!/^\s*(?:[^\p{L}\p{N}\s]\s*)?conditions?\s*:/iu.test(text)) continue;
+        let body = hmsAfterLabel(text, text.match(/conditions?/i)[0]);
         body = body.split(/\s+\|\s+(?=[^|:]{1,40}:)/)[0];
         for (const part of hmsSplitTop(body, /,\s*/g)) {
+            if (HMS_CONDITION_WOUND_RE.test(part)) continue;            // a wound: read by hmsReadWounds
             const pm = part.match(/^(.*?)\s*\((.*)\)\s*$/);
             let name = (pm ? pm[1] : part).trim();
             const inner = pm ? hmsSplitTop(pm[2], /,\s*/g) : [];
@@ -11914,6 +12382,19 @@ function hmsSurvival(timeline, st, cfg, sys) {
         if (!y) continue;
         for (const k of ['slept', 'ate', 'drank', 'rested']) if (y[k]) events.push({ kind: k, at: e.clock, src: 'story' });
         if (y.mind) events.push({ kind: 'mind', value: y.mind, at: e.clock, src: 'story' });
+    }
+    // A time skip of most of a day or more is ordinary days lived: he slept, ate and drank in it. Counted as woken
+    // at dawn on the skip's last day (or just before it ends, if it ends before dawn) and fed an hour before it ends.
+    let prevClock = null;
+    for (const e of timeline) {
+        if (e.clock === null) continue;
+        if (prevClock !== null && e.clock >= base && e.clock - prevClock >= 16 * 60) {
+            const tod = ((e.clock % 1440) + 1440) % 1440;
+            const woke = tod >= 360 ? e.clock - (tod - 360) : e.clock - 1;
+            events.push({ kind: 'slept', at: Math.max(prevClock, woke), src: 'skip' });
+            events.push({ kind: 'ate', at: e.clock - 60, src: 'skip' }, { kind: 'drank', at: e.clock - 60, src: 'skip' });
+        }
+        prevClock = e.clock;
     }
     const log = (st.survival && Array.isArray(st.survival.log)) ? st.survival.log : [];
     for (const ev of log) if (Number.isFinite(ev.at) && ev.at >= base && ev.at <= now) events.push({ ...ev, src: 'you' });
@@ -12544,8 +13025,9 @@ function relRequest(chat, userName, cfg, st = null, classic = false) {
     const rc = relCfg(cfg, classic);
     if (!rc.on || !rc.ladder.length) return null;
     const barFmt = rc.bars.map(b => `"${b.id}": ${b.two ? '-100..100' : '0..100'}`).join(', ');
-    const json = `"relations": [{"name": "exact name", "standing": "${rc.ladder.join('|')}", "bond": "kind of relationship, their entry's words", "minor": false, "mood": "1-3 words"${barFmt ? ', ' + barFmt + ', "reasons": {"bar": "why it moved"}' : ''}, "why": "what changed, or null"}]`;
+    const json = `"deaths": ["exact name"],\n"relations": [{"name": "exact name", "standing": "${rc.ladder.join('|')}", "bond": "kind of relationship, their entry's words", "minor": false, "mood": "1-3 words"${barFmt ? ', ' + barFmt + ', "reasons": {"bar": "why it moved"}' : ''}, "why": "what changed, or null"}]`;
     let rules = `In "relations", add one entry for every named character in this scene who dealt with ${userName}, never ${userName}. `;
+    rules += `In "deaths", the exact names of characters this reply shows dying, or in which ${userName} learns someone has died (seen, a letter, news, a body); [] otherwise. Never someone only feared dead, missing, rumoured, or dying but not yet dead. `;
     rules += `"standing": closeness/regard, never romance; devotion can be familial, friendly or sworn. It is the lasting relationship, not this scene's manner: keep the previous standing unless something in this reply changes the relationship itself, and then move one step. A strict, demanding, testing or cold manner that fits who they are belongs in "mood", not standing. `;
     rules += `"bond": established relationship/contract in the character entry's words. Romance requires explicit establishment. `;
     rules += `"minor": true if under 18 or apparently so. Minors and family never receive romance or desire. `;
@@ -12651,6 +13133,26 @@ function relSameWords(a, b) {
     return n(a) === n(b);
 }
 
+/** "Bonds: Eris (Friend), Ghislaine Dedoldia (Trusted)" → [{ name, stage }] (Six-Sided v1.1). */
+const hudBondsCache = new WeakMap();
+function hudBondsOf(hud) {
+    if (!hud || typeof hud !== 'object') return [];
+    if (!hudBondsCache.has(hud)) hudBondsCache.set(hud, hudBondsRead(hud));
+    return hudBondsCache.get(hud);
+}
+function hudBondsRead(hud) {
+    const line = hud && hud.lines ? hud.lines.map(l => hudSemanticText(l.text)).find(t => /^Bonds:\s*/i.test(t)) : null;
+    if (!line) return [];
+    return hmsSplitTop(line.replace(/^Bonds:\s*/i, ''), /\s*[,;]\s*/g).map(p => { const m = p.match(/^(.+?)\s*\(([^()]+)\)\s*$/); return m ? { name: m[1].trim(), stage: m[2].trim() } : null; }).filter(Boolean).slice(0, 8);
+}
+/** A HUD bond name for a tracked person: the same name, or a unique first name ("Aurelius" ↔ "Aurelius Veyrath"). */
+function hudBondFor(bonds, name) {
+    const k = lockKey(name), first = k.split(' ')[0];
+    const exact = bonds.find(b => lockKey(b.name) === k);
+    if (exact) return exact;
+    const byFirst = bonds.filter(b => { const bk = lockKey(b.name); return bk.split(' ')[0] === first && (bk === first || first === k); });
+    return byFirst.length === 1 ? byFirst[0] : null;
+}
 function hmsRelationsPanel(chat, st, cfg, classic = false) {
     const c = cfg || hmsCfg();
     const rc = relCfg(c, classic);
@@ -12678,6 +13180,12 @@ function hmsRelationsPanel(chat, st, cfg, classic = false) {
     }
     const roster = partyRoster(st);
     const out = [];
+    // where each reply happened: the last step of the HUD's location path ("Veyrath Hall, the study" → "Veyrath Hall")
+    // who the story reported dead, and in which reply (by position)
+    const diedAt = new Map(), idxOfMsg = new Map();
+    (chat || []).forEach((m, i) => { idxOfMsg.set(m.id, i); if (m.role !== 'assistant') return; const d = getSwipeData(m)?.deaths; if (Array.isArray(d)) for (const n of d) diedAt.set(lockKey(n), i); });
+    const placeAt = new Map();
+    try { for (const e of hmsTimeline(chat)) { const pl = hmsPlaceName(e.hud); if (pl) placeAt.set(e.msg.id, pl); } } catch { /* optional */ }
     for (const p of people.values()) {
         const rs = p.readings;
         const cur = rs[rs.length - 1], prev = rs.length > 1 ? rs[rs.length - 2] : null;
@@ -12697,7 +13205,29 @@ function hmsRelationsPanel(chat, st, cfg, classic = false) {
                 .filter(b => b.value !== null && b.value !== undefined),
             events: [], alerts: []
         };
+        {
+            const hand = st && isPlainObject(st.peopleDead) ? st.peopleDead[p.key] : null;
+            const died = diedAt.get(p.key);
+            const last = rs.length ? idxOfMsg.get(rs[rs.length - 1].msgId) : -1;
+            // the story's report, unless they are seen alive in a later reply; your own mark always wins
+            view.dead = hand ? !hand.alive : (died !== undefined && !(last > died && rs[rs.length - 1].msgId !== died));
+            view.bornSet = st && isPlainObject(st.peopleBorn) && st.peopleBorn[p.key] ? st.peopleBorn[p.key] : null;
+            view.diedFrom = !hand && view.dead ? 'story' : hand && !hand.alive ? 'you' : null;
+        }
+        { const n = new Map(); let best = null; for (const r of rs) { const pl = placeAt.get(r.msgId); if (!pl) continue; n.set(pl, (n.get(pl) || 0) + 1); if (!best || n.get(pl) >= n.get(best)) best = pl; } view.place = best; }
         if (rs.length === 1) view.events.push(`Met — ${cur.standing || 'first impression'}`);
+        // The card's own HUD stage for this person (Six-Sided v1.1 Bonds): shown beside the standing, with its steps.
+        {
+            let last = null;
+            for (const e of tl) {
+                const b = hudBondFor(hudBondsOf(e.hud), p.name);
+                if (!b) continue;
+                if (last && !relSameWords(last, b.stage)) view.events.push(`HUD bond: ${last} \u2192 ${b.stage}`);
+                last = b.stage;
+            }
+            const nowBond = tl.length ? hudBondFor(hudBondsOf(tl[tl.length - 1].hud), p.name) : null;
+            view.hudBond = nowBond ? nowBond.stage : null;
+        }
         for (let i = Math.max(1, rs.length - 6); i < rs.length; i++) {
             const a = rs[i - 1].standing, b = rs[i].standing;
             if (a && b && !relSameWords(a, b)) view.events.push(`${a} \u2192 ${b}`);
@@ -13049,7 +13579,11 @@ function gearCfg(cfg) {
 /** "2x Med kit", "Radio x2", "Arrows (12)", "3 torches", "my sword": the bare name of the thing. */
 function gearBare(n) {
     return String(n || '').replace(/^[-•*·▸◦►>\s]+/, '').replace(/^\d+\s*[x×]\s*/i, '').replace(/^[x×]\s*\d+\s+/i, '').replace(/\s*[x×]\s*\d+$/i, '')
-        .replace(/\s*\(\s*[x×]?\s*\d+\s*\)$/i, '').replace(/^\d+\s+(?=\p{L})/u, '').replace(/^(?:my|his|her|their|your|the)\s+/i, '').replace(/[*_`]+/g, '').trim();
+        .replace(/\s*\(\s*[x×]?\s*\d+\s*\)$/i, '').replace(/^\d+\s+(?=\p{L})/u, '').replace(/^(?:my|his|her|their|your|the)\s+/i, '').replace(/[*_`]+/g, '')
+        // "coin purse — three silver plus allowance copper": a dash and what follows describe the item, they don't name it
+        .replace(/\s+[—–]\s+.*$/, '').replace(/\s+-\s+.*$/, '')
+        // "ash wand, wool-rolled for trueing": a comma and a lower-case phrase describe it, they don't name it
+        .replace(/,\s+(?=[a-z])(?=[^,()]*[\s-])[^,()]*$/, '').trim();
 }
 
 // The same thing under another word: "pack" is the backpack, and a model writing the reply in Portuguese
@@ -13135,12 +13669,16 @@ function gearFromHud(hud) {
     };
     const bare = gearBare;
     const take = (value) => {
-        for (const piece of split(String(value).replace(/^[*_\s]+/, ''))) {
+        for (let piece of split(String(value).replace(/^[*_\s]+/, ''))) {
+            // "Plain road sword (Halvin's mark) on hip": where it hangs is not part of its name
+            piece = piece.replace(/\s+(?:on|at|across|over|by)\s+(?:the\s+|my\s+|his\s+|her\s+)?(?:left\s+|right\s+)?(?:hip|back|belt|shoulder|side|waist|chest|thigh|hand)\s*$/i, '');
             const m = piece.match(/^([^([{]+?)\s*(?:\(([^)]*)\))?\s*(?:\[([^\]]*)\])?\s*$/);
             // "Roxy's wand — keepsake / magic focus": the name is before the dash, the rest is a note
             const name = bare((m ? m[1] : piece).split(/\s+[—–]\s+|\s+-\s+/)[0]).slice(0, 60);
             if (!name || /^(none|nothing|empty|n\/a|-+)$/i.test(name)) continue;
-            out.push({ name, hint: m && m[2] ? gearState(m[2]) : null, contents: m && m[3] ? split(m[3]).map(x => bare(x.replace(/\s*\([^)]*\)\s*$/, ''))).filter(Boolean).slice(0, 12) : [] });
+            // "(Halvin's mark)": a detail of the thing itself, not how it is carried, is kept to show beside the name
+            const note = m && m[2] && !gearState(m[2]) && !/^\s*[x×]?\s*\d+\s*$/i.test(m[2]) ? m[2].trim().slice(0, 40) : null;
+            out.push({ name, note, hint: m && m[2] ? gearState(m[2]) : null, contents: m && m[3] ? split(m[3]).map(x => bare(x.replace(/\s*\([^)]*\)\s*$/, ''))).filter(Boolean).slice(0, 12) : [] });
             if (out.length >= 30) return true;
         }
         return false;
@@ -13173,6 +13711,35 @@ function gearRead(chat, st, cfg) {
     if (!cache.has(st)) cache.set(st, gearReadUncached(chat, st, cfg));
     return cache.get(st);
 }
+const GEAR_STOP_WORDS = new Set(['the', 'and', 'with', 'from', 'for', 'his', 'her', 'its', 'their', 'your', 'my', 'of', 'in', 'on', 'small', 'large', 'old', 'new', 'little', 'big']);
+/** Does the text speak of this item? Its name, one of its words before its noun ("road sword"), the noun as the
+ *  player's own ("your sword"; not "your wooden sword" or "his sword"), or "the wand" in a sentence that moves it
+ *  ("you give the wand back"). A bare "the sword" anywhere else is any sword. */
+function gearMentioned(text, name) {
+    const t = String(text || '').toLowerCase();
+    const bare = lockKey(gearBare(name)).replace(/\s*\([^)]*\)\s*/g, ' ').trim();
+    if (!bare) return false;
+    if (t.includes(bare)) return true;
+    const words = bare.split(/\s+/), head = words.pop();
+    if (!head || head.length < 3) return false;
+    // A plain "the sword" is any sword (a wooden one, the style's name). The item itself is named by
+    // its last two words ("road sword") or as the player's own ("your sword", "my sword").
+    const esc = w => w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    for (const w of words) if (w.length > 3 && !/^(?:with|from|plain|small|large|good|fine|that|this)$/.test(w) && new RegExp(`\\b${esc(w)}\\s+${esc(head)}`).test(t)) return true;
+    const other = /^(?:wooden|practice|training|toy|spare|second|other|another|borrowed|his|her|their|father's|mother's)$/;
+    const re = new RegExp(`\\b(?:your|my)\\s+((?:[a-z'’-]+\\s+){0,2})${head.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}s?\\b`, 'g');
+    let m;
+    while ((m = re.exec(t))) { const mods = m[1].trim().split(/\s+/).filter(Boolean); if (!mods.some(w => other.test(w))) return true; }
+    // "the wand" in a sentence that moves it ("You give the wand back to Ferren", "you set the bundle on the shelf")
+    const MOVE = /\b(?:give|gives|gave|given|hand|hands|handed|return|returns|returned|leave|leaves|left|set|sets|put|puts|drop|drops|dropped|lend|lends|lent|trade|trades|traded|sell|sells|sold|pass|passes|passed|hang|hangs|hung|stow|stows|stowed|pack|packs|packed|take|takes|took|taken)\b/;
+    for (const sn of t.split(/(?<=[.!?])\s+|\n+/)) {
+        if (!MOVE.test(sn)) continue;
+        const r2 = new RegExp(`\\bthe\\s+((?:[a-z'’-]+\\s+){0,2})${esc(head)}s?\\b`, 'g');
+        let k;
+        while ((k = r2.exec(sn))) { const mods = k[1].trim().split(/\s+/).filter(Boolean); if (!mods.some(w => other.test(w))) return true; }
+    }
+    return false;
+}
 function gearReadUncached(chat, st, cfg) {
     const g = st && isPlainObject(st.gear) ? st.gear : {};
     const pk = st && isPlainObject(st.pockets) ? st.pockets : {};
@@ -13200,11 +13767,24 @@ function gearReadUncached(chat, st, cfg) {
         for (const it of items.values()) { const a = bare(it.key), b = bare(k); if (a === b || (a.length > 3 && b.length > 3 && (a.endsWith(' ' + b) || b.endsWith(' ' + a))) || (Math.min(a.length, b.length) >= 5 && (a.endsWith(b) || b.endsWith(a)))) return it; }
         // a further description matches only one item, and never one already reported in this same reply
         const described = [...items.values()].filter(it => !avoid?.has(it) && refined(bare(it.key), bare(k)));
-        return described.length === 1 ? described[0] : null;
+        if (described.length === 1) return described[0];
+        // "travel paper bundle" and "travel bundle of northern paper sheets": every word of the shorter name is in
+        // the longer one, in any order (two words at least, and only one item fits)
+        const words = x => new Set(lockKey(gearBare(x)).replace(/\([^)]*\)/g, ' ').split(/[^a-z0-9']+/).filter(w => w.length > 2 && !GEAR_STOP_WORDS.has(w)).map(w => w.length > 3 && /[^s]s$/.test(w) ? w.slice(0, -1) : w));
+        const mine = words(k);
+        const within = (a, b) => a.size >= 2 && [...a].every(w => b.has(w));
+        const sharing = mine.size < 2 ? [] : [...items.values()].filter(it => { if (avoid?.has(it)) return false; const theirs = words(it.name); return within(mine, theirs) || within(theirs, mine); });
+        return sharing.length === 1 ? sharing[0] : null;
     };
+    // every name any HUD gave an item: a story report that uses one ("Plain road sword") is that HUD item
+    const hudNames = new Set();
+    for (const e of tl) for (const x of gearFromHud(e.hud)) hudNames.add(lockKey(x.name));
+    const headOf = k => lockKey(gearBare(k)).replace(/\s*\([^)]*\)\s*$/, '').split(/\s+/).pop();
+    const heldOfKind = (name, exclude = null) => { const want = headOf(name); return want && want.length > 2 ? [...items.values()].filter(y => y !== exclude && y.state && !['gone', 'dropped', 'stowed'].includes(y.state) && headOf(y.name) === want) : []; };
     const ensure = (name, from, avoid = null) => {
         name = gearBare(name);
         let it = find(name, avoid);
+        if (!it && from === 'story' && hudNames.has(lockKey(name))) { const held = heldOfKind(name); if (held.length === 1) { it = held[0]; it.name = name; } }
         if (it && avoid && lockKey(name) !== it.key && lockKey(name).startsWith(lockKey(it.name) + ' ')) it.name = name;   // show the fuller name
         if (!it) { const key = lockKey(name); if (!key) return null; it = { key, name, state: null, where: null, inside: null, from, at: null, msgId: null, idx: -1, history: [], onHud: false }; items.set(key, it); }
         return it;
@@ -13234,7 +13814,20 @@ function gearReadUncached(chat, st, cfg) {
             if (r.state === 'in container' && r.inside && !find(gearBare(r.inside)) && !/\b(pocket|bolso|bolsillo)\b/i.test(r.inside)) { const box = ensure(r.inside, 'story'); if (box && !box.state) box.state = 'on body'; }
             // "on body" means slung/strapped; reported with a desk or shelf as its place, it was set down there.
             const setDown = String(r.state || '').toLowerCase() === 'on body' && GEAR_FURNITURE_RE.test(r.where || '') && !GEAR_BODY_RE.test(r.where || '');
-            apply(it, setDown ? 'stowed' : r.state, r.where, r.inside, at, m.id, idx);
+            // "in hand", but "held by Aurelia Veyrath": someone in the scene has it, not the player.
+            const heldBy = /^\s*(?:held|carried|kept)\s+by\s+([^,;]+)/i.exec(r.where || '');
+            const withOther = !setDown && heldBy && /^(?:in hand|on body|worn)$/i.test(String(r.state || '')) && e && e.hud
+                && hmsPresentPeople(e.hud).some(p => lockKey(p.name).split(' ')[0] === lockKey(heldBy[1]).split(' ')[0]);
+            const toState = setDown || withOther ? 'stowed' : r.state;
+            // Put down, left or gone needs the story to say so. A guess ("left behind before the drills") about an
+            // item this reply's own HUD still carries, with no word of it in the reply or the player's message, is
+            // not a change: the HUD stands.
+            if (['stowed', 'dropped', 'gone'].includes(String(toState || '').toLowerCase()) && e && e.hud && gearFromHud(e.hud).some(x => find(gearBare(x.name)) === it)) {
+                const prevUser = (() => { for (let i = idx - 1; i >= 0; i--) if (chat[i] && chat[i].role === 'user') return textOf(chat[i].content); return ''; })();
+                const said = stripThink(textOf(m.content)).replace(COMPANION_RE, '').split(/^\s*\*\*\*\s*$/m).slice(1).join('\n') + '\n' + prevUser;
+                if (!gearMentioned(said, it.name) && !gearFromHud(e.hud).some(x => find(gearBare(x.name)) === it && gearMentioned(said, x.name))) continue;
+            }
+            apply(it, toState, r.where, r.inside, at, m.id, idx);
         }
     }
     // the old Carried row: what you added there by hand still counts, and what you removed there is gone
@@ -13246,12 +13839,38 @@ function gearReadUncached(chat, st, cfg) {
     }
     // what the latest HUD lists: owned, whatever the readings said about how it is carried
     const hud = tl.length ? tl[tl.length - 1].hud : null;
+    const hudListedWhenGone = it => {
+        let e = null;
+        for (const t of tl) { const i = idxOf.has(t.msg.id) ? idxOf.get(t.msg.id) : -1; if (i >= 0 && i <= it.idx) e = t; }
+        return !!e && gearFromHud(e.hud).some(x => { const k = lockKey(gearBare(x.name)); return k === it.key || find(gearBare(x.name)) === it || (headOf(x.name) === headOf(it.name) && headOf(it.name).length > 2); });
+    };
     for (const x of gearFromHud(hud)) {
-        const it = ensure(x.name, 'hud');
+        // "Plain road sword" on the HUD and "Plain steel sword (short, light, fullered)" in the story: the one
+        // sword you carry, when exactly one carried item ends in the same thing (sword, cloak, wand…)
+        let it = find(gearBare(x.name));
+        if (!it) { const held = heldOfKind(x.name).filter(y => y.from !== 'hud'); if (held.length === 1) it = held[0]; }
+        it = it || ensure(x.name, 'hud');
         if (!it) continue;
         it.onHud = true;
         it.name = x.name;                                    // shown as the HUD spells it
-        if (it.state === 'gone') it.state = null;          // the HUD says you still have it: STATE IS GOD
+        it.note = x.note || null;
+        // the HUD says you still have it: STATE IS GOD. Except where the reply that said it went (handed back,
+        // sold, given away) already carried it on its own HUD: the narrator copies the HUD forward, so a listing
+        // that never changed since is a stale copy, not the item coming back.
+        // Put away, left or handed back (Ferren's drawer) before the HUD began listing it again, and listed on every HUD
+        // since: the narrator added it back, newer than the report that took it away (the wand came home in a time skip).
+        let relisted = false;
+        if (['stowed', 'dropped', 'gone'].includes(it.state) && Number.isFinite(it.idx) && it.idx >= 0) {
+            let since = null, gap = false;
+            for (let k = tl.length - 1; k >= 0; k--) {
+                const t = tl[k];
+                if (!gearFromHud(t.hud).some(y => { const f = find(gearBare(y.name)); return f === it || lockKey(gearBare(y.name)) === it.key; })) { gap = true; break; }
+                since = idxOf.has(t.msg.id) ? idxOf.get(t.msg.id) : since;
+            }
+            relisted = gap && since !== null && since > it.idx;
+        }
+        if (relisted) { it.state = null; it.where = null; }
+        if (it.state === 'gone' && !(it.msgId && hudListedWhenGone(it))) it.state = null;
         if (!it.state && x.hint) it.state = x.hint;
         for (const c of x.contents) { const inner = ensure(c, 'hud'); if (inner) { inner.onHud = true; if (!inner.state || inner.state === 'gone') { inner.state = 'in container'; inner.inside = it.name; } } }
     }
@@ -13276,12 +13895,22 @@ function hmsGearPanel(chat, st, cfg) {
     if (!gc.on) return null;
     const { items, now, lastId } = gearRead(chat, st, c);
     const ago = (at) => at !== null && at !== undefined && now !== null ? Math.max(0, now - at) : null;
-    const list = items.filter(it => it.state !== 'gone').map(it => ({
-        key: it.key, name: it.name, state: it.state, where: it.where, inside: it.inside, from: it.from, onHud: it.onHud, mine: !!it.mine,
+    // Put away somewhere: still yours, but out of the carried list, so a thing left at home for a year is not
+    // clutter. Left somewhere goes there at once, dropped after a day; each keeps where it was last seen.
+    const DAY = 1440;
+    const KEPT_RE = /\b(drawer|shelf|chest|cupboard|wardrobe|room|home|house|manor|estate|stable|left (?:with|at|in)|with [A-Z][\w'-]+|for (?:trueing|repair|repairs|mending|fixing|safekeeping|cleaning)|to be (?:trued|mended|repaired|fixed|cleaned)|lent|loaned|stored|kept|holding|minding)\b/i;
+    const SPENT_RE = /\b(sold|eaten|ate|drunk|drank|given (?:away|as)|gift(?:ed)?|traded|spent|broke|broken|destroyed|lost|burn(?:t|ed)?|used up|consumed|stolen|thrown|smashed)\b/i;
+    const owned = it => it.state === 'stowed' || it.state === 'dropped' || (it.state === 'gone' && KEPT_RE.test(it.where || '') && !SPENT_RE.test(it.where || ''));
+    const away = it => it.state === 'gone' || it.state === 'stowed' || (it.state === 'dropped' && ago(it.at) !== null && ago(it.at) >= DAY);
+    // Put back on someone else's rail, rack or stall (a smith's display blade tried and returned): never yours
+    const shopItem = it => (it.state === 'dropped' || it.state === 'stowed' || it.state === 'gone') && !it.mine &&
+        /\b[\p{Lu}][\p{L}'’-]*['’]s\s+(?:rail|rack|stall|counter|display|stand|table|bench|shop|wares|cart)\b/u.test(it.where || '') && !/\b(?:drawer|keeping|trueing|repair|mending|kept|holding)\b/i.test(it.where || '');
+    const list = items.filter(it => !away(it) && !shopItem(it)).map(it => ({
+        key: it.key, name: it.name, note: it.note || null, state: it.state, where: it.where, inside: it.inside, from: it.from, onHud: it.onHud, mine: !!it.mine,
         ago: ago(it.at), changedNow: !!lastId && it.msgId === lastId && it.history.length > 0,
         history: it.history.slice(-5).map(h => ({ state: h.state, where: h.where, inside: h.inside, ago: ago(h.at), you: !!h.you }))
     }));
-    const gone = items.filter(it => it.state === 'gone').slice(-12).map(it => ({ key: it.key, name: it.name, ago: ago(it.at) }));
+    const gone = items.filter(it => away(it) && !shopItem(it)).sort((a, b) => a.idx - b.idx).slice(-20).map(it => ({ key: it.key, name: it.name, ago: ago(it.at), where: it.where || null, owned: owned(it), onHud: !!it.onHud }));
     const containers = [...new Set(list.filter(x => x.state === 'in container' && x.inside).map(x => x.inside))];
     for (const it of list) if (/\b(bag|backpack|pack|pouch|satchel|sack|purse|chest|box|case|quiver|bandolier|bag of holding|inventory)\b/i.test(it.name) && !containers.some(cn => relSameWords(cn, it.name))) containers.push(it.name);
     return { items: list, gone, containers, ask: gc.ask, tell: gc.tell };
@@ -13295,8 +13924,8 @@ function gearLine(it) {
 function gearRequest(chat, st, userName, cfg) {
     const gc = gearCfg(cfg);
     if (!gc.on || !gc.ask) return null;
-    const json = `"gear": [{"item": "short name", "state": "${GEAR_STATES.join('|')}", "where": "location or null", "inside": "container or null"}]`;
-    let rules = `"gear": changed possession states from established player actions/narration. in hand=held; worn=clothing/armour; sheathed=sheath/holster; on body=slung/strapped with where; in container=inside names it; stowed=off-person storage; dropped=set down; gone=transferred away, consumed/lost/destroyed. Storage/unequipping retain ownership. Nearby/NPC-owned/offered items and plans confer none. Unopened gifts need accepted transfer. Do not infer consent from narrator-assigned decisions or undo explicit physical facts. Reuse HUD/Gear-now names. [] if unchanged; damage alone never removes gear. HUD ownership is authoritative.`;
+    const json = `"gear": [{"item": "short name, the same every reply (\"coin purse\", not \"coin purse — three silver\")", "state": "${GEAR_STATES.join('|')}", "where": "location or null", "inside": "container or null"}]`;
+    let rules = `"gear": changed possession states from established player actions/narration. An item only tried, examined or handled and then put back (a shop's wares, someone else's things) is not gear: never report it. in hand=held; worn=clothing/armour; sheathed=sheath/holster (where names what holds it: baldric, scabbard, belt); on body=slung/strapped with where; in container=inside names it; stowed=off-person storage, or left with someone to keep, mend or hold for you (where = who has it); report a change only when the story shows it, never a guess about where something must be; dropped=set down; gone=transferred away, consumed/lost/destroyed. Storage/unequipping retain ownership. Nearby/NPC-owned/offered items and plans confer none. Unopened gifts need accepted transfer. Do not infer consent from narrator-assigned decisions or undo explicit physical facts. Reuse HUD/Gear-now names. [] if unchanged; damage alone never removes gear. HUD ownership is authoritative.`;
     if (gc.tell && chat && st) {
         let now = [];
         try { now = gearRead(chat, st).items.filter(it => it.state && it.state !== 'gone'); } catch { now = []; }
@@ -13341,7 +13970,7 @@ async function hmsGearEdit(chatId, p) {
 // made, kept, missed, moved or cancelled in the player's own message or the reply) and added by hand.
 // Times are placed on the HUD clock, so the panel knows what is due, and the model is reminded.
 
-const AGENDA_KINDS = ['meeting', 'promise', 'deadline', 'event', 'errand'];
+const AGENDA_KINDS = ['meeting', 'promise', 'deadline', 'event', 'errand', 'letter'];
 const AGENDA_STATES = ['open', 'in_progress', 'kept', 'missed', 'cancelled'];
 const AGENDA_NUM = { a: 1, an: 1, one: 1, two: 2, three: 3, four: 4, five: 5, six: 6, seven: 7, eight: 8, nine: 9, ten: 10, eleven: 11, twelve: 12, couple: 2, few: 3 };
 
@@ -13369,13 +13998,41 @@ function agendaScheduleDay(due, when, at, hud = null) {
     if (!t) return null;
     const days = t.match(/\bin\s+(\d+|one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|an?)\s+days?\b/i);
     if (days) return Math.floor(at / 1440) + (/^\d+$/.test(days[1]) ? Number(days[1]) : AGENDA_NUM[days[1].toLowerCase()]);
+    // "in two months", "in three weeks", "in a year", "next month": a day that far ahead (30-day months, 360-day years)
+    const span = t.match(/\bin\s+(\d+|one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|an?|a few)\s+(weeks?|months?|years?)\b/i);
+    if (span) {
+        const n = /^\d+$/.test(span[1]) ? Number(span[1]) : /few/i.test(span[1]) ? 3 : AGENDA_NUM[span[1].toLowerCase()];
+        const unit = /^week/i.test(span[2]) ? 7 : /^month/i.test(span[2]) ? 30 : 360;
+        if (Number.isFinite(n)) return Math.floor(at / 1440) + n * unit;
+    }
+    // "the seventh", "on the 7th", "the seventh of Month 2": a day of the month (30-day months), the next one to come
+    const dom = agendaDayOfMonth(t);
+    const cal = dom ? hmsCalNow(hud) : null;
+    if (dom && cal && cal.month) {
+        const mm = t.match(/\bof\s+Month\s+(\d{1,2})\b/i);
+        let diff = mm ? (Number(mm[1]) - cal.month) * 30 + (dom - cal.day) : dom - cal.day;
+        if (mm && diff < 0) diff += 360;
+        if (!mm && diff < 0) diff += 30;
+        return Math.floor(at / 1440) + diff;
+    }
+    if (/\bnext month\b/i.test(t)) return Math.floor(at / 1440) + 30;
+    if (/\bnext year\b/i.test(t)) return Math.floor(at / 1440) + 360;
     return Math.floor(at / 1440) + (/\bday after tomorrow\b/i.test(t) ? 2 : /\btomorrow\b/i.test(t) ? 1 : /\bnext week\b/i.test(t) ? 7 : 0);
 }
 
+const AGENDA_ORD = { first: 1, second: 2, third: 3, fourth: 4, fifth: 5, sixth: 6, seventh: 7, eighth: 8, ninth: 9, tenth: 10, eleventh: 11, twelfth: 12, thirteenth: 13, fourteenth: 14, fifteenth: 15, sixteenth: 16, seventeenth: 17, eighteenth: 18, nineteenth: 19, twentieth: 20, 'twenty-first': 21, 'twenty-second': 22, 'twenty-third': 23, 'twenty-fourth': 24, 'twenty-fifth': 25, 'twenty-sixth': 26, 'twenty-seventh': 27, 'twenty-eighth': 28, 'twenty-ninth': 29, thirtieth: 30 };
+/** "the seventh" / "on the 7th" (of the month): the day number, or null. Not "the seventh bell" or "the third time". */
+function agendaDayOfMonth(text) {
+    const m = String(text || '').match(/\b(?:on\s+|by\s+)?the\s+(\d{1,2}(?:st|nd|rd|th)|twenty-(?:first|second|third|fourth|fifth|sixth|seventh|eighth|ninth)|first|second|third|fourth|fifth|sixth|seventh|eighth|ninth|tenth|eleventh|twelfth|thirteenth|fourteenth|fifteenth|sixteenth|seventeenth|eighteenth|nineteenth|twentieth|thirtieth)\b(?!\s*[-\s]?(?:bell|hour|time|day|week|month|year|night|morning|lesson|session|try|attempt|course|watch|floor|row|door|chapter|page|of\s+(?!Month\b|the\s+month\b|this\s+month\b)))/i);
+    if (!m) return null;
+    const w = m[1].toLowerCase();
+    const n = /^\d/.test(w) ? parseInt(w, 10) : AGENDA_ORD[w];
+    return n >= 1 && n <= 30 ? n : null;
+}
 // 3.4.0: does the wording name a calendar day ("in two days", "tomorrow", "Day 14", "K417-04-14")?
 // Only then is the resolved day shown as a countdown; "shortly" or "this evening" never become a date.
 function agendaNamesDay(text) {
-    return /\b(?:in\s+(?:\d+|one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|an?)\s+days?|tomorrow|day after tomorrow|next week|Day\s*:?\s*\d+|Month\s*\d+)\b|\bK\.?\s*\d{3,4}-\d{1,2}-\d{1,2}\b/i.test(String(text || ''));
+    return agendaDayOfMonth(text) !== null || /\b(?:in\s+(?:\d+|one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|an?|a few)\s+(?:days?|weeks?|months?|years?)|tomorrow|day after tomorrow|next (?:week|month|year)|Day\s*:?\s*\d+|Month\s*\d+)\b|\bK\.?\s*\d{3,4}-\d{1,2}-\d{1,2}\b/i.test(String(text || ''));
 }
 // A wording with no day of its own ("at dawn", "morning") keeps a day named earlier.
 function keepDayOf(text) { return /^(?:at\s+)?(?:dawn|sunrise|morning|noon|midday|afternoon|evening|dusk|sunset|night)$/i.test(String(text || '').trim()); }
@@ -13426,7 +14083,7 @@ function agendaNormalize(list) {
         const moved = ['moved', 'postponed', 'rescheduled'].includes(rawState);
         const state = ['started', 'active', 'underway'].includes(rawState) ? 'in_progress' : ['abandoned', 'canceled'].includes(rawState) ? 'cancelled' : moved ? 'open' : rawState;
         if (e.accepted === false || reportSpeculative(e) || (state && !AGENDA_STATES.includes(state))) continue;
-        const row = { key, what, with: partyText(e.with ?? e.who, 60), where: partyText(e.where, 80), when: partyText(e.when, 60), due: partyText(e.due, 40),
+        const row = { key, what, with: partyText(e.with ?? e.who, 60), where: partyText(e.where, 80), when: partyText(e.when, 140), due: partyText(e.due, 40),
             kind: AGENDA_KINDS.includes(kind) ? kind : 'meeting', state: AGENDA_STATES.includes(state) ? state : 'open' };
         if (moved) row.moved = true;
         // Identity duplicates may carry an outcome/correction later in the same
@@ -13746,6 +14403,18 @@ function agendaRead(chat, st) {
             if (linked?.size === 1) return [...linked][0];
         }
         const matches = items.filter(x => (lockKey(x.what) === key || agendaSame(lockKey(x.what), key) || row && (agendaTitleEquivalent(x, row) || agendaTitleRefines(x, row))) && compatible(x, row, dueAt));
+        if (!matches.length && row) {
+            // A short title that is the head of an open item's longer one, with the same people
+            // ("Training schedule" / "Training schedule: dawn to ninth bell with Seraphina …"): the same item.
+            const head = t => agendaTextKey(String(t || '').split(/\s*[:—–]\s*/)[0]);
+            const same = items.filter(x => ['open', 'in_progress'].includes(x.state) && (() => {
+                const A = agendaTextKey(x.what), B = agendaTextKey(row.what);
+                if (A === B) return false;
+                const [sh, lo] = A.length < B.length ? [A, B] : [B, A];
+                return sh.split(' ').length >= 2 && (head(lo === A ? x.what : row.what) === sh) && (!row.with || !x.with || agendaPeopleSame(row.with, x.with));
+            })());
+            if (same.length === 1) return same[0];
+        }
         return matches.length === 1 ? matches[0] : matches.length ? undefined : null;
     };
     for (const m of msgs) {
@@ -13803,8 +14472,12 @@ function agendaRead(chat, st) {
             }
             if (scenePlace) it.scenePlace = scenePlace;
             it.what = r.what; // The first key remains stable; show the latest confirmed description.
-            if (scheduleDay !== null) it.scheduleDay = scheduleDay;
-            if (r.when || r.due) it.dayNamed = agendaNamesDay(r.due) || agendaNamesDay(r.when) || (it.dayNamed && !!keepDayOf(r.when));
+            // A later wording with no day of its own ("spring courier runs" after "in two months") keeps the day
+            // already known, unless the story moved the appointment.
+            const namesDay = agendaNamesDay(r.due) || agendaNamesDay(r.when);
+            const keepDay = it.dayNamed && !namesDay && dueAt === null && !r.moved && !moved;
+            if (scheduleDay !== null && !keepDay) it.scheduleDay = scheduleDay;
+            if (r.when || r.due) it.dayNamed = namesDay || keepDay || (it.dayNamed && !!keepDayOf(r.when));
             if (r.with) it.with = r.with;
             if (r.where) it.where = r.moved || moved ? r.where : agendaPlaceDetail(it.where, r.where);
             const keepClock = dueAt === null && (it.dueAt != null && agendaBellClock(r.when) !== null && agendaBellClock(r.when) === agendaClockPart(it.when) ||
@@ -13852,7 +14525,10 @@ function hmsAgendaPanel(chat, st, cfg, forDisplay = false) {
     const { items, now, lastId } = agendaRead(chat, st);
     const out = items.map(it => {
         const dueIn = it.dueAt !== null && it.dueAt !== undefined && now !== null ? it.dueAt - now : null;
-        const status = it.state !== 'open' ? it.state : dueIn === null ? 'unset' : dueIn < -60 ? 'overdue' : dueIn <= 180 ? 'soon' : 'upcoming';
+        // A standing routine ("Training schedule: dawn to ninth bell …", "every morning") runs on; it is never late.
+        const routine = ['open', 'in_progress'].includes(it.state) && (/\b(?:schedule|routine|regimen|rota)\b/i.test(String(it.what || '')) && !/^\s*(?:re)?schedul(?:e|ing)\b/i.test(String(it.what || '')) || /\b(?:daily|every\s+(?:day|morning|evening|night)|each\s+(?:day|morning|evening))\b/i.test(String(it.when || '')));
+        const ongoing = routine || ['open', 'in_progress'].includes(it.state) && (dueIn === null || /^\s*(?:for\s+)?(?:the\s+next\s+)?(?:\d+|one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|a few)\s+(?:days?|weeks?|months?|years?)\s*[,;]/i.test(String(it.when || ''))) && /^\s*(?:for\s+)?(?:the\s+next\s+)?(?:\d+|one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|a few)\s+(?:days?|weeks?|months?|years?)\s*(?:$|[,;])|\b(?:daily|every (?:day|morning|evening|night|week)|each (?:day|morning|evening|night)|until (?:the )?(?:departure|seedwake|spring)|ongoing)\b/i.test(String(it.when || ''));
+        const status = ongoing ? 'ongoing' : it.state !== 'open' ? it.state : dueIn === null ? 'unset' : dueIn < -60 ? 'overdue' : dueIn <= 180 ? 'soon' : 'upcoming';
         const row = { key: it.key, what: it.what, with: it.with, where: it.where, when: it.when, dueIn, kind: it.kind, state: it.state, status, from: it.from, mine: !!it.mine, isNew: it.changedIn === lastId && !!lastId };
         // Days until a commitment whose day the story named but not its hour ("in two days"), counted from today's HUD date.
         if (dueIn === null && it.dayNamed && Number.isFinite(it.scheduleDay) && now !== null) row.dayIn = it.scheduleDay - Math.floor(now / 1440);
@@ -13865,7 +14541,7 @@ function hmsAgendaPanel(chat, st, cfg, forDisplay = false) {
         }
         return row;
     });
-    const rank = { in_progress: -1, overdue: 0, soon: 1, upcoming: 2, unset: 3, kept: 4, missed: 5, cancelled: 6 };
+    const rank = { in_progress: -1, overdue: 0, soon: 1, today: 1.5, upcoming: 2, ongoing: 2.5, unset: 3, kept: 4, missed: 5, cancelled: 6 };
     out.sort((a, b) => (rank[a.status] - rank[b.status]) || ((a.dueIn ?? 1e12) - (b.dueIn ?? 1e12)));
     return { items: out.slice(0, 60), ask: ac.ask, tell: ac.tell, clock: now !== null };
 }
@@ -13877,6 +14553,7 @@ function agendaRequest(chat, st, userName, cfg) {
     if (!ac.on || !ac.ask) return null;
     const json = `"agenda": [{"what": "what was agreed or set, a few words", "with": "who, or null", "where": "where, or null", "when": "story wording; keep approximate times", "due": "confirmed exact HUD date/time or null", "kind": "${AGENDA_KINDS.join('|')}", "state": "${AGENDA_STATES.join('|')}|moved"}]`;
     let rules = `"agenda": appointments, promises and set times involving ${userName} — only agreed commitments, externally established deadlines or activities actually begun; omit suggestions and unaccepted invitations. Changes are made, started, kept, broken, moved or called off in ${userName}'s own last message or in this reply ("I'll meet you at the river tomorrow", "the exam is on Friday", "be back before dark"). One entry for each that changed, reusing the same "what" for one already listed; [] when nothing changed. "in_progress" once an ongoing activity actually starts; "kept" once it finishes or a one-off appointment is fulfilled, "missed" when its time passed without it, "cancelled" when called off. Use "moved" for an existing commitment's changed schedule/context. Keep vague times vague; never invent a clock.`;
+    rules += ` Something of ${userName}'s left with someone to be finished, mended or kept, with a time to get it back, is an "errand" too ("Ash wand back from Ferren", "when" as the story says). Letters ${userName} writes, sends, receives or promises (by courier, by hand) are kind "letter" ("Letter to Valeriana", "Letter from Father"): open until sent or received, then kept. Never add an item that repeats one already open in other words ("Training schedule" and "Aurelius taking the sword training" are one): use the open item's own "what" and update it.`;
     if (ac.tell && chat && st) {
         let open = [];
         try { open = hmsAgendaPanel(chat, st).items.filter(x => x.state === 'open' || x.state === 'in_progress'); } catch { open = []; }
@@ -13899,7 +14576,7 @@ async function hmsAgendaEdit(chatId, p) {
     if (p.op === 'add') {
         if (!what) return;
         const tl = hmsTimeline(chat);
-        const row = { what, with: partyText(p.with, 60), where: partyText(p.where, 80), when: partyText(p.when, 60), kind: AGENDA_KINDS.includes(p.kind) ? p.kind : 'promise', at: tl.length ? tl[tl.length - 1].clock : null };
+        const row = { what, with: partyText(p.with, 60), where: partyText(p.where, 80), when: partyText(p.when, 140), kind: AGENDA_KINDS.includes(p.kind) ? p.kind : 'promise', at: tl.length ? tl[tl.length - 1].clock : null };
         if (!g.added.some(a => lockKey(a.what) === key && ['with', 'where', 'when'].every(f => lockKey(a[f] || '') === lockKey(row[f] || '')))) {
             row.key = agendaItemKey(g.added, { ...row, key: `manual :: ${key} :: ${lockKey(row.with || '')} :: ${lockKey(row.where || '')} :: ${lockKey(row.when || '')}` });
             g.added.push(row);
@@ -14196,6 +14873,10 @@ function moneyPreserveCorrectionAnchors(st, previous) {
 }
 
 /** The ledger and the debts, rebuilt from the chat as it stands. */
+const MONEY_PLAIN_WORDS = new Set(['plain', 'road', 'lighter', 'heavier', 'small', 'large', 'little', 'good', 'cheap', 'fine', 'with', 'from', 'that', 'this', 'their', 'cost', 'paid', 'price', 'house', 'share', 'part', 'some', 'more', 'extra', 'half']);
+const MONEY_REPEATS_RE = /\b(?:meal|food|supper|dinner|lunch|breakfast|drink|ale|beer|wine|cider|mead|bread|room|bed|night|lodging|inn|fee|toll|fare|ride|bath|tip|alms|wage|wages|pay|rent)\b/i;
+/** One key per currency: "copper", "coppers" and "Copper" are the same coin. */
+function moneyCurKey(c) { const k = lockKey(c || '?').replace(/\s+/g, ' '); return k.length > 3 && /[^s]s$/.test(k) ? k.slice(0, -1) : k; }
 function moneyRead(chat, st) {
     const g = st && isPlainObject(st.money) ? st.money : {};
     const tl = hmsTimeline(chat);
@@ -14219,7 +14900,29 @@ function moneyRead(chat, st) {
     }
     for (const a of Array.isArray(g.added) ? g.added : []) if (a && a.amount) ledger.push({ ...a, from: 'you', msgId: null });
     const { hidden, settled, unresolved } = moneyCorrectionTargets(g, ledger, recentAliases);
-    const list = ledger.filter(x => !hidden.has(x.sourceId || x.id) && (x.from === 'you' || x.accepted !== false && !reportSpeculative(x))); // keep original ledger IDs for saved manual corrections
+    const shown = ledger.filter(x => !hidden.has(x.sourceId || x.id) && (x.from === 'you' || x.accepted !== false && !reportSpeculative(x))); // keep original ledger IDs for saved manual corrections
+    // The same payment reported again in the next reply or two (same amount, currency, kind and person) is one
+    // payment, not two: the side-panel block often repeats a handover the story is still describing. Done after
+    // the hand corrections, so hiding one of the pair by hand still leaves the other.
+    const replyAt = new Map();
+    { let n = 0; for (const m of chat || []) if (m.role === 'assistant') replyAt.set(m.id, n++); }
+    const sameWith = (a, b) => a && b ? relSameWords(a, b) : !a && !b;
+    const keptStory = [];
+    const list = shown.filter(x => {
+        if (x.from !== 'story') return true;
+        const at = replyAt.get(x.msgId);
+        const same = y => y.amount === x.amount && moneyCurKey(y.currency) === moneyCurKey(x.currency) && (y.kind || '') === (x.kind || '') && (y.dir || '') === (x.dir || '') && sameWith(y.with, x.with);
+        if (at !== undefined && keptStory.some(y => y.msgId !== x.msgId && at - y.reply > 0 && at - y.reply <= 2 && same(y))) return false;
+        // The same thing bought again later the same day (the story recounting a purchase: "Halvin took 3 silver for
+        // the sword") is still one purchase: same amount, currency, person, and the same item named. Meals, drinks,
+        // rooms and fees can truly repeat, so they are left alone.
+        const things = w => new Set(String(w || '').toLowerCase().replace(/['’]s\b/g, '').split(/[^a-z]+/).filter(t => t.length > 3 && !MONEY_PLAIN_WORDS.has(t)));
+        const mine = things(x.what);
+        if (at !== undefined && mine.size && !MONEY_REPEATS_RE.test(String(x.what || '')) && keptStory.some(y => y.msgId !== x.msgId && same(y) &&
+            (!Number.isFinite(x.at) || !Number.isFinite(y.at) || Math.abs(x.at - y.at) <= 1440) && [...things(y.what)].some(t => mine.has(t)))) return false;
+        keptStory.push({ ...x, reply: at });
+        return true;
+    });
     // debts: "debt" (you owe) and "loan" (owed to you) stay open until a "repaid" with the same person or settled by hand
     const debts = [];
     for (const x of list) {
@@ -14231,8 +14934,19 @@ function moneyRead(chat, st) {
     }
     const open = debts.filter(d => d.left > 0 && !settled.has(d.id));
     const totals = {};
+    // "copper" and "coppers", "Gold" and "gold": one currency, shown as first written
+    const curKey = moneyCurKey;
+    const curName = new Map();
     for (const x of list) {
-        const cur = x.currency || '?';
+        const k = curKey(x.currency);
+        if (!curName.has(k) || String(x.currency || '').length < String(curName.get(k)).length) {
+            const was = curName.get(k), raw = x.currency || '?';
+            // "coppers" shows as "copper": one name per coin, singular
+            const now = raw.length > 3 && /[^s]s$/i.test(raw) && raw.toLowerCase().slice(0, -1) === k ? raw.slice(0, -1) : raw;
+            if (was !== undefined && totals[was]) { totals[now] = totals[was]; delete totals[was]; }
+            curName.set(k, now);
+        }
+        const cur = curName.get(k);
         if (!totals[cur]) totals[cur] = { in: 0, out: 0 };
         if (x.dir === 'in') totals[cur].in += x.amount;
         else if (x.dir === 'out') totals[cur].out += x.amount;
@@ -14251,7 +14965,8 @@ const MONEY_HOLDING_LABELS = ['Resources', 'Purse', 'Coin Purse', 'Wealth', 'Cur
 function moneyHudBalance(hud, cc) {
     const direct = commsBalance(hud, cc);
     if (direct || !hud) return direct;
-    const units = new Set((cc.balance || []).map(x => lockKey(x)).filter(Boolean));
+    // Coin metals are money in any world, whatever the balance labels say ("Purse: 6 Silver, 17 Copper").
+    const units = new Set([...(cc.balance || []).map(x => lockKey(x)), 'gold', 'silver', 'copper', 'bronze', 'coin', 'coins'].filter(Boolean));
     const currency = unit => [...units].some(u => unit === u || unit + 's' === u || unit === u + 's' || unit.endsWith(' ' + u) || unit.endsWith(' ' + u + 's'));
     for (const l of hud.lines) {
         if (l.block === 'fence') continue;
@@ -14284,7 +14999,7 @@ function moneyRequest(chat, st, userName, cfg) {
     const mc = moneyCfg(cfg);
     if (!mc.on || !mc.ask) return null;
     const json = `"money": [{"amount": 0, "currency": "as the story names it", "kind": "${MONEY_KINDS.join('|')}", "dir": "in|out", "what": "for what, a few words", "with": "who, or null"}]`;
-    let rules = `"money": every sum that changed hands for ${userName} in ${userName}'s own last message or in this reply — pay, a reward, a sale ("income"); a purchase, a fee, a bribe, rent ("expense"); money ${userName} now owes ("debt") or lent to someone ("loan"); a debt paid back ("repaid", "dir" in when paid to ${userName}). Real amounts only, as the story states them; [] when no money moved. The HUD's balance stays the record of what ${userName} has.`;
+    let rules = `"money": every sum that changed hands for ${userName} in ${userName}'s own last message or in this reply — pay, a reward, a sale ("income"); a purchase, a fee, a bribe, rent ("expense"); money ${userName} now owes ("debt") or lent to someone ("loan"); a debt paid back ("repaid", "dir" in when paid to ${userName}). Real amounts only, as the story states them; [] when no money moved. A payment only told about, remembered or recounted ("Halvin took 3 silver for the sword") is not new: report money only when it moves now. The HUD's balance stays the record of what ${userName} has.`;
     if (mc.tell && chat && st) {
         let r = null;
         try { r = moneyRead(chat, st); } catch { r = null; }
@@ -14376,8 +15091,10 @@ function factionFromHud(hud) {
                 const name = (m ? m[1] : raw).split(/\s+[—–]\s+/)[0].trim().slice(0, 70);
                 const extra = m && m[2] ? m[2].trim() : null;
                 if (!name) continue;
+                if (/^guilds?$/i.test(lab) && /^[A-FS](?:[-\s]?Rank)?$/i.test(name)) { out.push({ name: 'Guild', rank: name.replace(/[-\s]?Rank$/i, '').toUpperCase(), standing: 'member' }); continue; }
                 if (isBounty) out.push({ name, bounty: extra || null });
-                else out.push({ name, rank: extra && !factionStanding(extra) ? extra.slice(0, 50) : null, standing: extra ? factionStanding(extra) : 'member' });
+                // A rank on a membership line ("Faction: Temple Knights (Squire)") is membership.
+                else out.push({ name, rank: extra && !factionStanding(extra) ? extra.slice(0, 50) : null, standing: extra ? factionStanding(extra) || (/^(?:factions?|guilds?|affiliations?|organi[sz]ation|membership|order|clan|allegiance)$/i.test(lab) && /[(\[]/.test(raw) ? 'member' : null) : 'member' });
                 if (out.length >= 12) return out;
             }
         }
@@ -14576,7 +15293,7 @@ function secretRequest(chat, st, userName, cfg) {
     const sc = secretCfg(cfg);
     if (!sc.on || !sc.ask) return null;
     const json = `"secrets": [{"secret": "the secret, a few words", "whose": "${userName}, or whose secret it is", "known_by": ["who now knows it"], "how": "how they found out, one line"}]`;
-    let rules = `"secrets": when someone finds out a secret of ${userName}'s, or ${userName} finds out someone else's secret, in ${userName}'s own last message or this reply — overheard, confessed, deduced, read, spied, told. "known_by" lists who knows it now (include ${userName} for another's secret). Only a real discovery shown in the story; [] when nobody learned anything.`;
+    let rules = `"secrets": when someone finds out a secret of ${userName}'s, or ${userName} finds out someone else's secret, in ${userName}'s own last message or this reply — overheard, confessed, deduced, read, spied, told. "known_by" lists who knows it now (include ${userName} for another's secret). Only a real discovery shown in the story; [] when nobody learned anything. A secret is something kept hidden from someone: plans, terms or facts said openly, or told to the people they concern, are not secrets.`;
     if (sc.tell && chat && st) {
         let it = [];
         try { it = secretRead(chat, st, userName).items; } catch { it = []; }
@@ -16041,6 +16758,105 @@ function hmsYouPanelRead(chat, st, cfg, sys) {
         carried, standard: si ? { items: si.items, note: si.note } : null };
 }
 
+// ── who you are: the You card's identity block ──
+// The HUD's own identity lines first (Mushoku: "Birth: K.407 | Race: Human | Age: 7 | Origin: …", BG3:
+// "Role: Tav · Half-Elf (High) · Cleric 2 · Acolyte", CotE: "Cohort: … | Standing: Class 1-D | Seat 21"),
+// then what the persona says for anything the HUD leaves out. Nothing here is sent to the model.
+const personaCache = new Map();   // chatId → { text, at }
+async function personaFor(chatId) {
+    if (!chatId) return '';
+    const hit = personaCache.get(chatId);
+    if (hit && Date.now() - hit.at < 60000) return hit.text;
+    let text = '';
+    try { text = String(await resolveMacros('{{persona}}', chatId === SANDBOX_ID ? lastRealChatId : chatId) || ''); } catch { text = ''; }
+    if (/^\s*\{\{persona\}\}\s*$/.test(text)) text = '';
+    personaCache.set(chatId, { text: text.slice(0, 6000), at: Date.now() });
+    while (personaCache.size > 40) personaCache.delete(personaCache.keys().next().value);
+    return text;
+}
+const YOU_ID_FIELDS = [
+    ['age', 'Age', /^(?:age|current age|idade|edad)$/i],
+    ['born', 'Born', /^(?:birth|born|birthday|birthdate|date of birth|dob|birth year)$/i],
+    ['race', 'Race', /^(?:race|species|heritage|ancestry|kin|bloodline race)$/i],
+    ['gender', 'Gender', /^(?:gender|sex)$/i],
+    ['class', 'Class', /^(?:class|classes|job|jobs|occupation|profession|vocation)$/i],
+    ['role', 'Role', /^(?:role|origin character)$/i],
+    ['origin', 'Origin', /^(?:origin|background|hometown|birthplace|homeland|nationality|from)$/i],
+    ['house', 'House', /^(?:house|clan|family name|lineage|noble house)$/i],
+    ['affiliation', 'Affiliation', /^(?:affiliation|allegiance|guild|order|cohort|class standing)$/i],
+    ['title', 'Titles', /^(?:titles?|epithets?|aliases)$/i],
+    ['alignment', 'Alignment', /^(?:alignment|karma)$/i],
+    ['soul', 'Soul', /^soul$/i],
+    ['covenant', 'Covenant', /^covenant$/i],
+    ['form', 'Form', /^(?:form|true form)$/i],
+    ['looks', 'Appearance', /^(?:appearance|looks|aparência|apariencia)$/i]
+];
+function youIdFields(lines) {
+    const out = new Map();
+    for (const raw of lines || []) {
+        const text = hudSemanticText(raw && raw.text !== undefined ? raw.text : raw);
+        if (!text || /^[◆◇⌖►▶•]/.test(text)) continue;
+        for (const part of hmsSplitTop(text, /\s+\|\s+/g)) {
+            const m = String(part).match(/^\s*([^:]{1,32}?)\s*:\s*(.+?)\s*$/);
+            if (!m) continue;
+            const f = YOU_ID_FIELDS.find(x => x[2].test(m[1].trim()));
+            if (!f || out.has(f[0])) continue;
+            const v = m[2].replace(/\*\*/g, '').trim();
+            if (!v || /^(?:none|n\/a|unknown|—|-)$/i.test(v)) continue;
+            out.set(f[0], { key: f[0], label: f[1], value: v.slice(0, 140), from: 'hud' });
+        }
+    }
+    return out;
+}
+function youPersonaFields(text, out) {
+    const t = String(text || '');
+    if (!t.trim()) return;
+    for (const line of t.split(/\n+/).slice(0, 80)) {
+        const m = line.replace(/^[\s*\-•#>]+/, '').replace(/\*\*/g, '').match(/^([A-Za-zÀ-ÿ ]{2,24})\s*[:=]\s*(.{1,140})$/);
+        if (!m) continue;
+        const f = YOU_ID_FIELDS.find(x => x[2].test(m[1].trim()));
+        if (f && !out.has(f[0])) out.set(f[0], { key: f[0], label: f[1], value: m[2].trim(), from: 'persona' });
+    }
+    if (!out.has('age')) {
+        const a = t.match(/\b(\d{1,4})[\s-]*(?:years?|yrs?)[\s-]*old\b|\b(\d{1,4})[\s-]*(?:anos|años)(?:\s+de\s+idade)?\b|\bage[ds]?\s+(\d{1,4})\b/i);
+        const n = a ? Number(a[1] || a[2] || a[3]) : NaN;
+        if (Number.isFinite(n) && n > 0 && n < 5000) out.set('age', { key: 'age', label: 'Age', value: String(n), from: 'persona' });
+    }
+    if (!out.has('gender')) {
+        const words = t.slice(0, 1500).toLowerCase();
+        const g = /\b(?:she|her)\b/.test(words) && !/\b(?:he|him|his)\b/.test(words) ? 'Female' : /\b(?:he|him|his)\b/.test(words) && !/\b(?:she|her)\b/.test(words) ? 'Male' : null;
+        if (g) out.set('gender', { key: 'gender', label: 'Gender', value: g, from: 'persona' });
+    }
+}
+/** The persona's first sentence, as a tagline under the name. */
+function youTagline(text, name) {
+    const t = String(text || '').replace(/\{\{user\}\}/gi, name || 'You').replace(/[*_#>`]+/g, '').replace(/\s+/g, ' ').trim();
+    if (!t || /^[A-Za-z ]{2,24}\s*:/.test(t)) return null;
+    const m = t.match(/^(.{12,220}?[.!?])(?:\s|$)/);
+    const s = (m ? m[1] : t.slice(0, 160)).trim();
+    return s.length > 8 ? s : null;
+}
+function youIdentity(chatId, chat, tl, sys, relations, systems) {
+    const lines = sys && sys._lines ? sys._lines : [];
+    const fields = youIdFields(lines);
+    // BG3's Role line holds origin · race · class · background in one: show it whole, as chips
+    const role = fields.get('role');
+    if (role && /\s·\s/.test(role.value)) role.parts = role.value.split(/\s+·\s+/).map(x => x.trim()).filter(Boolean).slice(0, 6);
+    // Overlord prints the race with its heteromorph tag on a line of its own ("Race: Elder Lich (Heteromorph) | Racial Lvl …"): handled above
+    const persona = (personaCache.get(chatId) || {}).text || '';
+    youPersonaFields(persona, fields);
+    const name = userNameCache.get(chatId) || null;
+    // the story so far: how long, how much, how many people
+    const replies = (chat || []).filter(m => m.role === 'assistant' && trackingMessageVisible(m)).length;
+    const clocks = (tl || []).map(e => e.clock).filter(v => v !== null && v !== undefined && Number.isFinite(v));
+    const days = clocks.length > 1 ? Math.max(0, Math.floor((clocks[clocks.length - 1] - clocks[0]) / 1440)) + 1 : null;
+    const met = relations && Array.isArray(relations.people) ? relations.people.length : null;
+    const done = systems && Array.isArray(systems.journal) ? systems.journal.filter(j => !j.dropped).length : null;
+    const order = YOU_ID_FIELDS.map(x => x[0]);
+    const list = [...fields.values()].sort((a, b) => order.indexOf(a.key) - order.indexOf(b.key));
+    return { name, fields: list, tagline: youTagline(persona, name), story: { days, replies, met, done } };
+}
+
 /** A message that reached a phone is not a thing in your pocket ("pairing notification on phone"). */
 function pocketIsAuthorization(n) {
     return /^(?:permission|approval|consent|authori[sz]ation|access|(?:the )?right)\s+to\b/i.test(String(n || '').trim());
@@ -16350,6 +17166,13 @@ function spellStanding(lines) {
             for (const row of mtRankRows((/\b(?:Shown|True):/i.test(m[1]) ? m[1] : m[1].replace(/\s+\|\s+/g, ', ')), SPELL_LADDER.mt)) put(row.name, row.rank, spellMtStep(row.rank));
             continue;
         }
+        const cs = mtSkillsLine(l);
+        if (cs && cs.magic.length) {
+            out.ladder = out.ladder || 'mt';
+            for (const [name, rank] of cs.magic) if (!out.schools.has(spellSchoolKey(name))) put(name, rank, spellMtStep(rank));
+            if (cs.voiceless) { out.casting = out.casting || 'Voiceless (Active)'; out.voiceless = true; }
+            continue;
+        }
         m = l.match(/^Magic:\s*([^|]+?)\s*\|\s*Gate:\s*([^|]+)/i);
         if (m) {
             out.ladder = 'rz';
@@ -16469,6 +17292,11 @@ function spellResolver(chatId) {
             const baseKey = spellKey(base), target = index.get(baseKey);
             return target ? { key: target.key, name: target.name } : { key: baseKey, name: base };
         }
+        // a short name the story used for a known spell ("Shield" for Water Shield): the one reference it ends
+        if (key && key.split(' ').length <= 2) {
+            const ends = catalog.filter(row => row.key.endsWith(' ' + key));
+            if (ends.length === 1) return { key: ends[0].key, name: ends[0].name };
+        }
         return { key, name: label };
     };
     let cache = spellRecordIndexes.get(index);
@@ -16495,7 +17323,9 @@ function spellResolver(chatId) {
         const key = spellKey(label);
         if (index.has(key)) { const out = [resolve(label)]; cache.values.set(label, out); if (cache.values.size > 512) cache.values.delete(cache.values.keys().next().value); return out; }
         if (cache.groups.has(key)) return cache.groups.get(key);
-        const invalid = text => !text || text.length > 160 || /[.!?:]/.test(text) ||
+        // A name the references don't hold must still read like a spell name, not a sentence
+        // ("Lord Boreas wants Marcus as steady company for his nephew" is a learned fact, not a spell).
+        const invalid = text => !text || text.length > 160 || /[.!?:]/.test(text) || text.split(/\s+/).length > 6 ||
             /^(?:none|null|n\/a|unknown|unlearned|unconfirmed)$/i.test(text) || /^not\s+/i.test(text) ||
             /\b(?:might|could|would|should|plans?|intends?)\s+(?:to\s+)?(?:know|learn|cast|study|use)\b|\b(?:knows?|demonstrates?)\s+\S|\bnever\s+(?:knew|known|learned|cast|used)\b/i.test(text);
         const single = text => {
@@ -16636,25 +17466,40 @@ function spellStoryFoldUncached(chat, chatId = null) {
     const resolve = spellResolver(chatId);
     const established = new Map();
     const learned = new Map(), mastered = new Map(), progress = new Map(), order = new Map(), abilityEvidence = new Map(), withdrawn = new Map();
-    let i = 0;
+    let i = 0, userText = '';
+    const hasRefs = chatId ? spellCatalog(chatId).length > 0 : false;
     for (const m of chat || []) {
+        if (m.role === 'user') { userText = textOf(m.content); continue; }
         if (m.role !== 'assistant') continue;
         order.set(m.id, i++);
         if (!trackingMessageVisible(m) || m._rpgcPurpose === 'continue') continue;
+        // A spell the side-panel block lists, that the chat's spell references don't hold, counts only when this
+        // reply or the player's message names it: otherwise the list grew a new invented name every few replies
+        // ("Water Splash", "Stone Bullet"). Without spell references nothing is filtered.
+        const said = ` ${spellKey(textOf(m.content) + ' ' + userText)} `;
+        const named = target => !hasRefs || !!resolve.reference(target.name) || said.includes(` ${target.key} `) || said.includes(` ${spellKey(target.name)} `);
         for (const raw of spellEstablishedNames(m, playerName)) for (const target of resolve.records(raw)) {
             const note = target.note || established.get(target.key)?.note;
             if (target.key) established.set(target.key, { ...target, ...(note ? { note } : {}), msgId: m.id, at: order.get(m.id) });
         }
         const d = getSwipeData(m);
-        const y = d && isPlainObject(d.survival) ? d.survival : null;
+        let y = d && isPlainObject(d.survival) ? d.survival : null;
         if (!y) continue;
         const assessments = abilityEvidenceRows(m, d, playerName);
         const rejectedClaims = new Set(assessments.filter(row => row.state === 'unverified').flatMap(row => resolve.records(row.name).map(target => target.key)));
         // The spell list is repeated every reply: it adds a spell the first time, and a repeat
         // never re-dates when it was learned (which would hide later practice on it).
-        for (const n of Array.isArray(y.spells) ? y.spells : []) for (const target of resolve.records(n)) if (!rejectedClaims.has(target.key) && learned.has(target.key)) { const prev = learned.get(target.key); if (!prev.note && target.note) prev.note = target.note; }
+        // "Water Ball, Shield, Water Arrow": a bare "Shield" cast beside Water spells is the Water Shield
+        const sameSchool = list => { const named = list.map(n => resolve.reference(n)).filter(Boolean); const first = named.map(r => spellKey(r.name).split(' ')[0]);
+            return list.map(n => { if (typeof n !== 'string' || resolve.reference(n)) return n; for (const w of first) { const t = resolve.reference(`${w} ${n}`); if (t) return t.name; } return n; }); };
+        // "Earth Wall — Earth, Intermediate": the name only, without the school and rank the reporter wrote after it
+        const bareName = n => typeof n === 'string' ? n.split(/\s+[—–]\s+|\s+-\s+(?=[A-Z])/)[0].replace(/\s*\((?=[^)]*\b(?:Beginner|Elementary|Intermediate|Advanced|Saint|King|Emperor|Imperial|God|technique|Style|school|tier)\b)[^)]*\)\s*$/i, '').trim() || n : n;
+        for (const k of ['spells', 'learned', 'mastered']) if (Array.isArray(y[k])) y = { ...y, [k]: y[k].map(bareName) };
+        if (Array.isArray(y.spells)) y = { ...y, spells: sameSchool(y.spells) };
+        if (Array.isArray(y.learned)) y = { ...y, learned: sameSchool(y.learned) };
+        for (const n of Array.isArray(y.spells) ? y.spells : []) for (const target of resolve.records(n)) if (!named(target) && !learned.has(target.key)) continue; else if (!rejectedClaims.has(target.key) && learned.has(target.key)) { const prev = learned.get(target.key); if (!prev.note && target.note) prev.note = target.note; }
         else if (!rejectedClaims.has(target.key)) learned.set(target.key, { ...target, ...((target.note || learned.get(target.key)?.note || established.get(target.key)?.note) ? { note: target.note || learned.get(target.key)?.note || established.get(target.key)?.note } : {}), msgId: m.id, at: order.get(m.id), newlyLearned: false });
-        for (const n of Array.isArray(y.learned) ? y.learned : []) for (const target of resolve.records(n)) if (!rejectedClaims.has(target.key)) learned.set(target.key, { ...target, msgId: m.id, at: order.get(m.id), newlyLearned: true });
+        for (const n of Array.isArray(y.learned) ? y.learned : []) for (const target of resolve.records(n)) if (named(target) && !rejectedClaims.has(target.key)) learned.set(target.key, { ...target, msgId: m.id, at: order.get(m.id), newlyLearned: true });
         for (const n of Array.isArray(y.mastered) ? y.mastered : []) for (const target of resolve.records(n)) if (!rejectedClaims.has(target.key)) mastered.set(target.key, { ...target, msgId: m.id, at: order.get(m.id) });
         for (const s of Array.isArray(y.study) ? y.study : []) if (s && s.spell) for (const target of resolve.records(s)) progress.set(target.key, { name: target.name, progress: s.progress, note: s.note || target.note || null, msgId: m.id, at: order.get(m.id) });
         if (assessments.length) {
@@ -16971,7 +17816,26 @@ function techStyleKey(v) {
 }
 function techStyleName(v) {
     const k = techStyleKey(v);
-    return k ? spellTitle(k) : 'Other';
+    if (!k) return 'Other';
+    const own = String(v ?? '').replace(/\*+/g, '').replace(/[_]+/g, ' ').replace(/\b(?:style|school|ryu|ryū|sword style|swordsmanship)\b/gi, ' ').replace(/\s+/g, ' ').trim();
+    // written with capitals by the HUD or the book: keep it as written; all lower case: title case it
+    return own && own !== own.toLowerCase() ? own : spellTitle(k);
+}
+// Battle Aura has its own three steps, read from the HUD's Touki line rather than from the Sword Style line
+const TOUKI_LADDER = ['Awakening', 'Active', 'Mastered'];
+function techIsTouki(style) { return /^(?:touki|toki|battle aura|fighting spirit)$/.test(techStyleKey(style)); }
+function techToukiStep(s) {
+    const t = String(s || '').toLowerCase();
+    if (/\b(?:locked|none|sealed|unavailable|absent|cannot)\b/.test(t)) return -1;
+    if (/\bmaster(?:ed|y)?\b|\bcomplete\b|\bperfect\b/.test(t)) return 2;
+    if (/\bactive\b|\bcontrolled\b|\bconscious\b/.test(t)) return 1;
+    if (/\bawaken(?:ing|ed)?\b|\bemerging\b|\blatent\b|\bunstable\b|\bflicker/.test(t)) return 0;
+    return null;
+}
+// the rank shown for a technique row, on its own ladder
+function techRankLabel(style, step) {
+    if (step === null || step === undefined || step < 0) return null;
+    return techIsTouki(style) ? TOUKI_LADDER[step] || null : MT_MARTIAL[step] || null;
 }
 function techStep(s) {
     const m = String(s || '').toLowerCase().match(/\b(beginner|elementary|basic|intermediate|advanced|saint|king|emperor|imperial|god|divine)\b/);
@@ -16984,6 +17848,7 @@ function techRankIn(text) {
     const m = t.match(TECH_RANK_RE);
     if (m) return techStep(m[1]);
     if (/\b(foundational|basic) (posture|stance|footwork)\b/i.test(t)) return 0;
+    if (/\b(?:the|an?) (?:fundamental|essential|basic) (?:application|tactic|technique|move|form)\b/i.test(t)) return 0;
     return null;
 }
 
@@ -17011,15 +17876,17 @@ function techsFromEntry(e, out) {
         const sr = text.match(/Style:\s*([^\n·|]+?)\s*(?:[·|]\s*|\n\s*)Rank:\s*([^\n]+)/i) || text.match(/Style:\s*([^\n]+)/i);
         const rankRaw = sr && sr[2] ? sr[2].trim() : '';
         const eff = text.match(/^Effect:\s*(.+)$/im), req = text.match(/^Requires?:\s*(.+)$/im), who = text.match(/^(?:Unique to|Users?|Known users?):\s*(.+)$/im);
-        const step = /^unique/i.test(rankRaw) ? null : techStep(rankRaw);
-        out.push({ name, style: sr ? techStyleName(sr[1]) : 'Other', step, rank: step === null ? null : MT_MARTIAL[step],
+        const styleName = sr ? techStyleName(sr[1]) : 'Other';
+        const step = /^unique/i.test(rankRaw) ? null : techIsTouki(styleName) ? techToukiStep(rankRaw) : techStep(rankRaw);
+        out.push({ name, style: styleName, step: step !== null && step < 0 ? null : step, rank: techRankLabel(styleName, step),
             kind: /^unique/i.test(rankRaw) ? 'unique' : step === null ? 'free' : 'ranked', who: who ? who[1].trim() : null,
             effect: eff ? spellClip(eff[1], 260) : null, requires: req ? spellClip(req[1], 160) : null, fan, src: e.id, prio: 0 });
         return;
     }
     if (/^\s*\[/.test(text)) return;   // rulebooks, start cards and divergences are not techniques
     // "Sword God Technique: Silent Strike. …" / "North God: Earth Shaker. …"
-    let m = text.match(/^\s*((?:Sword|Water|North|Dragon) God)(?: Technique| Style Technique)?\s*:\s*([^.\n:]{2,50})\.\s*([\s\S]*)$/i);
+    let m = text.match(/^\s*((?:Sword|Water|North|Dragon) God|Superd Spear|Beastfolk CQC|Demon Brawling)(?: Technique| Style Technique)?\s*:\s*([^.\n:]{2,50})\.\s*([\s\S]*)$/i);
+    if (m && !/^\s*[A-Z]/.test(m[2])) return;   // "Superd Spear: a Superd's trident is not forged…" describes, it names nothing
     if (m) {
         const rest = m[3];
         const step = techRankIn(m[2] + ' ' + rest.slice(0, 300));
@@ -17072,10 +17939,19 @@ function techKeySet(chatId) {
 function techStanding(lines) {
     const out = new Map();
     for (const raw of lines || []) {
-        const l = String(raw && raw.text !== undefined ? raw.text : raw).replace(/\*\*/g, '').trim();
-        const m = l.match(/^(?:Sword Styles?|Martial Styles?|Sword School|Swordsmanship)\s*:\s*(.+)$/i);
+        const l = hudSemanticText(String(raw && raw.text !== undefined ? raw.text : raw)).trim();
+        const cs = mtSkillsLine(l);
+        // "Touki (Battle Aura): Mastered", also inside a line of fields ("Mana Capacity: … · Touki (Battle Aura): Active")
+        for (const part of hmsSplitTop(l, /\s+\|\s+/g)) {
+            const tk = String(part).match(/^\s*(?:Touki|Toki|Battle Aura)(?:\s*\((?:Battle Aura|Touki)\))?\s*:\s*(.+)$/i);
+            if (!tk) continue;
+            const v = tk[1].split(/\s*[—–(]\s*/)[0];
+            const step = techToukiStep(v);
+            if (step !== null) out.set('touki', { name: 'Touki', rank: step < 0 ? v.trim() || 'Locked' : TOUKI_LADDER[step], step });
+        }
+        const m = l.match(/^(?:Sword Styles?|Martial Styles?|Sword Schools?|Swordsmanship|Fighting Styles?)\s*:\s*(.+)$/i) || (cs && cs.martial.length ? [null, cs.martial.map(([a, b]) => `${a} (${b})`).join(', ')] : null);
         if (!m) continue;
-        for (const row of mtRankRows(m[1], MT_MARTIAL)) {
+        for (const row of mtRankRows(m[1].replace(/\s+\/\s+/g, ' | '), MT_MARTIAL)) {
             const k = techStyleKey(row.name);
             if (k && !/^none$/i.test(k)) out.set(k, { name: techStyleName(row.name), rank: row.rank, step: row.step });
         }
@@ -17105,10 +17981,11 @@ function techListPanel(chatId, chat, st, sys) {
         else if (r.kind === 'unique') { status = 'special'; why = r.who ? `Unique — ${r.who}` : 'Unique'; }
         else if (!stand.size) status = 'open';
         else if (!sch) { status = 'locked'; why = 'Not one of your styles'; }
+        else if (r.step === null && sch.step !== null && sch.step >= (techIsTouki(r.style) ? TOUKI_LADDER.length : MT_MARTIAL.length) - 1) status = 'reach';   // at the top of the style, every technique is within reach
         else if (r.step === null || sch.step === null) { status = 'unranked'; why = r.step === null ? 'No technique rank given — the story decides' : 'Your style rank is unknown — the story decides'; }
         else if (r.step <= sch.step) status = 'reach';
-        else if (r.step === sch.step + 1) { status = 'next'; why = `Needs ${MT_MARTIAL[r.step]}`; }
-        else { status = 'locked'; why = `Needs ${MT_MARTIAL[r.step]}`; }
+        else if (r.step === sch.step + 1) { status = 'next'; why = `Needs ${techRankLabel(r.style, r.step)}`; }
+        else { status = 'locked'; why = `Needs ${techRankLabel(r.style, r.step)}`; }
         return { name: r.name, key: r.key, school: r.style, rank: r.rank, step: r.step, status, why, who: r.who, effect: r.effect, chant: null, requires: r.requires, fan: !!r.fan,
             ...spellRowPractice(status, r.key, fold, known), ...((known.has(r.key) ? known.get(r.key).evidence : fold.abilityEvidence?.get(r.key)) ? { evidence: known.has(r.key) ? known.get(r.key).evidence : fold.abilityEvidence.get(r.key) } : {}) };
     });
@@ -17150,7 +18027,7 @@ function techListPanel(chatId, chat, st, sys) {
 function techIndexFromCatalog(chatId) {
     const out = {};
     for (const r of techCatalog(chatId)) {
-        if (r.step === null || r.kind !== 'ranked') continue;
+        if (r.step === null || r.kind !== 'ranked' || techIsTouki(r.style)) continue;
         const list = (out[techStyleKey(r.style)] = out[techStyleKey(r.style)] || []);
         let row = list.find(x => x.step === r.step);
         if (!row) { row = { rank: MT_MARTIAL[r.step], step: r.step, spells: [] }; list.push(row); }
@@ -17425,6 +18302,10 @@ function agendaClockPart(text) {
     const numbers = { one: 1, two: 2, three: 3, four: 4, five: 5, six: 6, seven: 7, eight: 8, nine: 9, ten: 10, eleven: 11, twelve: 12 };
     const word = t.match(/\b(half past|quarter past|quarter to)\s+(one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve)\b/);
     if (word) return (numbers[word[2]] - (word[1] === 'quarter to' ? 1 : 0)) * 60 + (word[1] === 'half past' ? 30 : word[1] === 'quarter to' ? 45 : 15);
+    // "the ninth bell", "tenth bell": the hour the bell rings (a range takes its start: "ninth bell to midday")
+    const ORD = { first: 1, second: 2, third: 3, fourth: 4, fifth: 5, sixth: 6, seventh: 7, eighth: 8, ninth: 9, tenth: 10, eleventh: 11, twelfth: 12 };
+    const bell = t.match(/\b(first|second|third|fourth|fifth|sixth|seventh|eighth|ninth|tenth|eleventh|twelfth)\s+bell\b/);
+    if (bell && t.indexOf(bell[0]) <= (t.search(/\bnoon\b|\bmidday\b|\bmidnight\b/) < 0 ? Infinity : t.search(/\bnoon\b|\bmidday\b|\bmidnight\b/))) return ORD[bell[1]] * 60;
     if (/\bnoon\b/.test(t)) return 720;
     if (/\bmidnight\b/.test(t)) return 0;
     return null;
@@ -17675,12 +18556,17 @@ function questDetailsLatest(chat) {
                     }
                     return true;
                 };
-                const referenced = q.questId ? rows.filter(x => questReferenceMatch(x, q, continuityLines ??= trackingContinuityLines(m))) : [];
+                // A report that names a row's own Quest ID is that row, whatever else matches its name.
+                const byId = q.questId ? rows.filter(x => lockKey(x.key) === lockKey(q.questId)) : [];
+                const referenced = byId.length === 1 ? byId : q.questId ? rows.filter(x => questReferenceMatch(x, q, continuityLines ??= trackingContinuityLines(m))) : [];
                 const exact = referenced.length ? referenced : rows.filter(x => questKey(x.name) === questKey(q.name) && matches(x));
                 const candidates = exact.length ? exact : rows.filter(matches);
                 // An ambiguous paraphrase cannot choose or invent another assignment.
                 if (!exact.length && candidates.length > 1 && candidates.every(x => questChallengeMatch(x, q))) continue;
-                let row = candidates.length === 1 ? candidates[0] : null;
+                // Two rows under one name (a finished run of the quest and the one that reopened it): a report
+                // continues the open one, never starts a third copy.
+                const open = candidates.length > 1 ? candidates.filter(x => !['done', 'ended', 'failed'].includes((questReportedState(x.state)?.cls || x.cls))) : [];
+                let row = candidates.length === 1 ? candidates[0] : open.length === 1 ? open[0] : null;
                 let contractLink = referenced.length === 1;
                 if (!row && !candidates.length && rows.length) {
                     const lines = () => continuityLines ??= trackingContinuityLines(m);
@@ -17714,6 +18600,13 @@ function questDetailsLatest(chat) {
                 // Reported under this quest's own Quest ID: its objective is the current stage, as reported.
                 const idLinked = !!(row && q.questId && lockKey(q.questId) === lockKey(row.key));
                 const deadlineChanged = !row || (q.deadline && q.deadline !== row.deadline);
+                // A Quest ID of the extension's own "name :: reply" form that no row holds (the row it named was
+                // folded into another, or a swipe dropped it) is that quest under its name, not a new copy.
+                if (!row && !byId.length && / :: /.test(String(q.questId || ''))) {
+                    const same = rows.filter(x => !separateKeys.has(x.key) && questKey(x.name) === questKey(q.name));
+                    const openSame = same.filter(x => !['done', 'ended', 'failed'].includes((questReportedState(x.state)?.cls || x.cls)));
+                    row = openSame.length === 1 ? openSame[0] : !openSame.length && same.length ? same[same.length - 1] : null;
+                }
                 if (!row) { let key = q.questId && !rows.some(x => lockKey(x.key) === lockKey(q.questId)) ? lockKey(q.questId) : q.key || questKey(q.name);
                     const base = key + ' :: ' + m.id;
                     for (let n = 1; rows.some(x => x.key === key); n++) key = base + (n > 1 ? ' :: ' + n : '');
@@ -17913,6 +18806,409 @@ async function hmsWorldMoves(chatId) {
     setStatus(chatId, 'ok', 'The world is moving. Watch the chat.');
 }
 
+// ── Checks, birthdays and short story reminders (all read from what the panels already know) ──
+
+/** The people on a HUD's Present line: "Seraphina Veyrath (42, b. K374)", "Ferren (58, b. ~K358)", "Aurelia (8)". */
+function hmsPresentPeople(hud) {
+    if (!hud) return [];
+    const line = hud.lines.map(l => hudSemanticText(String(l.text || ''))).find(t => /^\s*Present:/i.test(t));
+    if (!line) return [];
+    const out = [];
+    for (const part of hmsSplitTop(line.replace(/^\s*Present:\s*/i, ''), /\s*[,;]\s*/g)) {
+        const p = String(part).trim();
+        if (!p || /^\[/.test(p)) continue;                            // "[Guards: 2 at gate]": a group, not a person
+        const m = p.match(/^([^(]+?)\s*(?:\(([^)]*)\))?\s*$/);
+        if (!m) continue;
+        const name = m[1].trim(), info = m[2] || '';
+        const age = info.match(/^\s*~?(\d{1,4})\b/);
+        const born = info.match(/\bb\.\s*(~)?\s*K\.?\s*(\d{3,4})(?:\s*,?\s*Month\s*(\d{1,2}))?/i);
+        out.push({ name, age: age ? Number(age[1]) : null, born: born ? Number(born[2]) : null, month: born && born[3] ? Number(born[3]) : null, approx: !!(born && born[1]), info });
+    }
+    return out;
+}
+/** The player's own birth: "Age: 12 (born K404, Month 1)". */
+function hmsPlayerBirth(hud) {
+    if (!hud) return null;
+    const t = hud.lines.map(l => hudSemanticText(String(l.text || ''))).join('\n');
+    const m = t.match(/\bAge:\s*(\d{1,4})[^\n]*?\bborn\s*K\.?\s*(\d{3,4})(?:\s*,?\s*Month\s*(\d{1,2}))?/i);
+    return m ? { age: Number(m[1]), born: Number(m[2]), month: m[3] ? Number(m[3]) : null } : null;
+}
+/** Today on the Six-Sided calendar, or null on any other calendar. */
+function hmsCalNow(hud) {
+    if (!hud) return null;
+    const top = hud.lines.filter(l => !l.block).slice(0, 4).map(l => l.text).join(' | ');
+    return mtCalendar(top);
+}
+/** The first and the latest age/birth year the HUD gave each person, so a dropped or changed one can be put back. */
+function hmsKnownBirths(tl) {
+    // the birth year the HUD gave most often (an OOC fix wins once it has carried forward), latest on a tie
+    const seen = new Map(), latest = new Map();
+    for (const e of tl) for (const p of hmsPresentPeople(e.hud)) {
+        if (p.born === null) continue;
+        const k = lockKey(p.name);
+        if (!seen.has(k)) seen.set(k, new Map());
+        const by = seen.get(k), c = by.get(p.born) || { n: 0, p };
+        c.n++; c.p = p; by.set(p.born, c);
+        latest.set(k, p);
+    }
+    const first = new Map();
+    for (const [k, by] of seen) { let best = null; for (const c of by.values()) if (!best || c.n >= best.n) best = c; first.set(k, best.p); }
+    return { first, latest };
+}
+const hmsBirthText = p => `${p.age !== null ? p.age + ', ' : ''}b. ${p.approx ? '~' : ''}K${p.born}${p.month ? `, Month ${p.month}` : ''}`;
+const HMS_ROLE_RE = /-|\b(?:seller|keeper|guard|guards|maid|maids|servant|merchant|clerk|staff|steward|smith|driver|vendor|stranger|boy|girl|man|woman|child|soldier|knight|priest|courier|crowd|patron|patrons)\b/i;
+function hmsNamedPerson(name) { return !!name && /^\p{Lu}/u.test(name) && !HMS_ROLE_RE.test(name); }
+
+/** Things worth a look, shown on the World State card. Each check only reports; nothing is changed. */
+function hmsChecks(chat, st, gear, userName = null) {
+    const out = [];
+    const tl = hmsTimeline(chat);
+    const last = tl.length ? tl[tl.length - 1] : null;
+    if (!last) return out;
+    const cal = hmsCalNow(last.hud);
+    // an age and a birth year that disagree
+    if (cal) for (const p of hmsPresentPeople(last.hud)) {
+        if (p.age === null || p.born === null) continue;
+        const want = cal.year - p.born - (p.month && cal.month < p.month ? 1 : 0);
+        const slack = p.month ? 0 : 1;
+        if (Math.abs(p.age - want) > slack + (p.approx ? 1 : 0)) out.push({ kind: 'age', text: `${p.name}: ${p.age} on the Present line, but born K${p.born} makes ${p.approx ? 'about ' : ''}${want} in K${cal.year}.`, fix: `(OOC fix: ${p.name} is ${p.age}, born K${cal.year - p.age}.)` });
+    }
+    // a named person with no birth year: one the HUD gave before was dropped (put it back), or there never was one
+    const known = hmsKnownBirths(tl);
+    for (const [k, v] of Object.entries(isPlainObject(st && st.peopleBorn) ? st.peopleBorn : {})) if (v && Number.isFinite(v.born)) known.first.set(k, { name: k, age: null, born: v.born, month: v.month || null, approx: false });
+    const noBirthAll = hmsPresentPeople(last.hud).filter(p => p.born === null && hmsNamedPerson(p.name));
+    const dropped = noBirthAll.filter(p => known.first.has(lockKey(p.name)));
+    const noBirthP = noBirthAll.filter(p => !known.first.has(lockKey(p.name)));
+    if (dropped.length) out.push({ kind: 'birth', fix: `(OOC fix: keep the birth years on the Present line: ${dropped.map(p => `${p.name} (${hmsBirthText(known.first.get(lockKey(p.name)))})`).join(', ')}.)`,
+        text: `The Present line dropped the birth year it gave before for ${dropped.map(p => `${p.name} (${hmsBirthText(known.first.get(lockKey(p.name)))})`).join(', ')}. The narrator is reminded to keep them.` });
+    // a birth year that changed since the HUD first gave it
+    for (const p of hmsPresentPeople(last.hud)) {
+        const f = p.born !== null ? known.first.get(lockKey(p.name)) : null;
+        if (f && Math.abs(f.born - p.born) > 1) out.push({ kind: 'age', text: `${p.name}'s birth year changed: b. ${f.approx ? '~' : ''}K${f.born} on most replies, K${p.born} now.`, fix: `(OOC fix: ${p.name} is ${hmsBirthText(f)}, as given before; keep that.)` });
+    }
+    const noBirth = noBirthP.map(p => p.name);
+    if (noBirth.length) out.push({ kind: 'birth', fix: `(OOC fix: ${noBirthP.map(p => p.age !== null && cal ? `${p.name} is ${p.age}, born K${cal.year - p.age}` : `${p.name} needs an age and birth year that fit the story`).join('; ')}.)`, text: `No birth year on the Present line for ${noBirth.join(', ')}. The narrator is reminded to fix one; if it still does not, a quick OOC fix keeps the age steady.` });
+    // the clock going backwards
+    if (tl.length > 1 && last.reset && worldOf(worldLines(last.hud)) !== 'rezero') {
+        const prev = tl[tl.length - 2];
+        out.push({ kind: 'clock', fix: `(OOC fix: the time is ${hmsClockText(prev.hud)} or later; time never goes back.)`, text: `The clock went back: ${hmsClockText(prev.hud)} in the reply before, ${hmsClockText(last.hud)} now.` });
+    }
+    // time passing while the player asked OOC questions
+    if (tl.length > 1 && Number.isFinite(last.clock) && Number.isFinite(tl[tl.length - 2].clock)) {
+        const prev = tl[tl.length - 2];
+        const a = chat.indexOf(prev.msg), b = chat.indexOf(last.msg);
+        const between = a >= 0 && b > a ? chat.slice(a + 1, b) : [];
+        const ooc = between.filter(m => m.role === 'user' && isOocText(textOf(m.content))).length;
+        // the player's story message itself let time pass ("taking a little time to get ready", "later", "wait until supper")
+        const story = between.filter(m => m.role === 'user' && !isOocText(textOf(m.content))).map(m => textOf(m.content)).join(' ');
+        const passes = /\b(?:time|while|hours?|minutes?|later|until|slip(?:s|ped)? (?:past|by)|pass(?:es|ed|ing)?|get(?:ting)? ready|wash(?:ing)? up|chang(?:e|ing) (?:into|clothes)|wait(?:s|ed|ing)?|rest(?:s|ed|ing)?|sleep|nap|skip|evening|night|morning|supper|dinner|breakfast|lunch)\b/i.test(story);
+        const gap = last.clock - prev.clock;
+        if (ooc && gap > 30 && !passes) out.push({ kind: 'ooc', fix: `(OOC fix: OOC messages pass no time. The time is ${hmsClockText(prev.hud)} plus only what the story itself took.)`, text: `The clock moved ${hmsSpan(gap)} across a stretch with ${ooc} OOC message${ooc === 1 ? '' : 's'}. OOC turns are not meant to pass time.` });
+    }
+    try { out.push(...hmsHudSync(chat, st, userName || 'you').map(({ tell, auto, ...c }) => ({ ...c, text: auto ? `${c.text} The narrator is reminded on the next reply.` : c.text }))); } catch { /* display only */ }
+    // the Training line (Six-Sided v1.1): one session is one focused day, 1.5 with a good teacher; the count never runs back
+    try { out.push(...hmsTrainingChecks(tl)); } catch { /* display only */ }
+    // the HUD still carrying what the story says is not on you
+    const stale = gear && Array.isArray(gear.gone) ? gear.gone.filter(x => x.onHud) : [];
+    if (stale.length) out.push({ kind: 'gear', fix: `(OOC fix: ${stale.map(x => x.where ? `the ${x.name} is ${/^(with|at|in|on|returned|left)\b/i.test(x.where) ? '' : 'at '}${x.where}` : `the ${x.name} is not on me`).join('; ')}. Remove ${stale.length === 1 ? 'it' : 'them'} from Equipment until I have ${stale.length === 1 ? 'it' : 'them'} again.)`, text: `The HUD's Equipment line still lists ${stale.map(x => x.where ? `${x.name} (${x.where})` : x.name).join(', ')}. Gear has ${stale.length === 1 ? 'it' : 'them'} as not on you; edit the line, or the narrator may treat ${stale.length === 1 ? 'it' : 'them'} as carried.` });
+    return out;
+}
+const MT_RANKS = ['beginner', 'intermediate', 'advanced', 'saint', 'king', 'emperor', 'god'];
+const MT_SESSIONS = { intermediate: 10, advanced: 25, saint: 60, king: 150 };
+function mtRankIdx(w) { const t = String(w || '').toLowerCase().replace(/imperial/, 'emperor').replace(/divine/, 'god'); return MT_RANKS.findIndex(r => new RegExp(`\\b${r}\\b`).test(t)); }
+/** Training-line slips: a count past what the days allow, a count that went back, a wrong session total, a rank past the age cap. */
+function hmsTrainingChecks(tl) {
+    const out = [];
+    const last = tl.length ? tl[tl.length - 1] : null;
+    if (!last) return out;
+    const lines = worldLines(last.hud);
+    const now = mtTraining(lines);
+    let prev = null;
+    for (let i = tl.length - 2; i >= 0 && i >= tl.length - 40; i--) { const t = mtTraining(worldLines(tl[i].hud)); if (t.length) { prev = { tr: t, e: tl[i] }; break; } }
+    const days = prev && Number.isFinite(last.clock) && Number.isFinite(prev.e.clock) ? Math.max(0, (last.clock - prev.e.clock) / 1440) : null;
+    for (const t of now) {
+        const want = MT_SESSIONS[MT_RANKS[mtRankIdx(t.next)]];
+        if (want && t.needed !== want) out.push({ kind: 'training', text: `Training: ${t.skill} → ${t.next} shows ${t.needed} sessions needed; the card's count to ${t.next} is ${want}.`, fix: `(OOC fix: ${t.skill} → ${t.next} needs ${want} sessions: keep the Training line at ${t.done}/${want}.)` });
+        const p = prev ? prev.tr.find(x => lockKey(x.skill) === lockKey(t.skill)) : null;
+        if (!p || mtRankIdx(p.next) !== mtRankIdx(t.next)) continue;
+        const up = Math.round((t.done - p.done) * 10) / 10;
+        if (up < 0) out.push({ kind: 'training', text: `Training: ${t.skill} went back from ${p.done} to ${t.done} sessions.`, fix: `(OOC fix: ${t.skill} → ${t.next} stays at ${p.done}/${t.needed} sessions plus any session done since; the count never goes back.)` });
+        else if (days !== null && up > 1.5 * Math.max(1, Math.ceil(days - 0.05))) out.push({ kind: 'training', text: `Training: ${t.skill} went up ${up} sessions in ${days < 1 ? 'less than a day' : `${Math.round(days)} day${Math.round(days) === 1 ? '' : 's'}`}; a session is one focused day (1.5 with a good teacher).`, fix: `(OOC fix: ${t.skill} was ${p.done}/${t.needed}; count only the focused days of practice the story shows, 1 each or 1.5 with a good teacher.)` });
+    }
+    // the card's age caps (most lenient reading: magic with Legend Start)
+    const ageM = lines.map(l => String(l).match(/^Race:.*\bAge:\s*(\d+)/i) || String(l).match(/^Age:\s*(\d+)/i)).find(Boolean);
+    const age = ageM ? Number(ageM[1]) : null;
+    if (age !== null) {
+        const swordCap = age < 5 ? -1 : age < 10 ? 1 : age < 15 ? 2 : age < 20 ? 4 : 6;
+        const magicCap = age < 5 ? 2 : age < 10 ? 3 : age < 15 ? 4 : age < 20 ? 5 : 6;
+        for (const [re, cap, what] of [[/^Sword Style:\s*(.+)$/i, swordCap, 'sword'], [/^Magic Tiers:\s*(.+)$/i, magicCap, 'magic']]) {
+            const row = lines.map(l => String(l).match(re)).find(Boolean);
+            if (!row || /potential|True:/i.test(row[1])) continue;
+            for (const m of row[1].matchAll(/([^,()·]+?)\s*\(([^)]+)\)/g)) {
+                const r = mtRankIdx(m[2]);
+                if (r > cap) out.push({ kind: 'training', text: `${m[1].trim()} (${m[2].trim()}) is past the card's cap at age ${age}: ${what} up to ${cap < 0 ? 'none' : MT_RANKS[cap].replace(/^./, c => c.toUpperCase())}.`, fix: `(OOC fix: at ${age}, ${what} is capped at ${cap < 0 ? 'none' : MT_RANKS[cap].replace(/^./, c => c.toUpperCase())}; show ${m[1].trim()} as "True: ${cap < 0 ? 'none' : MT_RANKS[cap].replace(/^./, c => c.toUpperCase())} (potential: ${m[2].trim()})" and keep the sessions counting.)` });
+            }
+        }
+    }
+    return out;
+}
+/** The HUD against what the story showed this reply: a wound not on Condition, a healed one still there, someone in
+ *  the scene missing from Present, a dead person on Present, a kept training session the Training line did not count.
+ *  Read-only. The first four become narrator reminders; the last is a warning only (counting sessions is the card's rule). */
+function hmsHudSync(chat, st, userName) {
+    const out = [];
+    const tl = hmsTimeline(chat);
+    const last = tl.length ? tl[tl.length - 1] : null;
+    if (!last) return out;
+    const d = getSwipeData(last.msg) || {};
+    const prose = stripThink(textOf(last.msg.content)).replace(COMPANION_RE, '').split(/^\s*\*\*\*\s*$/m).slice(1).join('\n').toLowerCase();
+    const me = lockKey(userName || '');
+    const present = hmsPresentPeople(last.hud);
+    const onPresent = n => { const k = lockKey(n), f = k.split(' ')[0]; return present.some(p => { const q = lockKey(p.name); return q === k || q.split(' ')[0] === f; }); };
+    // wounds (only where the HUD keeps them; otherwise the injury block already tells the story)
+    if (injWitness(chat) && Array.isArray(d.hurtSeen)) {
+        const rep = injNormalize(d.hurtSeen) || [];
+        const condText = lockKey(last.hud.lines.map(l => hudSemanticText(String(l.text || ''))).filter(t => /^\s*(?:Condition|Injur(?:y|ies)|Wounds?)\s*:/i.test(t)).join(' '));
+        const words = x => lockKey(`${x.where || ''} ${x.what || ''}`).split(' ').filter(w => w.length > 3 && !/^(?:left|right|from|with|minor|light|small|slight)$/.test(w));
+        const miss = rep.filter(x => { const w = words(x); return w.length && !w.some(v => condText.includes(v)); });
+        if (miss.length) out.push({ kind: 'condition', auto: true,
+            text: `The story shows ${miss.map(x => `${x.where ? x.where + ': ' : ''}${x.what}`).join('; ')}, but the HUD has no Condition entry for it.`,
+            fix: `(OOC fix: show ${userName}'s ${miss.map(x => `${x.where ? x.where + ' ' : ''}${x.what} (${x.severity}, ${x.status})`).join(', ')} on the Condition line.)`,
+            tell: `The story gave ${userName} ${miss.map(x => `${x.where ? x.where + ': ' : ''}${x.what} (${x.severity}, ${x.status === 'raw' ? 'untreated' : x.status})`).join('; ')}. Put ${miss.length === 1 ? 'it' : 'them'} on the HUD's Condition line ("[wound] — Raw/Treated/Healing") and keep ${miss.length === 1 ? 'it' : 'them'} there until healed.` });
+        // healed: a wound on the HUD the reporter no longer lists, with this reply's prose healing that part
+        const HEAL = /\b(?:heal(?:s|ed|ing)?|mend(?:s|ed)?|closes|closed|knits?|knitted|fades?|faded|gone)\b/;
+        const healed = (hmsReadWounds(last.hud) || []).filter(w => {
+            const k = lockKey(w.name).split(' ').filter(v => v.length > 3);
+            if (!k.length || rep.some(x => k.some(v => lockKey(`${x.where} ${x.what}`).includes(v)))) return false;
+            return prose.split(/(?<=[.!?])\s+/).some(sn => HEAL.test(sn) && k.some(v => sn.includes(v)));
+        });
+        if (healed.length) out.push({ kind: 'condition', auto: true,
+            text: `The story healed ${healed.map(w => w.name).join(', ')}, but the Condition line still shows ${healed.length === 1 ? 'it' : 'them'}.`,
+            fix: `(OOC fix: ${healed.map(w => w.name).join(', ')} ${healed.length === 1 ? 'is' : 'are'} healed; drop ${healed.length === 1 ? 'it' : 'them'} from the Condition line.)`,
+            tell: `${healed.map(w => w.name).join(', ')} healed in the story: drop ${healed.length === 1 ? 'it' : 'them'} from the Condition line.` });
+    }
+    // dead: from the story's own death reports before this reply, and the People card's marks
+    const dead = new Map();
+    for (const m of chat) { if (m === last.msg || m.role !== 'assistant') continue; const x = getSwipeData(m)?.deaths; if (Array.isArray(x)) for (const n of x) if (typeof n === 'string' && n.trim()) dead.set(lockKey(n), n.trim()); }
+    for (const [k, v] of Object.entries(isPlainObject(st && st.peopleDead) ? st.peopleDead : {})) { if (v && v.alive) dead.delete(lockKey(k)); else if (v) dead.set(lockKey(k), k); }
+    const deadHere = present.filter(p => dead.has(lockKey(p.name)));
+    if (deadHere.length) out.push({ kind: 'present', auto: true,
+        text: `${deadHere.map(p => p.name).join(', ')} ${deadHere.length === 1 ? 'is' : 'are'} dead, but still on the Present line.`,
+        fix: `(OOC fix: ${deadHere.map(p => p.name).join(', ')} ${deadHere.length === 1 ? 'is' : 'are'} dead; take ${deadHere.length === 1 ? 'them' : 'them'} off the Present line.)`,
+        tell: `${deadHere.map(p => p.name).join(', ')} died earlier in the story: not on the Present line, and not in the scene.` });
+    // someone in the scene, named, not on Present
+    const known = hmsKnownBirths(tl);
+    const inScene = (Array.isArray(d.characters) ? d.characters : []).map(c => c && String(c.name || '').trim()).filter(n => n && hmsNamedPerson(n) && lockKey(n) !== me && !dead.has(lockKey(n)) && !onPresent(n));
+    const uniq = [...new Set(inScene)].slice(0, 5);
+    if (present.length && uniq.length) {
+        const who = n => { const b = known.first.get(lockKey(n)); return b ? `${n} (${hmsBirthText(b)})` : n; };
+        out.push({ kind: 'present', auto: true,
+            text: `${uniq.join(', ')} ${uniq.length === 1 ? 'is' : 'are'} in the scene (by the side panel) but not on the Present line.`,
+            fix: `(OOC fix: add ${uniq.map(who).join(', ')} to the Present line${uniq.some(n => !known.first.has(lockKey(n))) ? ', with age and birth year' : ''}.)`,
+            tell: `${uniq.map(who).join(', ')}: if ${uniq.length === 1 ? 'they are' : 'they are'} in the scene with ${userName} (not only seen from a window or heard from outside), list ${uniq.length === 1 ? 'them' : 'them'} on the Present line with age and birth year.` });
+    }
+    // a training session kept this reply, with no skill on the Training line counted today (warning only)
+    const keptNow = (Array.isArray(d.agenda) ? d.agenda : []).filter(a => a && /\b(?:train(?:ing)?|lessons?|drills?|sessions?|practice|sparring)\b/i.test(String(a.what || '')) && String(a.state || '').toLowerCase() === 'kept');
+    if (keptNow.length) {
+        const now = mtTraining(worldLines(last.hud));
+        const cal = hmsCalNow(last.hud);
+        let start = null;
+        for (let i = tl.length - 2; i >= 0; i--) { const c = hmsCalNow(tl[i].hud); if (!c || !cal || c.year !== cal.year || c.month !== cal.month || c.day !== cal.day) break; start = tl[i]; }
+        if (!start && tl.length > 1) start = tl[tl.length - 2];
+        const before = start ? mtTraining(worldLines(start.hud)) : [];
+        const rose = now.some(t => { const b = before.find(x => lockKey(x.skill) === lockKey(t.skill)); return !b || t.done > b.done || mtRankIdx(b.next) !== mtRankIdx(t.next); });
+        if (now.length && before.length && !rose) out.push({ kind: 'training',
+            text: `${keptNow.map(a => a.what).join('; ')}: kept, but nothing on the Training line went up today. If it was a full focused session, it counts.`,
+            fix: `(OOC fix: if today's ${keptNow.length === 1 ? 'session' : 'sessions'} (${keptNow.map(a => a.what).join('; ')}) ${keptNow.length === 1 ? 'was' : 'were'} a full focused day of practice, count it on the Training line: 1 session, or 1.5 with a good teacher.)` });
+    }
+    return out;
+}
+function hmsClockText(hud) {
+    const top = hud ? hud.lines.filter(l => !l.block).slice(0, 4).map(l => l.text).join(' | ') : '';
+    const cal = mtCalendar(top), tm = top.match(/\b(\d{1,2}:\d{2})\b/);
+    return [cal ? `K${cal.year}, Month ${cal.month}, Day ${cal.day}` : null, tm ? tm[1] : null].filter(Boolean).join(' ') || 'an earlier time';
+}
+
+/** Upcoming birthdays: the player, the family and everyone Friendly or closer, from the birth years the HUD gives. */
+function hmsBirthdays(chat, st, userName = null) {
+    const tl = hmsTimeline(chat);
+    const last = tl.length ? tl[tl.length - 1] : null;
+    const cal = last ? hmsCalNow(last.hud) : null;
+    if (!cal || !cal.month) return [];
+    const seen = new Map();
+    for (const e of tl) for (const p of hmsPresentPeople(e.hud)) if (p.born !== null) seen.set(lockKey(p.name), p);
+    let family = [], close = new Set();
+    try { family = (famRead(chat, st).members || []).map(m => lockKey(m.name)); } catch { family = []; }
+    try { for (const p of (hmsRelationsPanel(chat, st)?.people || [])) if (['Friendly', 'Friend', 'Close', 'Devoted'].includes(p.standing)) close.add(lockKey(p.name)); } catch { /* optional */ }
+    const wanted = k => family.some(f => f === k || f.startsWith(k + ' ') || k.startsWith(f + ' ')) || [...close].some(f => f === k || f.startsWith(k + ' ') || k.startsWith(f + ' '));
+    const rows = [];
+    const add = (name, born, month, you) => {
+        if (month) {
+            const y = cal.month < month || (cal.month === month && cal.day <= 1) ? cal.year : cal.year + 1;
+            const months = (y - cal.year) * 12 + (month - cal.month);
+            rows.push({ name, you: !!you, turns: y - born, year: y, month, inMonths: months, today: months === 0 && cal.month === month });
+        } else rows.push({ name, you: !!you, turns: null, year: null, month: null, born, inMonths: null });
+    };
+    const me = hmsPlayerBirth(last.hud);
+    if (me) add(userName || 'You', me.born, me.month, true);
+    for (const [k, p] of seen) if (wanted(k)) add(p.name, p.born, p.month, false);
+    rows.sort((a, b) => (a.inMonths ?? 99) - (b.inMonths ?? 99) || a.name.localeCompare(b.name));
+    return rows.slice(0, 20);
+}
+
+/** Short reminders for the narrator, only when one applies: what you do not have, what falls due, a time skip. */
+function hmsStoryReminders(chat, st, userName) {
+    const parts = [], names = [];
+    let gear = null, agenda = null;
+    try { gear = gearCfg(hmsCfg()).on ? hmsGearPanel(chat, st) : null; } catch { gear = null; }
+    try { agenda = agendaCfg().on ? hmsAgendaPanel(chat, st) : null; } catch { agenda = null; }
+    const stale = gear && Array.isArray(gear.gone) ? gear.gone.filter(x => x.onHud) : [];
+    if (stale.length) {
+        parts.push(`[RPG Companion: what ${userName} has]\nThe last HUD's Equipment line still lists ${stale.map(x => x.where ? `${x.name} (${x.where})` : x.name).join('; ')}, but the story has ${stale.length === 1 ? 'it' : 'them'} away from ${userName}. ${userName} does not have ${stale.length === 1 ? 'it' : 'them'} now: write the Equipment line without ${stale.length === 1 ? 'it' : 'them'}, and do not narrate ${stale.length === 1 ? 'it' : 'them'} as in hand, until the story gives ${stale.length === 1 ? 'it' : 'them'} back.`);
+        names.push('what you have');
+    }
+    // a named person on the Present line with no age or birth year: the card fixes both on first appearance
+    try {
+        const tl = hmsTimeline(chat), last = tl.length ? tl[tl.length - 1] : null;
+        const known = hmsKnownBirths(tl);
+        const keep = last ? hmsPresentPeople(last.hud).filter(p => hmsNamedPerson(p.name) && p.born === null && known.first.has(lockKey(p.name))) : [];
+        if (keep.length) { parts.push(`[RPG Companion: ages]\nKeep the ages and birth years the Present line already gave: ${keep.map(p => `${p.name} (${hmsBirthText(known.first.get(lockKey(p.name)))}, age moving on with the calendar)`).join('; ')}.`); names.push('ages'); }
+        const missing = last ? hmsPresentPeople(last.hud).filter(p => hmsNamedPerson(p.name) && (p.born === null || p.age === null) && !known.first.has(lockKey(p.name))).map(p => p.name) : [];
+        if (missing.length) {
+            parts.push(`[RPG Companion: ages]\n${missing.join(', ')} ${missing.length === 1 ? 'has' : 'have'} no ${missing.some(n => { const x = hmsPresentPeople(last.hud).find(p => p.name === n); return x && x.age === null; }) ? 'age or ' : ''}birth year on the Present line. Fix ${missing.length === 1 ? 'one' : 'them'} now as the card's age rule says ("Name (age, b. K###)"), fitting what the story has shown, and keep ${missing.length === 1 ? 'it' : 'them'} the same from here on.`);
+            names.push('ages');
+        }
+    } catch { /* optional */ }
+    try {
+        const sync = hmsHudSync(chat, st, userName).filter(x => x.auto && x.tell);
+        if (sync.length) { parts.push(`[RPG Companion: keep the HUD with the story]\n${sync.map(x => `- ${x.tell}`).join('\n')}`); names.push('HUD in step'); }
+    } catch { /* optional */ }
+    const due = agenda ? agenda.items.filter(x => x.state === 'open' && (x.status === 'overdue' || x.status === 'soon' || (x.dueIn === null && Number.isFinite(x.dayIn) && x.dayIn <= 0))) : [];
+    if (due.length) {
+        parts.push(`[RPG Companion: due now]\n${due.slice(0, 6).map(x => `- ${x.what}${x.with ? ` (with ${x.with})` : ''}: ${x.status === 'overdue' ? 'late' : 'due now or soon'}${x.when ? ` (${x.when})` : ''}`).join('\n')}\nLet the world keep or miss these as it would; never force a scene, and never decide for ${userName}.`);
+        names.push('due now');
+    }
+    const lastUser = [...chat].reverse().find(m => m.role === 'user');
+    const skip = lastUser && /\b(?:time[- ]?skip|skip (?:ahead|forward|to|the next|until|a (?:day|week|month|year))|fast[- ]forward|(?:a|one|two|three|several|few|\d+)\s+(?:days?|weeks?|months?|years?)\s+(?:later|pass|go by|have passed))\b/i.test(textOf(lastUser.content));
+    if (skip) {
+        const open = agenda ? agenda.items.filter(x => x.state === 'open' || x.state === 'in_progress').slice(0, 8) : [];
+        const away = gear && Array.isArray(gear.gone) ? gear.gone.filter(x => x.owned).slice(0, 6) : [];
+        let bdays = [];
+        try { bdays = hmsBirthdays(chat, st, userName).filter(b => b.inMonths !== null && b.inMonths <= 12).slice(0, 6); } catch { bdays = []; }
+        const lines = [
+            ...open.map(x => `- ${x.what}${x.with ? ` (with ${x.with})` : ''}${x.when ? `: ${x.when}` : ''}${x.status === 'ongoing' ? ' (ongoing: it runs on through the skip; keep it open until it ends)' : ''}`),
+            ...away.map(x => `- ${x.name}: ${x.where || 'left somewhere'}`),
+            ...bdays.map(b => `- ${b.name} turns ${b.turns} in Month ${b.month}, K${b.year}`)
+        ];
+        if (lines.length) { parts.push(`[RPG Companion: if this reply skips time]\nThese are open. Settle whichever falls inside the skip (kept, missed, delivered, celebrated), as the world would:\n${lines.join('\n')}`); names.push('time-skip recap'); }
+    }
+    return { parts, names };
+}
+
+/** Things to do: what is open right now, gathered from the panels (agenda, gear, quests, letters, people, birthdays, training). Read-only. */
+function hmsTodo(chat, p) {
+    const out = [];
+    const tl = hmsTimeline(chat);
+    const last = tl.length ? tl[tl.length - 1] : null;
+    const agenda = p.agenda && Array.isArray(p.agenda.items) ? p.agenda.items : [];
+    const dayText = x => x.status === 'overdue' ? 'late' : x.dueIn !== null && x.dueIn !== undefined ? (x.dueIn <= 0 ? 'now' : `in ${hmsSpan(x.dueIn)}`) : Number.isFinite(x.dayIn) ? agendaDayText(x.dayIn) : (x.when || null);
+    // a promise with a time coming up ("Aurelius takes the sword from the ninth bell") is under Coming up instead
+    const nearTime = x => x.status === 'overdue' || x.status === 'soon' || (Number.isFinite(x.dueIn) && x.dueIn <= 2 * 1440) || (x.dueIn === null && Number.isFinite(x.dayIn) && x.dayIn <= 2);
+    for (const x of agenda.filter(x => (x.state === 'open' || x.state === 'in_progress') && x.kind === 'promise' && !nearTime(x)))
+        out.push({ kind: 'promise', icon: '🤞', text: `${x.what}${x.with ? ` (${x.with})` : ''}`, sub: x.when || (x.dueIn !== null && x.dueIn !== undefined || Number.isFinite(x.dayIn) ? dayText(x) : 'no date'), go: ['journey', 'agenda'] });
+    for (const x of agenda.filter(x => (x.state === 'open' || x.state === 'in_progress') && x.kind !== 'letter' && (x.kind !== 'promise' || nearTime(x)) && x.status !== 'ongoing')) {
+        const near = x.state === 'in_progress' || x.status === 'overdue' || x.status === 'soon' || (Number.isFinite(x.dueIn) && x.dueIn <= 2 * 1440) || (x.dueIn === null && Number.isFinite(x.dayIn) && x.dayIn <= 2);
+        if (near) out.push({ kind: 'due', icon: x.status === 'overdue' ? '⚠️' : '📅', text: `${x.what}${x.with ? ` (with ${x.with})` : ''}`, sub: x.state === 'in_progress' ? 'in progress' : dayText(x), go: ['journey', 'agenda'] });
+    }
+    // packed with the bags or the luggage goes along; nothing to collect
+    for (const x of (p.gear && Array.isArray(p.gear.gone) ? p.gear.gone : []).filter(x => x.owned && !/\b(?:bags?|luggage|baggage|packs?|packed|saddlebags?|trunk)\b/i.test(String(x.where || '')) && (x.onHud || (Number.isFinite(x.ago) && x.ago <= 7 * 1440))))
+        out.push({ kind: 'collect', icon: '🎒', text: x.name, sub: x.where || 'left somewhere', go: ['you', 'gear'] });
+    for (const q of (p.systems && Array.isArray(p.systems.quests) ? p.systems.quests : []).filter(q => !q.state || q.state === 'active' || q.cls === 'active').slice(0, 3))
+        out.push({ kind: 'quest', icon: '🎯', text: q.name, sub: q.objective || null, go: ['journey', 'quests'] });
+    for (const x of agenda.filter(x => x.kind === 'letter' && (x.state === 'open' || x.state === 'in_progress')))
+        out.push({ kind: 'letter', icon: '✉️', text: x.what, sub: x.when || x.with || null, go: ['journey', 'agenda'] });
+    // the people who matter, not on any Present line for a while
+    if (tl.length > 20) {
+        const want = new Map();
+        for (const m of (p.family && Array.isArray(p.family.members) ? p.family.members : [])) if (m && m.name && m.status !== 'dead') want.set(lockKey(m.name), m.name);
+        for (const r of (p.relations && Array.isArray(p.relations.people) ? p.relations.people : [])) if (r && r.name && !r.dead && ['Friend', 'Close', 'Devoted'].includes(r.standing)) want.set(lockKey(r.name), r.name);
+        for (const r of (p.relations && Array.isArray(p.relations.people) ? p.relations.people : [])) if (r && r.dead) want.delete(lockKey(r.name));
+        for (const [k, name] of want) {
+            const first = k.split(' ')[0];
+            let seen = -1;
+            for (let i = tl.length - 1; i >= 0 && seen < 0; i--) if (hmsPresentPeople(tl[i].hud).some(x => { const n = lockKey(x.name); return n === k || n.split(' ')[0] === first; })) seen = i;
+            const since = seen < 0 ? null : tl.length - 1 - seen;
+            if (since !== null && since >= 20) out.push({ kind: 'people', icon: '👤', text: name, sub: `not seen in ${since} replies`, go: ['people', 'people'] });
+        }
+    }
+    for (const b of (Array.isArray(p.birthdays) ? p.birthdays : []).filter(b => b.inMonths !== null && b.inMonths <= 2))
+        out.push({ kind: 'birthday', icon: '🎂', text: b.you ? `You turn ${b.turns}` : `${b.name} turns ${b.turns}`, sub: b.inMonths === 0 ? 'this month' : b.inMonths === 1 ? 'next month' : 'in 2 months', go: ['journey', 'agenda'] });
+    // near-duplicates (the same appointment reported twice in other words) show once
+    const words = t => new Set(String(t || '').toLowerCase().replace(/\([^)]*\)/g, ' ').split(/[^a-z]+/).filter(w => w.length > 3 && !['with', 'from', 'until', 'after', 'before', 'tomorrow', 'today'].includes(w)));
+    const shown = [];
+    // the one with a time to it (coming up) wins over the open-ended promise it repeats
+    for (const x of [...out.filter(x => x.kind === 'due'), ...out.filter(x => x.kind !== 'due')]) {
+        if (['due', 'promise'].includes(x.kind)) {
+            const a = words(x.text);
+            if (a.size && shown.some(y => ['due', 'promise'].includes(y.kind) && (() => { const b = words(y.text); let n = 0; for (const w of a) if (b.has(w)) n++; return n >= 2 && n / Math.min(a.size, b.size) >= 0.6; })())) continue;
+        }
+        shown.push(x);
+    }
+    return out.filter(x => shown.includes(x)).slice(0, 24);
+}
+
+/** "Suggest things to do": one call on the Companion's own model, only when the player asks. Never reaches the story. */
+async function hmsTodoIdeas(chatId) {
+    const chat = await chatApi.getMessages(chatId);
+    const st = await getChatState(chatId);
+    const userName = await getUserName(chatId);
+    const tl = hmsTimeline(chat);
+    const last = tl.length ? tl[tl.length - 1] : null;
+    let facts = [];
+    try {
+        const agenda = hmsAgendaPanel(chat, st), gear = hmsGearPanel(chat, st), systems = hmsSystemsPanel(chat, st);
+        const relations = hmsRelationsPanel(chat, st), family = hmsFamilyPanel(chat, st), birthdays = hmsBirthdays(chat, st, userName);
+        facts = hmsTodo(chat, { agenda, gear, systems, relations, family, birthdays }).map(x => `- ${x.text}${x.sub ? `: ${x.sub}` : ''}`);
+        for (const r of (relations?.people || []).slice(0, 12)) facts.push(`- ${r.name}: ${r.standing || 'known'}${r.bond ? `, ${r.bond}` : ''}`);
+    } catch (e) { logW(`[RPG Companion HMS] Things-to-do facts failed: ${e?.message || e}`); }
+    const recent = chat.filter(m => m.role === 'user' || m.role === 'assistant').filter(m => !(m.role === 'user' && isOocText(textOf(m.content)))).slice(-10).map(m => {
+        const t = stripCompanion(textOf(m.content));
+        const body = m.role === 'assistant' ? (t.split(/^\s*\*\*\*\s*$/m).slice(1).join('\n') || t) : t;
+        return `${m.role === 'user' ? userName : 'Story'}: ${body.replace(/\s+/g, ' ').trim().slice(0, m.role === 'user' ? 600 : 1500)}`;
+    }).join('\n\n');
+    const hudText = last ? last.hud.lines.map(l => l.text).join('\n').slice(0, 2500) : '';
+    const sys = `You suggest what ${userName}, the player's character in an ongoing roleplay, could do next. Read the scene, the HUD and the open threads, then give 6 to 8 suggestions.
+Rules:
+- Only things ${userName} could do now or soon, where they are, at this time of day, within the world's rules: people to see, errands, training, questions to ask, places to go, small personal moments, preparations.
+- Ground each one in something the story or the open threads actually show. Mix the practical with the personal.
+- Use only what ${userName} knows in the story. A secret or plot hook ${userName} has not learned on screen never appears, not even as a hint.
+- Never decide an outcome, never speak for anyone, and never mention the HUD, trackers or the extension.
+Answer with only a JSON array: [{"do": "a short action in the second person, under 12 words", "why": "one short line from the story"}]`;
+    const user = `WORLD STATE HUD (latest):\n${hudText}\n\nOPEN THREADS AND PEOPLE:\n${facts.join('\n') || '- none'}\n\nRECENT STORY:\n${recent}`;
+    const request = { messages: [{ role: 'system', content: sys }, { role: 'user', content: user }], ...userOpt() };
+    request.reasoning = { source: 'off' };
+    const res = await quietCall(request, Math.max(20, Number(settings.trackerTimeoutSec) || 180) * 1000, chatId);
+    const text = stripThink(res?.content || '');
+    let items = [];
+    try {
+        const s = text.indexOf('['), e = text.lastIndexOf(']');
+        const arr = s >= 0 && e > s ? JSON.parse(text.slice(s, e + 1)) : [];
+        items = (Array.isArray(arr) ? arr : []).filter(x => x && typeof x.do === 'string' && x.do.trim()).slice(0, 8).map(x => ({ do: x.do.trim().slice(0, 120), why: typeof x.why === 'string' ? x.why.trim().slice(0, 200) : '' }));
+    } catch { items = []; }
+    if (!items.length) throw new Error('The model sent no suggestions this time. Try again.');
+    st.todoIdeas = { items, at: last ? last.msg.id : null, made: new Date().toISOString() };
+    await saveChatState(chatId, st);
+}
+
+/** The place a HUD is set in: the last step of its location path, before any comma or dash. */
+function hmsPlaceName(hud) {
+    if (!hud) return null;
+    const line = hud.lines.map(l => String(l.text || '')).find(t => /^\s*(?:◆|📍)/.test(t)) || (hud.location ? String(hud.location) : '');
+    if (!line) return null;
+    const last = line.replace(/^\s*(?:◆|📍)\s*/, '').split(/\s*(?:→|->|›|>)\s*/).filter(Boolean).pop() || '';
+    const name = last.split(/\s*(?:,|\s[—–-]\s)\s*/)[0].trim();
+    return name && name.length <= 40 ? name.replace(/^the\s+/i, (m) => m) : null;
+}
 function pinsReminder(st) {
     const pins = Object.values(st.pins || {}).filter(p => p && p.text);
     if (!pins.length) return null;
@@ -18041,7 +19337,8 @@ onGenerationEnded(async (p, userId) => {
                     contacts: ex.contacts || prev.contacts || null,
                     plot: ex.plot || prev.plot || null,
                     objectives: ex.objectives || prev.objectives || null,
-                    injuries: ex.injuries || prev.injuries || null
+                    injuries: ex.injuries || prev.injuries || null,
+                    hurtSeen: Array.isArray(ex.hurtSeen) ? ex.hurtSeen : (prev.hurtSeen || null)
                 }, patch);
                 await readingsAfterReply(p.chatId, chat, msg, ex.injuries || null, null);
                 const parts = ['userStats', 'infoBox', 'characters'].filter(k => parsed[k]).length;
@@ -18405,6 +19702,30 @@ spindle.onFrontendMessage(async (payload, userId) => {
                 break;
             }
 
+            // Backup and restore: everything the extension keeps for one chat (hand edits, pins, ledger, notes)
+            case 'todo_ideas': {
+                if (!payload.chatId || payload.chatId === SANDBOX_ID) return;
+                try { await hmsTodoIdeas(payload.chatId); }
+                catch (e) { setStatus(payload.chatId, 'error', `Could not get suggestions: ${String(e?.message || e).replace(/^PROVIDER_BUSY:\s*/, 'your provider is busy. ')}`); }
+                toFrontend({ type: 'todo_ideas_done', chatId: payload.chatId });
+                await pushState(payload.chatId);
+                break;
+            }
+            case 'chat_backup': {
+                if (!payload.chatId || payload.chatId === SANDBOX_ID) return;
+                const st = await getChatState(payload.chatId);
+                toFrontend({ type: 'chat_backup', chatId: payload.chatId, data: { format: 'rpg-companion-chat', version: 1, savedAt: new Date().toISOString(), state: st } });
+                break;
+            }
+            case 'chat_restore': {
+                if (!payload.chatId || payload.chatId === SANDBOX_ID) return;
+                const d = payload.data;
+                if (!isPlainObject(d) || d.format !== 'rpg-companion-chat' || !isPlainObject(d.state)) { setStatus(payload.chatId, 'error', 'That file is not an RPG Companion chat backup.'); await pushState(payload.chatId); return; }
+                await saveChatState(payload.chatId, d.state);
+                setStatus(payload.chatId, 'info', 'Chat backup restored.');
+                await pushState(payload.chatId);
+                break;
+            }
             case 'gear': {
                 if (!payload.chatId || !['add', 'set', 'remove'].includes(payload.op)) return;
                 await hmsGearEdit(payload.chatId, payload);
@@ -18419,6 +19740,29 @@ spindle.onFrontendMessage(async (payload, userId) => {
                 break;
             }
 
+            case 'person_born': {
+                if (!payload.chatId || typeof payload.key !== 'string' || !payload.key) return;
+                const st = await getChatState(payload.chatId);
+                if (!isPlainObject(st.peopleBorn)) st.peopleBorn = {};
+                const born = Number(payload.born), month = Number(payload.month);
+                if (Number.isFinite(born) && born > 0 && born < 100000) st.peopleBorn[payload.key.slice(0, 120)] = { born: Math.round(born), month: Number.isFinite(month) && month >= 1 && month <= 12 ? Math.round(month) : null };
+                else delete st.peopleBorn[payload.key];
+                await saveChatState(payload.chatId, st);
+                await pushState(payload.chatId);
+                break;
+            }
+            case 'person_dead': {
+                if (!payload.chatId || typeof payload.key !== 'string' || !payload.key) return;
+                const st = await getChatState(payload.chatId);
+                if (!isPlainObject(st.peopleDead)) st.peopleDead = {};
+                const k = payload.key.slice(0, 120);
+                if (payload.dead) st.peopleDead[k] = { at: new Date().toISOString() };
+                else if (payload.storySaysDead) st.peopleDead[k] = { alive: true, at: new Date().toISOString() };   // the story said dead; you say no
+                else delete st.peopleDead[k];
+                await saveChatState(payload.chatId, st);
+                await pushState(payload.chatId);
+                break;
+            }
             case 'rel_pin': {
                 if (!payload.chatId || typeof payload.name !== 'string') return;
                 await hmsRelPin(payload.chatId, payload);

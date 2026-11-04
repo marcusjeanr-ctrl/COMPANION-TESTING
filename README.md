@@ -12,6 +12,8 @@ The side panel for RPG roleplay in Lumiverse: it reads the story's WORLD STATE H
 
 > 3.1 RC follow-up: [export fixes, consistency fixtures, controlled performance gate and investigations](docs/features/3_1/FOLLOWUP.md).
 
+> 1.1.0 RC: [Six-Sided World v1.1 compatibility — release-candidate report, matrix and live smoke checklist](docs/release/1.1.0-RC-REPORT.md). Live Lumiverse acceptance pending.
+
 > Initial staging features: [3.1 RC verification and review decisions](docs/features/3_1/REPORT.md). No live Lumiverse acceptance performed.
 
 > 3.0.10 RC: [Quest assignment identity and full-sequence verification](docs/compatibility/3_0/QUEST_CONTRACT_CONTINUITY.md).

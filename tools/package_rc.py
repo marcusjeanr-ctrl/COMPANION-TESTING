@@ -30,7 +30,7 @@ def main():
     files = sorted(f for f in tracked if f and (
         f in {'spindle.json', 'README.md', 'CHANGELOG.md', 'LICENSE'}
         or (f.startswith('GUIDE') and f.endswith('.md'))
-        or f.startswith(('dist/', 'i18n/', 'preset/', 'docs/'))))
+        or f.startswith(('dist/', 'i18n/', 'preset/', 'lorebooks/', 'docs/'))))
     manifest = json.loads((ROOT / 'spindle.json').read_text())
     assert all(f in files for f in [manifest['entry_backend'], manifest['entry_frontend'], 'spindle.json'])
     assert output.suffix == '.zip'
