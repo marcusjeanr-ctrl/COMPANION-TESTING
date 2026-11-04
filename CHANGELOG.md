@@ -32,6 +32,14 @@ Compatibility with the Mushoku Tensei RPG "Six-Sided World" v1.1 card and its fo
 - **Person cards**: a bond that only changed wording ("Younger sister" ↔ "Younger sister, minor") no longer shows as a change, and only the latest bond change is kept.
 
 **Fixes from live play (fourth RC pass)**
+- **Keeping the HUD in step with the story.** These now go to the narrator on their own, as a story reminder on the next reply, and show in World State's *Worth a look*:
+  - **a wound the story shows that the Condition line forgot** (Marcus's arm "stinging red to the elbow" after the break-falls)
+  - **a wound the story healed that is still on Condition**
+  - **someone named and in the scene but missing from Present** (Ferren at his own stall, Seraphina at the paper stall). Missing from Present meant no age or birth year was kept.
+  - **someone dead still on Present**
+
+  How wounds are caught: the card keeps wounds on its own Condition line, so the reporter used to be asked nothing about them. Now it also lists what it saw hurt (`hurtSeen`). Bruises, welts, strains, scrapes and burns count; tiredness doesn't. That list is only compared with the Condition line, and the card still owns wounds.
+- **A kept training session nothing counted.** If the Agenda marks a training session kept but nothing on the Training line went up that day, *Worth a look* says so, with a Copy fix. This is a warning only, never sent automatically, because whether a scene was a full session is the card's call.
 - **Abilities: one row per style (display only).** The reporter words the same practice differently each reply, so "Sword God Style footwork" and "Sword God Style under Aurelius's drill" showed as separate abilities next to Sword God Style. Wordings that are only practice (footwork, drills, recovery, forms, "under X's drill"…) now fold under the style's row, marked +N, with a closed *Practice notes* list under the group. A named move ("Sword God Style: Light Reversal") keeps its own row. The "Retained observations: 1" label is gone from this panel; hover a row to see what the story showed. Tracking is unchanged.
 - **Gear: a guess no longer moves your sword.** After Aurelius's training the side panel said the Plain road sword was "left behind before the drills", though the reply never said so and its own HUD still listed the sword. The sword went to Gone, What's next asked you to collect it, and the narrator was about to be told to drop it from Equipment. Now an item the reply's HUD still carries only moves when the reply or your message actually names it (its name, "road sword", "your sword"). A wooden practice sword, "his sword", or a bare "the sword" doesn't count. Real hand-offs still work: your mother taking the travel bundle, the wand going back to Ferren. A rule was also added to the reporter: report a change only when the story shows it.
 - **Training line checks (display only).** World State's *Worth a look* now flags Training-line slips, each with a Copy fix:
@@ -41,7 +49,7 @@ Compatibility with the Mushoku Tensei RPG "Six-Sided World" v1.1 card and its fo
   - a rank past the card's age cap (at 12: sword up to Advanced)
 
   "True: Advanced (potential: Saint)" isn't flagged. Nothing is changed automatically, and the narrator's counting rules are untouched.
-- **New regression suite** `tools/test_live_play_audit.cjs` (14 checks: gear guesses, Training line, discarded swipes), now part of `run_tests.cjs`.
+- **New regression suite** `tools/test_live_play_audit.cjs` (21 checks: gear guesses, Training line, discarded swipes, HUD reminders), now part of `run_tests.cjs`.
 - **Training card: half sessions.** "Water Magic → Saint (1.5/60 sessions)" (a good teacher counts a day as 1.5) was not read, so the Water line vanished from the card. Decimal counts are read now.
 - **Spellbook: a short spell name.** "raise a Shield" beside Water Ball and Water Arrow became a separate "Shield" spell. A bare name is matched to the spell of the same school cast beside it (Water Shield), or to the one spell it ends, when there is only one.
 - **What's next:** a promise with a time coming up (Aurelius's sword session at the ninth bell) shows under Coming up with its countdown; an ongoing arrangement no longer shows there.

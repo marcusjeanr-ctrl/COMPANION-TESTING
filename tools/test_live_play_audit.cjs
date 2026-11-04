@@ -18,6 +18,7 @@ ctx.globalThis = ctx;
 vm.createContext(ctx);
 vm.runInContext(source.slice(0, startup) + `
 globalThis.__t = { gearRead, getSwipeData, mtTraining, hmsTimeline, worldLines,
+  hmsHudSync: typeof hmsHudSync === 'function' ? hmsHudSync : () => [], hmsStoryReminders,
   hmsTrainingChecks: typeof hmsTrainingChecks === 'function' ? hmsTrainingChecks : () => [],
   gearMentioned: typeof gearMentioned === 'function' ? gearMentioned : () => true };`, ctx);
 const t = ctx.__t;
@@ -31,8 +32,9 @@ const hud = (o = {}) => ['### WORLD STATE ###',
     `Sword Style: ${o.sword || 'Sword God (Advanced)'}`,
     `Magic Tiers: ${o.magic || 'Water (Advanced), Earth (Intermediate)'}`,
     o.training === null ? null : `Training: ${o.training || 'Sword God → Saint (0/60 sessions)'}`,
+    o.condition ? `Condition: ${o.condition}` : null,
     `Equipment: ${o.equipment || "Plain road sword (Halvin's mark), leather baldric"}`,
-    'Present: Aurelius Veyrath (45, b. K371)', '***'].filter(Boolean).join('\n');
+    `Present: ${o.present || 'Aurelius Veyrath (45, b. K371)'}`, '***'].filter(Boolean).join('\n');
 const reply = (data, prose, o) => ({ id: `m${++n}`, role: 'assistant', is_user: false, swipe_id: 0,
     content: `${hud(o)}\n\n${prose || 'The yard is quiet.'}`, extra: { spindle_metadata: { rpg_companion: { swipes: { 0: data || {} } } } } });
 const user = text => ({ id: `u${++n}`, role: 'user', is_user: true, swipe_id: 0, content: text });
@@ -113,6 +115,52 @@ check('a swipe with no report reads as nothing, not the other swipe', () => {
         extra: { spindle_metadata: { rpg_companion: { swipes: { 0: { gear: [{ name: 'Discarded thing', state: 'in hand' }] } } } } } };
     const d = t.getSwipeData(m);
     assert.ok(!d || !d.gear || !d.gear.some(g => g.name === 'Discarded thing'));
+});
+
+// ── keeping the HUD with the story: four reminders go to the narrator on their own, the Training one is a warning ──
+const sync = (chat, st = {}) => JSON.parse(JSON.stringify(t.hmsHudSync(chat, st, 'Marcus Veyrath')));
+const tell = (chat, st = {}) => { const r = t.hmsStoryReminders(chat, st, 'Marcus Veyrath'); return JSON.parse(JSON.stringify(r.parts)).join('\n'); };
+const bruise = { hurtSeen: [{ where: 'left forearm', what: 'bruise from break-falls', kind: 'other', severity: 'minor', status: 'raw' }] };
+const owns = { condition: 'Scraped knee — Healing' };   // a HUD that keeps wounds (the card's Condition line)
+check('a wound the story shows but the Condition line forgot is reminded (export 26 arm)', () => {
+    const chat = [user('go'), reply({ hurtSeen: [] }, 'Drills.', owns), user('fall'), reply(bruise, 'Your left arm is stinging red to the elbow.', { time: '12:00' })];
+    const s = sync(chat);
+    assert.equal(s.filter(x => x.kind === 'condition').length, 1);
+    assert.match(tell(chat), /left forearm: bruise from break-falls.*Condition line/);
+});
+check('no reminder once the Condition line carries it', () => {
+    const chat = [user('go'), reply({ hurtSeen: [] }, 'Drills.', owns), user('fall'), reply(bruise, 'Red arm.', { time: '12:00', condition: 'Bruised left forearm — Raw' })];
+    assert.deepEqual(sync(chat).filter(x => x.kind === 'condition'), []);
+});
+check('a wound healed in the story but still on Condition is reminded; a forgotten one is not', () => {
+    const healed = [user('go'), reply({ hurtSeen: [] }, 'Drills.', owns), user('heal'), reply({ hurtSeen: [] }, 'Your mother lays a hand on the forearm and the bruise fades under the green light.', { time: '12:00', condition: 'Bruised left forearm — Raw' })];
+    assert.match(sync(healed).map(x => x.text).join(' '), /healed Bruised left forearm/);
+    const quiet = [user('go'), reply({ hurtSeen: [] }, 'Drills.', owns), user('eat'), reply({ hurtSeen: [] }, 'You eat at the long table.', { time: '12:00', condition: 'Bruised left forearm — Raw' })];
+    assert.deepEqual(sync(quiet).filter(x => x.kind === 'condition'), []);
+});
+check('someone named in the scene but missing from Present is reminded; a role is not', () => {
+    const chat = [user('go'), reply({}, 'Yard.'), user('shop'), reply({ characters: [{ name: 'Ferren' }, { name: 'Paper-seller' }, { name: 'Marcus Veyrath' }, { name: 'Aurelius Veyrath' }] }, 'Ferren holds out the hazel.', { time: '12:00' })];
+    const p = sync(chat).filter(x => x.kind === 'present');
+    assert.equal(p.length, 1); assert.match(p[0].text, /^Ferren is in the scene/);
+    assert.match(tell(chat), /Ferren is in this scene/);
+});
+check('a dead person on Present is reminded', () => {
+    const chat = [user('go'), reply({ deaths: ['Halvin'] }, 'The smith is gone.'), user('later'), reply({}, 'The forge is cold.', { time: '12:00', present: 'Aurelius Veyrath (45, b. K371), Halvin (50)' })];
+    assert.match(sync(chat).map(x => x.text).join(' '), /Halvin is dead/);
+    assert.match(tell(chat), /Halvin died earlier/);
+});
+check('a kept training session with no count is a warning only, never a reminder', () => {
+    const ag = { agenda: [{ what: 'Sword training with Aurelius', state: 'kept' }] };
+    const chat = [user('go'), reply({}, 'Dawn.', { time: '09:00' }), user('train'), reply(ag, 'The drills stop.', { time: '12:00' })];
+    assert.equal(sync(chat).filter(x => x.kind === 'training').length, 1);
+    assert.doesNotMatch(tell(chat), /Training/);
+    const counted = [user('go'), reply({}, 'Dawn.', { time: '09:00' }), user('train'), reply(ag, 'The drills stop.', { time: '12:00', training: 'Sword God → Saint (1.5/60 sessions)' })];
+    assert.deepEqual(sync(counted).filter(x => x.kind === 'training'), []);
+});
+check('a quiet reply sends no HUD reminder', () => {
+    const chat = [user('go'), reply({ characters: [{ name: 'Aurelius Veyrath' }], hurtSeen: [] }, 'Yard.', owns), user('eat'), reply({ characters: [{ name: 'Aurelius Veyrath' }], hurtSeen: [] }, 'Lunch.', { ...owns, time: '12:00' })];
+    assert.deepEqual(sync(chat), []);
+    assert.doesNotMatch(tell(chat), /keep the HUD with the story/);
 });
 
 for (const r of results) console.log(`  ✓ ${r}`);

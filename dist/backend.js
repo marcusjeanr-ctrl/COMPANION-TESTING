@@ -5370,7 +5370,7 @@ async function runSeparateUpdate(chatId, targetId = null) {
             const info = { ...(existing.infoBox || {}) };
             if (comp.weather) info.weather = { forecast: comp.weather, emoji: '' };
             await setSwipeData(chatId, msg, { ...existing, characters: comp.characters || existing.characters || null, infoBox: info, survival: abilityReportMerge(comp.you, existing.survival), party: comp.party || existing.party || null, relations: comp.relations || existing.relations || null, deaths: Array.isArray(comp.deaths) ? comp.deaths : (existing.deaths || null), family: Array.isArray(comp.family) ? comp.family : (existing.family || null), gear: Array.isArray(comp.gear) ? comp.gear : (existing.gear || null), agenda: agendaRefreshReport(comp.agenda, existing.agenda, msg), holdings: Array.isArray(comp.holdings) ? comp.holdings : (existing.holdings || null), money: Array.isArray(comp.money) ? comp.money : (existing.money || null), factions: Array.isArray(comp.factions) ? comp.factions : (existing.factions || null), secrets: Array.isArray(comp.secrets) ? comp.secrets : (existing.secrets || null), contacts: comp.contacts || existing.contacts || null, quests: comp.quests || existing.quests || null,
-                plot: comp.plot || existing.plot || null, objectives: comp.objectives || existing.objectives || null, injuries: comp.injuries || existing.injuries || null,
+                plot: comp.plot || existing.plot || null, objectives: comp.objectives || existing.objectives || null, injuries: comp.injuries || existing.injuries || null, hurtSeen: Array.isArray(comp.hurtSeen) ? comp.hurtSeen : (existing.hurtSeen || null),
                 moments: Array.isArray(comp.moments) ? comp.moments : (existing.moments || null),
                 inbox: Array.isArray(comp.inbox) ? comp.inbox : (existing.inbox || null),
                 pos: comp.pos || existing.pos || null,
@@ -5454,7 +5454,8 @@ async function runSeparateUpdate(chatId, targetId = null) {
             contacts: ex.contacts || existing.contacts || null,
             plot: ex.plot || existing.plot || null,
             objectives: ex.objectives || existing.objectives || null,
-            injuries: ex.injuries || existing.injuries || null
+            injuries: ex.injuries || existing.injuries || null,
+            hurtSeen: Array.isArray(ex.hurtSeen) ? ex.hurtSeen : (existing.hurtSeen || null)
         });
         await readingsAfterReply(chatId, fresh, msg, ex.injuries || null, null);
         { const raw = stripThink(String(res?.content || '')), from = raw.indexOf('{');
@@ -10445,6 +10446,15 @@ function injBotOwns(chat, chatId = chatIdOf(chat)) {
     if (owns && chatId) injOwnedChats.add(chatId);
     return owns;
 }
+/** The HUD keeps the wounds (a Condition line), but the reporter is still asked what it saw, so a wound the
+ *  HUD forgot can be put back on it. The report is never applied to the injury state. */
+function injWitnessRequest(userName) {
+    return {
+        json: '"hurtSeen": [{"where": "body part", "what": "a few words", "kind": "wound|fracture|sprain|burn|internal|other", "severity": "minor|moderate|severe|critical", "status": "raw|treated|permanent|scar"}]',
+        rules: `"hurtSeen" lists what the story shows hurt on ${userName} at the end of this reply, old ones still healing included, worded the same way each time; empty when unhurt. A bruise, welt, strain, scrape or burn the story shows (from training, a fall, a blow) counts as minor; tiredness or sore muscles alone do not. The HUD's Condition line keeps the wounds; this list is only checked against it.`
+    };
+}
+function injWitness(chat) { return injCfg().on && Array.isArray(chat) && injBotOwns(chat); }
 function injActive(chat) {
     if (!injCfg().on || !Array.isArray(chat)) return false;
     return !injBotOwns(chat);
@@ -10452,7 +10462,7 @@ function injActive(chat) {
 function injRequest(userName) {
     return {
         json: '"injuries": [{"where": "body part", "what": "the injury, a few words", "kind": "wound|fracture|sprain|burn|internal|other", "severity": "minor|moderate|severe|critical", "status": "raw|treated|permanent|scar"}]',
-        rules: `"injuries" lists every injury ${userName} carries at the end of this reply, old ones still healing included, worded the same way each time; empty when unhurt. Status follows the body's law: raw until tended; any basic field care (bandage, splint, stitches) makes it treated that turn; treated is not healed; leave an injury out once it has healed, or at once when healing magic closes it. Severed limbs, destroyed eyes and tissue that died are permanent. A healed moderate-or-worse wound may stay as a scar (cosmetic, no penalty).`
+        rules: `"injuries" lists every injury ${userName} carries at the end of this reply, old ones still healing included, worded the same way each time; empty when unhurt. A bruise, welt, strain, scrape or burn the story shows (from training, a fall, a blow) is a minor injury; tiredness or sore muscles alone are not. Status follows the body's law: raw until tended; any basic field care (bandage, splint, stitches) makes it treated that turn; treated is not healed; leave an injury out once it has healed, or at once when healing magic closes it. Severed limbs, destroyed eyes and tissue that died are permanent. A healed moderate-or-worse wound may stay as a scar (cosmetic, no penalty).`
     };
 }
 function injNormalize(list) {
@@ -10706,6 +10716,7 @@ function parseCompanion(text, roster = [], relSt = null, immSt = null) {
     if (Array.isArray(obj.objectives)) { res.objectives = objectivesNormalize(obj.objectives); if (res.objectives) res.found = true; }
     if (Array.isArray(obj.moments)) { res.moments = momentsNormalize(obj.moments) || []; res.found = true; }
     if (Array.isArray(obj.injuries)) { res.injuries = injNormalize(obj.injuries); res.found = true; }
+    if (Array.isArray(obj.hurtSeen)) res.hurtSeen = injNormalize(obj.hurtSeen);
     // Minds (FrankenSIM): what moved inside the people of this reply, their agendas, what they learned, what was planted
     if (Array.isArray(obj.minds)) { res.minds = simMindsNormalize(obj.minds) || []; res.found = true; }
     if (Array.isArray(obj.agendas)) { res.agendas = simAgendasNormalize(obj.agendas) || []; res.found = true; }
@@ -10857,7 +10868,7 @@ function classicExtrasRequestRead(st, chat, userName) {
     const com = commsRequest(chat, st, userName);
     const fight = immCfg().askEachTurn ? immRequest(st, userName) : null;
     const plot = plotRequest(userName);
-    const inj = injActive(chat) ? injRequest(userName) : null;
+    const inj = injActive(chat) ? injRequest(userName) : injWitness(chat) ? injWitnessRequest(userName) : null;
     for (const x of [party, rel, fam, gear, hold, agenda, money, factions, secrets, com, fight, plot, inj]) if (x) { parts.push(x.json); rules.push(x.rules); }
     if (!parts.length) return '';
     return `\nIn the same JSON object, also include these keys:\n{${parts.join(',\n ')}}\n${rules.join('\n')}\n`;
@@ -10878,7 +10889,8 @@ function classicExtras(parsed, st) {
         fight: parsed.fight && immActive(st) ? immNormalize(parsed.fight, st.immersive) : null,
         plot: parsed.plot ? plotNormalize(parsed.plot) : null,
         objectives: parsed.objectives ? objectivesNormalize(parsed.objectives) : null,
-        injuries: Array.isArray(parsed.injuries) ? injNormalize(parsed.injuries) : null
+        injuries: Array.isArray(parsed.injuries) ? injNormalize(parsed.injuries) : null,
+        hurtSeen: Array.isArray(parsed.hurtSeen) ? injNormalize(parsed.hurtSeen) : null
     };
     if (out.party) partyFill(out.party, out.relations, parsed.characters, partyRoster(st));
     return out;
@@ -10977,7 +10989,7 @@ function buildCompanionInstructionRead(committed, userName, locks, st = null, ch
     if (plotReq) parts.push(plotReq.json);
     const momReq = chronMomentsRequest(userName);
     if (momReq) parts.push(momReq.json);
-    const injReq = injActive(chat) ? injRequest(userName) : null;
+    const injReq = injActive(chat) ? injRequest(userName) : injWitness(chat) ? injWitnessRequest(userName) : null;
     if (injReq) parts.push(injReq.json);
     if (wantQuests) parts.push('"quests": [{"id": "existing ID or null for a new assignment", "name": "…", "objective": "current step", "progress": "measured 0..100 or null", "giver": "or null", "where": "or null", "deadline": "in-world time or null", "reward": "or null", "category": "main|side|personal|party", "state": "active|completed|failed|abandoned|closed or null"}]');
     if (party) parts.push(party.json);
@@ -11305,6 +11317,7 @@ async function hmsHandleReplyInner(chatId, chat, msg, generationType) {
         party: res.comp.party || prev.party || null,
         relations: res.comp.relations || prev.relations || null,
         deaths: Array.isArray(res.comp.deaths) ? res.comp.deaths : (prev.deaths || null),
+        hurtSeen: Array.isArray(res.comp.hurtSeen) ? res.comp.hurtSeen : (prev.hurtSeen || null),
         family: Array.isArray(res.comp.family) ? res.comp.family : (prev.family || null),
         gear: Array.isArray(res.comp.gear) ? res.comp.gear : (prev.gear || null),
         agenda: Array.isArray(res.comp.agenda) ? res.comp.agenda : (prev.agenda || null),
@@ -11557,7 +11570,7 @@ function hmsPanelStateRead(chatId, chat, st) {
             // A party member in agony or at the end of their strength is a danger, not a mood.
             if (systems && party) for (const m of party.members) for (const a of m.alerts) if (a.sev === 'high' && ['hunger', 'fatigue', 'pain'].includes(a.dim)) systems.danger.push(a.text);
             let checks = [], birthdays = [];
-            try { checks = hmsChecks(chat, st, gear); } catch (e) { logW(`[RPG Companion HMS] Checks failed: ${e?.message || e}`); }
+            try { checks = hmsChecks(chat, st, gear, userNameCache.get(chatId) || null); } catch (e) { logW(`[RPG Companion HMS] Checks failed: ${e?.message || e}`); }
             try { birthdays = hmsBirthdays(chat, st, userNameCache.get(chatId) || null); } catch (e) { logW(`[RPG Companion HMS] Birthdays failed: ${e?.message || e}`); }
             let todo = [];
             try { todo = hmsTodo(chat, { agenda, gear, systems, relations, family, birthdays }); } catch (e) { logW(`[RPG Companion HMS] Things to do failed: ${e?.message || e}`); }
@@ -18781,7 +18794,7 @@ const HMS_ROLE_RE = /-|\b(?:seller|keeper|guard|guards|maid|maids|servant|mercha
 function hmsNamedPerson(name) { return !!name && /^\p{Lu}/u.test(name) && !HMS_ROLE_RE.test(name); }
 
 /** Things worth a look, shown on the World State card. Each check only reports; nothing is changed. */
-function hmsChecks(chat, st, gear) {
+function hmsChecks(chat, st, gear, userName = null) {
     const out = [];
     const tl = hmsTimeline(chat);
     const last = tl.length ? tl[tl.length - 1] : null;
@@ -18826,6 +18839,7 @@ function hmsChecks(chat, st, gear) {
         const gap = last.clock - prev.clock;
         if (ooc && gap > 30 && !passes) out.push({ kind: 'ooc', fix: `(OOC fix: OOC messages pass no time. The time is ${hmsClockText(prev.hud)} plus only what the story itself took.)`, text: `The clock moved ${hmsSpan(gap)} across a stretch with ${ooc} OOC message${ooc === 1 ? '' : 's'}. OOC turns are not meant to pass time.` });
     }
+    try { out.push(...hmsHudSync(chat, st, userName || 'you').map(({ tell, auto, ...c }) => ({ ...c, text: auto ? `${c.text} The narrator is reminded on the next reply.` : c.text }))); } catch { /* display only */ }
     // the Training line (Six-Sided v1.1): one session is one focused day, 1.5 with a good teacher; the count never runs back
     try { out.push(...hmsTrainingChecks(tl)); } catch { /* display only */ }
     // the HUD still carrying what the story says is not on you
@@ -18869,6 +18883,77 @@ function hmsTrainingChecks(tl) {
                 if (r > cap) out.push({ kind: 'training', text: `${m[1].trim()} (${m[2].trim()}) is past the card's cap at age ${age}: ${what} up to ${cap < 0 ? 'none' : MT_RANKS[cap].replace(/^./, c => c.toUpperCase())}.`, fix: `(OOC fix: at ${age}, ${what} is capped at ${cap < 0 ? 'none' : MT_RANKS[cap].replace(/^./, c => c.toUpperCase())}; show ${m[1].trim()} as "True: ${cap < 0 ? 'none' : MT_RANKS[cap].replace(/^./, c => c.toUpperCase())} (potential: ${m[2].trim()})" and keep the sessions counting.)` });
             }
         }
+    }
+    return out;
+}
+/** The HUD against what the story showed this reply: a wound not on Condition, a healed one still there, someone in
+ *  the scene missing from Present, a dead person on Present, a kept training session the Training line did not count.
+ *  Read-only. The first four become narrator reminders; the last is a warning only (counting sessions is the card's rule). */
+function hmsHudSync(chat, st, userName) {
+    const out = [];
+    const tl = hmsTimeline(chat);
+    const last = tl.length ? tl[tl.length - 1] : null;
+    if (!last) return out;
+    const d = getSwipeData(last.msg) || {};
+    const prose = stripThink(textOf(last.msg.content)).replace(COMPANION_RE, '').split(/^\s*\*\*\*\s*$/m).slice(1).join('\n').toLowerCase();
+    const me = lockKey(userName || '');
+    const present = hmsPresentPeople(last.hud);
+    const onPresent = n => { const k = lockKey(n), f = k.split(' ')[0]; return present.some(p => { const q = lockKey(p.name); return q === k || q.split(' ')[0] === f; }); };
+    // wounds (only where the HUD keeps them; otherwise the injury block already tells the story)
+    if (injWitness(chat) && Array.isArray(d.hurtSeen)) {
+        const rep = injNormalize(d.hurtSeen) || [];
+        const condText = lockKey(last.hud.lines.map(l => hudSemanticText(String(l.text || ''))).filter(t => /^\s*(?:Condition|Injur(?:y|ies)|Wounds?)\s*:/i.test(t)).join(' '));
+        const words = x => lockKey(`${x.where || ''} ${x.what || ''}`).split(' ').filter(w => w.length > 3 && !/^(?:left|right|from|with|minor|light|small|slight)$/.test(w));
+        const miss = rep.filter(x => { const w = words(x); return w.length && !w.some(v => condText.includes(v)); });
+        if (miss.length) out.push({ kind: 'condition', auto: true,
+            text: `The story shows ${miss.map(x => `${x.where ? x.where + ': ' : ''}${x.what}`).join('; ')}, but the HUD has no Condition entry for it.`,
+            fix: `(OOC fix: show ${userName}'s ${miss.map(x => `${x.where ? x.where + ' ' : ''}${x.what} (${x.severity}, ${x.status})`).join(', ')} on the Condition line.)`,
+            tell: `The story gave ${userName} ${miss.map(x => `${x.where ? x.where + ': ' : ''}${x.what} (${x.severity}, ${x.status === 'raw' ? 'untreated' : x.status})`).join('; ')}. Put ${miss.length === 1 ? 'it' : 'them'} on the HUD's Condition line ("[wound] — Raw/Treated/Healing") and keep ${miss.length === 1 ? 'it' : 'them'} there until healed.` });
+        // healed: a wound on the HUD the reporter no longer lists, with this reply's prose healing that part
+        const HEAL = /\b(?:heal(?:s|ed|ing)?|mend(?:s|ed)?|closes|closed|knits?|knitted|fades?|faded|gone)\b/;
+        const healed = (hmsReadWounds(last.hud) || []).filter(w => {
+            const k = lockKey(w.name).split(' ').filter(v => v.length > 3);
+            if (!k.length || rep.some(x => k.some(v => lockKey(`${x.where} ${x.what}`).includes(v)))) return false;
+            return prose.split(/(?<=[.!?])\s+/).some(sn => HEAL.test(sn) && k.some(v => sn.includes(v)));
+        });
+        if (healed.length) out.push({ kind: 'condition', auto: true,
+            text: `The story healed ${healed.map(w => w.name).join(', ')}, but the Condition line still shows ${healed.length === 1 ? 'it' : 'them'}.`,
+            fix: `(OOC fix: ${healed.map(w => w.name).join(', ')} ${healed.length === 1 ? 'is' : 'are'} healed; drop ${healed.length === 1 ? 'it' : 'them'} from the Condition line.)`,
+            tell: `${healed.map(w => w.name).join(', ')} healed in the story: drop ${healed.length === 1 ? 'it' : 'them'} from the Condition line.` });
+    }
+    // dead: from the story's own death reports before this reply, and the People card's marks
+    const dead = new Map();
+    for (const m of chat) { if (m === last.msg || m.role !== 'assistant') continue; const x = getSwipeData(m)?.deaths; if (Array.isArray(x)) for (const n of x) if (typeof n === 'string' && n.trim()) dead.set(lockKey(n), n.trim()); }
+    for (const [k, v] of Object.entries(isPlainObject(st && st.peopleDead) ? st.peopleDead : {})) { if (v && v.alive) dead.delete(lockKey(k)); else if (v) dead.set(lockKey(k), k); }
+    const deadHere = present.filter(p => dead.has(lockKey(p.name)));
+    if (deadHere.length) out.push({ kind: 'present', auto: true,
+        text: `${deadHere.map(p => p.name).join(', ')} ${deadHere.length === 1 ? 'is' : 'are'} dead, but still on the Present line.`,
+        fix: `(OOC fix: ${deadHere.map(p => p.name).join(', ')} ${deadHere.length === 1 ? 'is' : 'are'} dead; take ${deadHere.length === 1 ? 'them' : 'them'} off the Present line.)`,
+        tell: `${deadHere.map(p => p.name).join(', ')} died earlier in the story: not on the Present line, and not in the scene.` });
+    // someone in the scene, named, not on Present
+    const known = hmsKnownBirths(tl);
+    const inScene = (Array.isArray(d.characters) ? d.characters : []).map(c => c && String(c.name || '').trim()).filter(n => n && hmsNamedPerson(n) && lockKey(n) !== me && !dead.has(lockKey(n)) && !onPresent(n));
+    const uniq = [...new Set(inScene)].slice(0, 5);
+    if (present.length && uniq.length) {
+        const who = n => { const b = known.first.get(lockKey(n)); return b ? `${n} (${hmsBirthText(b)})` : n; };
+        out.push({ kind: 'present', auto: true,
+            text: `${uniq.join(', ')} ${uniq.length === 1 ? 'is' : 'are'} in the scene but not on the Present line.`,
+            fix: `(OOC fix: add ${uniq.map(who).join(', ')} to the Present line${uniq.some(n => !known.first.has(lockKey(n))) ? ', with age and birth year' : ''}.)`,
+            tell: `${uniq.map(who).join(', ')} ${uniq.length === 1 ? 'is' : 'are'} in this scene: list ${uniq.length === 1 ? 'them' : 'them'} on the Present line with age and birth year, unless they have left.` });
+    }
+    // a training session kept this reply, with no skill on the Training line counted today (warning only)
+    const keptNow = (Array.isArray(d.agenda) ? d.agenda : []).filter(a => a && /\b(?:train(?:ing)?|lessons?|drills?|sessions?|practice|sparring)\b/i.test(String(a.what || '')) && String(a.state || '').toLowerCase() === 'kept');
+    if (keptNow.length) {
+        const now = mtTraining(worldLines(last.hud));
+        const cal = hmsCalNow(last.hud);
+        let start = null;
+        for (let i = tl.length - 2; i >= 0; i--) { const c = hmsCalNow(tl[i].hud); if (!c || !cal || c.year !== cal.year || c.month !== cal.month || c.day !== cal.day) break; start = tl[i]; }
+        if (!start && tl.length > 1) start = tl[tl.length - 2];
+        const before = start ? mtTraining(worldLines(start.hud)) : [];
+        const rose = now.some(t => { const b = before.find(x => lockKey(x.skill) === lockKey(t.skill)); return !b || t.done > b.done || mtRankIdx(b.next) !== mtRankIdx(t.next); });
+        if (now.length && before.length && !rose) out.push({ kind: 'training',
+            text: `${keptNow.map(a => a.what).join('; ')}: kept, but nothing on the Training line went up today. If it was a full focused session, it counts.`,
+            fix: `(OOC fix: if today's ${keptNow.length === 1 ? 'session' : 'sessions'} (${keptNow.map(a => a.what).join('; ')}) ${keptNow.length === 1 ? 'was' : 'were'} a full focused day of practice, count it on the Training line: 1 session, or 1.5 with a good teacher.)` });
     }
     return out;
 }
@@ -18927,6 +19012,10 @@ function hmsStoryReminders(chat, st, userName) {
             parts.push(`[RPG Companion: ages]\n${missing.join(', ')} ${missing.length === 1 ? 'has' : 'have'} no ${missing.some(n => { const x = hmsPresentPeople(last.hud).find(p => p.name === n); return x && x.age === null; }) ? 'age or ' : ''}birth year on the Present line. Fix ${missing.length === 1 ? 'one' : 'them'} now as the card's age rule says ("Name (age, b. K###)"), fitting what the story has shown, and keep ${missing.length === 1 ? 'it' : 'them'} the same from here on.`);
             names.push('ages');
         }
+    } catch { /* optional */ }
+    try {
+        const sync = hmsHudSync(chat, st, userName).filter(x => x.auto && x.tell);
+        if (sync.length) { parts.push(`[RPG Companion: keep the HUD with the story]\n${sync.map(x => `- ${x.tell}`).join('\n')}`); names.push('HUD in step'); }
     } catch { /* optional */ }
     const due = agenda ? agenda.items.filter(x => x.state === 'open' && (x.status === 'overdue' || x.status === 'soon' || (x.dueIn === null && Number.isFinite(x.dayIn) && x.dayIn <= 0))) : [];
     if (due.length) {
@@ -19181,7 +19270,8 @@ onGenerationEnded(async (p, userId) => {
                     contacts: ex.contacts || prev.contacts || null,
                     plot: ex.plot || prev.plot || null,
                     objectives: ex.objectives || prev.objectives || null,
-                    injuries: ex.injuries || prev.injuries || null
+                    injuries: ex.injuries || prev.injuries || null,
+                    hurtSeen: Array.isArray(ex.hurtSeen) ? ex.hurtSeen : (prev.hurtSeen || null)
                 }, patch);
                 await readingsAfterReply(p.chatId, chat, msg, ex.injuries || null, null);
                 const parts = ['userStats', 'infoBox', 'characters'].filter(k => parsed[k]).length;

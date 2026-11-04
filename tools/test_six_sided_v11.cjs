@@ -222,6 +222,7 @@ check('guard: a dropped line in the same style is still reported', () => {
         assert((h.systems.wounds || []).some(w => /cracked rib/i.test(w.name)), 'wound shown');
         assert(!(h.systems.conditions || []).some(c => /cracked rib/i.test(c.text)), 'not doubled as a condition');
         assert(!/"injuries"\s*:/.test(added), 'no competing injuries request');
+        assert(/"hurtSeen"\s*:/.test(added), 'the reporter still says what it saw, to check the Condition line against');
     });
     await checkAsync('wounds: the card\'s Condition law alone means the card keeps wounds', async () => {
         const chat = [user('a'), reply(classic({ ...S, condition: null })), user('b')];
