@@ -4965,19 +4965,34 @@ export function setup(ctx) {
         const covers = new Set((state.world && S()?.worldCard !== false && state.world.covers) || []);
         const groups = sys.abilities.map(g => ({ ...g, items: g.items.filter(it => !(it.src && covers.has(String(it.src).toUpperCase()))) })).filter(g => g.items.length);
         if (!groups.length && !(sys.attributes || []).length) return null;
-        const out = groups.map(g => h('div', { class: 'rpgc-abil' },
+        // The reporter words the same practice a new way each reply ("Sword God Style footwork", "Sword God Style
+        // under Aurelius's drill"). Display only: those fold under the style's own row; a named move stays its own.
+        const PRACTICE_RE = /^(?:(?:basic|basics|footwork|drills?|practice|training|forms?|stance(?: work)?|recovery|conditioning|sparring|lessons?|sessions?|exercises?|fundamentals|refinement|timing)\b|(?:under|with|from)\b.*\b(?:drills?|training|lessons?|instruction|teaching|eye)\b|(?:drills?|training|practice) (?:under|with)\b)/i;
+        const keyOf = n => String(n || '').toLowerCase().replace(/[’']s\b/g, '').replace(/[^a-z0-9]+/g, ' ').trim();
+        const foldGroup = items => {
+            const kept = [], under = new Map();
+            for (const it of items) {
+                const k = keyOf(it.name);
+                const base = items.find(b => b !== it && keyOf(b.name) && k.startsWith(keyOf(b.name) + ' ') && PRACTICE_RE.test(String(it.name).slice(String(b.name).length).replace(/^[\s:,—–-]+/, '')));
+                if (base) { if (!under.has(base)) under.set(base, []); under.get(base).push(it); } else kept.push(it);
+            }
+            return { kept, under };
+        };
+        const out = groups.map(g => { const f = foldGroup(g.items); const notes = [...f.under.entries()]; return h('div', { class: 'rpgc-abil' },
             h('h4', null, g.category),
-            h('div', { class: 'rpgc-chips' }, g.items.map(it => h('span', { class: 'rpgc-chip abil', title: [it.label, it.state, ...(it.observations || []).map(x => [x.name, x.state, x.progress !== null && x.progress !== undefined ? x.progress + '%' : null, x.note, x.evidence].filter(Boolean).join(' · '))].filter(Boolean).join(' \u00B7 ') || null },
+            h('div', { class: 'rpgc-chips' }, f.kept.map(it => h('span', { class: 'rpgc-chip abil', title: [it.label, it.state, ...(it.observations || []).map(x => [x.name, x.state, x.progress !== null && x.progress !== undefined ? x.progress + '%' : null, x.note, x.evidence].filter(Boolean).join(' · '))].filter(Boolean).join(' \u00B7 ') || null },
                 it.label ? h('em', null, it.label + ': ') : null,
                 it.name,
                 it.level ? h('span', { class: 'lv' }, ` Lv ${it.level}`) : null,
-                it.state ? h('span', { class: 'st' }, ` (${it.state})`) : null, it.state || it.observations?.length ? renderAbilityEvidence(it) : null)))));
+                it.state ? h('span', { class: 'st' }, ` (${it.state})`) : null, f.under.has(it) ? h('small', { class: 'rpgc-note' }, ` +${f.under.get(it).length}`) : null))),
+            notes.length ? h('details', { class: 'rpgc-abil-notes' }, h('summary', null, `Practice notes (${notes.reduce((a, [, l]) => a + l.length, 0)})`),
+                h('ul', null, notes.flatMap(([b, l]) => l.map(it => h('li', { class: 'rpgc-note' }, h('b', null, `${b.name}: `), String(it.name).slice(String(b.name).length).replace(/^[\s:,—–-]+/, ''), it.state ? ` (${it.state})` : ''))))) : null); });
         for (const g of (sys.attributes || [])) {
             out.push(h('div', { class: 'rpgc-abil' },
                 h('h4', null, g.title.replace(/^\[/, '')),
                 h('div', { class: 'rpgc-attrs' }, g.items.map(it => h('span', { class: 'rpgc-attr' }, h('b', null, it.name), h('span', null, it.value))))));
         }
-        const n = groups.reduce((a, g) => a + g.items.length, 0);
+        const n = groups.reduce((a, g) => a + foldGroup(g.items).kept.length, 0);
         return section('abilities', 'Abilities', state.open, n ? String(n) : null, ...out);
     }
 
