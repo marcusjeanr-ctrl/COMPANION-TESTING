@@ -1,5 +1,21 @@
 # Changelog — RPG Companion HMS Edition
 
+## 1.2.0 (in development, branch `release/1.2.0`)
+
+Built on 1.1.0 RC2. Report: `docs/release/1.2.0-INTEGRATION-REPORT.md`.
+
+**Fixes**
+- **Deaths need the story to show them.** A death the side panel reports only counts when the reply (or your message before it) names the person and some sentence tells a real death, not a threat, a guess or a dream ("If you fail, Halvin would die" is not a death). Before this, a reported name alone marked someone dead. The People view, the Present reminder and the 🕯️ group all read the checked list.
+- **Groups and creatures aren't people.** "Acid Wolf", "Two bandits" or "Black Wolf pack" in a scene were treated as named people: the narrator was asked to put them on Present, and the check asked for their birth year. Groups, counts and creatures are now left alone, like shopkeepers.
+- **Present: a note after the bracket.** "Kessa (240, looks 30) — Migurd" used to drop the whole Present line. The person is now read with the note kept.
+- **Compact: the Skills row reaches Abilities.** In Compact, the merged `Skills:` row showed raw chips ("💧Water Adv"); Abilities now shows Water: Advanced, Earth: Intermediate and so on, as in Classic.
+- **Clock warning on other calendars** now shows the day ("22 Eleasis, 1492 DR 06:40 … 21 Eleasis 09:20"), so a day going back no longer reads like a later time.
+
+**New checks**
+- `tools/test_card_coverage.cjs`: every slot of the Six-Sided HUD template in Classic/Panel, Compact and Visual; style switches; the Present forms the card allows; people vs groups.
+- `tools/test_lifecycle.cjs`: discarded swipes, regenerations with state kept between pushes, repeats, backup/restore, OOC turns, hypothetical vs shown deaths, year rollover, long skips, request size.
+- `tools/test_cross_card.cjs`: every built-in demo world (Re:Zero, Overlord, Classroom of the Elite, Mushoku, Undertale, Dark Souls, Skyrim, BG3, Classic) played through the real reply pipeline.
+
 ## 1.1.0 RC — Six-Sided World v1.1
 
 Compatibility with the Mushoku Tensei RPG "Six-Sided World" v1.1 card and its four HUD styles (Classic, Visual, Compact, Panel). Release candidate: automated checks pass; live Lumiverse acceptance is still to do. Report: `docs/release/1.1.0-RC-REPORT.md`.

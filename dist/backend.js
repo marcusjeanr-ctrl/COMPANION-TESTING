@@ -12037,6 +12037,11 @@ function hmsReadAbilities(hud, cfg) {
     for (const l of hud.lines) {
         if (l.block === 'fence') continue;
         const t = l.text.trim();
+        // Six-Sided Compact merges Magic Tiers, Sword Style and Voiceless Casting into one "Skills:" row
+        // ("💧Water Adv · ⚔️Sword God Adv · 🤫 Voiceless"): read its magic the way Classic's Magic Tiers line is read
+        // (the sword style and Voiceless Casting already reach their own panels from it).
+        const cs = /^\W*Skills\s*:/i.test(hudSemanticText(t)) ? mtSkillsLine(hudSemanticText(t)) : null;
+        if (cs) { for (const [name, tier] of cs.magic) add('Magic', { name, state: tier, level: null, label: 'Magic Tiers', lineKey: l.key, src: 'MAGIC TIERS' }); continue; }
         let m = t.match(/^\[([^\]:|]{1,40}?)\s*:\s*([^\]]*)\]\s*(?:\((.*)\))?\s*$/);
         if (m) {
             const tag = m[1].trim().toUpperCase();
@@ -13183,7 +13188,7 @@ function hmsRelationsPanel(chat, st, cfg, classic = false) {
     // where each reply happened: the last step of the HUD's location path ("Veyrath Hall, the study" → "Veyrath Hall")
     // who the story reported dead, and in which reply (by position)
     const diedAt = new Map(), idxOfMsg = new Map();
-    (chat || []).forEach((m, i) => { idxOfMsg.set(m.id, i); if (m.role !== 'assistant') return; const d = getSwipeData(m)?.deaths; if (Array.isArray(d)) for (const n of d) diedAt.set(lockKey(n), i); });
+    (chat || []).forEach((m, i) => { idxOfMsg.set(m.id, i); if (m.role !== 'assistant') return; for (const n of storyDeaths(chat, i)) diedAt.set(lockKey(n), i); });
     const placeAt = new Map();
     try { for (const e of hmsTimeline(chat)) { const pl = hmsPlaceName(e.hud); if (pl) placeAt.set(e.msg.id, pl); } } catch { /* optional */ }
     for (const p of people.values()) {
@@ -18817,7 +18822,8 @@ function hmsPresentPeople(hud) {
     for (const part of hmsSplitTop(line.replace(/^\s*Present:\s*/i, ''), /\s*[,;]\s*/g)) {
         const p = String(part).trim();
         if (!p || /^\[/.test(p)) continue;                            // "[Guards: 2 at gate]": a group, not a person
-        const m = p.match(/^([^(]+?)\s*(?:\(([^)]*)\))?\s*$/);
+        // "Kessa (240, looks 30) — Migurd": a note after the bracket is the person's, not part of the name
+        const m = p.match(/^([^(]+?)\s*(?:\(([^)]*)\)(?:\s+[—–-]\s*[^()]*)?)?\s*$/);
         if (!m) continue;
         const name = m[1].trim(), info = m[2] || '';
         const age = info.match(/^\s*~?(\d{1,4})\b/);
@@ -18857,7 +18863,9 @@ function hmsKnownBirths(tl) {
 }
 const hmsBirthText = p => `${p.age !== null ? p.age + ', ' : ''}b. ${p.approx ? '~' : ''}K${p.born}${p.month ? `, Month ${p.month}` : ''}`;
 const HMS_ROLE_RE = /-|\b(?:seller|keeper|guard|guards|maid|maids|servant|merchant|clerk|staff|steward|smith|driver|vendor|stranger|boy|girl|man|woman|child|soldier|knight|priest|courier|crowd|patron|patrons)\b/i;
-function hmsNamedPerson(name) { return !!name && /^\p{Lu}/u.test(name) && !HMS_ROLE_RE.test(name); }
+// a group or a creature, not a person to give an age and birth year ("Two bandits", "Acid Wolf", "Black Wolf pack")
+const HMS_NOT_PERSON_RE = /\b(?:two|three|four|five|six|several|some|few|many|pack|band|bandits?|thugs?|raiders?|wolf|wolves|bears?|beasts?|monsters?|golems?|slimes?|goblins?|orcs?|undead|skeletons?|swarm|herd|horde|riders?|men|figures?|creatures?|horses?|ponies|pony|dogs?|hounds?|rats?|spiders?|serpents?|snakes?|drakes?)\b/i;
+function hmsNamedPerson(name) { return !!name && /^\p{Lu}/u.test(name) && !HMS_ROLE_RE.test(name) && !HMS_NOT_PERSON_RE.test(name); }
 
 /** Things worth a look, shown on the World State card. Each check only reports; nothing is changed. */
 function hmsChecks(chat, st, gear, userName = null) {
@@ -18989,7 +18997,7 @@ function hmsHudSync(chat, st, userName) {
     }
     // dead: from the story's own death reports before this reply, and the People card's marks
     const dead = new Map();
-    for (const m of chat) { if (m === last.msg || m.role !== 'assistant') continue; const x = getSwipeData(m)?.deaths; if (Array.isArray(x)) for (const n of x) if (typeof n === 'string' && n.trim()) dead.set(lockKey(n), n.trim()); }
+    chat.forEach((m, i) => { if (m === last.msg || m.role !== 'assistant') return; for (const n of storyDeaths(chat, i)) dead.set(lockKey(n), n.trim()); });
     for (const [k, v] of Object.entries(isPlainObject(st && st.peopleDead) ? st.peopleDead : {})) { if (v && v.alive) dead.delete(lockKey(k)); else if (v) dead.set(lockKey(k), k); }
     const deadHere = present.filter(p => dead.has(lockKey(p.name)));
     if (deadHere.length) out.push({ kind: 'present', auto: true,
@@ -19023,10 +19031,33 @@ function hmsHudSync(chat, st, userName) {
     }
     return out;
 }
+const DEATH_WORD_RE = /\b(?:dies|died|dead|death|killed|kills|slain|slays|murdered|executed|perishe[ds]|passed away|lifeless|corpse|funeral|buried|last breath|breathes? (?:his|her|their) last|does not rise|never rises|stops? breathing|no longer breath(?:es|ing))\b/i;
+const DEATH_UNREAL_RE = /\b(?:if|would|could|might|unless|or else|threaten(?:s|ed)?|almost|nearly|pretend(?:s|ed)?|feign(?:s|ed)?|fake[ds]?|dream(?:s|ed|t)?|nightmare|imagin(?:e|es|ed)|rumou?rs?|will)\b/i;
+/** The deaths a reply's side panel reported that the reply (or the player's message before it) shows: the name is in
+ *  the text, and some sentence tells a death that is not a threat, a guess or a dream ("Halvin would die if…"). */
+function storyDeaths(chat, i) {
+    const m = chat && chat[i];
+    const d = m ? getSwipeData(m)?.deaths : null;
+    if (!Array.isArray(d) || !d.length) return [];
+    let prevUser = '';
+    for (let k = i - 1; k >= 0; k--) if (chat[k] && chat[k].role === 'user') { prevUser = textOf(chat[k].content); break; }
+    const body = stripThink(textOf(m.content)).replace(COMPANION_RE, '');
+    const story = (/^\s*\*\*\*\s*$/m.test(body) ? body.split(/^\s*\*\*\*\s*$/m).slice(1).join('\n') : body) + '\n' + prevUser;
+    const sentences = story.split(/(?<=[.!?])\s+|\n+/);
+    const real = sentences.some(sn => DEATH_WORD_RE.test(sn) && !DEATH_UNREAL_RE.test(sn));
+    if (!real) return [];
+    const low = story.toLowerCase();
+    return d.filter(n => typeof n === 'string' && n.trim()).filter(n => {
+        const first = lockKey(n).split(' ')[0];
+        return first.length > 1 && new RegExp(`\\b${first.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`).test(low);
+    });
+}
 function hmsClockText(hud) {
     const top = hud ? hud.lines.filter(l => !l.block).slice(0, 4).map(l => l.text).join(' | ') : '';
     const cal = mtCalendar(top), tm = top.match(/\b(\d{1,2}:\d{2})\b/);
-    return [cal ? `K${cal.year}, Month ${cal.month}, Day ${cal.day}` : null, tm ? tm[1] : null].filter(Boolean).join(' ') || 'an earlier time';
+    // other calendars: the HUD's own day or date ("Day: 3", "Date: 22 Eleasis, 1492 DR", "Day 14"), so a day change reads as one
+    const day = cal ? null : (top.match(/\bDate:\s*([^|]+?)\s*(?:\||$)/i) || top.match(/\b(Day:?\s*\d+)\b/i) || [])[1];
+    return [cal ? `K${cal.year}, Month ${cal.month}, Day ${cal.day}` : day ? day.trim() : null, tm ? tm[1] : null].filter(Boolean).join(' ') || 'an earlier time';
 }
 
 /** Upcoming birthdays: the player, the family and everyone Friendly or closer, from the birth years the HUD gives. */

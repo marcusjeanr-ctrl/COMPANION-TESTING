@@ -148,7 +148,7 @@ check('someone named in the scene but missing from Present is reminded; a role i
     assert.match(tell(chat), /Ferren: if they are in the scene with Marcus Veyrath/);
 });
 check('a dead person on Present is reminded', () => {
-    const chat = [user('go'), reply({ deaths: ['Halvin'] }, 'The smith is gone.'), user('later'), reply({}, 'The forge is cold.', { time: '12:00', present: 'Aurelius Veyrath (45, b. K371), Halvin (50)' })];
+    const chat = [user('go'), reply({ deaths: ['Halvin'] }, 'Halvin lies dead at the cold forge.'), user('later'), reply({}, 'The forge is cold.', { time: '12:00', present: 'Aurelius Veyrath (45, b. K371), Halvin (50)' })];
     assert.match(sync(chat).map(x => x.text).join(' '), /Halvin is dead/);
     assert.match(tell(chat), /Halvin died earlier/);
 });
