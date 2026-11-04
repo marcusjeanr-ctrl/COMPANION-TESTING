@@ -18636,6 +18636,23 @@ function hmsCalNow(hud) {
     const top = hud.lines.filter(l => !l.block).slice(0, 4).map(l => l.text).join(' | ');
     return mtCalendar(top);
 }
+/** The first and the latest age/birth year the HUD gave each person, so a dropped or changed one can be put back. */
+function hmsKnownBirths(tl) {
+    // the birth year the HUD gave most often (an OOC fix wins once it has carried forward), latest on a tie
+    const seen = new Map(), latest = new Map();
+    for (const e of tl) for (const p of hmsPresentPeople(e.hud)) {
+        if (p.born === null) continue;
+        const k = lockKey(p.name);
+        if (!seen.has(k)) seen.set(k, new Map());
+        const by = seen.get(k), c = by.get(p.born) || { n: 0, p };
+        c.n++; c.p = p; by.set(p.born, c);
+        latest.set(k, p);
+    }
+    const first = new Map();
+    for (const [k, by] of seen) { let best = null; for (const c of by.values()) if (!best || c.n >= best.n) best = c; first.set(k, best.p); }
+    return { first, latest };
+}
+const hmsBirthText = p => `${p.age !== null ? p.age + ', ' : ''}b. ${p.approx ? '~' : ''}K${p.born}${p.month ? `, Month ${p.month}` : ''}`;
 const HMS_ROLE_RE = /-|\b(?:seller|keeper|guard|guards|maid|maids|servant|merchant|clerk|staff|steward|smith|driver|vendor|stranger|boy|girl|man|woman|child|soldier|knight|priest|courier|crowd|patron|patrons)\b/i;
 function hmsNamedPerson(name) { return !!name && /^\p{Lu}/u.test(name) && !HMS_ROLE_RE.test(name); }
 
@@ -18653,10 +18670,20 @@ function hmsChecks(chat, st, gear) {
         const slack = p.month ? 0 : 1;
         if (Math.abs(p.age - want) > slack + (p.approx ? 1 : 0)) out.push({ kind: 'age', text: `${p.name}: ${p.age} on the Present line, but born K${p.born} makes ${p.approx ? 'about ' : ''}${want} in K${cal.year}.`, fix: `(OOC fix: ${p.name} is ${p.age}, born K${cal.year - p.age}.)` });
     }
-    // a named person with no birth year
-    const noBirthP = hmsPresentPeople(last.hud).filter(p => p.born === null && hmsNamedPerson(p.name));
+    // a named person with no birth year: one the HUD gave before was dropped (put it back), or there never was one
+    const known = hmsKnownBirths(tl);
+    const noBirthAll = hmsPresentPeople(last.hud).filter(p => p.born === null && hmsNamedPerson(p.name));
+    const dropped = noBirthAll.filter(p => known.first.has(lockKey(p.name)));
+    const noBirthP = noBirthAll.filter(p => !known.first.has(lockKey(p.name)));
+    if (dropped.length) out.push({ kind: 'birth', fix: `(OOC fix: keep the birth years on the Present line: ${dropped.map(p => `${p.name} (${hmsBirthText(known.first.get(lockKey(p.name)))})`).join(', ')}.)`,
+        text: `The Present line dropped the birth year it gave before for ${dropped.map(p => `${p.name} (${hmsBirthText(known.first.get(lockKey(p.name)))})`).join(', ')}. The narrator is reminded to keep them.` });
+    // a birth year that changed since the HUD first gave it
+    for (const p of hmsPresentPeople(last.hud)) {
+        const f = p.born !== null ? known.first.get(lockKey(p.name)) : null;
+        if (f && Math.abs(f.born - p.born) > 1) out.push({ kind: 'age', text: `${p.name}'s birth year changed: b. ${f.approx ? '~' : ''}K${f.born} on most replies, K${p.born} now.`, fix: `(OOC fix: ${p.name} is ${hmsBirthText(f)}, as given before; keep that.)` });
+    }
     const noBirth = noBirthP.map(p => p.name);
-    if (noBirth.length) out.push({ kind: 'birth', fix: `(OOC fix: ${noBirthP.map(p => p.age !== null && cal ? `${p.name} is ${p.age}, born K${cal.year - p.age}` : `${p.name} is __, born K___`).join('; ')}.)`, text: `No birth year on the Present line for ${noBirth.join(', ')}. The narrator is reminded to fix one; if it still does not, a quick OOC fix keeps the age steady.` });
+    if (noBirth.length) out.push({ kind: 'birth', fix: `(OOC fix: ${noBirthP.map(p => p.age !== null && cal ? `${p.name} is ${p.age}, born K${cal.year - p.age}` : `${p.name} needs an age and birth year that fit the story`).join('; ')}.)`, text: `No birth year on the Present line for ${noBirth.join(', ')}. The narrator is reminded to fix one; if it still does not, a quick OOC fix keeps the age steady.` });
     // the clock going backwards
     if (tl.length > 1 && last.reset && worldOf(worldLines(last.hud)) !== 'rezero') {
         const prev = tl[tl.length - 2];
@@ -18666,9 +18693,13 @@ function hmsChecks(chat, st, gear) {
     if (tl.length > 1 && Number.isFinite(last.clock) && Number.isFinite(tl[tl.length - 2].clock)) {
         const prev = tl[tl.length - 2];
         const a = chat.indexOf(prev.msg), b = chat.indexOf(last.msg);
-        const ooc = a >= 0 && b > a ? chat.slice(a + 1, b).filter(m => m.role === 'user' && isOocText(textOf(m.content))).length : 0;
+        const between = a >= 0 && b > a ? chat.slice(a + 1, b) : [];
+        const ooc = between.filter(m => m.role === 'user' && isOocText(textOf(m.content))).length;
+        // the player's story message itself let time pass ("taking a little time to get ready", "later", "wait until supper")
+        const story = between.filter(m => m.role === 'user' && !isOocText(textOf(m.content))).map(m => textOf(m.content)).join(' ');
+        const passes = /\b(?:time|while|hours?|minutes?|later|until|slip(?:s|ped)? (?:past|by)|pass(?:es|ed|ing)?|get(?:ting)? ready|wash(?:ing)? up|chang(?:e|ing) (?:into|clothes)|wait(?:s|ed|ing)?|rest(?:s|ed|ing)?|sleep|nap|skip|evening|night|morning|supper|dinner|breakfast|lunch)\b/i.test(story);
         const gap = last.clock - prev.clock;
-        if (ooc && gap > 30) out.push({ kind: 'ooc', fix: `(OOC fix: OOC messages pass no time. The time is ${hmsClockText(prev.hud)} plus only what the story itself took.)`, text: `The clock moved ${hmsSpan(gap)} across a stretch with ${ooc} OOC message${ooc === 1 ? '' : 's'}. OOC turns are not meant to pass time.` });
+        if (ooc && gap > 30 && !passes) out.push({ kind: 'ooc', fix: `(OOC fix: OOC messages pass no time. The time is ${hmsClockText(prev.hud)} plus only what the story itself took.)`, text: `The clock moved ${hmsSpan(gap)} across a stretch with ${ooc} OOC message${ooc === 1 ? '' : 's'}. OOC turns are not meant to pass time.` });
     }
     // the HUD still carrying what the story says is not on you
     const stale = gear && Array.isArray(gear.gone) ? gear.gone.filter(x => x.onHud) : [];
@@ -18722,7 +18753,10 @@ function hmsStoryReminders(chat, st, userName) {
     // a named person on the Present line with no age or birth year: the card fixes both on first appearance
     try {
         const tl = hmsTimeline(chat), last = tl.length ? tl[tl.length - 1] : null;
-        const missing = last ? hmsPresentPeople(last.hud).filter(p => hmsNamedPerson(p.name) && (p.born === null || p.age === null)).map(p => p.name) : [];
+        const known = hmsKnownBirths(tl);
+        const keep = last ? hmsPresentPeople(last.hud).filter(p => hmsNamedPerson(p.name) && p.born === null && known.first.has(lockKey(p.name))) : [];
+        if (keep.length) { parts.push(`[RPG Companion: ages]\nKeep the ages and birth years the Present line already gave: ${keep.map(p => `${p.name} (${hmsBirthText(known.first.get(lockKey(p.name)))}, age moving on with the calendar)`).join('; ')}.`); names.push('ages'); }
+        const missing = last ? hmsPresentPeople(last.hud).filter(p => hmsNamedPerson(p.name) && (p.born === null || p.age === null) && !known.first.has(lockKey(p.name))).map(p => p.name) : [];
         if (missing.length) {
             parts.push(`[RPG Companion: ages]\n${missing.join(', ')} ${missing.length === 1 ? 'has' : 'have'} no ${missing.some(n => { const x = hmsPresentPeople(last.hud).find(p => p.name === n); return x && x.age === null; }) ? 'age or ' : ''}birth year on the Present line. Fix ${missing.length === 1 ? 'one' : 'them'} now as the card's age rule says ("Name (age, b. K###)"), fitting what the story has shown, and keep ${missing.length === 1 ? 'it' : 'them'} the same from here on.`);
             names.push('ages');
