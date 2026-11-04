@@ -119,6 +119,11 @@ check('a spell genuinely named like an element is kept', () => {
     // a school and a spell with the same name: the exact spell wins
     assert(spellsFrom([spellEntry('Fire', 'Fire')], [{ spells: ['Fire'] }]).known.includes('fire'), 'a spell named after its own school was rejected');
 });
+check('a learned spell written with its school and rank is the same spell (export 7)', () => {
+    const r = spellsFrom([spellEntry('Earth Wall', 'Earth', 'Intermediate'), spellEntry('Earth Pillar', 'Earth', 'Intermediate')], [{ spells: ['Earth Pillar'], learned: ['Earth Wall — Earth, Intermediate'] }]);
+    assert(r.known.includes('earth wall'), 'Earth Wall was not learned');
+    assert.equal(r.known.filter(k => /earth wall/.test(k)).length, 1, `two Earth Walls: ${r.known.join(', ')}`);
+});
 check('without spell references nothing is filtered', () => {
     const r = spellsFrom([], [{ spells: ['Fire', 'Water', 'Cure'] }]);
     assert.deepEqual(r.known, ['cure', 'fire', 'water']);

@@ -32,6 +32,8 @@ Compatibility with the Mushoku Tensei RPG "Six-Sided World" v1.1 card and its fo
 - **Person cards**: a bond that only changed wording ("Younger sister" ↔ "Younger sister, minor") no longer shows as a change, and only the latest bond change is kept.
 
 **Fixes from live play (fourth RC pass)**
+- **Spellbook: "Earth Wall — Earth, Intermediate" is Earth Wall.** The reporter wrote the school and rank after the name of a newly learned spell, and the Spellbook got a second entry, "Earth Wall — Earth, Intermediate (not found in loaded spell references)". The name is now read without what follows the dash.
+- **What's next: packed bags aren't something to collect.** The travel bundle, packed "by the door with the bags" for Roa, was listed under 🎒 collect. Items with the bags, luggage, pack or trunk now go along.
 - **Survival: a time skip is days lived.** After the month skip, Survival showed Marcus *Collapsing · 29d 17h awake* and *Dehydrated (critical) · 30d since a drink*, and those go to the narrator. The reporter only saw the final supper scene, so no sleep or drink was logged for the month. Now a skip of 16 hours or more counts as ordinary days: he woke at dawn on its last day, and ate and drank an hour before it ends. After this skip that's 13 hours awake (Rested), Fed and Hydrated. The reporter is also told that sleep, meals and drinks in a skip's ordinary days count.
 - **Agenda: "the seventh" is a date.** Aurelius wants Marcus's answer "on the seventh", but the Agenda showed no countdown. It now reads a day of the month ("the seventh", "by the 21st of Month 3", "the first of the month") as the next such day, 5 days out here. "The seventh bell" and "the third time" aren't dates.
 - **A healed Condition line isn't "dropped".** When the bruise healed during the month, the Condition line went away (the card only prints it while something is wrong), and the status said "1 line dropped since the last reply". It no longer counts as dropped.
@@ -59,7 +61,7 @@ Compatibility with the Mushoku Tensei RPG "Six-Sided World" v1.1 card and its fo
   - a rank past the card's age cap (at 12: sword up to Advanced)
 
   "True: Advanced (potential: Saint)" isn't flagged. Nothing is changed automatically, and the narrator's counting rules are untouched.
-- **New regression suite** `tools/test_live_play_audit.cjs` (28 checks: gear guesses, Training line, discarded swipes, HUD reminders, wounds, routines, dates, survival over skips), now part of `run_tests.cjs`.
+- **New regression suite** `tools/test_live_play_audit.cjs` (29 checks: gear guesses, Training line, discarded swipes, HUD reminders, wounds, routines, dates, survival over skips, packed items), now part of `run_tests.cjs`.
 - **Training card: half sessions.** "Water Magic → Saint (1.5/60 sessions)" (a good teacher counts a day as 1.5) was not read, so the Water line vanished from the card. Decimal counts are read now.
 - **Spellbook: a short spell name.** "raise a Shield" beside Water Ball and Water Arrow became a separate "Shield" spell. A bare name is matched to the spell of the same school cast beside it (Water Shield), or to the one spell it ends, when there is only one.
 - **What's next:** a promise with a time coming up (Aurelius's sword session at the ninth bell) shows under Coming up with its countdown; an ongoing arrangement no longer shows there.

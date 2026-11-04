@@ -17470,6 +17470,9 @@ function spellStoryFoldUncached(chat, chatId = null) {
         // "Water Ball, Shield, Water Arrow": a bare "Shield" cast beside Water spells is the Water Shield
         const sameSchool = list => { const named = list.map(n => resolve.reference(n)).filter(Boolean); const first = named.map(r => spellKey(r.name).split(' ')[0]);
             return list.map(n => { if (typeof n !== 'string' || resolve.reference(n)) return n; for (const w of first) { const t = resolve.reference(`${w} ${n}`); if (t) return t.name; } return n; }); };
+        // "Earth Wall — Earth, Intermediate": the name only, without the school and rank the reporter wrote after it
+        const bareName = n => typeof n === 'string' ? n.split(/\s+[—–]\s+|\s+-\s+(?=[A-Z])/)[0].trim() || n : n;
+        for (const k of ['spells', 'learned', 'mastered']) if (Array.isArray(y[k])) y = { ...y, [k]: y[k].map(bareName) };
         if (Array.isArray(y.spells)) y = { ...y, spells: sameSchool(y.spells) };
         if (Array.isArray(y.learned)) y = { ...y, learned: sameSchool(y.learned) };
         for (const n of Array.isArray(y.spells) ? y.spells : []) for (const target of resolve.records(n)) if (!named(target) && !learned.has(target.key)) continue; else if (!rejectedClaims.has(target.key) && learned.has(target.key)) { const prev = learned.get(target.key); if (!prev.note && target.note) prev.note = target.note; }
@@ -19095,7 +19098,8 @@ function hmsTodo(chat, p) {
         const near = x.state === 'in_progress' || x.status === 'overdue' || x.status === 'soon' || (Number.isFinite(x.dueIn) && x.dueIn <= 2 * 1440) || (x.dueIn === null && Number.isFinite(x.dayIn) && x.dayIn <= 2);
         if (near) out.push({ kind: 'due', icon: x.status === 'overdue' ? '⚠️' : '📅', text: `${x.what}${x.with ? ` (with ${x.with})` : ''}`, sub: x.state === 'in_progress' ? 'in progress' : dayText(x), go: ['journey', 'agenda'] });
     }
-    for (const x of (p.gear && Array.isArray(p.gear.gone) ? p.gear.gone : []).filter(x => x.owned && (x.onHud || (Number.isFinite(x.ago) && x.ago <= 7 * 1440))))
+    // packed with the bags or the luggage goes along; nothing to collect
+    for (const x of (p.gear && Array.isArray(p.gear.gone) ? p.gear.gone : []).filter(x => x.owned && !/\b(?:bags?|luggage|baggage|packs?|packed|saddlebags?|trunk)\b/i.test(String(x.where || '')) && (x.onHud || (Number.isFinite(x.ago) && x.ago <= 7 * 1440))))
         out.push({ kind: 'collect', icon: '🎒', text: x.name, sub: x.where || 'left somewhere', go: ['you', 'gear'] });
     for (const q of (p.systems && Array.isArray(p.systems.quests) ? p.systems.quests : []).filter(q => !q.state || q.state === 'active' || q.cls === 'active').slice(0, 3))
         out.push({ kind: 'quest', icon: '🎯', text: q.name, sub: q.objective || null, go: ['journey', 'quests'] });

@@ -18,7 +18,7 @@ ctx.globalThis = ctx;
 vm.createContext(ctx);
 vm.runInContext(source.slice(0, startup) + `
 globalThis.__t = { gearRead, getSwipeData, mtTraining, hmsTimeline, worldLines,
-  hmsHudSync: typeof hmsHudSync === 'function' ? hmsHudSync : () => [], hmsStoryReminders, hmsSurvival, hmsReadWounds, diffHud, parseHud: typeof parseHud === 'function' ? parseHud : null,
+  hmsHudSync: typeof hmsHudSync === 'function' ? hmsHudSync : () => [], hmsStoryReminders, hmsSurvival, hmsTodo, hmsReadWounds, diffHud, parseHud: typeof parseHud === 'function' ? parseHud : null,
   agendaDayOfMonth: typeof agendaDayOfMonth === 'function' ? agendaDayOfMonth : () => null, hmsAgendaPanel, hudRead: typeof hmsHudRead === 'function' ? hmsHudRead : null,
   hmsTrainingChecks: typeof hmsTrainingChecks === 'function' ? hmsTrainingChecks : () => [],
   gearMentioned: typeof gearMentioned === 'function' ? gearMentioned : () => true };`, ctx);
@@ -222,6 +222,14 @@ check('a month-long skip counts as days lived: not 30 days awake and without a d
     const day = [user('a'), reply(noFlags, 'Morning.', { day: 2, time: '07:00' }), user('b'), reply(noFlags, 'Evening.', { day: 2, time: '19:00' })];
     const sv2 = JSON.parse(JSON.stringify(t.hmsSurvival(t.hmsTimeline(day), {}, cfg, null)));
     assert.ok(sv2.tracks.find(x => x.id === 'thirst').stage >= 1);
+});
+
+check('an item packed with the bags is not something to collect (export 7)', () => {
+    const p = { agenda: { items: [] }, gear: { gone: [
+        { name: 'travel bundle', owned: true, onHud: false, ago: 60, where: 'by the door with the bags' },
+        { name: 'ash wand', owned: true, onHud: false, ago: 60, where: "Ferren's drawer" }] } };
+    const td = JSON.parse(JSON.stringify(t.hmsTodo([], p))).filter(x => x.kind === 'collect').map(x => x.text);
+    assert.deepEqual(td, ['ash wand']);
 });
 
 for (const r of results) console.log(`  ✓ ${r}`);
