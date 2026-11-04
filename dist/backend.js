@@ -18632,7 +18632,7 @@ function hmsChecks(chat, st, gear) {
     }
     // a named person with no birth year
     const noBirth = hmsPresentPeople(last.hud).filter(p => p.born === null && hmsNamedPerson(p.name)).map(p => p.name);
-    if (noBirth.length) out.push({ kind: 'birth', text: `No birth year on the Present line for ${noBirth.join(', ')}. The card fixes one on first appearance; a quick OOC fix keeps the age steady.` });
+    if (noBirth.length) out.push({ kind: 'birth', text: `No birth year on the Present line for ${noBirth.join(', ')}. The narrator is reminded to fix one; if it still does not, a quick OOC fix keeps the age steady.` });
     // the clock going backwards
     if (tl.length > 1 && last.reset && worldOf(worldLines(last.hud)) !== 'rezero') {
         const prev = tl[tl.length - 2];
@@ -18695,6 +18695,15 @@ function hmsStoryReminders(chat, st, userName) {
         parts.push(`[RPG Companion: what ${userName} has]\nThe last HUD's Equipment line still lists ${stale.map(x => x.where ? `${x.name} (${x.where})` : x.name).join('; ')}, but the story has ${stale.length === 1 ? 'it' : 'them'} away from ${userName}. ${userName} does not have ${stale.length === 1 ? 'it' : 'them'} now: write the Equipment line without ${stale.length === 1 ? 'it' : 'them'}, and do not narrate ${stale.length === 1 ? 'it' : 'them'} as in hand, until the story gives ${stale.length === 1 ? 'it' : 'them'} back.`);
         names.push('what you have');
     }
+    // a named person on the Present line with no age or birth year: the card fixes both on first appearance
+    try {
+        const tl = hmsTimeline(chat), last = tl.length ? tl[tl.length - 1] : null;
+        const missing = last ? hmsPresentPeople(last.hud).filter(p => hmsNamedPerson(p.name) && (p.born === null || p.age === null)).map(p => p.name) : [];
+        if (missing.length) {
+            parts.push(`[RPG Companion: ages]\n${missing.join(', ')} ${missing.length === 1 ? 'has' : 'have'} no ${missing.some(n => { const x = hmsPresentPeople(last.hud).find(p => p.name === n); return x && x.age === null; }) ? 'age or ' : ''}birth year on the Present line. Fix ${missing.length === 1 ? 'one' : 'them'} now as the card's age rule says ("Name (age, b. K###)"), fitting what the story has shown, and keep ${missing.length === 1 ? 'it' : 'them'} the same from here on.`);
+            names.push('ages');
+        }
+    } catch { /* optional */ }
     const due = agenda ? agenda.items.filter(x => x.state === 'open' && (x.status === 'overdue' || x.status === 'soon' || (x.dueIn === null && Number.isFinite(x.dayIn) && x.dayIn <= 0))) : [];
     if (due.length) {
         parts.push(`[RPG Companion: due now]\n${due.slice(0, 6).map(x => `- ${x.what}${x.with ? ` (with ${x.with})` : ''}: ${x.status === 'overdue' ? 'late' : 'due now or soon'}${x.when ? ` (${x.when})` : ''}`).join('\n')}\nLet the world keep or miss these as it would; never force a scene, and never decide for ${userName}.`);

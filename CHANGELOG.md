@@ -6,6 +6,7 @@ Compatibility with the Mushoku Tensei RPG "Six-Sided World" v1.1 card and its fo
 
 **Added (all read from what the panels already know; nothing about how the story is tracked changes)**
 - **The narrator is told what you do not have.** When the HUD's Equipment line still lists something Gear has away from you (left with someone, on a shelf, given away), one short note says so, so the story stops narrating it as in hand.
+- **Ages.** A named person on the Present line with no age or birth year ("Marta (—)", "Aurelia (8)") is named to the narrator, to fix as the card's age rule says and keep from then on. Shopkeepers and other unnamed roles are left alone.
 - **Due now.** An Agenda item that is due or late is named to the narrator, to keep or miss as the world would; never forced.
 - **Time-skip recap.** When your message skips time ("two weeks later", "time skip"), the narrator gets what is open: appointments, things left with someone, birthdays inside the year.
 - **Things coming back and letters on the Agenda.** Something left with someone with a time to get it back is logged as an errand; letters written, sent, received or promised are a new ✉️ kind.
