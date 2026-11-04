@@ -111,10 +111,22 @@ const J = x => JSON.parse(JSON.stringify(x));
         assert.deepEqual(p('Kessa (240, looks 30) — Migurd, Ferren (40)'), [['Kessa', 240, null], ['Ferren', 40, null]]);
         assert.deepEqual(p('Roxy Migurdia (43, b. K373, looks 14)'), [['Roxy Migurdia', 43, 373]]);
         assert.deepEqual(p('Elinalise Dragonroad (200+, b. ~K210), Paper-seller'), [['Elinalise Dragonroad', 200, 210], ['Paper-seller', null, null]]);
+        // the HMS 1.2 card copy: creatures and groups in brackets, no age
+        assert.deepEqual(p('Ghislaine Dedoldia (31, b. K385), [Acid Wolves: 3]'), [['Ghislaine Dedoldia', 31, 385]]);
     });
     await check('people vs groups and creatures', async () => {
         for (const n of ['Ferren', 'Bram', 'Sword King Ghislaine']) assert.equal(C.named(n), true, n);
         for (const n of ['Acid Wolf', 'Two bandits', 'Black Wolf pack', 'Paper-seller', 'the guard']) assert.equal(C.named(n), false, n);
+    });
+    await check("Party Mode: another player's skills and wounds never land on your sheet", async () => {
+        const party = ['### WORLD STATE ###', 'Armored Dragon Calendar: K416, Month 4, Day 6 | Time: 14:20 (Afternoon)', '◆ Central Continent → Asura Kingdom → Roa Guild Hall',
+            'Era / Arc: Sandbox: Fittoa Region — K416 (canon: Arc 2.4)', 'Game Mode: Party Mode (2 players, round robin), Canon: Living',
+            'Player: Kai Ren — Beastfolk, 13 · Mana: Average | Half · Touki (Battle Aura): Active · Skills: ⚔️North God Int · Condition: Broken wrist — Raw',
+            'Present: Ghislaine Dedoldia (31, b. K385)', 'Narrative Mode: Strict Agency', '***', ''].join('\n');
+        const h = J((await C.run(chatOf(party), lore)).hms);
+        assert.ok(h.hud.lines.some(l => /^player/.test(l.key)), 'the Player line still shows');
+        assert.deepEqual(h.systems.wounds, []);
+        assert.ok(!JSON.stringify(h.systems.abilities).includes('North God'), 'Kai\'s skills on your sheet');
     });
     for (const r of results) console.log(`  ✓ ${r}`);
     for (const f of failed) console.log(`  ✗ ${f}`);

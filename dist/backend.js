@@ -6233,7 +6233,7 @@ function hmsCombatOptions(hud) {
         for (const it of g.items) push(out.abilities, it.name);
     }
     for (const l of hud.lines) {
-        if (l.block === 'fence') continue;
+        if (l.block === 'fence' || l.party) continue;
         const eq = l.text.match(/^\s*equipment\s*:\s*(.+)$/i);
         if (eq) push(out.physical, eq[1].split(/\s+\|\s+/)[0].split(/\s+[—–]\s+/)[0]);
         const wp = l.text.match(/^\s*weapon\s*:\s*([^|]+)/i);
@@ -7286,6 +7286,10 @@ function parseHud(text) {
         return m ? { name: m[1].trim(), state: m[2].trim().toLowerCase() } : { name: q, state: null };
     }) : null;
     hmsMarkBlocks(lines);
+    // Six-Sided Party Mode folds each player character's sheet into one "Player: [Name] — …" line. Those lines
+    // belong to the players, several of whom are not you: the system readers (abilities, conditions, vitals)
+    // leave them alone so another player's skills or wounds never land on your sheet. They still show as lines.
+    if (lines.some(l => /^\s*Game Mode:.*\bParty Mode\b/i.test(hudSemanticText(l.text)))) for (const l of lines) if (/^\W*Player:\s/i.test(hudSemanticText(l.text))) l.party = true;
     const location = loc ? loc.segments : null;
     const mushoku = lines.some(l => /^(?:Armored Dragon Calendar:\s*K|Year:\s*K\.?\s*\d+)/i.test(hudSemanticText(l.text)));
     return { lines, find: f, time, location: mushoku && location ? mushokuLocationSegments(location) : location, arc: arcText, quests };
@@ -11775,7 +11779,7 @@ function hmsReadVitals(hud, cfg) {
     const inverted = hmsList(cfg.vitals.invertedMeters);
     const vitals = [], meters = [], notes = [];
     for (const l of hud.lines) {
-        if (l.block === 'fence') continue;
+        if (l.block === 'fence' || l.party) continue;
         const fields = hmsFieldsOf(l);
         fields.forEach((f, i) => {
             if (!f.label) return;
@@ -11834,14 +11838,14 @@ function hmsConditionParts(l) {
 function hmsReadWounds(hud) {
     const out = [];
     for (const l of hud.lines) {
-        if (l.block === 'fence') continue;
+        if (l.block === 'fence' || l.party) continue;
         for (const part of hmsConditionParts(l) || []) {
             const m = part.match(HMS_CONDITION_WOUND_RE);
             if (m) out.push({ name: m[1].trim(), tag: part.slice(m[1].length).replace(/^\s*[—–-]\s*/, '').trim(), cls: hmsWoundTag(m[2]), text: part, key: lockKey(m[1].trim()) });
         }
     }
     for (const l of hud.lines) {
-        if (l.block === 'fence') continue;
+        if (l.block === 'fence' || l.party) continue;
         const text = hudSemanticText(l.text);
         if (!/^\s*(?:[^\p{L}\p{N}\s]\s*)?(injuries|injury|wounds?)\s*:/iu.test(text)) continue;
         const label = text.match(/(injuries|injury|wounds?)/i)[1];
@@ -11899,7 +11903,7 @@ function hmsReadConditions(hud, cfg) {
     // Labelled fields read as conditions ("Thirst State: Mild" on the vampire line).
     const cfields = hmsList(cfg.body.conditionFields);
     for (const l of hud.lines) {
-        if (l.block === 'fence' || !cfields.length) continue;
+        if (l.block === 'fence' || l.party || !cfields.length) continue;
         for (const f of hmsFieldsOf(l)) {
             if (!f.label || !hmsLabelIn(f.label, cfields) || !f.value || /^(none|no|—|-)$/i.test(f.value.trim())) continue;
             const label = f.label.replace(/^[^\p{L}\p{N}]+/u, '').trim();
@@ -11910,7 +11914,7 @@ function hmsReadConditions(hud, cfg) {
         }
     }
     for (const l of hud.lines) {
-        if (l.block === 'fence') continue;
+        if (l.block === 'fence' || l.party) continue;
         const text = hudSemanticText(l.text);
         if (!/^\s*(?:[^\p{L}\p{N}\s]\s*)?conditions?\s*:/iu.test(text)) continue;
         let body = hmsAfterLabel(text, text.match(/conditions?/i)[0]);
@@ -11959,7 +11963,7 @@ function hmsReadFlags(hud, cfg) {
     const mindNames = hmsList(cfg.body.mindNames).map(x => x.toLowerCase());
     const out = [];
     for (const l of hud.lines) {
-        if (l.block === 'fence') continue;
+        if (l.block === 'fence' || l.party) continue;
         const mm = l.text.trim().match(/^\[([^\]:|]{2,40}?)\s*:\s*(.*)\]$/);
         // A bracket line whose tag is a mind name ([MENTAL COUNCIL: Echidna (Greed), …]) lists who
         // lives in the mind; each one shows under Mind.
@@ -12035,7 +12039,7 @@ function hmsReadAbilities(hud, cfg) {
         if (!list.some(x => x.name.toLowerCase() === item.name.toLowerCase() && (x.label || '') === (item.label || ''))) list.push(item);
     };
     for (const l of hud.lines) {
-        if (l.block === 'fence') continue;
+        if (l.block === 'fence' || l.party) continue;
         const t = l.text.trim();
         // Six-Sided Compact merges Magic Tiers, Sword Style and Voiceless Casting into one "Skills:" row
         // ("💧Water Adv · ⚔️Sword God Adv · 🤫 Voiceless"): read its magic the way Classic's Magic Tiers line is read
@@ -12202,7 +12206,7 @@ function hmsReadAttributes(hud, cfg) {
     const re = new RegExp(`(?:^|[\\s|·(\\[—–-])(${alt})\\b\\s*:?\\s*\\[?\\s*([A-S][+-]?(?:\\s*[+-]\\d+)?|[+-]?\\d+)\\s*\\]?(?=\\s|$|[|·,)\\]])`, 'g');
     const groups = new Map();
     for (const l of hud.lines) {
-        if (l.block === 'fence') continue;
+        if (l.block === 'fence' || l.party) continue;
         const t = l.text;
         const title = l.block ? l.block.replace(/\s*—.*$/, '').trim() : (t.match(/^\s*([A-Z]{2,6})\s+[—–-]/) || [])[1] || 'Attributes';
         let m;
@@ -14652,7 +14656,7 @@ function holdFromHud(hud) {
     const out = [];
     if (!hud) return out;
     for (const l of hud.lines) {
-        if (l.block === 'fence') continue;
+        if (l.block === 'fence' || l.party) continue;
         const fields = hmsFieldsOf(l);
         for (const f of fields) {
             const lab = f.label ? f.label.replace(/^[^\p{L}]+/u, '') : null;
@@ -14974,7 +14978,7 @@ function moneyHudBalance(hud, cc) {
     const units = new Set([...(cc.balance || []).map(x => lockKey(x)), 'gold', 'silver', 'copper', 'bronze', 'coin', 'coins'].filter(Boolean));
     const currency = unit => [...units].some(u => unit === u || unit + 's' === u || unit === u + 's' || unit.endsWith(' ' + u) || unit.endsWith(' ' + u + 's'));
     for (const l of hud.lines) {
-        if (l.block === 'fence') continue;
+        if (l.block === 'fence' || l.party) continue;
         for (const f of hmsFieldsOf(l)) {
             if (!f.label || !hmsLabelIn(f.label, MONEY_HOLDING_LABELS)) continue;
             const parts = String(f.value || '').split(/\s*(?:[,;+]|\band\b)\s*/i).map(p => p.trim()).filter(Boolean);
@@ -15084,7 +15088,7 @@ function factionFromHud(hud) {
     const out = [];
     if (!hud) return out;
     for (const l of hud.lines) {
-        if (l.block === 'fence') continue;
+        if (l.block === 'fence' || l.party) continue;
         for (const f of hmsFieldsOf(l)) {
             const lab = f.label ? f.label.replace(/^[^\p{L}]+/u, '') : null;
             if (!lab || !hmsLabelIn(lab, FACTION_HUD_LABELS)) continue;
@@ -16486,7 +16490,7 @@ function commsDevice(hud, cc) {
     if (cc.device) return { name: cc.device, from: 'you' };
     if (!hud) return null;
     for (const l of hud.lines) {
-        if (l.block === 'fence') continue;
+        if (l.block === 'fence' || l.party) continue;
         for (const w of cc.words) {
             const m = l.text.match(new RegExp(`([^|,:]*\\b${w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b[^|,]*)`, 'i'));
             if (m && /^\s*(equipment|items?|inventory|gear|abilities|skills|magic|spells?)\b/i.test(l.text)) return { name: m[1].replace(/^[\s\[]+|[\s\]]+$/g, '').trim(), from: 'hud' };
@@ -16498,7 +16502,7 @@ function commsDevice(hud, cc) {
 function commsBalance(hud, cc) {
     if (!hud) return null;
     for (const l of hud.lines) {
-        if (l.block === 'fence') continue;
+        if (l.block === 'fence' || l.party) continue;
         for (const f of hmsFieldsOf(l)) {
             if (f.label && hmsLabelIn(f.label, cc.balance)) return { label: f.label.replace(/^[^\p{L}\p{N}]+/u, ''), value: String(f.value).trim() };
         }
@@ -17823,6 +17827,8 @@ function techStyleName(v) {
     const k = techStyleKey(v);
     if (!k) return 'Other';
     const own = String(v ?? '').replace(/\*+/g, '').replace(/[_]+/g, ' ').replace(/\b(?:style|school|ryu|ryū|sword style|swordsmanship)\b/gi, ' ').replace(/\s+/g, ' ').trim();
+    // "Magic Swordsmanship" would shrink to "Magic", which reads as the Magic panel: keep the full name then
+    if (/^magic$/i.test(own) && /swordsmanship/i.test(String(v ?? ''))) return 'Magic Swordsmanship';
     // written with capitals by the HUD or the book: keep it as written; all lower case: title case it
     return own && own !== own.toLowerCase() ? own : spellTitle(k);
 }
