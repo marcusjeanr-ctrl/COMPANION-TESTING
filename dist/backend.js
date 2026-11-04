@@ -11043,7 +11043,7 @@ function buildCompanionInstructionRead(committed, userName, locks, st = null, ch
     if (yc.on) s += `\n"you" also holds ${userName}'s own state at the end of this reply: mood, ${wantSurvival ? '' : 'stress (L), '}sanity (100 steady, 0 broken)${askXp ? ', and xp earned in this reply for a real accomplishment (0 if none) with why' : ''}. "got" and "lost": physical things ${userName} was handed, picked up, gave away, used up or lost — in their own last message or on screen in this reply — that the HUD does not list (a handout, a key, a note, a booklet), a few words each; [] when nothing changed hands. A message, a notice or news is not a thing.`;
     if (abilitiesSeen) s += '\n"you.abilities": one confirmed player spell/technique/skill per row; no ranks, casting labels, NPCs, catalog entries, instructions or hypotheticals. historical:true for past records, not new learning/current study. Attempts are not knowledge; reliability is not mastery. Exact quote required. Absence is not loss.';
     if (abilitiesSeen) s += '\nStudy requires practice begun now, not assigned/future lessons, demonstrations or failed combat alone. Never invent percentages. Omit empty study/learning.';
-    if (yc.on) s += `\nA time skip, montage or "over the month" summary in this reply is part of this turn: report what it shows ${userName} practicing, attempting or learning the same way as a scene (an attempt stays an attempt; a spell is learned only when the story says so). Its healed wounds and new gear count too.`;
+    if (yc.on) s += `\nA time skip, montage or "over the month" summary in this reply is part of this turn: report what it shows ${userName} practicing, attempting or learning the same way as a scene (an attempt stays an attempt; a spell is learned only when the story says so). Its healed wounds and new gear count too, and so do sleep, meals and drinks in its ordinary days.`;
     if (wantQuests) s += '\nQuest progress is for the whole quest, not the current step. Do not lower it unless the quest restarted.';
     if (wantQuests) s += '\n"quests": accepted goals only. Reuse a Known quest ID for the same assignment despite new titles, progress or stages; null for a genuinely separate assignment. Names are labels, not IDs. Progress requires a measured percentage, else null. Report ended scene-level goals even when omitted from the HUD; use closed if the scene ended without a confirmed success/failure. Preserve broader quests and future commitments. No rewards from completion alone.';
     if (wantQuests && chat) {
@@ -12382,6 +12382,19 @@ function hmsSurvival(timeline, st, cfg, sys) {
         if (!y) continue;
         for (const k of ['slept', 'ate', 'drank', 'rested']) if (y[k]) events.push({ kind: k, at: e.clock, src: 'story' });
         if (y.mind) events.push({ kind: 'mind', value: y.mind, at: e.clock, src: 'story' });
+    }
+    // A time skip of most of a day or more is ordinary days lived: he slept, ate and drank in it. Counted as woken
+    // at dawn on the skip's last day (or just before it ends, if it ends before dawn) and fed an hour before it ends.
+    let prevClock = null;
+    for (const e of timeline) {
+        if (e.clock === null) continue;
+        if (prevClock !== null && e.clock >= base && e.clock - prevClock >= 16 * 60) {
+            const tod = ((e.clock % 1440) + 1440) % 1440;
+            const woke = tod >= 360 ? e.clock - (tod - 360) : e.clock - 1;
+            events.push({ kind: 'slept', at: Math.max(prevClock, woke), src: 'skip' });
+            events.push({ kind: 'ate', at: e.clock - 60, src: 'skip' }, { kind: 'drank', at: e.clock - 60, src: 'skip' });
+        }
+        prevClock = e.clock;
     }
     const log = (st.survival && Array.isArray(st.survival.log)) ? st.survival.log : [];
     for (const ev of log) if (Number.isFinite(ev.at) && ev.at >= base && ev.at <= now) events.push({ ...ev, src: 'you' });

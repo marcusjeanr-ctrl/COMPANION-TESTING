@@ -18,7 +18,7 @@ ctx.globalThis = ctx;
 vm.createContext(ctx);
 vm.runInContext(source.slice(0, startup) + `
 globalThis.__t = { gearRead, getSwipeData, mtTraining, hmsTimeline, worldLines,
-  hmsHudSync: typeof hmsHudSync === 'function' ? hmsHudSync : () => [], hmsStoryReminders, hmsReadWounds, diffHud, parseHud: typeof parseHud === 'function' ? parseHud : null,
+  hmsHudSync: typeof hmsHudSync === 'function' ? hmsHudSync : () => [], hmsStoryReminders, hmsSurvival, hmsReadWounds, diffHud, parseHud: typeof parseHud === 'function' ? parseHud : null,
   agendaDayOfMonth: typeof agendaDayOfMonth === 'function' ? agendaDayOfMonth : () => null, hmsAgendaPanel, hudRead: typeof hmsHudRead === 'function' ? hmsHudRead : null,
   hmsTrainingChecks: typeof hmsTrainingChecks === 'function' ? hmsTrainingChecks : () => [],
   gearMentioned: typeof gearMentioned === 'function' ? gearMentioned : () => true };`, ctx);
@@ -26,7 +26,7 @@ const t = ctx.__t;
 
 let n = 0;
 const hud = (o = {}) => ['### WORLD STATE ###',
-    `Armored Dragon Calendar: K416, Month 1, Day ${o.day || 2} | Time: ${o.time || '09:00'} (Morning)`,
+    `Armored Dragon Calendar: K416, Month ${o.month || 1}, Day ${o.day || 2} | Time: ${o.time || '09:00'} (Morning)`,
     '◆ Central Continent → Asura Kingdom → Fittoa Region → Veyrath Hall, east yard',
     `Race: Human | Origin: Native | Age: ${o.age || 12} (born K404, Month 1)`,
     'Game Mode: Canon: Living | Guide: Off',
@@ -207,6 +207,21 @@ check('an item "in hand, held by" someone present is with them, not the player',
     assert.equal(gearState(chat, 'travel paper bundle'), 'stowed');
     const mine = [user('a'), reply({ gear: [{ name: 'travel paper bundle', state: 'in hand', where: 'held by Marcus' }] }, 'You hold the paper.', { present: 'Aurelia Veyrath (8, b. ~K408)', equipment: 'Plain road sword' })];
     assert.equal(gearState(mine, 'travel paper bundle'), 'in hand');
+});
+
+check('a month-long skip counts as days lived: not 30 days awake and without a drink', () => {
+    const cfg = { survival: { enabled: true, fatigue: true, hunger: true, thirst: true, mind: true, fatigueHours: '16, 24, 40, 60', hungerHours: '8, 24, 72, 168', thirstHours: '6, 18, 36, 72', restCreditHours: 4 } };
+    const noFlags = { survival: { slept: false, ate: false, drank: false, rested: false } };
+    const chat = [user('a'), reply(noFlags, 'Corridor.', { day: 2, time: '18:37' }), user('(Time skip: one month.)'), reply(noFlags, 'The month is spent.', { month: 2, day: 2, time: '19:05' })];
+    const tl = t.hmsTimeline(chat);
+    const sv = JSON.parse(JSON.stringify(t.hmsSurvival(tl, {}, cfg, null)));
+    const by = id => sv.tracks.find(x => x.id === id);
+    assert.ok(by('fatigue').minutes <= 14 * 60, `awake ${by('fatigue').minutes} min`);
+    assert.ok(by('thirst').stage <= 1 && by('hunger').stage <= 1, JSON.stringify(sv.tracks.map(x => [x.id, x.stage])));
+    // an ordinary afternoon still counts up as before
+    const day = [user('a'), reply(noFlags, 'Morning.', { day: 2, time: '07:00' }), user('b'), reply(noFlags, 'Evening.', { day: 2, time: '19:00' })];
+    const sv2 = JSON.parse(JSON.stringify(t.hmsSurvival(t.hmsTimeline(day), {}, cfg, null)));
+    assert.ok(sv2.tracks.find(x => x.id === 'thirst').stage >= 1);
 });
 
 for (const r of results) console.log(`  ✓ ${r}`);
