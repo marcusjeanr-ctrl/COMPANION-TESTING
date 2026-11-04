@@ -11424,6 +11424,7 @@ function hmsPanelStateRead(chatId, chat, st) {
         ...(() => { const warnings = consistencyWarnings(chatId, chat, hud, guard); return warnings.length ? {consistency:warnings} : {}; })(),
         pins,
         questNotes: st.questNotes || [],
+        todoIdeas: isPlainObject(st.todoIdeas) ? { ...st.todoIdeas, stale: !!st.todoIdeas.at && st.todoIdeas.at !== (hmsTimeline(chat).at(-1)?.msg.id || null) } : null,
         atlas: (() => { try { return atlasHereInfo(chatId, hud, chat); } catch (e) { logW(`[RPG Companion HMS] Atlas read failed: ${e?.message || e}`); return null; } })(),
         arcCheck: (() => { try { return arcCheck(chatId, hud); } catch { return null; } })(),
         mapBank: (() => { try { if (!posCfg().bank || !hud) return null; const rooms = mapBankList(hud); const k = posRoomKey(hud); return { rooms, here: mapBankKey(hud), chatRoom: !!(k && isPlainObject(st.rooms) && st.rooms[k]) }; } catch { return null; } })(),
@@ -18753,6 +18754,49 @@ function hmsTodo(chat, p) {
     return out.slice(0, 16);
 }
 
+/** "Suggest things to do": one call on the Companion's own model, only when the player asks. Never reaches the story. */
+async function hmsTodoIdeas(chatId) {
+    const chat = await chatApi.getMessages(chatId);
+    const st = await getChatState(chatId);
+    const userName = await getUserName(chatId);
+    const tl = hmsTimeline(chat);
+    const last = tl.length ? tl[tl.length - 1] : null;
+    let facts = [];
+    try {
+        const agenda = hmsAgendaPanel(chat, st), gear = hmsGearPanel(chat, st), systems = hmsSystemsPanel(chat, st);
+        const relations = hmsRelationsPanel(chat, st), family = hmsFamilyPanel(chat, st), birthdays = hmsBirthdays(chat, st, userName);
+        facts = hmsTodo(chat, { agenda, gear, systems, relations, family, birthdays }).map(x => `- ${x.text}${x.sub ? `: ${x.sub}` : ''}`);
+        for (const r of (relations?.people || []).slice(0, 12)) facts.push(`- ${r.name}: ${r.standing || 'known'}${r.bond ? `, ${r.bond}` : ''}`);
+    } catch (e) { logW(`[RPG Companion HMS] Things-to-do facts failed: ${e?.message || e}`); }
+    const recent = chat.filter(m => m.role === 'user' || m.role === 'assistant').filter(m => !(m.role === 'user' && isOocText(textOf(m.content)))).slice(-10).map(m => {
+        const t = stripCompanion(textOf(m.content));
+        const body = m.role === 'assistant' ? (t.split(/^\s*\*\*\*\s*$/m).slice(1).join('\n') || t) : t;
+        return `${m.role === 'user' ? userName : 'Story'}: ${body.replace(/\s+/g, ' ').trim().slice(0, m.role === 'user' ? 600 : 1500)}`;
+    }).join('\n\n');
+    const hudText = last ? last.hud.lines.map(l => l.text).join('\n').slice(0, 2500) : '';
+    const sys = `You suggest what ${userName}, the player's character in an ongoing roleplay, could do next. Read the scene, the HUD and the open threads, then give 6 to 8 suggestions.
+Rules:
+- Only things ${userName} could do now or soon, where they are, at this time of day, within the world's rules: people to see, errands, training, questions to ask, places to go, small personal moments, preparations.
+- Ground each one in something the story or the open threads actually show. Mix the practical with the personal.
+- Use only what ${userName} knows in the story. A secret or plot hook ${userName} has not learned on screen never appears, not even as a hint.
+- Never decide an outcome, never speak for anyone, and never mention the HUD, trackers or the extension.
+Answer with only a JSON array: [{"do": "a short action in the second person, under 12 words", "why": "one short line from the story"}]`;
+    const user = `WORLD STATE HUD (latest):\n${hudText}\n\nOPEN THREADS AND PEOPLE:\n${facts.join('\n') || '- none'}\n\nRECENT STORY:\n${recent}`;
+    const request = { messages: [{ role: 'system', content: sys }, { role: 'user', content: user }], ...userOpt() };
+    request.reasoning = { source: 'off' };
+    const res = await quietCall(request, Math.max(20, Number(settings.trackerTimeoutSec) || 180) * 1000, chatId);
+    const text = stripThink(res?.content || '');
+    let items = [];
+    try {
+        const s = text.indexOf('['), e = text.lastIndexOf(']');
+        const arr = s >= 0 && e > s ? JSON.parse(text.slice(s, e + 1)) : [];
+        items = (Array.isArray(arr) ? arr : []).filter(x => x && typeof x.do === 'string' && x.do.trim()).slice(0, 8).map(x => ({ do: x.do.trim().slice(0, 120), why: typeof x.why === 'string' ? x.why.trim().slice(0, 200) : '' }));
+    } catch { items = []; }
+    if (!items.length) throw new Error('The model sent no suggestions this time. Try again.');
+    st.todoIdeas = { items, at: last ? last.msg.id : null, made: new Date().toISOString() };
+    await saveChatState(chatId, st);
+}
+
 function pinsReminder(st) {
     const pins = Object.values(st.pins || {}).filter(p => p && p.text);
     if (!pins.length) return null;
@@ -19246,6 +19290,14 @@ spindle.onFrontendMessage(async (payload, userId) => {
             }
 
             // Backup and restore: everything the extension keeps for one chat (hand edits, pins, ledger, notes)
+            case 'todo_ideas': {
+                if (!payload.chatId || payload.chatId === SANDBOX_ID) return;
+                try { await hmsTodoIdeas(payload.chatId); }
+                catch (e) { setStatus(payload.chatId, 'error', `Could not get suggestions: ${String(e?.message || e).replace(/^PROVIDER_BUSY:\s*/, 'your provider is busy. ')}`); }
+                toFrontend({ type: 'todo_ideas_done', chatId: payload.chatId });
+                await pushState(payload.chatId);
+                break;
+            }
             case 'chat_backup': {
                 if (!payload.chatId || payload.chatId === SANDBOX_ID) return;
                 const st = await getChatState(payload.chatId);

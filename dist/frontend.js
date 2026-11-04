@@ -841,7 +841,7 @@ button.rpgc-chip.intel:hover { border-color: var(--lumiverse-accent, #7aa2f7); }
 .rpgc-tools>summary:hover{color:var(--lumiverse-text,#eee)}
 .rpgc-tools[open]{display:flex;flex-direction:column;gap:8px;padding:8px;border:1px dashed var(--lumiverse-border,#333);border-radius:10px}
 .rpgc-sec{transition:border-color .2s,box-shadow .2s}
-.rpgc-todo{list-style:none;margin:0;padding:0}.rpgc-todo li{padding:3px 4px;border-radius:6px;cursor:pointer}.rpgc-todo li:hover{background:color-mix(in srgb,currentColor 8%,transparent)}
+.rpgc-todo{list-style:none;margin:0;padding:0}.rpgc-todo li{padding:3px 4px;border-radius:6px}.rpgc-todo li.go:hover{background:color-mix(in srgb,currentColor 8%,transparent)}.rpgc-todo li.go{cursor:pointer}.rpgc-todo.ideas li{cursor:default}
 .rpgc-sec[open]{box-shadow:0 2px 10px -8px #000c}
 .rpgc-sec>summary{border-radius:inherit}
 .rpgc-sec>summary:hover{background:color-mix(in srgb,currentColor 5%,transparent)}
@@ -1960,6 +1960,7 @@ export function setup(ctx) {
         if(msg.type==='voice_dialogue') {
             if(msg.chatId===state.chatId&&msg.requestKey===state.voiceDialogue?.requestKey&&msg.replyId===state.hms?.messageId){state.voiceDialogue={...msg,id:msg.replyId,loading:false};render();}return;
         }
+        if (msg.type === 'todo_ideas_done') { if (state.todoBusy === msg.chatId) { state.todoBusy = null; render(); } return; }
         if (msg.type === 'chat_backup') {
             if (msg.chatId !== state.chatId || !msg.data) return;
             const a = document.createElement('a');
@@ -4471,14 +4472,28 @@ export function setup(ctx) {
         }
         return state.looseDismissed;
     }
-    // Things to do: what is open right now, gathered from the panels. Each line opens the card it came from.
+    // Things to do: ideas for what to do next (on request, from the Companion's own model; never sent to the story),
+    // and under them what is open right now, gathered from the panels. Each open line opens the card it came from.
     function renderTodo() {
-        const list = Array.isArray(state.hms?.todo) ? state.hms.todo : [];
-        if (!list.length) return null;
-        return section('todo', T('Things to do'), state.open, String(list.length),
-            h('ul', { class: 'rpgc-todo' }, list.map(x => h('li', { class: 'go', role: 'button', tabindex: '0', title: T('Open where it lives'),
+        if (!state.hms) return null;
+        const list = Array.isArray(state.hms.todo) ? state.hms.todo : [];
+        const ideas = state.hms.todoIdeas && Array.isArray(state.hms.todoIdeas.items) ? state.hms.todoIdeas : null;
+        const busy = state.todoBusy === state.chatId;
+        const out = [];
+        out.push(h('div', { class: 'rpgc-row' }, h('button', { class: 'rpgc-btn', disabled: busy || !state.chatId ? true : null,
+            onclick: () => { state.todoBusy = state.chatId; render(); send({ type: 'todo_ideas', chatId: state.chatId }); } },
+            busy ? T('Thinking of ideas…') : ideas ? '💡 ' + T('New ideas') : '💡 ' + T('Suggest things to do'))));
+        if (ideas && ideas.items.length) {
+            out.push(h('ul', { class: 'rpgc-todo ideas' }, ideas.items.map(x => h('li', null, h('b', null, x.do), x.why ? h('span', { class: 'rpgc-note' }, ` \u00B7 ${x.why}`) : null))));
+            out.push(h('p', { class: 'rpgc-note' }, ideas.stale ? T('These ideas are from before the last reply; ask again for fresh ones.') : T('Only you see these. Pick one and write it as your own action.')));
+        } else if (!busy) out.push(h('p', { class: 'rpgc-note' }, T('Ideas come from the Companion’s own model, one call when you press the button. The story never sees them.')));
+        if (list.length) {
+            out.push(h('h4', null, T('Open right now')));
+            out.push(h('ul', { class: 'rpgc-todo' }, list.map(x => h('li', { class: 'go', role: 'button', tabindex: '0', title: T('Open where it lives'),
                 onclick: () => goTo(x.go[0], x.go[1]), onkeydown: (e) => { if (e.key === 'Enter') goTo(x.go[0], x.go[1]); } },
                 h('span', { 'aria-hidden': 'true' }, x.icon + ' '), h('b', null, x.text), x.sub ? h('span', { class: 'rpgc-note' }, ` \u00B7 ${x.sub}`) : null))));
+        }
+        return section('todo', T('Things to do'), state.open, ideas && ideas.items.length ? `💡 ${ideas.items.length}` : list.length ? String(list.length) : null, ...out);
     }
     function renderLooseEnds() {
         const list = looseEnds();
