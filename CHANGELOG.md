@@ -32,6 +32,10 @@ Compatibility with the Mushoku Tensei RPG "Six-Sided World" v1.1 card and its fo
 - **Person cards**: a bond that only changed wording ("Younger sister" ↔ "Younger sister, minor") no longer shows as a change, and only the latest bond change is kept.
 
 **Fixes from live play (fourth RC pass)**
+- **Agenda: "the seventh" is a date.** Aurelius wants Marcus's answer "on the seventh", but the Agenda showed no countdown. It now reads a day of the month ("the seventh", "by the 21st of Month 3", "the first of the month") as the next such day, 5 days out here. "The seventh bell" and "the third time" aren't dates.
+- **A healed Condition line isn't "dropped".** When the bruise healed during the month, the Condition line went away (the card only prints it while something is wrong), and the status said "1 line dropped since the last reply". It no longer counts as dropped.
+- **Gear: "in hand, held by Aurelia" is Aurelia's.** The reporter called the travel bundle "in hand" with "held by Aurelia Veyrath". If the holder is on Present, it now counts as with them, not on Marcus.
+- **Reporter: a time skip counts as this reply.** In the month skip, the reporter logged only the final supper scene. Flash Slash attempted, Earth Wall practising and the wand flick were all left out, because its rules said "this turn". It's now told that a skip or montage is part of the reply: report what it shows practiced, attempted or learned (an attempt stays an attempt).
 - **Wounds: a treated wound with a note no longer "heals".** After the supper skip, the Condition line read "Left forearm break-fall bruise — Treated (cold-soaked, wrapped)". The comma inside the brackets broke the wound match, so Wounds showed the bruise as healed and listed a brand-new condition named "… — Treated". Now a bracketed note stays part of the same wound, and its age and history carry on.
 - **Agenda: a standing routine is never "late".** The reporter re-sent the two-month "Training schedule" with only the day's hours ("dawn to ninth bell …; ninth bell to midday …"). At supper it showed as ⚠️ Late, What's next listed it as due, and the narrator would have been told it was late. A schedule, routine or "every morning" item now stays 🔁 Ongoing. "Schedule a meeting…" isn't treated as a routine.
 - **Agenda: timing text no longer cut mid-word.** It used to stop at 60 characters ("…ninth bell t"). The limit is now 140.
@@ -54,7 +58,7 @@ Compatibility with the Mushoku Tensei RPG "Six-Sided World" v1.1 card and its fo
   - a rank past the card's age cap (at 12: sword up to Advanced)
 
   "True: Advanced (potential: Saint)" isn't flagged. Nothing is changed automatically, and the narrator's counting rules are untouched.
-- **New regression suite** `tools/test_live_play_audit.cjs` (24 checks: gear guesses, Training line, discarded swipes, HUD reminders, wounds and routines), now part of `run_tests.cjs`.
+- **New regression suite** `tools/test_live_play_audit.cjs` (27 checks: gear guesses, Training line, discarded swipes, HUD reminders, wounds, routines, dates), now part of `run_tests.cjs`.
 - **Training card: half sessions.** "Water Magic → Saint (1.5/60 sessions)" (a good teacher counts a day as 1.5) was not read, so the Water line vanished from the card. Decimal counts are read now.
 - **Spellbook: a short spell name.** "raise a Shield" beside Water Ball and Water Arrow became a separate "Shield" spell. A bare name is matched to the spell of the same school cast beside it (Water Shield), or to the one spell it ends, when there is only one.
 - **What's next:** a promise with a time coming up (Aurelius's sword session at the ninth bell) shows under Coming up with its countdown; an ongoing arrangement no longer shows there.

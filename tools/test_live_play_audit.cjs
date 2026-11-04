@@ -18,7 +18,8 @@ ctx.globalThis = ctx;
 vm.createContext(ctx);
 vm.runInContext(source.slice(0, startup) + `
 globalThis.__t = { gearRead, getSwipeData, mtTraining, hmsTimeline, worldLines,
-  hmsHudSync: typeof hmsHudSync === 'function' ? hmsHudSync : () => [], hmsStoryReminders, hmsReadWounds, hmsAgendaPanel, hudRead: typeof hmsHudRead === 'function' ? hmsHudRead : null,
+  hmsHudSync: typeof hmsHudSync === 'function' ? hmsHudSync : () => [], hmsStoryReminders, hmsReadWounds, diffHud, parseHud: typeof parseHud === 'function' ? parseHud : null,
+  agendaDayOfMonth: typeof agendaDayOfMonth === 'function' ? agendaDayOfMonth : () => null, hmsAgendaPanel, hudRead: typeof hmsHudRead === 'function' ? hmsHudRead : null,
   hmsTrainingChecks: typeof hmsTrainingChecks === 'function' ? hmsTrainingChecks : () => [],
   gearMentioned: typeof gearMentioned === 'function' ? gearMentioned : () => true };`, ctx);
 const t = ctx.__t;
@@ -183,6 +184,29 @@ check('a time-skip recap keeps a routine open', () => {
     const chat = [user('a'), reply({ agenda: [sched] }, 'Breakfast.', { time: '08:00' }), user('(Time skip: until supper.)')];
     const r = JSON.parse(JSON.stringify(t.hmsStoryReminders(chat, {}, 'Marcus Veyrath').parts)).join('\n');
     assert.match(r, /Training schedule.*ongoing: it runs on through the skip; keep it open/);
+});
+
+// ── export 6 (the month skip) ──
+check('"the seventh" is a day of the month; "the seventh bell" or "the third time" is not', () => {
+    assert.equal(t.agendaDayOfMonth('the seventh'), 7);
+    assert.equal(t.agendaDayOfMonth('by the 21st of Month 3'), 21);
+    assert.equal(t.agendaDayOfMonth('the first of the month'), 1);
+    assert.equal(t.agendaDayOfMonth('the seventh bell'), null);
+    assert.equal(t.agendaDayOfMonth('the third time'), null);
+    const chat = [user('a'), reply({ agenda: [{ key: 'answer ghislaine', what: "Answer Ghislaine's question", when: 'the seventh', kind: 'letter', state: 'open' }] }, 'Supper.', { day: 2 })];
+    const a = JSON.parse(JSON.stringify(t.hmsAgendaPanel(chat, {}, {})));
+    assert.equal(a.items[0].dayIn, 5);
+});
+check('a healed Condition line going away is not a dropped HUD line', () => {
+    const tl = t.hmsTimeline([user('a'), reply({}, 'x', { condition: 'Left forearm bruise — Treated' }), user('b'), reply({}, 'y', { time: '12:00' })]);
+    const miss = JSON.parse(JSON.stringify(t.diffHud(tl[0].hud, tl[1].hud)));
+    assert.deepEqual(miss.map(m => m.key), []);
+});
+check('an item "in hand, held by" someone present is with them, not the player', () => {
+    const chat = [user('a'), reply({ gear: [{ name: 'travel paper bundle', state: 'in hand', where: 'held by Aurelia Veyrath, slate under her arm' }] }, 'Aurelia takes the paper.', { present: 'Aurelia Veyrath (8, b. ~K408)', equipment: 'Plain road sword' })];
+    assert.equal(gearState(chat, 'travel paper bundle'), 'stowed');
+    const mine = [user('a'), reply({ gear: [{ name: 'travel paper bundle', state: 'in hand', where: 'held by Marcus' }] }, 'You hold the paper.', { present: 'Aurelia Veyrath (8, b. ~K408)', equipment: 'Plain road sword' })];
+    assert.equal(gearState(mine, 'travel paper bundle'), 'in hand');
 });
 
 for (const r of results) console.log(`  ✓ ${r}`);

@@ -7334,6 +7334,8 @@ function diffHud(prevHud, curHud) {
     const curKeys = new Set(curHud.lines.filter(l => !l.block).map(l => l.key));
     // Six-Sided v1.1 Compact prints Memory and Equipment only on the turn they change.
     if (hudLayout(prevHud) === 'compact' && hudLayout(curHud) === 'compact') { curKeys.add('memory'); curKeys.add('equipment'); }
+    // A Condition line is printed only while something is wrong: it going away means healed, not dropped.
+    for (const k of ['condition', 'conditions', 'injuries', 'wounds']) curKeys.add(k);
     const out = [];
     prevLines.forEach((l, i) => {
         if (!curKeys.has(l.key)) out.push({ key: l.key, text: l.text, kind: l.kind, after: i > 0 ? prevLines[i - 1].key : null });
@@ -11041,6 +11043,7 @@ function buildCompanionInstructionRead(committed, userName, locks, st = null, ch
     if (yc.on) s += `\n"you" also holds ${userName}'s own state at the end of this reply: mood, ${wantSurvival ? '' : 'stress (L), '}sanity (100 steady, 0 broken)${askXp ? ', and xp earned in this reply for a real accomplishment (0 if none) with why' : ''}. "got" and "lost": physical things ${userName} was handed, picked up, gave away, used up or lost — in their own last message or on screen in this reply — that the HUD does not list (a handout, a key, a note, a booklet), a few words each; [] when nothing changed hands. A message, a notice or news is not a thing.`;
     if (abilitiesSeen) s += '\n"you.abilities": one confirmed player spell/technique/skill per row; no ranks, casting labels, NPCs, catalog entries, instructions or hypotheticals. historical:true for past records, not new learning/current study. Attempts are not knowledge; reliability is not mastery. Exact quote required. Absence is not loss.';
     if (abilitiesSeen) s += '\nStudy requires practice begun now, not assigned/future lessons, demonstrations or failed combat alone. Never invent percentages. Omit empty study/learning.';
+    if (yc.on) s += `\nA time skip, montage or "over the month" summary in this reply is part of this turn: report what it shows ${userName} practicing, attempting or learning the same way as a scene (an attempt stays an attempt; a spell is learned only when the story says so). Its healed wounds and new gear count too.`;
     if (wantQuests) s += '\nQuest progress is for the whole quest, not the current step. Do not lower it unless the quest restarted.';
     if (wantQuests) s += '\n"quests": accepted goals only. Reuse a Known quest ID for the same assignment despite new titles, progress or stages; null for a genuinely separate assignment. Names are labels, not IDs. Progress requires a measured percentage, else null. Report ended scene-level goals even when omitted from the HUD; use closed if the scene ended without a confirmed success/failure. Preserve broader quests and future commitments. No rewards from completion alone.';
     if (wantQuests && chat) {
@@ -13789,7 +13792,11 @@ function gearReadUncached(chat, st, cfg) {
             if (r.state === 'in container' && r.inside && !find(gearBare(r.inside)) && !/\b(pocket|bolso|bolsillo)\b/i.test(r.inside)) { const box = ensure(r.inside, 'story'); if (box && !box.state) box.state = 'on body'; }
             // "on body" means slung/strapped; reported with a desk or shelf as its place, it was set down there.
             const setDown = String(r.state || '').toLowerCase() === 'on body' && GEAR_FURNITURE_RE.test(r.where || '') && !GEAR_BODY_RE.test(r.where || '');
-            const toState = setDown ? 'stowed' : r.state;
+            // "in hand", but "held by Aurelia Veyrath": someone in the scene has it, not the player.
+            const heldBy = /^\s*(?:held|carried|kept)\s+by\s+([^,;]+)/i.exec(r.where || '');
+            const withOther = !setDown && heldBy && /^(?:in hand|on body|worn)$/i.test(String(r.state || '')) && e && e.hud
+                && hmsPresentPeople(e.hud).some(p => lockKey(p.name).split(' ')[0] === lockKey(heldBy[1]).split(' ')[0]);
+            const toState = setDown || withOther ? 'stowed' : r.state;
             // Put down, left or gone needs the story to say so. A guess ("left behind before the drills") about an
             // item this reply's own HUD still carries, with no word of it in the reply or the player's message, is
             // not a change: the HUD stands.
@@ -13963,15 +13970,34 @@ function agendaScheduleDay(due, when, at, hud = null) {
         const unit = /^week/i.test(span[2]) ? 7 : /^month/i.test(span[2]) ? 30 : 360;
         if (Number.isFinite(n)) return Math.floor(at / 1440) + n * unit;
     }
+    // "the seventh", "on the 7th", "the seventh of Month 2": a day of the month (30-day months), the next one to come
+    const dom = agendaDayOfMonth(t);
+    const cal = dom ? hmsCalNow(hud) : null;
+    if (dom && cal && cal.month) {
+        const mm = t.match(/\bof\s+Month\s+(\d{1,2})\b/i);
+        let diff = mm ? (Number(mm[1]) - cal.month) * 30 + (dom - cal.day) : dom - cal.day;
+        if (mm && diff < 0) diff += 360;
+        if (!mm && diff < 0) diff += 30;
+        return Math.floor(at / 1440) + diff;
+    }
     if (/\bnext month\b/i.test(t)) return Math.floor(at / 1440) + 30;
     if (/\bnext year\b/i.test(t)) return Math.floor(at / 1440) + 360;
     return Math.floor(at / 1440) + (/\bday after tomorrow\b/i.test(t) ? 2 : /\btomorrow\b/i.test(t) ? 1 : /\bnext week\b/i.test(t) ? 7 : 0);
 }
 
+const AGENDA_ORD = { first: 1, second: 2, third: 3, fourth: 4, fifth: 5, sixth: 6, seventh: 7, eighth: 8, ninth: 9, tenth: 10, eleventh: 11, twelfth: 12, thirteenth: 13, fourteenth: 14, fifteenth: 15, sixteenth: 16, seventeenth: 17, eighteenth: 18, nineteenth: 19, twentieth: 20, 'twenty-first': 21, 'twenty-second': 22, 'twenty-third': 23, 'twenty-fourth': 24, 'twenty-fifth': 25, 'twenty-sixth': 26, 'twenty-seventh': 27, 'twenty-eighth': 28, 'twenty-ninth': 29, thirtieth: 30 };
+/** "the seventh" / "on the 7th" (of the month): the day number, or null. Not "the seventh bell" or "the third time". */
+function agendaDayOfMonth(text) {
+    const m = String(text || '').match(/\b(?:on\s+|by\s+)?the\s+(\d{1,2}(?:st|nd|rd|th)|twenty-(?:first|second|third|fourth|fifth|sixth|seventh|eighth|ninth)|first|second|third|fourth|fifth|sixth|seventh|eighth|ninth|tenth|eleventh|twelfth|thirteenth|fourteenth|fifteenth|sixteenth|seventeenth|eighteenth|nineteenth|twentieth|thirtieth)\b(?!\s*[-\s]?(?:bell|hour|time|day|week|month|year|night|morning|lesson|session|try|attempt|course|watch|floor|row|door|chapter|page|of\s+(?!Month\b|the\s+month\b|this\s+month\b)))/i);
+    if (!m) return null;
+    const w = m[1].toLowerCase();
+    const n = /^\d/.test(w) ? parseInt(w, 10) : AGENDA_ORD[w];
+    return n >= 1 && n <= 30 ? n : null;
+}
 // 3.4.0: does the wording name a calendar day ("in two days", "tomorrow", "Day 14", "K417-04-14")?
 // Only then is the resolved day shown as a countdown; "shortly" or "this evening" never become a date.
 function agendaNamesDay(text) {
-    return /\b(?:in\s+(?:\d+|one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|an?|a few)\s+(?:days?|weeks?|months?|years?)|tomorrow|day after tomorrow|next (?:week|month|year)|Day\s*:?\s*\d+|Month\s*\d+)\b|\bK\.?\s*\d{3,4}-\d{1,2}-\d{1,2}\b/i.test(String(text || ''));
+    return agendaDayOfMonth(text) !== null || /\b(?:in\s+(?:\d+|one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|an?|a few)\s+(?:days?|weeks?|months?|years?)|tomorrow|day after tomorrow|next (?:week|month|year)|Day\s*:?\s*\d+|Month\s*\d+)\b|\bK\.?\s*\d{3,4}-\d{1,2}-\d{1,2}\b/i.test(String(text || ''));
 }
 // A wording with no day of its own ("at dawn", "morning") keeps a day named earlier.
 function keepDayOf(text) { return /^(?:at\s+)?(?:dawn|sunrise|morning|noon|midday|afternoon|evening|dusk|sunset|night)$/i.test(String(text || '').trim()); }
