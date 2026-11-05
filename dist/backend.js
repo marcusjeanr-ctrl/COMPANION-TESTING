@@ -2151,6 +2151,22 @@ function getSwipeData(msg, allowSnapshot = false) {
     return null;
 }
 
+/** The Companion's own edit to a reply's text (a Training count, a restored HUD line, an arc fix).
+ * The reading of that reply is signed with its text, so re-sign it with the new text when it was valid for the
+ * old one; otherwise the edit made the whole reading look stale and everything in it (an agenda item, a gear
+ * move) dropped out of the panels. A reading that was already stale stays stale. */
+async function rewriteReplyText(chatId, msg, patch) {
+    const key = String(msg?.swipe_id ?? 0);
+    const mine = msg?.metadata?.[META_KEY] || msg?.extra?.spindle_metadata?.[META_KEY] || null;
+    if (typeof patch?.content === 'string' && isPlainObject(mine?.swipes?.[key]) && mine.sources?.[key] && mine.sources[key] === readingSource(msg.content)) {
+        const metadata = { ...(msg.metadata || {}) };
+        metadata[META_KEY] = { ...mine, sources: { ...(mine.sources || {}), [key]: readingSource(patch.content) } };
+        patch = { ...patch, metadata };
+        msg.metadata = metadata;
+    }
+    await chatApi.updateMessage(chatId, msg.id, patch);
+}
+
 const swipeWrites = new Map();
 async function setSwipeData(chatId, msg, data, extraPatch = {}) {
     const queueKey = `${chatId}:${msg.id}`;
@@ -5610,7 +5626,7 @@ async function runSeparateUpdate(chatId, targetId = null) {
             if (Array.isArray(comp.sessions) && comp.sessions.length && settings.hmsHudMath !== false) {
                 try {
                     const r = sixTrainingFromSessions(textOf(msg.content), previousHudFor(fresh, msg.id), comp.sessions);
-                    if (r) { await chatApi.updateMessage(chatId, msg.id, { content: r.content }); msg.content = r.content; hmsCache.delete(chatId); spindle.log.info(`[RPG Companion HMS] Training: ${r.notes.join('; ')}`); }
+                    if (r) { await rewriteReplyText(chatId, msg, { content: r.content }); msg.content = r.content; hmsCache.delete(chatId); spindle.log.info(`[RPG Companion HMS] Training: ${r.notes.join('; ')}`); }
                 } catch (e) { logW(`[RPG Companion HMS] Training count skipped: ${e?.message || e}`); }
             }
             if (comp.cutOff) setStatus(chatId, 'warning', `Characters updated by a separate call (${secs}s). The answer was cut off by the response length limit, so only its first part was read. Raise the maximum response length (max tokens) of the connection the tracker uses, or switch off modules you do not need in Settings → HMS systems.`);
@@ -9686,7 +9702,7 @@ async function arcFix(chatId, value) {
         return true;
     });
     if (!r.changed) return false;
-    await chatApi.updateMessage(chatId, msg.id, { content: r.content });
+    await rewriteReplyText(chatId, msg, { content: r.content });
     return true;
 }
 
@@ -11565,7 +11581,7 @@ async function hmsHandleReplyInner(chatId, chat, msg, generationType) {
         content = rec.content;
         const patch = { content };
         if (rec.reasoning !== null) patch.reasoning = { text: rec.reasoning };
-        try { await chatApi.updateMessage(chatId, msg.id, patch); msg.content = content; } catch (e) { logW(`[RPG Companion HMS] Could not move the ${rec.moved.join(' and ')} out of the thinking: ${e?.message || e}`); }
+        try { await rewriteReplyText(chatId, msg, patch); msg.content = content; } catch (e) { logW(`[RPG Companion HMS] Could not move the ${rec.moved.join(' and ')} out of the thinking: ${e?.message || e}`); }
         spindle.log.info(`[RPG Companion HMS] Moved the ${rec.moved.join(' and ')} out of the model's thinking into the reply.`);
     }
     // The preset's opening plus the model's own header gives "### WORLD STATE ###" twice: keep one.
@@ -12895,7 +12911,7 @@ async function hmsQuestRestore(chatId, name, stateText) {
         return insertHudItem(items, { key: 'quests', text: `Quests: ${entry}`, kind: 'field', after: null });
     });
     if (!r.changed) return false;
-    await chatApi.updateMessage(chatId, msg.id, { content: r.content });
+    await rewriteReplyText(chatId, msg, { content: r.content });
     return true;
 }
 
@@ -14681,6 +14697,12 @@ function agendaReportedState(row, data, at, dueAt, previous = 'open', source = n
         if (pending && !early) return previous;
     }
     if (row.state === 'in_progress' && at !== null && row.scheduleDay != null && row.scheduleDay > Math.floor(at / 1440)) return previous;
+    // Waiting on an arrival ("when he reaches Roa") while the HUD is somewhere else: not under way yet, whatever was
+    // reported before (a deal struck at home about the first letter from Roa is not that letter being written).
+    if (['open', 'in_progress'].includes(row.state) && row.scenePlace && row.where && AGENDA_ARRIVAL_RE.test(String(row.when || row.due || ''))) {
+        const here = trackingWords(row.scenePlace), there = [...trackingWords(row.where)];
+        if (there.length && !there.some(w => here.has(w))) return 'open';
+    }
     // Repeated pending reports are not evidence that the same occurrence restarted.
     // Explicit moves and manual edits retain their existing correction paths.
     if (!row.moved && ['open', 'in_progress'].includes(row.state) &&
@@ -14783,6 +14805,29 @@ function agendaNarratedMove(row, items, source, messageId) {
     });
 }
 
+const AGENDA_ARRIVAL_RE = /\b(?:when|after|once|upon|on|until)\s+(?:(?:he|she|they|you|i|we|marcus)\s+)?(?:first\s+)?(?:reach(?:es)?|arriv(?:e|es|al)|gets?\s+to|settles?\s+in|is\s+settled|lands?\s+in)\b/i;
+const AGENDA_FIRST_LETTER_RE = /\bfirst\s+(?:\w+\s+){0,2}?(?:letters?|note)\b/i;
+function agendaIsLetter(r) {
+    return r?.kind === 'letter' || /\b(?:letters?|write|writes|written|note to)\b/i.test(String(r?.what || ''));
+}
+function agendaLetterSourced(r, reply, asked) {
+    const names = String(r.with || '').split(/\s*(?:,|&|\band\b|\/)\s*/i).map(n => n.trim()).filter(Boolean)
+        .flatMap(n => { const w = n.split(/\s+/).filter(x => /^\p{Lu}/u.test(x)); return [n, w[0]].filter(x => x && x.length > 1); });
+    if (!names.length) return true;
+    const named = new RegExp(`(?:\\b|\\[D:\\s*)(?:${names.map(n => n.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|')})\\b`, 'i');
+    const writing = /\b(?:letters?|(?:write|writes|writing|wrote|written)\s+(?:to|home|back|me|her|him|us|them|you|often|every)|send (?:word|it|them)|mark(?:ed)? (?:it|the (?:outer )?fold))\b/i;
+    const speakerRe = new RegExp(`^\\s*\\[D:\\s*(?:${names.map(n => n.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|')})\\b`, 'i');
+    const user = asked && asked.role === 'user' ? stripThink(textOf(asked.content)).split(/\n+/) : [];
+    // "No letters tonight" names the writing to rule it out
+    const unsaid = line => line.replace(/\b(?:no|not|never|without|don['’]?t|won['’]?t|nor)\s+(?:\w+\s+){0,2}?(?:letters?|write|writing)\b/gi, ' ');
+    // sentence by sentence: a long paragraph that names her once and a "fence post" later is not a letter to her;
+    // a line spoken as her ([D:Name]) counts for every sentence in it
+    return [...trackingContinuityLines(reply), ...user].some(line => {
+        const as = speakerRe.test(line);
+        return line.split(/(?<=[.!?\u2026]["\u201D]?)\s+/).some(sen => (as || named.test(sen)) && writing.test(unsaid(sen)));
+    });
+}
+
 function agendaRead(chat, st) {
     const g = st && isPlainObject(st.agenda) ? st.agenda : {};
     const tl = hmsTimeline(chat);
@@ -14869,8 +14914,18 @@ function agendaRead(chat, st) {
             }
             if (it && agendaPacketClockOutcome(it, observation, dueAt)) { dueAt = Math.min(it.dueAt, dueAt); scheduleDay = Math.floor(dueAt / 1440); }
             if (it && agendaBellRollover(it, observation)) { scheduleDay = it.scheduleDay; dueAt = scheduleDay * 1440 + observation.clockMinute; }
+            // "The first letter" to one person is one letter however it is worded ("Write the first letter from Roa to
+            // Aurelia" / "First letter home goes to Aurelia"): the ordinal and the person name it, not the title.
+            if (!it && agendaIsLetter(r) && r.with && AGENDA_FIRST_LETTER_RE.test(r.what)) {
+                const same = items.filter(x => ['open', 'in_progress'].includes(x.state) && agendaIsLetter(x) && x.with && agendaPeopleSame(x.with, r.with) && AGENDA_FIRST_LETTER_RE.test(x.what));
+                if (same.length === 1) it = same[0];
+            }
             if (!it) {
                 if (!r.with && !r.where && !r.when && !r.due && items.some(x => agendaSame(lockKey(x.what), r.key))) continue;
+                // A new letter needs the story to say it: a line of this reply, or of the message it answers, that names
+                // the person (or speaks as them) and the writing. "Write the first letter from Roa to Seraphina" with no
+                // such line was the reporter filling a slot, and stayed on the Agenda for good.
+                if (agendaIsLetter(r) && r.with && !agendaLetterSourced(r, m, idx > 0 ? chat[idx - 1] : null)) continue;
                 const key = agendaItemKey(items, r);
                 it = { key, what: r.what, with: null, where: null, when: null, dueAt: null, kind: r.kind, state: 'open', madeAt: at, msgId: m.id, idx, from: 'story', changedIn: m.id, history: [] }; items.push(it); }
             alias(r.key, it);
@@ -14897,7 +14952,7 @@ function agendaRead(chat, st) {
             if (r.when || r.due) { if (r.when && !keepClock) it.when = r.when; if (dueAt !== null || r.moved || moved) it.dueAt = dueAt; if (dueAt === null && r.due && !keepClock) it.when = r.when || r.due; }
             if ((r.when || r.due) && !keepClock) { it.clockOnly = clockOnly; it.clockMinute = observation.clockMinute; }
             if (r.kind && !it.kind) it.kind = r.kind;
-            const state = agendaReportedState({ ...r, scheduleDay, ...(moved ? { moved: true } : {}) }, d, at, it.dueAt, it.state, m);
+            const state = agendaReportedState({ ...r, scheduleDay, scenePlace, ...(moved ? { moved: true } : {}) }, d, at, it.dueAt, it.state, m);
             if (state !== it.state) it.history.push({ from: it.state, to: state, at });
             it.state = state; it.idx = idx; it.changedIn = m.id;
         }
@@ -19193,7 +19248,7 @@ async function hmsRestore(chatId, keys) {
         return changed;
     });
     if (r.changed) {
-        await chatApi.updateMessage(chatId, msg.id, { content: r.content });
+        await rewriteReplyText(chatId, msg, { content: r.content });
         msg.content = r.content;
     }
     await updateGuard(chatId, msg, gg => { gg.missing = (gg.missing || []).filter(x => !wanted.some(w => w.key === x.key)); });
@@ -19212,7 +19267,7 @@ async function hmsInsertLastHud(chatId) {
         return;
     }
     const next = hudToBlock(prevHud) + '\n\n' + content.replace(/^\s+/, '');
-    await chatApi.updateMessage(chatId, msg.id, { content: next });
+    await rewriteReplyText(chatId, msg, { content: next });
     msg.content = next;
     await updateGuard(chatId, msg, gg => { gg.noHud = false; });
     setStatus(chatId, 'ok', 'The last HUD was put back at the top of the reply. Update any values the reply changed.');

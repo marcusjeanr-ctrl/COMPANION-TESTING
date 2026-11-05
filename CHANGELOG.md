@@ -49,6 +49,12 @@
 - **Renown is not a faction:** "Renown: Asura: Unknown" made Asura a neutral faction. An unknown renown is skipped; a real reputation still counts.
 - **Chronicle:** a bond reworded ("the keeper of his slate" → "keeper of the slate") is no longer logged as a bond change (nor sent to the Memory Cortex), and a calendar with months keeps the month in the day ("Month 4 · Day 1", so it is not mixed up with Month 1's Day 1).
 
+**Agenda and Quests, audited reply by reply** (Marcus's chat 2 export with chat 1 carried over)
+- **A Companion edit no longer throws away a reply's tracking.** Some replies were rewritten by the Companion after they had been read, for example to fix a Training count after Refresh or to restore a HUD line. Each reading is checked against the reply's exact text, so a rewritten reply looked edited and everything read from it was dropped. That is how Valeriana's "first letter out of Roa, sealed, marked for her" disappeared from the Agenda. The Companion's own edits now keep the reading valid; a real edit to the story still sets it aside.
+- **A letter has to come from the story.** "Write the first letter from Roa to Seraphina" was never promised: Seraphina only spoke in that reply, and the only letter mentioned was the Boreas letter. A new letter now needs a sentence that names the person, or is spoken by them, and mentions the letter or the writing. It can be in that reply or in your message just before it. "No letters tonight" doesn't count.
+- **The first letter to one person is one item.** "Write the first letter from Roa to Aurelia" and "First letter home goes to Aurelia" were listed as two promises.
+- **Waiting to arrive is not "in progress".** The letter to write "when he reaches Roa" showed as under way while Marcus was still at Veyrath Hall. It stays open until the HUD is in Roa.
+
 **A polished look across every card** (visual only, same tokens, so Looks and world themes keep their colours)
 - Cards with a soft accent glow, a lit top edge and a medallion emblem; headers with a pill for the summary; cards open with a short rise (off with reduced motion).
 - Headings inside cards as small tracked labels with a fading rule; sub-sections as pills; brighter chips, buttons with a lift, focus rings, softer status lines, bars with a glow, nicer scrollbars, a lit view switcher.

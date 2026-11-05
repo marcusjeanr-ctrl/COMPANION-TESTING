@@ -15,7 +15,7 @@ const ctx = {
 };
 ctx.globalThis = ctx;
 vm.createContext(ctx);
-vm.runInContext(source.slice(0, startup) + '\nglobalThis.__t = { factionFromHud, chronBondReworded: typeof chronBondReworded === \'function\' ? chronBondReworded : () => false, chronWhen, parseHud, techStanding: typeof techStanding === \'function\' ? techStanding : () => new Map(), questDetailsLatest, relGuard, relCfg, martialAbilityItems, techListPanel, posMovedNow, keepRoomReading, posRoomKey, setState: (st) => { getChatState = async () => st; saveChatState = async () => {}; }, setPool: p => { loreCatalogPool = () => p; }, spellStoryFold, moneyHudBalance: typeof moneyHudBalance === \'function\' ? moneyHudBalance : commsBalance, commsCfg, messageHud, moneyRead };', ctx);
+vm.runInContext(source.slice(0, startup) + '\nglobalThis.__t = { agendaRead, readingSource, getSwipeData, rewriteReplyText: typeof rewriteReplyText === \'function\' ? rewriteReplyText : null, setChatApi: (fn) => { chatApi.updateMessage = fn; }, factionFromHud, chronBondReworded: typeof chronBondReworded === \'function\' ? chronBondReworded : () => false, chronWhen, parseHud, techStanding: typeof techStanding === \'function\' ? techStanding : () => new Map(), questDetailsLatest, relGuard, relCfg, martialAbilityItems, techListPanel, posMovedNow, keepRoomReading, posRoomKey, setState: (st) => { getChatState = async () => st; saveChatState = async () => {}; }, setPool: p => { loreCatalogPool = () => p; }, spellStoryFold, moneyHudBalance: typeof moneyHudBalance === \'function\' ? moneyHudBalance : commsBalance, commsCfg, messageHud, moneyRead };', ctx);
 const t = ctx.__t;
 
 let n = 0;
@@ -202,7 +202,55 @@ check('a balance seen again adds no money and creates no income', () => {
     assert.equal(t.moneyRead(chat, {}).list.length, 1, 'a promise is not recorded');
 });
 
+// 8. Agenda letters (chat 2 export): a letter needs the story to say it; "the first letter" to one person is one item;
+// waiting on an arrival somewhere else is not under way.
+const scene = (place, prose, data) => ({ id: `m${++n}`, role: 'assistant', is_user: false, swipe_id: 0,
+    content: `### WORLD STATE ###\nDay: 3 | Time: 21:10 (Night)\n◆ Kingdom → ${place}\n***\n${prose}`,
+    extra: { spindle_metadata: { rpg_companion: { swipes: { 0: data } } } } });
+const letter = (what, who, state = 'open') => ({ key: what.toLowerCase(), what, with: who, where: 'Riverton', when: 'when he reaches Riverton', kind: 'letter', state });
+check('a letter the story never mentions is not added', () => {
+    const chat = [user('I nod.'), scene('Old Hall, study', '[D:Mira]"Supper within the hour."[/D]\nThe ledger goes into the drawer with the other letter.', { agenda: [letter('Write the first letter from Riverton to Mira', 'Mira Vale')] })];
+    assert.equal(t.agendaRead(chat, {}).items.length, 0, 'Mira speaks, and a letter is mentioned, but not a letter to her');
+    const told = [user('I nod.'), scene('Old Hall, study', '[D:Tess]"Then it\'s settled. First letter out of Riverton comes to my hand."[/D]', { agenda: [letter('Send the first letter from Riverton to Tess', 'Tess Vale')] })];
+    assert.equal(t.agendaRead(told, {}).items.length, 1, 'spoken as her, about the letter');
+    const asked = [user('I look at Tess. I\'ll write to you first, Tess.'), scene('Old Hall, study', 'She nods once.', { agenda: [letter('Write to Tess from Riverton', 'Tess Vale')] })];
+    assert.equal(t.agendaRead(asked, {}).items.length, 1, 'the promise in your own message counts');
+    const no = [user('I nod.'), scene('Old Hall, study', '[D:Mira]"No letters tonight. Only food."[/D]', { agenda: [letter('Write the first letter from Riverton to Mira', 'Mira Vale')] })];
+    assert.equal(t.agendaRead(no, {}).items.length, 0, '"no letters" rules the letter out');
+});
+check('the first letter to one person is one agenda item', () => {
+    const chat = [user('Deal.'), scene('Old Hall, study', '[D:Tess]"Your first letter from Riverton comes to me."[/D]', { agenda: [letter('Write the first letter from Riverton to Tess', 'Tess Vale')] }),
+        user('I smile.'), scene('Old Hall, study', '[D:Tess]"The first letter home is mine, remember."[/D]', { agenda: [letter('First letter home goes to Tess', 'Tess Vale')] })];
+    const items = t.agendaRead(chat, {}).items;
+    assert.equal(items.length, 1); assert.equal(items[0].what, 'First letter home goes to Tess');
+    const two = [user('Deal.'), scene('Old Hall, study', '[D:Tess]"Your first letter from Riverton comes to me."[/D] [D:Kai]"And write to me after, Marcus."[/D]', { agenda: [letter('Write the first letter from Riverton to Tess', 'Tess Vale'), letter('Write a second letter to Kai', 'Kai Vale')] })];
+    assert.equal(t.agendaRead(two, {}).items.length, 2, 'another person\'s letter stays its own');
+});
+check('a letter waiting on the arrival is not in progress at home', () => {
+    const chat = [user('Deal.'), scene('Old Hall, study', '[D:Tess]"Your first letter from Riverton comes to me."[/D]', { agenda: [letter('Write the first letter from Riverton to Tess', 'Tess Vale', 'in_progress')] }),
+        user('I smile.'), scene('Old Hall, gate', '[D:Tess]"The first letter is mine."[/D]', { agenda: [letter('Write the first letter from Riverton to Tess', 'Tess Vale', 'open')] })];
+    assert.equal(t.agendaRead(chat, {}).items[0].state, 'open');
+    chat.push(user('I arrive.'), scene('Riverton, inn', '[D:Inn]"Paper and ink, sir."[/D] You start the first letter to Tess.', { agenda: [letter('Write the first letter from Riverton to Tess', 'Tess Vale', 'in_progress')] }));
+    assert.equal(t.agendaRead(chat, {}).items[0].state, 'in_progress', 'in Riverton it can be under way');
+});
+
 (async () => {
+// 9. The Companion's own edit to a reply's text (a Training count, a restored HUD line) keeps that reply's reading.
+try {
+    assert(t.rewriteReplyText, 'rewriteReplyText missing');
+    const msg = scene('Old Hall', 'The story continues.', { agenda: [letter('Write to Tess', 'Tess Vale')] });
+    msg.extra.spindle_metadata.rpg_companion.sources = { 0: t.readingSource(msg.content) };
+    let sent = null; t.setChatApi(async (cid, mid, patch) => { sent = patch; });
+    const next = msg.content.replace('Day: 3', 'Day: 4');
+    await t.rewriteReplyText('c1', msg, { content: next });
+    const after = { ...msg, content: next, metadata: sent.metadata };
+    assert(t.getSwipeData(after, true), 'the reading is still valid after the edit');
+    const stale = scene('Old Hall', 'The story continues.', { agenda: [] });
+    stale.extra.spindle_metadata.rpg_companion.sources = { 0: 'not-this-text' };
+    sent = null; await t.rewriteReplyText('c1', stale, { content: 'x' });
+    assert(!sent.metadata, 'a reading that was already stale is not re-signed');
+    results.push('the Companion\'s own text edit keeps the reply\'s reading');
+} catch (e) { failed.push(`the Companion's own text edit keeps the reply's reading: ${e.message.split('\n')[0]}`); }
 // 7. (3.3.4) Drawing a different room under the same place keeps the earlier room.
 try {
     const st = { rooms: { 'fittoa region > hall': { name: 'Dining hall', w: 10, h: 10, features: [], exits: [] } } };
