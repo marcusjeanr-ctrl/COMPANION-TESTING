@@ -4980,6 +4980,8 @@ export function setup(ctx) {
                     continue;
                 }
                 blk = null;
+                // 1.4.0: the Training line has its own card (You); not repeated here
+                if (state.world && (state.world.training || []).length && /^[^a-z]*training\b/i.test(String((l.fields && l.fields[0] && l.fields[0].label) || l.key || ''))) continue;
                 // a bullet follows the line it hangs under (the paths under Active Paths)
                 const gid = hudBulletOf(l) ? lastG : hudGroupOf(l);
                 lastG = gid;
@@ -5528,12 +5530,11 @@ export function setup(ctx) {
                     w.standing?.text ? h('span', { class: 'rpgc-chip standing top' }, w.standing.rank || w.standing.kind || w.standing.text) : null,
                     w.standing?.house ? h('span', { class: 'sub' }, [w.standing.house, w.standing.birth].filter(Boolean).join(' · ')) : null),
                 y?.mood ? h('span', { class: 'rpgc-chip mood' }, y.mood) : null),
-            h('div', { class: 'rpgc-st-grid' }, tile('💧', 'Mana', w.mana, 'mana'), tile('🔋', 'Reserve', w.reserve), tile('🔥', 'Touki', w.touki, 'touki'), tile('🤫', 'Casting', w.casting)),
+            h('div', { class: 'rpgc-st-grid' }, tile('💧', 'Mana', w.mana, 'mana'), tile('🔋', 'Reserve', w.reserve), tile('🔥', 'Touki', w.touki, 'touki')),
             ranks.length ? h('div', { class: 'rpgc-st-ranks' }, ranks.map(r => h('div', { class: 'rpgc-st-rank ' + r.kind, 'data-school': r.kind === 'magic' ? schoolKey(r.name) : null },
                 h('span', { class: 'ic', 'aria-hidden': 'true' }, r.kind === 'sword' ? '⚔️' : '✨'), h('b', null, r.name), h('span', { class: 'rk' }, r.rank || '?'), rankPips(Number.isFinite(r.step) ? r.step : rankStep(r.rank))))) : null,
-            (w.training || []).length ? h('div', { class: 'rpgc-st-train' }, w.training.map(t => h('div', { class: 'row' }, h('span', { class: 'k' }, `${t.skill} → ${t.next}`),
-                h('span', { class: 'bar' }, h('i', { style: `width:${Math.round(100 * Math.min(1, t.done / Math.max(1, t.needed)))}%` })), h('span', { class: 'n' }, `${t.done}/${t.needed}`)))) : null,
-            (w.languages || []).length ? h('div', { class: 'rpgc-chips' }, w.languages.map(l => h('span', { class: 'rpgc-chip' }, '🗣️ ', l.name, l.fluency ? h('span', { class: 'rpgc-note' }, ' ' + l.fluency) : null))) : null];
+            // 1.4.0: training (Training card), languages and casting (World card) are not repeated here
+        ];
         return section('sheet', T('Character sheet'), state.open, w.standing?.rank || null, h('div', { class: 'rpgc-sheet' }, body));
     }
     // the paper doll: where each thing sits on you, from its tracked state and place
@@ -5717,10 +5718,6 @@ export function setup(ctx) {
         const w = state.world || {}, id = state.hms?.you?.identity?.story || {}, saga = w.saga || null;
         const D = state.chronData && state.chronData.chatId === state.chatId ? state.chronData : null;
         if (!D && !state.chronReq && state.open.story !== false) { state.chronReq = true; send({ type: 'chronicle_get', chatId: state.chatId }); }
-        const entries = (D?.entries || []).filter(e => !e.hidden);
-        // what happened, not bookkeeping: a relabelled bond ("X → Y") or a plot line is not a moment
-        const moments = entries.filter(e => e.kind !== 'plot' && !(e.kind === 'bond' && /→/.test(e.text || '')) && (e.star || e.kind === 'milestone' || e.kind === 'moment' || e.imp >= 8)).slice(-5);
-        const choices = (state.hms?.agenda?.items || []).filter(x => x.kind === 'promise' || /deal|promise|swore|agreed/i.test(x.what || '')).slice(0, 5);
         // arc ring: how far the date is between the current arc's start and the next one
         let ring = null;
         if (saga && Array.isArray(saga.arcs) && saga.year) {
@@ -5743,8 +5740,7 @@ export function setup(ctx) {
             h('div', { class: 'rpgc-ss-stats' }, stat('📆', id.days, 'story days'), stat('💬', id.replies, 'replies'), stat('👥', id.met, 'people met'),
                 stat('📍', state.hms?.atlas?.recent?.length ? state.hms.atlas.count : null, 'places in the book'), stat('🎯', (state.hms?.systems?.quests || []).length, 'quests'),
                 money ? h('div', { class: 'rpgc-ss-stat' }, h('span', { 'aria-hidden': 'true' }, '🪙'), h('b', null, money), h('span', null, T('spent'))) : null),
-            moments.length ? [h('h4', null, T('Moments that mattered')), h('ol', { class: 'rpgc-ss-moments' }, moments.map(e => h('li', null, e.when ? h('span', { class: 'tm' }, String(e.when).split(',')[0]) : null, e.text)))] : !D ? h('p', { class: 'rpgc-note rpgc-loading' }, T('Reading the Chronicle…')) : null,
-            choices.length ? [h('h4', null, T('Promises and deals')), h('ul', { class: 'rpgc-ss-choices' }, choices.map(x => h('li', { class: x.state }, h('span', { class: 'st' }, x.state === 'kept' ? '✓' : x.state === 'missed' ? '✗' : '…'), ' ', x.what, x.with ? h('span', { class: 'rpgc-note' }, ' · ' + x.with) : null)))] : null);
+            null); // 1.4.0: moments and promises live in the Chronicle and the Agenda
     }
     // milestones as a trophy shelf, from the Chronicle's own milestones and starred moments
     function renderMilestones() {
@@ -6019,7 +6015,7 @@ export function setup(ctx) {
             ['you', renderSheet], ['you', renderYou], ['you', renderGear], ['you', renderHoldings], ['you', renderMoney], ['you', renderDnd],
             ['people', renderPeopleAll], ['people', renderRelationshipWeb], ['people', renderFamily], ['people', renderFactions], ['people', renderSecrets], ['people', renderPhone],
             ['you', renderBody], ['you', renderInjuries], ['you', renderMind], ['you', renderSurvival], ['you', renderMagic], ['you', renderTechniques], ['you', renderAbilities], ['you', renderTraining],
-            ['journey', () => s.showQuests ? renderHmsQuests() : null], ['journey', renderThreads], ['journey', renderChronicle], ['journey', renderStorySoFar], ['journey', renderMilestones], ['journey', renderChapter]];
+            ['journey', () => s.showQuests ? renderHmsQuests() : null], ['journey', renderChronicle], ['journey', renderStorySoFar], ['journey', renderMilestones], ['journey', renderChapter]];
         const order = view === 'journey' ? ['recap-btn', 'agenda', 'quests', 'threads', 'chronicle', 'story', 'milestones', 'chapter', 'atlas'] : null;
         const built = [];
         for (const [group, fn] of cards) if (view === 'all' || view === group) { const el = fn(); if (el) built.push(el); }
@@ -6132,7 +6128,8 @@ export function setup(ctx) {
     }
     function renderTodo() {
         if (!state.hms) return null;
-        const list = Array.isArray(state.hms.todo) ? state.hms.todo : [];
+        // 1.4.0: agenda, promises, quests, letters and training have their own cards; only what nothing else shows stays
+        const list = (Array.isArray(state.hms.todo) ? state.hms.todo : []).filter(x => x.kind === 'collect' || x.kind === 'people' || x.kind === 'birthday');
         const ideas = state.hms.todoIdeas && Array.isArray(state.hms.todoIdeas.items) ? state.hms.todoIdeas : null;
         const busy = state.todoBusy === state.chatId;
         const out = [];
@@ -6145,14 +6142,13 @@ export function setup(ctx) {
         } else if (!busy) out.push(h('p', { class: 'rpgc-note' }, T('Ideas come from the Companion’s own model, one call when you press the button. The story never sees them.')));
         if (list.length) {
             // grouped and folded: open once you want the detail; it starts open only while there are no ideas yet
-            const GROUPS = [['due', '📅 ' + T('Coming up')], ['promise', '🤞 ' + T('Promises')], ['collect', '🎒 ' + T('Things to get back')], ['quest', '🎯 ' + T('Quest')], ['letter', '✉️ ' + T('Letters')],
-                ['people', '👤 ' + T('Not seen in a while')], ['birthday', '🎂 ' + T('Birthdays')], ['training', '⚔️ ' + T('Training')]];
+            const GROUPS = [['collect', '🎒 ' + T('Things to get back')], ['people', '👤 ' + T('Not seen in a while')], ['birthday', '🎂 ' + T('Birthdays')]];
             const row = x => h('li', { class: 'go', role: 'button', tabindex: '0', title: T('Open where it lives'),
                 onclick: () => goTo(x.go[0], x.go[1]), onkeydown: (e) => { if (e.key === 'Enter') goTo(x.go[0], x.go[1]); } },
                 h('span', { 'aria-hidden': 'true' }, x.icon + ' '), h('b', null, x.text), x.sub ? h('span', { class: 'rpgc-note' }, ` \u00B7 ${x.sub}`) : null);
             const body = [];
             for (const [k, title] of GROUPS) {
-                const rows = list.filter(x => x.kind === k || (k === 'due' && !GROUPS.some(g => g[0] === x.kind)));
+                const rows = list.filter(x => x.kind === k);
                 if (!rows.length) continue;
                 const key = 'todo-g-' + k;
                 const g = h('details', { class: 'rpgc-subdet' }, h('summary', null, `${title} (${rows.length})`), h('ul', { class: 'rpgc-todo' }, rows.map(row)));
@@ -6160,7 +6156,7 @@ export function setup(ctx) {
                 g.dataset.openKey = key; g.addEventListener('toggle', () => { state.open[key] = g.open; });
                 body.push(g);
             }
-            const det = h('details', { class: 'rpgc-subdet' }, h('summary', null, `📌 ${T('Open threads')} (${list.length})`), ...body);
+            const det = h('details', { class: 'rpgc-subdet' }, h('summary', null, `📌 ${T('Worth a look')} (${list.length})`), ...body);
             det.open = state.open['todo-open'] !== undefined ? state.open['todo-open'] : !(ideas && ideas.items.length);
             det.dataset.openKey = 'todo-open'; det.addEventListener('toggle', () => { state.open['todo-open'] = det.open; });
             out.push(det);
