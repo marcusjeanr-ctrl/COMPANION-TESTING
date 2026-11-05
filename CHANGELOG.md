@@ -19,6 +19,21 @@
 - **Gone grouped by what happened:** Given, Sold or traded, Lent, Stolen, Lost, Broken; each with who has it now ("horseshoe nail → Aurelia", read from the story's words) and where and when you were when it left you (the HUD at that reply).
 - **Places read more exactly:** "sheathed — corner rack", "laid alongside the luggage" are set down, not on you; a travel bag with no place of its own is where "the travel bags" were put; state chips sit at the start of the place line so a long name never runs into them.
 
+**Every card, a second pass** (from Marcus's request: "do it for all of it")
+- **Agenda:** a **Next up** banner with the nearest thing and its countdown (red when late), and a **By time / By person** switch, so every promise to one person sits together (two "first letters" to Aurelia side by side, easy to clear one).
+- **Finances:** a purse tile per coin (silver, copper…) with what came in and went out. Copper paid from an allowance the story never counted reads "spent 16", not "−16". The ledger is grouped by the story's day, each row with where it happened.
+- **Secrets:** each secret says how far it has spread (🛡️ Safe · 👁️ 2 know · 📣 5 know), with a "Known by" label. In People, "Who knows what" rows no longer squeeze the fact into a thin column.
+- **People:** a folded person is two tidy lines (name and standing; who they are and when you last saw them).
+- **Training:** a rank ladder per skill (Beginner → Intermediate → Advanced → **Saint** → King), the rank held lit and the goal outlined.
+- **Survival:** one gauge tile per need, turning amber and red as it worsens.
+- **Family:** "Where they have been" and "Correct this" share one line.
+
+**Tracking, sharper** (found in Marcus's chats)
+- **"First bell" is the morning's first bell** (06:00), not 01:00: the courier departure showed 17 hours away when it was due.
+- **Someone else's child is not your family:** Bram, "Farrier's son", was listed under Family.
+- **An old routine is "Last seen", not "now":** Cassian "eating with the family until supper is over", reported three months of story time ago, showed as what he is doing. Anything older than half a story-day reads 🕰️ Last seen · 3 months ago.
+- Ledger rows and Gone items carry the HUD's date and place at that reply.
+
 **A polished look across every card** (visual only, same tokens, so Looks and world themes keep their colours)
 - Cards with a soft accent glow, a lit top edge and a medallion emblem; headers with a pill for the summary; cards open with a short rise (off with reduced motion).
 - Headings inside cards as small tracked labels with a fading rule; sub-sections as pills; brighter chips, buttons with a lift, focus rings, softer status lines, bars with a glow, nicer scrollbars, a lit view switcher.

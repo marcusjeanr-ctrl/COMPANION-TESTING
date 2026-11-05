@@ -21,7 +21,9 @@ globalThis.__t = { gearRead, getSwipeData, mtTraining, hmsTimeline, worldLines,
   hmsHudSync: typeof hmsHudSync === 'function' ? hmsHudSync : () => [], hmsStoryReminders, hmsSurvival, hmsTodo, hmsReadWounds, diffHud, parseHud: typeof parseHud === 'function' ? parseHud : null,
   agendaDayOfMonth: typeof agendaDayOfMonth === 'function' ? agendaDayOfMonth : () => null, hmsAgendaPanel, hudRead: typeof hmsHudRead === 'function' ? hmsHudRead : null,
   hmsTrainingChecks: typeof hmsTrainingChecks === 'function' ? hmsTrainingChecks : () => [],
-  gearMentioned: typeof gearMentioned === 'function' ? gearMentioned : () => true };`, ctx);
+  gearMentioned: typeof gearMentioned === 'function' ? gearMentioned : () => true,
+  famIsBond: typeof famIsBond === 'function' ? famIsBond : () => true, agendaClockPart: typeof agendaClockPart === 'function' ? agendaClockPart : () => null,
+  simAgendaView: typeof simAgendaView === 'function' ? simAgendaView : () => ({}) };`, ctx);
 const t = ctx.__t;
 
 let n = 0;
@@ -244,6 +246,14 @@ check('an item handed back, then put back on the HUD later, is carried again (ex
     // a HUD that never stopped listing it is still a stale copy
     const stale = chat.slice(0, 4).concat([user('c'), reply({}, 'The yard.', { equipment: 'Plain road sword, ash wand', time: '11:00' })]);
     assert.equal(gearState(stale, 'ash wand'), 'gone');
+});
+check('1.3.0 chat 2: someone else\'s son is not your family; "first bell" is the morning; an old routine knows its age', () => {
+    assert.equal(t.famIsBond("Farrier's son, market errands and a horseshoe nail"), false);
+    assert.equal(t.famIsBond('younger sister, eight'), true);
+    assert.equal(t.agendaClockPart('at first bell'), 360);
+    assert.equal(t.agendaClockPart('ninth bell to midday'), 540);
+    const v = t.simAgendaView({ where: 'dining hall', doing: 'supper', until: 'supper is over', readAt: 1000, turn: 1 }, 1000 + 90 * 1440, 50);
+    assert.equal(v.storyAgo, 90 * 1440);
 });
 
 for (const r of results) console.log(`  ✓ ${r}`);

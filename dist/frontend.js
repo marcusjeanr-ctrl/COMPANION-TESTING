@@ -1294,6 +1294,77 @@ button.rpgc-chip.intel:hover { border-color: var(--lumiverse-accent, #7aa2f7); }
 .rpgc .rpgc-gone-item .nm{grid-area:nm;font-weight:600;font-size:12px}.rpgc .rpgc-gone-item .to{color:var(--u-accent);font-weight:650}
 .rpgc .rpgc-gone-item .meta{grid-area:mt;font-size:10.5px;color:var(--u-muted)}
 
+/* 1.3.0: Finances — purse tiles and a ledger by day */
+.rpgc .rpgc-purse{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:6px;margin:2px 0 8px}
+.rpgc .rpgc-purse-tile{display:grid;grid-template-columns:auto 1fr;grid-template-areas:"coin cur" "coin left" "flow flow" "why why";column-gap:8px;padding:8px 10px;border-radius:var(--u-radius-s);border:1px solid var(--u-line);
+  background:radial-gradient(100% 80% at 0 0,color-mix(in srgb,var(--u-warn) 10%,transparent),transparent 70%),var(--u-glass)}
+.rpgc .rpgc-purse-tile .coin{grid-area:coin;font-size:22px;align-self:center;filter:drop-shadow(0 2px 6px #0007)}
+.rpgc .rpgc-purse-tile .cur{grid-area:cur;font-size:10.5px;text-transform:uppercase;letter-spacing:.08em;color:var(--u-muted)}
+.rpgc .rpgc-purse-tile .left{grid-area:left;font-size:18px;line-height:1.1}.rpgc .rpgc-purse-tile .left.spent{font-size:13px;color:var(--u-bad)}
+.rpgc .rpgc-purse-tile .flow{grid-area:flow;font-size:10.5px;margin-top:3px;color:var(--u-muted)}
+.rpgc .rpgc-purse-tile .flow .in{color:var(--u-ok)}.rpgc .rpgc-purse-tile .flow .out{color:var(--u-bad)}
+.rpgc .rpgc-purse-tile .why{grid-area:why;font-size:10px;color:var(--u-muted);font-style:italic}
+.rpgc .rpgc-money-day{list-style:none;margin:6px 0}.rpgc .rpgc-money-day>.d{font-size:11px;font-weight:700;margin:4px 0 3px}.rpgc .rpgc-money-day>ul{list-style:none;margin:0;padding:0 0 0 10px;border-left:2px solid var(--u-line)}
+
+/* 1.3.0: Agenda — Next up */
+.rpgc .rpgc-nextup{display:grid;grid-template-columns:auto minmax(0,1fr);align-items:center;gap:10px;padding:10px 12px;margin:2px 0 10px;border-radius:var(--u-radius-s);
+  border:1px solid color-mix(in srgb,var(--u-accent) 45%,var(--u-line));background:radial-gradient(120% 120% at 0 0,color-mix(in srgb,var(--u-accent) 18%,transparent),transparent 70%),var(--u-glass);box-shadow:0 8px 22px -16px var(--u-glow)}
+.rpgc .rpgc-nextup.overdue{border-color:color-mix(in srgb,var(--u-bad) 55%,var(--u-line));background:radial-gradient(120% 120% at 0 0,color-mix(in srgb,var(--u-bad) 16%,transparent),transparent 70%),var(--u-glass)}
+.rpgc .rpgc-nextup.soon .cd{animation:rpgc-pulse 2.4s ease-in-out infinite}
+@keyframes rpgc-pulse{50%{opacity:.6}}
+.rpgc .rpgc-nextup .ic{font-size:24px}.rpgc .rpgc-nextup .tx{display:flex;flex-direction:column;min-width:0}
+.rpgc .rpgc-nextup .k{font-size:10px;font-weight:750;letter-spacing:.1em;text-transform:uppercase;color:var(--u-accent)}.rpgc .rpgc-nextup.overdue .k{color:var(--u-bad)}
+.rpgc .rpgc-nextup b{font-size:13.5px;line-height:1.25}.rpgc .rpgc-nextup .meta{font-size:11px;color:var(--u-muted)}
+.rpgc .rpgc-nextup .cd{align-self:flex-start;margin:3px 0 2px;font-size:11.5px;font-weight:700;padding:2px 9px;border-radius:999px;background:var(--u-raise);color:var(--u-text)}
+@media (prefers-reduced-motion:reduce){.rpgc .rpgc-nextup.soon .cd{animation:none}}
+
+/* 1.3.0: Secrets — how far each has spread; "Who knows what" rows no longer squeeze the fact into a column */
+.rpgc .rpgc-sx-level{font-size:10.5px;font-weight:650}.rpgc .rpgc-sx-level.safe{border-color:color-mix(in srgb,var(--u-ok) 45%,transparent);background:color-mix(in srgb,var(--u-ok) 12%,transparent)}
+.rpgc .rpgc-sx-level.some{border-color:color-mix(in srgb,var(--u-warn) 50%,transparent);background:color-mix(in srgb,var(--u-warn) 12%,transparent)}
+.rpgc .rpgc-sx-level.wide{border-color:color-mix(in srgb,var(--u-bad) 50%,transparent);background:color-mix(in srgb,var(--u-bad) 13%,transparent)}
+.rpgc .rpgc-sx-k{font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--u-muted);align-self:center;margin-right:2px}
+.rpgc .rpgc-knows li{display:grid;grid-template-columns:18px minmax(0,1fr) auto;grid-template-areas:"how fact x" "how src x";column-gap:6px;align-items:start;padding:4px 6px;border-radius:7px}
+.rpgc .rpgc-knows li:hover{background:var(--u-hover)}
+.rpgc .rpgc-knows .how{grid-area:how}.rpgc .rpgc-knows .fact{grid-area:fact;min-width:0}.rpgc .rpgc-knows .src{grid-area:src;white-space:normal}.rpgc .rpgc-knows li>.rpgc-mini{grid-area:x}
+
+/* 1.3.0: People — a folded person is two tidy lines: name and standing, then who they are and when you last saw them */
+.rpgc .rpgc-pfold>summary{list-style:none;cursor:pointer}.rpgc .rpgc-pfold>summary::-webkit-details-marker{display:none}
+.rpgc .rpgc-pfold:not([open])>summary .head{display:grid;grid-template-columns:auto minmax(0,1fr) auto;grid-auto-flow:row dense;column-gap:8px;row-gap:1px;align-items:center}
+.rpgc .rpgc-pfold:not([open])>summary .head>.rpgc-avatar,.rpgc .rpgc-pfold:not([open])>summary .head>img{grid-row:1/3}
+.rpgc .rpgc-pfold:not([open])>summary .head>.name{grid-column:2;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:650}
+.rpgc .rpgc-pfold:not([open])>summary .head>.rpgc-chip.standing,.rpgc .rpgc-pfold:not([open])>summary .head>.rpgc-chip:not(.bond):not(.kind):not(.minor){grid-column:3;grid-row:1;justify-self:end}
+.rpgc .rpgc-pfold:not([open])>summary .head>.rpgc-chip.bond{grid-column:2/4;grid-row:2;justify-self:start;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:10.5px}
+.rpgc .rpgc-pfold:not([open])>summary .head>.meta{grid-column:2/4;font-size:10.5px;color:var(--u-muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rpgc .rpgc-pfold:not([open])>summary .head>.rpgc-chip.bond~.meta{grid-row:3}
+.rpgc .rpgc-pfold>summary::after{content:"";position:absolute;right:10px;top:12px;width:7px;height:7px;border-right:2px solid var(--u-muted);border-bottom:2px solid var(--u-muted);transform:rotate(-45deg);transition:transform .2s;opacity:.6}
+.rpgc .rpgc-pfold{position:relative}.rpgc .rpgc-pfold[open]>summary::after{transform:rotate(45deg)}
+.rpgc .rpgc-pfold:not([open])>summary .head{padding-right:16px}
+.rpgc .rpgc-pgroup>summary{font-weight:700}
+
+.rpgc .rpgc-routine.stale{opacity:.7}.rpgc .rpgc-routine.stale .k{font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--u-muted)}
+
+/* 1.3.0: Training — the rank ladder */
+.rpgc .rpgc-ladder{display:flex;gap:3px;margin:4px 0 5px;flex-wrap:wrap}
+.rpgc .rpgc-ladder .rung{flex:1 1 0;min-width:52px;text-align:center;font-size:10px;font-weight:650;padding:3px 4px;border-radius:6px;border:1px solid var(--u-line);color:var(--u-muted);background:var(--u-glass)}
+.rpgc .rpgc-ladder .rung.held{color:var(--u-text);background:color-mix(in srgb,var(--u-ok) 16%,transparent);border-color:color-mix(in srgb,var(--u-ok) 40%,transparent)}
+.rpgc .rpgc-ladder .rung.cur{box-shadow:0 0 0 1px color-mix(in srgb,var(--u-ok) 60%,transparent) inset,0 0 14px -6px var(--u-ok)}
+.rpgc .rpgc-ladder .rung.next{color:var(--u-accent);border:1px dashed var(--u-accent);background:color-mix(in srgb,var(--u-accent) 8%,transparent)}
+.rpgc .rpgc-ladder .rung.later{opacity:.5}
+
+/* 1.3.0: Survival — gauge tiles */
+.rpgc .rpgc-surv-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:6px;margin-bottom:8px}
+.rpgc .rpgc-surv-grid .rpgc-surv{display:flex;flex-direction:column;align-items:stretch;gap:4px;padding:8px 10px;border-radius:var(--u-radius-s);border:1px solid var(--u-line);background:var(--u-glass);margin:0}
+.rpgc .rpgc-surv-grid .rpgc-surv .lbl{font-weight:700;font-size:12px;width:auto}.rpgc .rpgc-surv-grid .rpgc-surv .ic{font-size:15px}
+.rpgc .rpgc-surv-grid .rpgc-surv .num,.rpgc .rpgc-surv-grid .rpgc-surv .own{font-size:10.5px;color:var(--u-muted);white-space:normal}
+.rpgc .rpgc-surv-grid .rpgc-surv.st0{border-color:color-mix(in srgb,var(--u-ok) 30%,var(--u-line))}
+.rpgc .rpgc-surv-grid .rpgc-surv.st2{border-color:color-mix(in srgb,var(--u-warn) 45%,var(--u-line));background:color-mix(in srgb,var(--u-warn) 7%,transparent)}
+.rpgc .rpgc-surv-grid .rpgc-surv.hot{border-color:color-mix(in srgb,var(--u-bad) 55%,var(--u-line));background:color-mix(in srgb,var(--u-bad) 9%,transparent);box-shadow:0 0 16px -8px var(--u-bad)}
+
+/* 1.3.0: Family — the closed "Where they have been" and "Correct this" sit on one line */
+.rpgc [data-sec="family"] .rpgc-person>details.rpgc-subdet:not([open]),.rpgc [data-sec="factions"] .rpgc-person>details.rpgc-subdet:not([open]){display:inline-block;margin:6px 6px 0 0;vertical-align:top}
+.rpgc [data-sec="family"] .rpgc-person>details.rpgc-subdet:not([open])>summary{margin:0}
+.rpgc [data-sec="family"] .rpgc-person .rpgc-chip.here,.rpgc [data-sec="family"] .rpgc-person .rpgc-chip.ok{font-weight:650}
+
 `;
 
 // The guide, embedded from GUIDE.md so it ships inside the extension (tools/embed_guide.py refreshes it).
@@ -5097,6 +5168,10 @@ export function setup(ctx) {
             out.push(h('p', { class: 'rpgc-note' }, (sv && sv.reason) || 'Waiting for a HUD with a clock.'));
             return section('survival', 'Survival', state.open, 'paused', ...out);
         }
+        // 1.3.0: one gauge tile per need, side by side
+        const SURV_ICON = { fatigue: '😴', hunger: '🍖', thirst: '💧', mind: '🧠' };
+        const grid = h('div', { class: 'rpgc-surv-grid' });
+        out.push(grid);
         for (const t of sv.tracks) {
             if (t.owner === 'off') continue;
             let right, bar = null;
@@ -5106,8 +5181,8 @@ export function setup(ctx) {
                 right = h('span', { class: 'num' }, t.minutes < 1 ? `${t.stageName} \u00B7 just now` : `${t.stageName} \u00B7 ${fmtSpan(t.minutes)} ${TRACK_SINCE[t.id]}`);
                 bar = ladder(t.stage, 4, false);
             }
-            out.push(h('div', { class: 'rpgc-surv' + (t.owner === 'tracked' && t.stage >= 3 ? ' hot' : '') },
-                h('span', { class: 'lbl' }, TRACK_LABEL[t.id]), bar, right));
+            grid.appendChild(h('div', { class: 'rpgc-surv' + (t.owner === 'tracked' && t.stage >= 3 ? ' hot' : '') + (t.owner === 'tracked' ? ' st' + (t.stage || 0) : ' own'), 'data-track': t.id },
+                h('span', { class: 'lbl' }, h('span', { class: 'ic', 'aria-hidden': 'true' }, SURV_ICON[t.id] || '•'), ' ', TRACK_LABEL[t.id]), bar, right));
         }
         const logBtn = (kind, label, title) => h('button', { class: 'rpgc-btn', title, onclick: () => send({ type: 'survival_log', chatId: state.chatId, op: 'add', kind }) }, label);
         out.push(h('div', { class: 'rpgc-row rpgc-surv-acts' },
@@ -5468,16 +5543,31 @@ export function setup(ctx) {
         if (m.correctionsNeedingReview) out.push(h('div', { class: 'rpgc-note', role: 'status' }, `${m.correctionsNeedingReview} older money correction${m.correctionsNeedingReview === 1 ? '' : 's'} could not be matched uniquely. Original corrections are preserved. Review the entries before relying on totals, make any corrections, then confirm review.`,
             h('button', { class: 'rpgc-mini', 'aria-label': 'Confirm review of older money corrections', onclick: () => send({ type: 'money', chatId: state.chatId, op: 'review_legacy', ids: m.reviewCorrections || [] }) }, 'Confirm review')));
         if (m.balance) out.push(h('div', { class: 'rpgc-money-bal' }, h('span', { class: 'lbl' }, m.balance.label), h('b', null, m.balance.value), h('span', { class: 'meta' }, ' · from the HUD')));
-        if (m.totals.length) out.push(h('div', { class: 'rpgc-money-totals' }, m.totals.map(t => h('span', { class: 'rpgc-chip', title: T('What came in, what went out, and what that leaves') }, h('span', { class: 'in' }, `+${fmtAmt(t.in, t.currency)}`), ' / ', h('span', { class: 'out' }, `−${fmtAmt(t.out, t.currency)}`), ' = ', h('b', null, fmtAmt(Math.round((t.in - t.out) * 100) / 100, t.currency))))));
+        // 1.3.0: a purse tile per coin. What came in and went out; what is left only when the ledger saw the coins come in
+        // (16 copper paid from an allowance the story never counted is "spent 16", never "−16").
+        if (m.totals.length) out.push(h('div', { class: 'rpgc-purse' }, m.totals.map(t => {
+            const left = (t.in || 0) - (t.out || 0), known = left >= 0;
+            return h('div', { class: 'rpgc-purse-tile', title: T('What came in, what went out, and what that leaves') },
+                h('span', { class: 'coin', 'aria-hidden': 'true' }, /gold/i.test(t.currency) ? '🟡' : /silver/i.test(t.currency) ? '⚪' : /copper|bronze/i.test(t.currency) ? '🟤' : '🪙'),
+                h('span', { class: 'cur' }, t.currency),
+                known ? h('b', { class: 'left' }, fmtAmt(left, '')) : h('b', { class: 'left spent' }, TT('spent {0}', t.out)),
+                h('span', { class: 'flow' }, h('span', { class: 'in' }, `+${t.in || 0}`), ' / ', h('span', { class: 'out' }, `−${t.out || 0}`)),
+                known ? null : h('span', { class: 'why' }, T('from money the story never counted in')));
+        })));
         if (m.debts.length) out.push(h('div', { class: 'rpgc-gear-group' }, h('h4', null, '📝 Open debts'), h('ul', null, m.debts.map(d => h('li', { class: 'rpgc-money-row ' + (d.owe ? 'owe' : 'owed') },
             h('span', { class: 'body' }, d.owe ? TT('You owe {0}', d.with || T('someone')) : TT('{0} owes you', d.with || T('Someone')), d.what ? h('span', { class: 'meta' }, ` · ${d.what}`) : null),
             h('b', { class: 'amt' }, fmtAmt(d.left, d.currency) + (d.left !== d.amount ? ` of ${d.amount}` : '')),
             h('button', { class: 'rpgc-mini', title: 'Settled', 'aria-label': 'Mark settled', onclick: () => send({ type: 'money', chatId: state.chatId, op: 'settle', id: d.id }) }, '✓'))))));
         if (m.ledger.length) {
-            const rows = m.ledger.slice(0, state.moneyAll ? 40 : 8).map(x => h('li', { class: 'rpgc-money-row ' + (x.dir === 'in' ? 'in' : x.dir === 'out' ? 'out' : 'none') + (x.isNew ? ' new' : '') },
-                h('span', { class: 'body' }, x.what, h('span', { class: 'meta' }, [T(MONEY_LABEL[x.kind]), x.with, x.from === 'you' ? T('by you') : null, x.ago !== null && x.ago !== undefined ? (x.ago < 1 ? T('just now') : TT('{0} ago', fmtSpan(x.ago))) : null].filter(Boolean).map(t => ' · ' + t).join(''))),
+            const shown = m.ledger.slice(0, state.moneyAll ? 40 : 8);
+            const rowOf = x => h('li', { class: 'rpgc-money-row ' + (x.dir === 'in' ? 'in' : x.dir === 'out' ? 'out' : 'none') + (x.isNew ? ' new' : '') },
+                h('span', { class: 'body' }, x.what, h('span', { class: 'meta' }, [T(MONEY_LABEL[x.kind]), x.with, x.place ? `📍 ${x.place}` : null, x.from === 'you' ? T('by you') : null, x.ago !== null && x.ago !== undefined ? (x.ago < 1 ? T('just now') : TT('{0} ago', fmtSpan(x.ago))) : null].filter(Boolean).map(t => ' · ' + t).join(''))),
                 h('b', { class: 'amt' }, `${x.dir === 'in' ? '+' : x.dir === 'out' ? '−' : ''}${fmtAmt(x.amount, x.currency)}`),
-                h('button', { class: 'rpgc-mini', title: 'Remove this entry', 'aria-label': `Remove ${x.what}`, onclick: () => send({ type: 'money', chatId: state.chatId, op: 'remove', id: x.id }) }, '✕')));
+                h('button', { class: 'rpgc-mini', title: 'Remove this entry', 'aria-label': `Remove ${x.what}`, onclick: () => send({ type: 'money', chatId: state.chatId, op: 'remove', id: x.id }) }, '✕'));
+            // grouped by the story's day (the HUD's date at that reply), newest first
+            const days = new Map();
+            for (const x of shown) { const k = x.when || T('Earlier'); if (!days.has(k)) days.set(k, []); days.get(k).push(x); }
+            const rows = [...days].map(([day, xs]) => h('li', { class: 'rpgc-money-day' }, h('div', { class: 'd' }, '📅 ', day), h('ul', null, xs.map(rowOf))));
             // the ledger folds away under the totals, so the card stays short; it remembers whether you left it open
             const ledger = h('details', { class: 'rpgc-gear-group rpgc-money-ledger' }, h('summary', null, h('h4', { style: 'display:inline' }, '📒 Ledger'), h('span', { class: 'meta' }, ` (${m.ledger.length})`)),
                 h('ul', null, rows),
@@ -5543,9 +5633,10 @@ export function setup(ctx) {
         who.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); addWho(); } });
         return h('div', { class: 'rpgc-person ' + (yours && x.knownBy.length ? 'neg' : 'neutral') + (x.isNew ? ' rpgc-holding new' : '') },
             h('div', { class: 'head' }, h('span', { 'aria-hidden': 'true' }, yours ? '🔒' : '🔍'), h('span', { class: 'name' }, x.text),
+                yours ? h('span', { class: 'rpgc-chip rpgc-sx-level ' + (x.knownBy.length === 0 ? 'safe' : x.knownBy.length < 3 ? 'some' : 'wide') }, x.knownBy.length === 0 ? '🛡️ ' + T('Safe') : x.knownBy.length < 3 ? '👁️ ' + TT('{0} know', x.knownBy.length) : '📣 ' + TT('{0} know', x.knownBy.length)) : null,
                 !yours ? h('span', { class: 'rpgc-chip bond' }, TT("{0}'s secret", x.whose)) : null,
                 h('button', { class: 'rpgc-mini', style: 'margin-left:auto', 'aria-label': `Forget the secret: ${x.text}`, title: 'Remove', onclick: () => send({ type: 'secrets', chatId: state.chatId, op: 'remove', key: x.key }) }, '✕')),
-            h('div', { class: 'rpgc-chips' }, x.knownBy.length
+            h('div', { class: 'rpgc-chips' }, x.knownBy.length ? h('span', { class: 'rpgc-sx-k' }, T('Known by')) : null, x.knownBy.length
                 ? x.knownBy.map(k => h('span', { class: 'rpgc-chip' + (k.isNew ? ' carrier' : ''), title: [k.how, k.ago !== null && k.ago !== undefined ? (k.ago < 1 ? T('just now') : TT('{0} ago', fmtSpan(k.ago))) : null].filter(Boolean).join(' · ') || null }, k.name, ' ',
                     h('button', { class: 'rpgc-mini', 'aria-label': `${k.name} does not know`, title: 'They do not know it', onclick: () => send({ type: 'secrets', chatId: state.chatId, op: 'forget', key: x.key, name: k.name }) }, '✕')))
                 : h('span', { class: 'rpgc-note' }, yours ? 'Nobody else knows.' : `Only ${x.whose} and you.`)),
@@ -5648,10 +5739,35 @@ export function setup(ctx) {
             return {...item,status:timing.status,agendaTiming:timing};
         });
         const out = [];
+        // 1.3.0: Next up — the nearest thing with a time, big, with its countdown
+        const live = rows.filter(x => x.state === 'open' || x.state === 'in_progress');
+        const rank = { in_progress: 0, overdue: 1, soon: 2, today: 3, upcoming: 4 };
+        const next = live.filter(x => x.status in rank).sort((p, q) => (rank[p.status] - rank[q.status]) || ((p.agendaTiming.delta ?? 1e12) - (q.agendaTiming.delta ?? 1e12)))[0];
+        if (next) out.push(h('div', { class: 'rpgc-nextup ' + next.status },
+            h('span', { class: 'ic', 'aria-hidden': 'true' }, AGENDA_ICON[next.kind] || '📅'),
+            h('div', { class: 'tx' }, h('span', { class: 'k' }, next.status === 'in_progress' ? T('Now') : next.status === 'overdue' ? T('Late') : T('Next up')), h('b', null, next.what),
+                h('span', { class: 'cd' }, agendaDue(next)),
+                h('span', { class: 'meta' }, next.with ? npcName(next.with) : null, next.with && next.where ? ' · ' : null, next.where ? TT('at {0}', next.where) : null))));
+        // By time (the usual groups) or By person: every promise to someone together, so two "first letters" to Aurelia sit side by side
+        const byPerson = state.open['agenda-by-person'] === true;
+        if (live.length > 1) out.push(h('div', { class: 'rpgc-gear-viewsw', role: 'group', 'aria-label': T('Sort the agenda') },
+            h('button', { type: 'button', class: 'rpgc-gv' + (byPerson ? '' : ' on'), 'aria-pressed': byPerson ? 'false' : 'true', onclick: () => { state.open['agenda-by-person'] = false; render(); } }, '🕒 ' + T('By time')),
+            h('button', { type: 'button', class: 'rpgc-gv' + (byPerson ? ' on' : ''), 'aria-pressed': byPerson ? 'true' : 'false', onclick: () => { state.open['agenda-by-person'] = true; render(); } }, '👥 ' + T('By person'))));
+        if (byPerson) {
+            const who = new Map();
+            for (const x of live) { const k = x.with ? npcName(x.with) : T('Just you'); if (!who.has(k)) who.set(k, []); who.get(k).push(x); }
+            for (const [k, xs] of [...who].sort((p, q) => q[1].length - p[1].length)) {
+                const key = 'agenda-who-' + k;
+                const det = h('details', { class: 'rpgc-gear-kind' }, h('summary', null, h('span', { class: 'ic', 'aria-hidden': 'true' }, k === T('Just you') ? '🙋' : '👤'), h('b', null, k), h('span', { class: 'n' }, String(xs.length))), h('ul', { class: 'rpgc-agenda-group' }, xs.map(agendaRow)));
+                det.open = state.open[key] !== false; det.addEventListener('toggle', () => { state.open[key] = det.open; });
+                out.push(det);
+            }
+        } else {
         const groups = [['in_progress', '▶ In progress'], ['overdue', '⚠️ Late'], ['soon', '⏰ Soon (next 3 hours)'], ['today', '📌 Today'], ['upcoming', '📅 Coming up'], ['ongoing', '🔁 Ongoing'], ['unset', '❔ No set time']];
         for (const [st, title] of groups) {
             const list = rows.filter(x => x.status === st);
             if (list.length) out.push(h('div', { class: 'rpgc-agenda-group ' + st }, h('h4', null, title), h('ul', null, list.map(agendaRow))));
+        }
         }
         const done = rows.filter(x => x.state !== 'open' && x.state !== 'in_progress');
         if (!out.length) out.push(h('p', { class: 'rpgc-note' }, a.ask
@@ -6181,6 +6297,10 @@ export function setup(ctx) {
     }
     function simAgendaLine(a) {
         if (!a) return null;
+        // 1.3.0: reported more than half a story-day ago, it is where they were last seen, not what they are doing now
+        if (Number.isFinite(a.storyAgo) && a.storyAgo > 720) return h('div', { class: 'rpgc-routine stale', title: T('The last thing the story said about them; it may have changed since') },
+            h('span', { class: 'ic', 'aria-hidden': 'true' }, '🕰️'),
+            h('span', null, h('span', { class: 'k' }, T('Last seen') + ' '), [a.where, a.doing].filter(Boolean).join(' — '), h('span', { class: 'rpgc-note' }, ` · ${TT('{0} ago', fmtSpan(a.storyAgo))}`)));
         const when = a.until ? (a.left === null || a.left === undefined ? `until ${a.until}` : a.overdue ? `was until ${a.until}` : `until ${a.until} (in ${fmtSpan(a.left)})`) : null;
         return h('div', { class: 'rpgc-routine' + (a.overdue ? ' late' : '') },
             h('span', { class: 'ic', 'aria-hidden': 'true' }, '📍'),
@@ -8287,6 +8407,14 @@ html,body{background:${panelBg}!important;}`;
     const SPELL_STATUS = { mastered: 'Mastered', known: 'Known', study: 'Studying', reach: 'Within reach', unranked: 'Rank unknown', open: 'In the lorebook', next: 'Next rank', locked: 'Locked', special: 'Special' };
     // Sword techniques: the same list, for the sword styles and the HUD's rank in each.
     // Training: every skill the HUD's Training line tracks, sessions toward the next rank (Six-Sided v1.1)
+    // 1.3.0: the rank ladder, the rank you hold lit and the one you train toward outlined (display only)
+    const TRAIN_LADDER = ['Beginner', 'Intermediate', 'Advanced', 'Saint', 'King', 'Emperor', 'God'];
+    function trainLadder(t) {
+        const i = TRAIN_LADDER.findIndex(r => r.toLowerCase() === String(t.next || '').trim().toLowerCase());
+        if (i < 1) return null;
+        const shown = TRAIN_LADDER.slice(0, Math.min(TRAIN_LADDER.length, i + 2));
+        return h('div', { class: 'rpgc-ladder', role: 'img', 'aria-label': TT('{0}: toward {1}', t.skill, t.next) }, shown.map((r, k) => h('span', { class: 'rung' + (k < i ? ' held' : k === i ? ' next' : ' later') + (k === i - 1 ? ' cur' : '') }, T(r))));
+    }
     function renderTraining() {
         const list = state.world && Array.isArray(state.world.training) ? state.world.training : [];
         if (!list.length) return null;
@@ -8294,6 +8422,7 @@ html,body{background:${panelBg}!important;}`;
         return section('training', T('Training'), state.open, ready ? TT('{0} ready', ready) : TT('{0} skills', list.length),
             ...list.map(t => h('div', { class: 'rpgc-vital ' + (t.done >= t.needed ? 'ok' : '') },
                 h('div', { class: 'head' }, h('span', { class: 'lbl' }, `${t.skill} \u2192 ${t.next}`), h('span', { class: 'num' }, `${t.done} / ${t.needed}`)),
+                trainLadder(t),
                 levelBar(Math.min(100, t.done / Math.max(1, t.needed) * 100), t.done >= t.needed ? 'ok' : ''),
                 t.done >= t.needed ? h('p', { class: 'rpgc-note' }, T('Sessions done: the rank still needs its proof in the story.')) : h('p', { class: 'rpgc-note' }, TT('{0} sessions to go', t.needed - t.done)))),
             h('p', { class: 'rpgc-note' }, T('Read from the HUD\u2019s Training line. A new skill shows here as soon as the narrator adds it.')));

@@ -13538,7 +13538,7 @@ function famOf(st) {
 
 function famIsBond(bond) {
     const b = String(bond || '');
-    return !!b && REL_FAMILY_RE.test(b) && !FAM_NOT_FAMILY_RE.test(b);
+    return !!b && REL_FAMILY_RE.test(b) && !FAM_NOT_FAMILY_RE.test(b) && !FAM_OTHERS_KIN_RE.test(b);
 }
 
 // The words that make someone family, in English, Portuguese and Spanish. A "relation" without one of them
@@ -13547,8 +13547,10 @@ const FAM_KIN_RE = /(?:^|[^\p{L}])(?:mother|father|mom|mum|dad|mama|papa|parents
 const FAM_NOT_KIN_RE = /\b(in arms|de armas|sworn|jurad[oa]|juramentad[oa]|spiritual|espiritual)\b/i;
 function famIsKin(relation) {
     const r = String(relation || '');
-    return !!r && FAM_KIN_RE.test(r) && !FAM_NOT_KIN_RE.test(r);
+    return !!r && FAM_KIN_RE.test(r) && !FAM_NOT_KIN_RE.test(r) && !FAM_OTHERS_KIN_RE.test(r);
 }
+// "Farrier's son", "the innkeeper's daughter": someone else's family, not yours (Bram showed under Family)
+const FAM_OTHERS_KIN_RE = /^(?:the\s+|a\s+)?(?:farrier|smith|blacksmith|miller|baker|innkeeper|merchant|trader|guard|steward|maid|cook|tailor|butcher|shepherd|farmer|priest|knight|lord|lady|king|queen|captain|neighbou?r|carpenter|mason|tanner|fisherman|hunter|courier|driver|stablemaster|groom|servant|gardener|teacher|master|mistress|noble|duke|count|baron|merchant's|shopkeeper|vendor|seller)['’]s\s+(?:son|daughter|child|boy|girl|wife|husband|widow|brother|sister|nephew|niece|apprentice)\b/i;
 
 function famNormalize(list) {
     if (!Array.isArray(list)) return null;
@@ -15357,6 +15359,21 @@ function moneyHudBalance(hud, cc) {
     return null;
 }
 
+// The HUD's date and place at each reply, so a ledger row or a lost item can say when and where it happened
+function hudWhenMap(chat) {
+    return memoRead(chat, 'hud-when', () => {
+        const out = new Map();
+        try {
+            for (const t of hmsTimeline(chat)) {
+                const loc = Array.isArray(t.hud.location) ? t.hud.location.filter(Boolean) : [];
+                const top = (t.hud.lines.filter(l => !l.block)[0] || {}).text || '';
+                const when = (top.split('|')[0].split(/:\s*/).slice(1).join(': ') || '').trim().slice(0, 40) || null;
+                out.set(t.msg.id, { when, place: loc.length ? loc.slice(-2).join(' → ') : null });
+            }
+        } catch { /* no HUD, no dates */ }
+        return out;
+    });
+}
 function hmsMoneyPanel(chat, st, cfg) {
     const mc = moneyCfg(cfg);
     if (!mc.on) return null;
@@ -15364,7 +15381,7 @@ function hmsMoneyPanel(chat, st, cfg) {
     const ago = (at) => at !== null && at !== undefined && now !== null ? Math.max(0, now - at) : null;
     return {
         balance, ...(unresolvedCorrections.length ? { correctionsNeedingReview: unresolvedCorrections.length, reviewCorrections: unresolvedCorrections } : {}), totals: Object.entries(totals).map(([cur, t]) => ({ currency: cur === '?' ? '' : cur, in: Math.round(t.in * 100) / 100, out: Math.round(t.out * 100) / 100 })),
-        ledger: list.slice(-40).reverse().map(x => ({ id: x.sourceId || x.id, amount: x.amount, currency: x.currency, kind: x.kind, dir: x.dir, what: x.what, with: x.with, from: x.from, ago: ago(x.at), isNew: x.msgId === lastId && !!lastId })),
+        ledger: list.slice(-40).reverse().map(x => ({ id: x.sourceId || x.id, amount: x.amount, currency: x.currency, kind: x.kind, dir: x.dir, what: x.what, with: x.with, from: x.from, ago: ago(x.at), ...(x.msgId && hudWhenMap(chat).get(x.msgId) || {}), isNew: x.msgId === lastId && !!lastId })),
         debts: open.map(d => ({ id: d.id, owe: d.owe, with: d.with, what: d.what, amount: d.amount, left: d.left, currency: d.currency, ago: ago(d.at) })),
         ask: mc.ask, tell: mc.tell
     };
@@ -16554,7 +16571,9 @@ function simAgendaView(a, now, turn) {
     if (!a) return null;
     const until = a.until ? hmsParseWhen(a.until, a.readAt) : null;
     const left = until !== null && now !== null ? until - now : null;
-    return { where: a.where || null, doing: a.doing || null, why: a.why || null, until: a.until || null, next: a.next || null, left, overdue: left !== null && left < 0, ago: turn - a.turn,
+    // story time since it was reported: a supper "until the table is clear" seen three months ago is where they were, not where they are
+    const storyAgo = Number.isFinite(a.readAt) && now !== null ? Math.max(0, now - a.readAt) : null;
+    return { where: a.where || null, doing: a.doing || null, why: a.why || null, until: a.until || null, next: a.next || null, left, overdue: left !== null && left < 0, ago: turn - a.turn, storyAgo,
         was: (a.was || []).map(w => ({ where: w.where, doing: w.doing, ago: turn - w.turn })) };
 }
 function simKnowsView(k, turn) {
@@ -18686,7 +18705,8 @@ function agendaClockPart(text) {
     // "the ninth bell", "tenth bell": the hour the bell rings (a range takes its start: "ninth bell to midday")
     const ORD = { first: 1, second: 2, third: 3, fourth: 4, fifth: 5, sixth: 6, seventh: 7, eighth: 8, ninth: 9, tenth: 10, eleventh: 11, twelfth: 12 };
     const bell = t.match(/\b(first|second|third|fourth|fifth|sixth|seventh|eighth|ninth|tenth|eleventh|twelfth)\s+bell\b/);
-    if (bell && t.indexOf(bell[0]) <= (t.search(/\bnoon\b|\bmidday\b|\bmidnight\b/) < 0 ? Infinity : t.search(/\bnoon\b|\bmidday\b|\bmidnight\b/))) return ORD[bell[1]] * 60;
+    // "first bell" is the morning's first bell (the courier leaves at first bell, ten hours after 21:10), not 01:00
+    if (bell && t.indexOf(bell[0]) <= (t.search(/\bnoon\b|\bmidday\b|\bmidnight\b/) < 0 ? Infinity : t.search(/\bnoon\b|\bmidday\b|\bmidnight\b/))) return bell[1] === 'first' ? 6 * 60 : ORD[bell[1]] * 60;
     if (/\bnoon\b/.test(t)) return 720;
     if (/\bmidnight\b/.test(t)) return 0;
     return null;
