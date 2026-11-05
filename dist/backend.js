@@ -13913,7 +13913,7 @@ function gearFromHud(hud) {
             if (!name || /^(none|nothing|empty|n\/a|-+)$/i.test(name)) continue;
             // "(Halvin's mark)": a detail of the thing itself, not how it is carried, is kept to show beside the name
             const note = m && m[2] && !gearState(m[2]) && !/^\s*[x×]?\s*\d+\s*$/i.test(m[2]) ? m[2].trim().slice(0, 40) : null;
-            out.push({ name, note, hint: m && m[2] ? gearState(m[2]) : null, contents: m && m[3] ? split(m[3]).map(x => bare(x.replace(/\s*\([^)]*\)\s*$/, ''))).filter(Boolean).slice(0, 12) : [] });
+            out.push({ name, note, paren: m && m[2] ? m[2].trim().slice(0, 60) : null, hint: m && m[2] ? gearState(m[2]) : null, contents: m && m[3] ? split(m[3]).map(x => bare(x.replace(/\s*\([^)]*\)\s*$/, ''))).filter(Boolean).slice(0, 12) : [] });
             if (out.length >= 30) return true;
         }
         return false;
@@ -13951,8 +13951,9 @@ const GEAR_STOP_WORDS = new Set(['the', 'and', 'with', 'from', 'for', 'his', 'he
  *  player's own ("your sword"; not "your wooden sword" or "his sword"), or "the wand" in a sentence that moves it
  *  ("you give the wand back"). A bare "the sword" anywhere else is any sword. */
 function gearMentioned(text, name) {
-    const t = String(text || '').toLowerCase();
-    const bare = lockKey(gearBare(name)).replace(/\s*\([^)]*\)\s*/g, ' ').trim();
+    // "slide-bracer" on the HUD, "slide bracer" in your message: one item
+    const t = String(text || '').toLowerCase().replace(/(\w)-(\w)/g, '$1 $2');
+    const bare = lockKey(gearBare(name)).replace(/\s*\([^)]*\)\s*/g, ' ').replace(/(\w)-(\w)/g, '$1 $2').trim();
     if (!bare) return false;
     if (t.includes(bare)) return true;
     const words = bare.split(/\s+/), head = words.pop();
@@ -13966,10 +13967,11 @@ function gearMentioned(text, name) {
     let m;
     while ((m = re.exec(t))) { const mods = m[1].trim().split(/\s+/).filter(Boolean); if (!mods.some(w => other.test(w))) return true; }
     // "the wand" in a sentence that moves it ("You give the wand back to Ferren", "you set the bundle on the shelf")
-    const MOVE = /\b(?:give|gives|gave|given|hand|hands|handed|return|returns|returned|leave|leaves|left|set|sets|put|puts|drop|drops|dropped|lend|lends|lent|trade|trades|traded|sell|sells|sold|pass|passes|passed|hang|hangs|hung|stow|stows|stowed|pack|packs|packed|take|takes|took|taken)\b/;
+    const MOVE = /\b(?:give|gives|gave|given|hand|hands|handed|return|returns|returned|leave|leaves|left|set|sets|put|puts|drop|drops|dropped|lend|lends|lent|trade|trades|traded|sell|sells|sold|pass|passes|passed|hang|hangs|hung|stow|stows|stowed|pack|packs|packed|take|takes|took|taken|lay|lays|laid|laying|place|places|placed|settle|settles|settled|lean|leans|leaned|leant|goes down|go down|went down|set down)\b/;
     for (const sn of t.split(/(?<=[.!?])\s+|\n+/)) {
         if (!MOVE.test(sn)) continue;
-        const r2 = new RegExp(`\\bthe\\s+((?:[a-z'’-]+\\s+){0,2})${esc(head)}s?\\b`, 'g');
+        // "the bracer", and the second of a pair: "I set the slide bracer and baldric down"
+        const r2 = new RegExp(`\\b(?:the|and)\\s+((?:[a-z'’-]+\\s+){0,2})${esc(head)}s?\\b`, 'g');
         let k;
         while ((k = r2.exec(sn))) { const mods = k[1].trim().split(/\s+/).filter(Boolean); if (!mods.some(w => other.test(w))) return true; }
     }
@@ -14053,7 +14055,10 @@ function gearReadUncached(chat, st, cfg) {
             const heldBy = /^\s*(?:held|carried|kept)\s+by\s+([^,;]+)/i.exec(r.where || '');
             const withOther = !setDown && heldBy && /^(?:in hand|on body|worn)$/i.test(String(r.state || '')) && e && e.hud
                 && hmsPresentPeople(e.hud).some(p => lockKey(p.name).split(' ')[0] === lockKey(heldBy[1]).split(' ')[0]);
-            const toState = setDown || withOther ? 'stowed' : r.state;
+            // "dropped" beside the bags by the door: laid there on purpose, not let fall.
+            const placed = /^dropped$/i.test(String(r.state || '')) && /\b(?:beside|by|against|next to|near|under|on|in|inside|atop)\b/i.test(r.where || '')
+                && !/\b(?:floor|ground|fell|falls?|fallen|dropped|lost|mud|snow|dirt|road|water|river|sea)\b/i.test(r.where || '');
+            const toState = setDown || withOther || placed ? 'stowed' : r.state;
             // Put down, left or gone needs the story to say so. A guess ("left behind before the drills") about an
             // item this reply's own HUD still carries, with no word of it in the reply or the player's message, is
             // not a change: the HUD stands.
@@ -14105,6 +14110,22 @@ function gearReadUncached(chat, st, cfg) {
             relisted = gap && since !== null && since > it.idx;
         }
         if (relisted) { it.state = null; it.where = null; }
+        // "Aurelia's slate (packed, top bag)": the narrator's own note that it is put away, on every HUD since a reply
+        // newer than the last report about it, wins over that report (the side panel missed the packing).
+        // Only put-away notes: "(Halvin's mark, worn)" is the blade's wear, not how it is carried.
+        if (!relisted && ['in container', 'stowed'].includes(x.hint) && it.state !== x.hint && it.state !== 'gone') {
+            let since = null;
+            for (let k = tl.length - 1; k >= 0; k--) {
+                const y = gearFromHud(tl[k].hud).find(z => find(gearBare(z.name)) === it || lockKey(gearBare(z.name)) === it.key);
+                if (!y || y.hint !== x.hint) break;
+                since = idxOf.has(tl[k].msg.id) ? idxOf.get(tl[k].msg.id) : since;
+            }
+            if (since !== null && (!Number.isFinite(it.idx) || since > it.idx)) {
+                const box = x.hint === 'in container' ? ((x.paren || '').match(/\b((?:[\w'’-]+\s+)?(?:bag|backpack|pack|pouch|satchel|pocket|chest|box|case|sack|purse|saddlebags?))\b/i) || [])[1] || null : null;
+                it.history.push({ state: x.hint, where: x.hint === 'stowed' ? x.paren : null, inside: box, at: it.at, msgId: null });
+                it.state = x.hint; it.where = x.hint === 'stowed' ? x.paren : null; it.inside = box;
+            }
+        }
         if (it.state === 'gone' && !(it.msgId && hudListedWhenGone(it))) it.state = null;
         if (!it.state && x.hint) it.state = x.hint;
         for (const c of x.contents) { const inner = ensure(c, 'hud'); if (inner) { inner.onHud = true; if (!inner.state || inner.state === 'gone') { inner.state = 'in container'; inner.inside = it.name; } } }
@@ -14136,7 +14157,8 @@ function hmsGearPanel(chat, st, cfg) {
     const KEPT_RE = /\b(drawer|shelf|chest|cupboard|wardrobe|room|home|house|manor|estate|stable|left (?:with|at|in)|with [A-Z][\w'-]+|for (?:trueing|repair|repairs|mending|fixing|safekeeping|cleaning)|to be (?:trued|mended|repaired|fixed|cleaned)|lent|loaned|stored|kept|holding|minding)\b/i;
     const SPENT_RE = /\b(sold|eaten|ate|drunk|drank|given (?:away|as)|gift(?:ed)?|traded|spent|broke|broken|destroyed|lost|burn(?:t|ed)?|used up|consumed|stolen|thrown|smashed)\b/i;
     const owned = it => it.state === 'stowed' || it.state === 'dropped' || (it.state === 'gone' && KEPT_RE.test(it.where || '') && !SPENT_RE.test(it.where || ''));
-    const away = it => it.state === 'gone' || it.state === 'stowed' || (it.state === 'dropped' && ago(it.at) !== null && ago(it.at) >= DAY);
+    // Still on the HUD's Equipment line (laid by the bags for the morning): shown with what you carry, under Left somewhere.
+    const away = it => it.state === 'gone' || (it.state === 'stowed' && !it.onHud) || (it.state === 'dropped' && ago(it.at) !== null && ago(it.at) >= DAY);
     // Put back on someone else's rail, rack or stall (a smith's display blade tried and returned): never yours
     const shopItem = it => (it.state === 'dropped' || it.state === 'stowed' || it.state === 'gone') && !it.mine &&
         /\b[\p{Lu}][\p{L}'’-]*['’]s\s+(?:rail|rack|stall|counter|display|stand|table|bench|shop|wares|cart)\b/u.test(it.where || '') && !/\b(?:drawer|keeping|trueing|repair|mending|kept|holding)\b/i.test(it.where || '');

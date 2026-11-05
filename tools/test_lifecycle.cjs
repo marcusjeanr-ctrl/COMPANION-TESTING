@@ -145,6 +145,21 @@ const A = { gear: [{ name: 'silver locket', state: 'worn' }], deaths: ['Halvin']
     });
 
     // ── what the next request carries ──
+    await check('gear set down by the bags stays listed as left there; a HUD "(packed, top bag)" note wins over a missed report', async () => {
+        // export chat 2: the side panel said "dropped … beside the bags"; the slate's packing was never reported
+        L.setState({});
+        const eq0 = "Plain road sword, leather baldric, slide-bracer (Wenna's make), Aurelia's prize slate";
+        const eq1 = "Plain road sword, leather baldric (laid beside bags), slide-bracer (Wenna's make), Aurelia's prize slate (packed, top bag)";
+        L.set([...base(), user('I take the gear.'), reply({ gear: [{ name: 'leather baldric', state: 'worn', where: 'across the back' }, { name: 'slide-bracer', state: 'worn', where: 'left forearm' }, { name: "Aurelia's prize slate", state: 'in hand' }] }, 'You buckle on the baldric and the bracer; Aurelia gives you the slate.', { equipment: eq0, time: '21:00' }),
+            user('*I set Aurelia\'s slate in the top of my travel bag.*'), reply({}, 'The slate goes in on top.', { equipment: eq1.replace(' (laid beside bags)', ''), time: '21:30' }),
+            user('*I set the slide bracer and baldric down beside my luggage.*'),
+            reply({ gear: [{ name: 'leather baldric', state: 'dropped', where: 'beside the bags by the door' }, { name: 'slide-bracer', state: 'dropped', where: 'beside the bags by the door' }] }, 'The baldric goes down first, coiled flat. The bracer settles beside it.', { equipment: eq1, time: '21:50' })]);
+        const g = (await L.push()).hms.gear, by = n => g.items.find(i => i.name === n);
+        assert.equal(by('leather baldric')?.state, 'stowed'); assert.equal(by('slide-bracer')?.state, 'stowed');
+        assert.equal(by("Aurelia's prize slate")?.state, 'in container'); assert.equal(by("Aurelia's prize slate")?.inside, 'top bag');
+        assert.equal(by('Plain road sword')?.state ?? null, null);
+        assert.ok(!g.gone.some(x => /baldric|bracer/.test(x.name)), 'HUD-listed gear went to Gone');
+    });
     await check('the narrator request stays bounded with many open items', async () => {
         L.setState({}); const many = Array.from({ length: 40 }, (_, i) => ({ key: `errand ${i}`, what: `Errand number ${i} at the market`, when: `in ${i + 1} days`, kind: 'errand', state: 'open' }));
         L.set([...base(), user('I plan.'), reply({ agenda: many }, 'A long list.', { time: '10:00' })]); await L.push();
