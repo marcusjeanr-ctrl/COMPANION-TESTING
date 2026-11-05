@@ -441,6 +441,10 @@ const DEFAULT_SETTINGS = {
     hmsCompanion: true,         // ask for the characters/thoughts block after the prose
     hmsGuard: true,             // flag HUD lines that vanish between replies
     hmsPinReminder: true,       // remind the model of pinned HUD lines
+    hmsHudMath: true,           // Six-Sided: Training totals, age, countdowns, time and calendar words kept by code
+    hmsHudFormat: true,         // Six-Sided: labels, rank words, empty slots, slot order, the player off Present
+    hmsLoreBirths: true,        // canon birth years from the lorebook's dossiers for the Present line
+    hmsCardChecks: true,        // Six-Sided rule warnings in Worth a look
     hmsSystems: clone(HMS_SYS_DEFAULTS), // vitals, body, mind, abilities, quests, survival clock
     uiTheme: 'host',                  // host | parchment | midnight | terminal | sakura
     uiDensity: 'comfortable',         // comfortable | compact
@@ -2154,6 +2158,7 @@ async function setSwipeData(chatId, msg, data, extraPatch = {}) {
     const snapshot = clone(data), patch = clone(extraPatch);
     const write = (swipeWrites.get(queueKey) || Promise.resolve()).catch(() => {}).then(async () => {
         const fresh = (await chatApi.getMessages(chatId)).find(m => m.id === msg.id);
+        if (fresh && fresh._rpgcCarried) throw new Error('That reply belongs to the earlier chat this one continues, and is read only here.');
         if (!fresh || (fresh.swipe_id ?? 0) !== swipe || readingSource(fresh.content) !== expected) {
             throw new Error('The reply changed before its tracking data could be saved. Refresh the active reply.');
         }
@@ -2449,7 +2454,7 @@ async function healRecent(chatId, chat) {
     const since = generating.get(chatId);
     if (since && Date.now() - since < 5 * 60 * 1000) return false;   // mid-generation: the reply is not finished
     let did = false;
-    const recent = chat.filter(m => m.role === 'assistant').slice(-3);
+    const recent = chat.filter(m => m.role === 'assistant' && !m._rpgcCarried).slice(-3);
     for (const m of recent) {
         const t = textOf(m.content);
         if (!/<rpg_companion>[\s\S]*?<\/rpg_companion>/i.test(t)) continue;
@@ -2603,6 +2608,10 @@ async function pushState(chatId, snapshot = null) {
         refreshThoughtsCache(chatId, chat);
         const userName = await getUserName(chatId);
         try { await personaFor(chatId); } catch { /* the You card goes without it */ }
+        let carryInfo = null;
+        if (chatId !== SANDBOX_ID && isHmsChat(chatId, null, chat)) {
+            try { await carryIndexNote(chatId, chat, cs); carryInfo = await carryPanel(chatId, chat, cs); } catch (e) { logW(`[RPG Companion HMS] Carry-over check failed: ${e?.message || e}`); }
+        }
         const payload = withReadPass(chat, () => ({
             type: 'state',
             chatId,
@@ -2651,6 +2660,7 @@ async function pushState(chatId, snapshot = null) {
             avatars: settings.npcAvatars || {},
             sandbox: chatId === SANDBOX_ID ? (sandbox ? { world: sandbox.world, worldName: (SANDBOX_WORLDS[sandbox.world] || {}).name, mode: sandbox.mode, busy: !!sandbox.busy,
                 messages: sandbox.messages.slice(-14).map(m => ({ id: m.id, role: m.role, text: (() => { const t = textOf(m.content); const f = findHud(t); return (f ? t.slice(f.bodyEnd) : t).replace(/<rpg_companion>[\s\S]*?<\/rpg_companion>/g, '').replace(/```json[\s\S]*?```/g, '').replace(DIALOGUE_ANY_RE, '').trim().slice(0, 600); })(), hud: !!findHud(textOf(m.content)) })) } : { none: true }) : null,
+            carry: carryInfo,
             hms: isHmsChat(chatId, null, chat) ? hmsPanelState(chatId, chat, cs) : null,
             // Classic chats: the same people, party and phone panels, read from the tracker JSON.
             extras: isHmsChat(chatId, null, chat) ? null : (() => {
@@ -2729,9 +2739,184 @@ function companionMarkTurnPurposes(chat) {
     return chat;
 }
 
+// ── Carry over: a chat that continues a saved game (Mushoku_Save → Mushoku_Continue_Handler) ──
+// The Companion rebuilds every panel from a chat's own history, so a new chat that resumes from a
+// save starts with empty People, Spellbook, gear history, ledger, quests and Chronicle. Linking the
+// earlier chat stores a read-only copy of its history (active swipes only) and reads it in front of
+// this chat's own messages, so every panel and reminder continues exactly where the old chat stopped.
+const CARRY_INDEX_FILE = 'carry/index.json';
+const CARRY_SKIP = new Set(['v', 'carry', 'carryDismissed', 'checkpoint', 'encounter', 'encounterLogs', 'trackerSnapshots', 'activeTrackerSnapshot', 'trackerSnapshotSeq', 'immersive', 'song']);
+const carryMem = new Map();      // chatId → { at, msgs, ids, missing }
+let carryIndex = null;            // [{ chatId, count, lastId, date, place, at, carried }]
+let carryIndexSaving = null;
+function carryPath(chatId) { return `carry/${String(chatId).replace(/[^a-zA-Z0-9_-]/g, '_')}.json`; }
+function carryEmpty(v) { return v == null || (Array.isArray(v) && !v.length) || (isPlainObject(v) && !Object.keys(v).length); }
+function carryStrip(m) {
+    const key = String(m.swipe_id ?? 0);
+    const keep = (mine) => {
+        if (!isPlainObject(mine)) return undefined;
+        const o = {};
+        for (const [k, v] of Object.entries(mine)) {
+            if ((k === 'swipes' || k === 'sources') && isPlainObject(v)) { if (v[key] !== undefined) o[k] = { [key]: v[key] }; }
+            else o[k] = v;
+        }
+        return o;
+    };
+    const out = { id: m.id, role: m.role, content: textOf(m.content), swipe_id: m.swipe_id ?? 0 };
+    for (const k of ['name', 'send_date', 'created_at', 'is_user']) if (m[k] !== undefined) out[k] = m[k];
+    const live = keep(m.metadata?.[META_KEY]), exported = keep(m.extra?.spindle_metadata?.[META_KEY] ?? m.metadata?.spindle_metadata?.[META_KEY]);
+    if (live) out.metadata = { [META_KEY]: live };
+    if (exported) out.extra = { spindle_metadata: { [META_KEY]: exported } };
+    return out;
+}
+// The story up to its last visible reply: a trailing save turn (Mushoku_Save and its block) stays behind.
+function carryCut(msgs) {
+    let end = msgs.length - 1;
+    while (end >= 0 && !(msgs[end] && msgs[end].role === 'assistant' && trackingMessageVisible(msgs[end]))) end--;
+    return msgs.slice(0, end + 1);
+}
+// "K416, Month 3, Day 30" and the ◆ place line of a HUD, to name a chat and to match a save to its continuation.
+function carryHudKey(text) {
+    const t = textOf(text);
+    const f = findHud(t);
+    const hud = f ? t.slice(0, f.bodyEnd) : t.slice(0, 4000);
+    const lines = hud.split('\n').map(x => x.trim()).filter(Boolean);
+    const dateLine = lines.find(l => /\b(?:Calendar|Date|Day|Year)\b[^:]*:/i.test(l) && !/^#/.test(l)) || '';
+    const date = (dateLine.split('|')[0].split(/:\s*/).slice(1).join(': ') || dateLine).trim().slice(0, 60);
+    const place = ((lines.find(l => /^◆/.test(l)) || '').replace(/^◆\s*/, '').split('→').map(s => s.trim()).filter(Boolean).slice(-2).join(' → ')).slice(0, 80);
+    return { date, place };
+}
+function carryLastHud(msgs) {
+    for (let i = msgs.length - 1; i >= 0; i--) {
+        const m = msgs[i];
+        if (m && m.role === 'assistant' && trackingMessageVisible(m) && findHud(textOf(m.content))) return carryHudKey(m.content);
+    }
+    return { date: '', place: '' };
+}
+async function carryFor(chatId) {
+    if (!chatId || chatId === SANDBOX_ID) return null;
+    let st;
+    try { st = await getChatState(chatId); } catch { return null; }
+    const link = st && st.carry;
+    if (!isPlainObject(link) || !link.from) { carryMem.delete(chatId); return null; }
+    const have = carryMem.get(chatId);
+    if (have && have.at === link.at) return have;
+    let msgs = null;
+    try {
+        const s = await spindle.storage.getJson(carryPath(chatId), { fallback: null });
+        if (isPlainObject(s) && s.at === link.at && Array.isArray(s.messages)) msgs = s.messages.filter(m => isPlainObject(m) && m.id);
+    } catch { msgs = null; }
+    for (const m of msgs || []) { try { Object.defineProperty(m, '_rpgcCarried', { value: true, configurable: true }); } catch { /* read only */ } }
+    const entry = { at: link.at, msgs, ids: new Set((msgs || []).map(m => m.id)), missing: !msgs };
+    carryMem.set(chatId, entry);
+    return entry;
+}
+function carryOwns(chatId, mid) { const c = carryMem.get(chatId); return !!(c && c.ids && c.ids.has(mid)); }
+async function carryIndexLoad() {
+    if (carryIndex) return carryIndex;
+    try { const s = await spindle.storage.getJson(CARRY_INDEX_FILE, { fallback: null }); carryIndex = Array.isArray(s) ? s.filter(isPlainObject) : []; }
+    catch { carryIndex = []; }
+    return carryIndex;
+}
+// Remember every story chat the panel has shown, so a new chat can offer to continue one of them.
+async function carryIndexNote(chatId, chat, cs) {
+    if (!chatId || chatId === SANDBOX_ID || !Array.isArray(chat) || !chat.length) return;
+    const own = chat.filter(m => !m._rpgcCarried);
+    const lastId = (own[own.length - 1] || chat[chat.length - 1]).id;
+    const idx = await carryIndexLoad();
+    const old = idx.find(x => x.chatId === chatId);
+    if (old && old.lastId === lastId && old.count === chat.length) return;
+    const { date, place } = carryLastHud(chat);
+    if (!date && !place) return;
+    const row = { chatId, count: chat.length, lastId, date, place, at: Date.now(), carried: cs && cs.carry ? cs.carry.from : null };
+    carryIndex = [row, ...idx.filter(x => x.chatId !== chatId)].slice(0, 30);
+    const snapshot = carryIndex.slice();
+    carryIndexSaving = (carryIndexSaving || Promise.resolve()).catch(() => {}).then(() => spindle.storage.setJson(CARRY_INDEX_FILE, snapshot)).catch(e => logW(`[RPG Companion HMS] Could not save the chat list for carry-over: ${e?.message || e}`));
+}
+function carryContinueKey(chat) {
+    for (const m of chat) {
+        if (!m || m._rpgcCarried || m.role !== 'user') continue;
+        if (companionTurnPurpose(m.content) === 'continue') return carryHudKey(companionResumeHud(m.content) || m.content);
+    }
+    return null;
+}
+async function carryPanel(chatId, chat, cs) {
+    if (!chatId || chatId === SANDBOX_ID) return null;
+    const link = isPlainObject(cs.carry) ? cs.carry : null;
+    const mem = link ? carryMem.get(chatId) : null;
+    const resume = link ? null : carryContinueKey(chat);
+    const idx = await carryIndexLoad();
+    const same = (a, b) => !!a && !!b && a.toLowerCase().replace(/\s+/g, ' ') === b.toLowerCase().replace(/\s+/g, ' ');
+    // A chat another chat already continues is an earlier page of that one: it is never the match.
+    const continued = new Set(idx.map(x => x.carried).filter(Boolean));
+    const choices = link ? [] : idx.filter(x => x.chatId !== chatId && x.carried !== chatId).map(x => ({
+        chatId: x.chatId, date: x.date, place: x.place, count: x.count, at: x.at,
+        match: !!resume && !continued.has(x.chatId) && same(x.date, resume.date) && (!resume.place || !x.place || same(x.place, resume.place))
+    })).sort((a, b) => (b.match - a.match) || (b.at - a.at)).slice(0, 8);
+    return {
+        linked: link ? { from: link.from, date: link.date || '', place: link.place || '', count: link.count || 0, at: link.at, missing: !!(mem && mem.missing) } : null,
+        continued: !!resume, dismissed: !!cs.carryDismissed, choices
+    };
+}
+async function carryLink(chatId, from) {
+    if (!chatId || !from || chatId === from || chatId === SANDBOX_ID || from === SANDBOX_ID) return false;
+    const srcSt = await getChatState(from);
+    // Never a loop: walk the earlier chat's own carry-over chain.
+    for (let id = from, seen = 0; id && seen < 50; seen++) {
+        const st = id === from ? srcSt : await getChatState(id);
+        const up = isPlainObject(st.carry) ? st.carry.from : null;
+        if (up === chatId) { setStatus(chatId, 'error', 'That chat already continues this one.'); return false; }
+        id = up;
+    }
+    let src;
+    try { src = await chatApi.getMessages(from); } catch (e) { setStatus(chatId, 'error', `Could not read the earlier chat: ${e?.message || e}`); return false; }
+    const cut = carryCut(src || []);
+    if (!cut.length) { setStatus(chatId, 'error', 'The earlier chat has no replies to carry over.'); return false; }
+    const at = Date.now();
+    const { date, place } = carryLastHud(cut);
+    try { await spindle.storage.setJson(carryPath(chatId), { v: 1, from, at, messages: cut.map(carryStrip) }); }
+    catch (e) { setStatus(chatId, 'error', `Could not save the carried history: ${e?.message || e}`); return false; }
+    const st = await getChatState(chatId);
+    // The earlier chat's own keepings (hand edits, pins, birth and death marks, ledger corrections)
+    // come along wherever this chat has none of its own.
+    const copied = [];
+    for (const [k, v] of Object.entries(srcSt || {})) {
+        if (CARRY_SKIP.has(k) || carryEmpty(v) || !carryEmpty(st[k])) continue;
+        st[k] = clone(v); copied.push(k);
+    }
+    st.carry = { from, at, count: cut.length, upTo: cut[cut.length - 1].id, date, place, copied };
+    delete st.carryDismissed;
+    carryMem.delete(chatId);
+    await saveChatState(chatId, st);
+    setStatus(chatId, 'ok', `Carried over ${cut.length} messages from the earlier chat${date ? ` (${date})` : ''}. Every panel continues from there.`);
+    return true;
+}
+async function carryUnlink(chatId) {
+    const st = await getChatState(chatId);
+    if (!isPlainObject(st.carry)) return false;
+    const base = emptyChatState();
+    for (const k of Array.isArray(st.carry.copied) ? st.carry.copied : []) { if (k in base) st[k] = clone(base[k]); else delete st[k]; }
+    delete st.carry;
+    st.carryDismissed = true;
+    carryMem.delete(chatId);
+    await saveChatState(chatId, st);
+    try { await spindle.storage.setJson(carryPath(chatId), { v: 1, from: null, at: 0, messages: [] }); } catch { /* the link is already gone */ }
+    setStatus(chatId, 'info', 'Carry-over removed. This chat shows only its own history again.');
+    return true;
+}
+
 const chatApi = {
-    async getMessages(id) { return companionMarkTurnPurposes(id === SANDBOX_ID ? (sandbox ? sandbox.messages : []) : await spindle.chat.getMessages(id)); },
+    async getMessages(id) {
+        if (id === SANDBOX_ID) return companionMarkTurnPurposes(sandbox ? sandbox.messages : []);
+        const own = await spindle.chat.getMessages(id);
+        const carry = await carryFor(id);
+        if (!carry || !carry.msgs || !carry.msgs.length) return companionMarkTurnPurposes(own);
+        // This chat's opening page (the card's greeting before the continue turn) is not part of the story.
+        const first = (own || []).findIndex(m => m && m.role === 'user');
+        return companionMarkTurnPurposes([...carry.msgs, ...(first < 0 ? [] : own.slice(first))]);
+    },
     async updateMessage(id, mid, patch) {
+        if (carryOwns(id, mid)) return null;   // the earlier chat's history is read only here
         if (id !== SANDBOX_ID) return spindle.chat.updateMessage(id, mid, patch);
         const m = sandbox && sandbox.messages.find(x => x.id === mid);
         if (!m) return null;
@@ -2750,7 +2935,7 @@ const chatApi = {
         if (opts && opts.triggerGeneration) setTimeout(() => sandboxGenerate().catch(e => logW(`[RPG Companion HMS] Test zone turn failed: ${e?.message || e}`)), 0);
         return { id: m.id };
     },
-    async setMessagesHidden(id, ...rest) { return id === SANDBOX_ID ? null : spindle.chat.setMessagesHidden(id, ...rest); }
+    async setMessagesHidden(id, ids, ...rest) { return id === SANDBOX_ID ? null : spindle.chat.setMessagesHidden(id, Array.isArray(ids) ? ids.filter(x => !carryOwns(id, x)) : ids, ...rest); }
 };
 
 function registerInterceptorKeep(fn, ...rest) { rpgcInterceptor = fn; return spindle.registerInterceptor(fn, ...rest); }
@@ -5379,6 +5564,13 @@ async function runSeparateUpdate(chatId, targetId = null) {
                 ...simStoreKeys(comp, existing, fresh, await getChatState(chatId), msg.id) });
             await keepRoomReading(chatId, comp, messageHud(msg));
             await readingsAfterReply(chatId, fresh, msg, comp.injuries || null, comp.hitogami || null);
+            // the sessions the reporter counted set the Training line: the last HUD's number plus those
+            if (Array.isArray(comp.sessions) && comp.sessions.length && settings.hmsHudMath !== false) {
+                try {
+                    const r = sixTrainingFromSessions(textOf(msg.content), previousHudFor(fresh, msg.id), comp.sessions);
+                    if (r) { await chatApi.updateMessage(chatId, msg.id, { content: r.content }); msg.content = r.content; hmsCache.delete(chatId); spindle.log.info(`[RPG Companion HMS] Training: ${r.notes.join('; ')}`); }
+                } catch (e) { logW(`[RPG Companion HMS] Training count skipped: ${e?.message || e}`); }
+            }
             if (comp.cutOff) setStatus(chatId, 'warning', `Characters updated by a separate call (${secs}s). The answer was cut off by the response length limit, so only its first part was read. Raise the maximum response length (max tokens) of the connection the tracker uses, or switch off modules you do not need in Settings → HMS systems.`);
             else setStatus(chatId, 'ok', `Characters updated by a separate call (${secs}s).`);
             return;
@@ -7374,7 +7566,7 @@ function rewriteHud(content, mutate) {
     // untouched lines and narration remain narrator-owned; no template is rebuilt.
     for (const item of items) {
         const old = hud.lines.find(l => l.key === item.key);
-        if (!old || old.text === item.text || !/^\s*[\p{Extended_Pictographic}]/u.test(old.text)) continue;
+        if (!old || item.flat || old.text === item.text || !/^\s*[\p{Extended_Pictographic}]/u.test(old.text)) continue;
         const styled = old.text.match(/^(\s*[\s\S]*?\*\*[^*]+?:\*\*\s*)([\s\S]*)$/);
         if (!styled || /^\s*[\p{Extended_Pictographic}]/u.test(item.text)) continue;
         const field = item.text.match(/^([^:]+):\s*([\s\S]*)$/);
@@ -7417,6 +7609,17 @@ function applyAges(items, known, cal) {
 async function hmsKnownAgesFor(chatId, st) {
     const known = new Map();
     try { for (const [k, p] of hmsKnownBirths(hmsTimeline(await chatApi.getMessages(chatId))).first) known.set(k, { born: p.born, month: p.month, approx: p.approx }); } catch { /* optional */ }
+    // canon characters the HUD has not dated yet: the lorebook dossier's "Born: K…" (the card's own NPC AGES rule)
+    if (settings.hmsLoreBirths !== false) {
+        try {
+            const lore = sixLoreBirths(chatId);
+            if (lore.size) for (const e of hmsTimeline(await chatApi.getMessages(chatId)).slice(-1)) for (const p of hmsPresentPeople(e.hud)) {
+                const k = lockKey(p.name); if (known.has(k)) continue;
+                const b = lore.get(k) || lore.get(k.split(' ')[0]);
+                if (b && (p.born === null || p.born === undefined)) known.set(k, b);
+            }
+        } catch { /* optional */ }
+    }
     for (const [k, v] of Object.entries(isPlainObject(st.peopleBorn) ? st.peopleBorn : {})) if (v && Number.isFinite(v.born)) known.set(k, { born: v.born, month: Number.isFinite(v.month) ? v.month : null, approx: false });
     return known;
 }
@@ -10723,6 +10926,7 @@ function parseCompanion(text, roster = [], relSt = null, immSt = null) {
     if (Array.isArray(obj.moments)) { res.moments = momentsNormalize(obj.moments) || []; res.found = true; }
     if (Array.isArray(obj.injuries)) { res.injuries = injNormalize(obj.injuries); res.found = true; }
     if (Array.isArray(obj.hurtSeen)) res.hurtSeen = injNormalize(obj.hurtSeen);
+    if (Array.isArray(obj.sessions)) res.sessions = obj.sessions.filter(x => isPlainObject(x) && typeof x.skill === 'string' && Number.isFinite(Number(x.count))).map(x => ({ skill: x.skill.trim().slice(0, 60), count: Math.max(0, Math.min(400, Number(x.count))), teacher: typeof x.teacher === 'boolean' ? x.teacher : null })).slice(0, 4);
     // Minds (FrankenSIM): what moved inside the people of this reply, their agendas, what they learned, what was planted
     if (Array.isArray(obj.minds)) { res.minds = simMindsNormalize(obj.minds) || []; res.found = true; }
     if (Array.isArray(obj.agendas)) { res.agendas = simAgendasNormalize(obj.agendas) || []; res.found = true; }
@@ -10997,6 +11201,8 @@ function buildCompanionInstructionRead(committed, userName, locks, st = null, ch
     if (momReq) parts.push(momReq.json);
     const injReq = injActive(chat) ? injRequest(userName) : injWitness(chat) ? injWitnessRequest(userName) : null;
     if (injReq) parts.push(injReq.json);
+    const trainNow = tlNow.length ? mtTraining(worldLines(tlNow[tlNow.length - 1].hud)) : [];
+    if (trainNow.length && settings.hmsHudMath !== false) parts.push(`"sessions": [{"skill": "${trainNow.map(t => t.skill).join('|')}", "count": 0, "teacher": true}]`);
     if (wantQuests) parts.push('"quests": [{"id": "existing ID or null for a new assignment", "name": "…", "objective": "current step", "progress": "measured 0..100 or null", "giver": "or null", "where": "or null", "deadline": "in-world time or null", "reward": "or null", "category": "main|side|personal|party", "state": "active|completed|failed|abandoned|closed or null"}]');
     if (party) parts.push(party.json);
     const rel = relRequest(chat, userName, null, st);
@@ -11057,6 +11263,7 @@ function buildCompanionInstructionRead(committed, userName, locks, st = null, ch
     if (plotReq) s += '\n' + plotReq.rules;
     if (momReq) s += '\n' + momReq.rules;
     if (injReq) s += '\n' + injReq.rules;
+    if (trainNow.length && settings.hmsHudMath !== false) s += `\n"sessions": one row per skill on the HUD's Training line that this reply (time skips included) shows ${userName} completing focused days of practice on: "count" = how many full sessions (one focused day each) the story says or shows, "teacher" = true when a good teacher led them. Count what the story states ("twenty-four mornings" = 24); never estimate, never add the HUD's earlier total; [] when no session was completed.`;
     if (simReq) {
         s += '\n' + simReq.rules;
         // the state itself: in its own message before the reply (or the preset's slot) — here when this is the
@@ -11134,6 +11341,21 @@ async function hmsProcessContent(chatId, content, prevHud, generationType, commi
                 if (known.size) { const r = rewriteHud(out, items => applyAges(items, known, cal)); if (r.changed) { out = r.content; hud = r.hud || hud; guard.agesKept = true; } }
             }
         } catch (e) { logW(`[RPG Companion HMS] Age repair skipped: ${e?.message || e}`); }
+        // Six-Sided upkeep: the HUD rules that are arithmetic or format, kept by code (Training, age, countdowns, labels…)
+        try {
+            if (generationType !== 'continue' && (settings.hmsHudMath !== false || settings.hmsHudFormat !== false) && hud.lines.some(l => /^Armored Dragon Calendar:/i.test(hudSemanticText(String(l.text || ''))))) {
+                const cal = hmsCalNow(hud), pcal = prevHud ? hmsCalNow(prevHud) : null;
+                let chatNow = [];
+                try { chatNow = await chatApi.getMessages(chatId); } catch { chatNow = []; }
+                const style = hudStyleFor(chatNow);
+                const ctx = { cal, prev: prevHud, userName: userNameCache.get(chatId) || null, rows: sixCanonRows(chatId), sessions: null,
+                    elapsedDays: cal && pcal ? Math.max(0, (cal.year * 360 + (cal.month - 1) * 30 + cal.day) - (pcal.year * 360 + (pcal.month - 1) * 30 + pcal.day)) : null,
+                    math: settings.hmsHudMath !== false, format: settings.hmsHudFormat !== false, plainStyle: /^(?:panel|card)$/i.test(String(style || '')) };
+                let notes = [];
+                const r = rewriteHud(out, items => { notes = sixUpkeep(items, ctx); return notes.length > 0; });
+                if (r.changed) { out = r.content; hud = r.hud || hud; guard.upkeep = notes; }
+            }
+        } catch (e) { logW(`[RPG Companion HMS] HUD upkeep skipped: ${e?.message || e}`); }
         if (settings.hmsGuard && prevHud) {
             if (isHudSwap(prevHud, hud)) guard.swapped = true;
             else guard.missing = diffHud(prevHud, hud).filter(m => !guard.restored.includes(m.key));
@@ -11141,6 +11363,10 @@ async function hmsProcessContent(chatId, content, prevHud, generationType, commi
     }
     const comp = parseCompanion(out, partyRoster(st), st, immActive(st) ? st.immersive : null);
     if (comp.found && comp.characters) enforceLocks(comp, committedBefore || {}, st.locks);
+    if (hud && Array.isArray(comp.sessions) && comp.sessions.length && settings.hmsHudMath !== false && generationType !== 'continue') {
+        try { const r = sixTrainingFromSessions(out, prevHud, comp.sessions); if (r) { out = r.content; hud = parseHud(out) || hud; guard.upkeep = [...(guard.upkeep || []), ...r.notes]; } }
+        catch (e) { logW(`[RPG Companion HMS] Training count skipped: ${e?.message || e}`); }
+    }
     try {
         const bp = botSidePanel(out);
         if (bp) {
@@ -11577,7 +11803,7 @@ function hmsPanelStateRead(chatId, chat, st) {
             // A party member in agony or at the end of their strength is a danger, not a mood.
             if (systems && party) for (const m of party.members) for (const a of m.alerts) if (a.sev === 'high' && ['hunger', 'fatigue', 'pain'].includes(a.dim)) systems.danger.push(a.text);
             let checks = [], birthdays = [];
-            try { checks = hmsChecks(chat, st, gear, userNameCache.get(chatId) || null); } catch (e) { logW(`[RPG Companion HMS] Checks failed: ${e?.message || e}`); }
+            try { checks = hmsChecks(chat, st, gear, userNameCache.get(chatId) || null, chatId); } catch (e) { logW(`[RPG Companion HMS] Checks failed: ${e?.message || e}`); }
             try { birthdays = hmsBirthdays(chat, st, userNameCache.get(chatId) || null); } catch (e) { logW(`[RPG Companion HMS] Birthdays failed: ${e?.message || e}`); }
             let todo = [];
             try { todo = hmsTodo(chat, { agenda, gear, systems, relations, family, birthdays }); } catch (e) { logW(`[RPG Companion HMS] Things to do failed: ${e?.message || e}`); }
@@ -18878,7 +19104,7 @@ const HMS_NOT_PERSON_RE = /\b(?:two|three|four|five|six|several|some|few|many|pa
 function hmsNamedPerson(name) { return !!name && /^\p{Lu}/u.test(name) && !HMS_ROLE_RE.test(name) && !HMS_NOT_PERSON_RE.test(name); }
 
 /** Things worth a look, shown on the World State card. Each check only reports; nothing is changed. */
-function hmsChecks(chat, st, gear, userName = null) {
+function hmsChecks(chat, st, gear, userName = null, chatId = null) {
     const out = [];
     const tl = hmsTimeline(chat);
     const last = tl.length ? tl[tl.length - 1] : null;
@@ -18924,6 +19150,7 @@ function hmsChecks(chat, st, gear, userName = null) {
         if (ooc && gap > 30 && !passes) out.push({ kind: 'ooc', fix: `(OOC fix: OOC messages pass no time. The time is ${hmsClockText(prev.hud)} plus only what the story itself took.)`, text: `The clock moved ${hmsSpan(gap)} across a stretch with ${ooc} OOC message${ooc === 1 ? '' : 's'}. OOC turns are not meant to pass time.` });
     }
     try { out.push(...hmsHudSync(chat, st, userName || 'you').map(({ tell, auto, ...c }) => ({ ...c, text: auto ? `${c.text} The narrator is reminded on the next reply.` : c.text }))); } catch { /* display only */ }
+    if (settings.hmsCardChecks !== false) { try { out.push(...hmsCardRuleChecks(chat, tl, userName, chatId)); } catch { /* display only */ } }
     // the Training line (Six-Sided v1.1): one session is one focused day, 1.5 with a good teacher; the count never runs back
     try { out.push(...hmsTrainingChecks(tl)); } catch { /* display only */ }
     // the HUD still carrying what the story says is not on you
@@ -19062,6 +19289,404 @@ function storyDeaths(chat, i) {
         return first.length > 1 && new RegExp(`\\b${first.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`).test(low);
     });
 }
+// ───────────────────────────── Six-Sided HUD upkeep (1.2.0) ─────────────────────────────
+// The card's HUD rules that are arithmetic or format, kept by code instead of the narrator: Training totals,
+// the player's age, countdowns to dated events, the time-of-day word, weekday and season, label and rank
+// words, empty slots, the player on Present, a dropped Race or Era line. Story judgment (what happened, how
+// long a trip took, whether a session counted) stays with the narrator and the reporter. Each fix is the
+// smallest edit to the line it touches; the narrator copies the repaired HUD forward, as with ages.
+
+const SIX_SWORD = ['Beginner', 'Intermediate', 'Advanced', 'Saint', 'King', 'Emperor', 'God'];
+const SIX_MAGIC = ['Beginner', 'Intermediate', 'Advanced', 'Saint', 'King', 'Imperial', 'Divine'];
+const SIX_NEED = { Intermediate: 10, Advanced: 25, Saint: 60, King: 150 };
+const SIX_MONTHS = ['Snowveil', 'Thawmoon', 'Seedwake', 'Bloomtide', 'Greenreach', 'Sunhigh', 'Goldfield', 'Harvestfire', 'Amberfall', 'Mistwane', 'Frostcall', 'Longnight'];
+const SIX_WEEK = ['Humansday', 'Dragonsday', 'Demonsday', 'Beastsday', 'Seasday', 'Heavensday'];
+const SIX_SEASON = m => (m === 12 || m <= 2) ? 'Winter' : m <= 5 ? 'Spring' : m <= 8 ? 'Summer' : 'Autumn';
+const SIX_LABELS = [
+    [/^(?:Battle Aura|Touki|Toki|Fighting Spirit|Touki \/ Battle Aura)$/i, 'Touki (Battle Aura)'],
+    [/^(?:Magic|Magic Tier|Magic Ranks?|Magic Schools?)$/i, 'Magic Tiers'],
+    [/^(?:Sword|Swords|Sword Styles|Swordsmanship|Sword School|Sword Rank)$/i, 'Sword Style'],
+    [/^(?:Voiceless|Chantless Casting|Silent Casting)$/i, 'Voiceless Casting'],
+    [/^(?:Calendar|Date)$/i, 'Armored Dragon Calendar'],
+    [/^(?:Era|Arc|Era\/Arc|Era - Arc|Current Arc)$/i, 'Era / Arc'],
+    [/^(?:Injuries|Injury|Wounds|Status Effects)$/i, 'Condition'],
+    [/^(?:Inventory|Gear|Items|Carrying)$/i, 'Equipment'],
+    [/^(?:Relationships|Relations|Bond)$/i, 'Bonds'],
+    [/^(?:Language|Tongues)$/i, 'Languages'],
+    [/^(?:Here|Nearby|Present Characters|Characters Present|In Scene|With You)$/i, 'Present'],
+];
+const SIX_OPTIONAL_RE = /^\s*\[?\s*(?:DEMON EYE|Demon Eye|CURSE \/ BLESSING|Curse \/ Blessing|Dream Link|Condition|Training|Memory|Bonds|Equipment|Renown|Standing|Languages|Present)\s*:\s*(?:none|nothing|empty|n\/a|—|–|-|\(none\))\s*\.?\s*\]?\s*$/i;
+
+/** Rows of the card's Canon Clock calendar ("K417 · Month 1 — … — The Mana Calamity …"), cached per lore pool. */
+const sixRowsCache = new WeakMap();
+function sixCanonRows(chatId) {
+    let pool = [];
+    try { const full = loreCatalogPool(chatId); pool = full && Array.isArray(full.entries) && full.entries.length ? full.entries : (getLorePool(chatId) || []); } catch { pool = []; }
+    if (sixRowsCache.has(pool)) return sixRowsCache.get(pool);
+    const rows = [];
+    for (const e of pool) {
+        if (!/Canon Clock/i.test(e.comment || '')) continue;
+        for (const m of String(e.content || '').matchAll(/^-\s*~?K(\d{3,4})\s*·\s*Month\s*(\d{1,2})\s*—\s*(.+)$/gim)) rows.push({ year: Number(m[1]), month: Number(m[2]), text: m[3] });
+    }
+    sixRowsCache.set(pool, rows);
+    return rows;
+}
+/** Canon birth years from the lorebook's dossiers ("Born: ~K405. Age = HUD year − 405"), by each entry's keys. */
+const sixBirthCache = new WeakMap();
+function sixLoreBirths(chatId) {
+    let pool = [];
+    try { const full = loreCatalogPool(chatId); pool = full && Array.isArray(full.entries) && full.entries.length ? full.entries : (getLorePool(chatId) || []); } catch { pool = []; }
+    if (sixBirthCache.has(pool)) return sixBirthCache.get(pool);
+    const out = new Map();
+    for (const e of pool) {
+        const m = String(e.content || '').match(/^\s*Born:\s*(~)?\s*K(\d{3,4})(?![–-]K?\d)/);
+        if (!m) continue;
+        const v = { born: Number(m[2]), month: null, approx: !!m[1] };
+        for (const k of Array.isArray(e.key) ? e.key : []) { const kk = lockKey(k); if (kk && !out.has(kk)) out.set(kk, v); }
+        const name = String(e.comment || '').replace(/^\[[^\]]*\]\s*/, '').split(/\s*[·(]/)[0];
+        if (name && !out.has(lockKey(name))) out.set(lockKey(name), v);
+    }
+    sixBirthCache.set(pool, out);
+    return out;
+}
+function sixMonthsBetween(a, b) { return (b.year * 12 + b.month) - (a.year * 12 + a.month); }
+function sixSpan(months, days) {
+    if (months <= 0) return days > 0 && days < 30 ? `${days} day${days === 1 ? '' : 's'}` : 'this month';
+    const y = Math.floor(months / 12), mo = months % 12;
+    if (!y) return `${mo} month${mo === 1 ? '' : 's'}`;
+    return mo ? `${y} year${y === 1 ? '' : 's'}, ${mo} month${mo === 1 ? '' : 's'}` : `${y} year${y === 1 ? '' : 's'}`;
+}
+/** "in 1 year, 3 months" / "in 10 months" / "in 12 days" / "this month" → months (days count as 0). */
+function sixParseSpan(t) {
+    const s = String(t || '').toLowerCase();
+    if (/\bthis month\b/.test(s)) return 0;
+    const y = s.match(/(\d+)\s*years?/), mo = s.match(/(\d+)\s*months?/), d = s.match(/(\d+)\s*days?/);
+    if (!y && !mo && !d) return null;
+    return (y ? Number(y[1]) * 12 : 0) + (mo ? Number(mo[1]) : 0);
+}
+function sixPeriod(h) { return h < 5 ? 'Night' : h < 11 ? 'Morning' : h < 13 ? 'Midday' : h < 17 ? 'Afternoon' : h < 21 ? 'Evening' : 'Night'; }
+const SIX_PERIOD_OK = { dawn: [4, 8], morning: [5, 12], midday: [11, 14], noon: [11, 14], afternoon: [12, 18], evening: [16, 22], dusk: [16, 21], night: [19, 30], midnight: [22, 27], 'late night': [21, 29], 'early morning': [2, 9] };
+
+/**
+ * Repairs one HUD's items in place. ctx: { cal, prev (previous HUD or null), prevCal, userName, rows,
+ * sessions ([{skill, count, teacher}] or null), math, format }. Returns the notes of what changed.
+ */
+function sixUpkeep(items, ctx) {
+    const notes = [];
+    const plain = it => !it.block && !it.divider && !/\*\*/.test(String(it.text || ''));
+    const sem = it => hudSemanticText(String(it.text || ''));
+    const find = re => items.find(it => !it.block && re.test(sem(it)));
+    const set = (it, text, note) => { if (it.text !== text) { it.text = text; notes.push(note); } };
+    const prevLines = ctx.prev ? ctx.prev.lines.filter(l => !l.block).map(l => hudSemanticText(String(l.text || ''))) : [];
+    const prevFind = re => prevLines.find(t => re.test(t)) || null;
+
+    if (ctx.format) {
+        // labels copied exactly, as the card says ("Battle Aura:" → "Touki (Battle Aura):")
+        for (const it of items) {
+            if (!plain(it)) continue;
+            const m = String(it.text).match(/^(\s*)([^:\n]{2,40}?)(\s*:\s*)([\s\S]*)$/);
+            if (!m) continue;
+            for (const [re, label] of SIX_LABELS) {
+                if (!re.test(m[2].trim()) || m[2].trim() === label) continue;
+                if (label === 'Armored Dragon Calendar' && !/\bK\.?\s*\d{3}/.test(m[4])) break;
+                set(it, `${m[1]}${label}${m[3]}${m[4]}`, `label ${m[2].trim()} → ${label}`);
+                break;
+            }
+            if (/^\s*Mana\s*:/i.test(it.text) && /Reserve/i.test(it.text)) set(it, it.text.replace(/^(\s*)Mana\s*:/i, '$1Mana Capacity:'), 'label Mana → Mana Capacity');
+        }
+        // rank words exactly as the engine writes them
+        for (const it of items) {
+            if (!plain(it)) continue;
+            const t = String(it.text);
+            if (/^\s*Sword Style\s*:/i.test(t)) set(it, t.replace(/\((?:Novice|Apprentice|Elementary)\)/g, '(Beginner)').replace(/\(Expert\)/g, '(Advanced)').replace(/\(Imperial\)/g, '(Emperor)').replace(/\(Divine\)/g, '(God)'), 'sword rank words');
+            else if (/^\s*Magic Tiers\s*:/i.test(t)) set(it, t.replace(/\((?:Novice|Apprentice|Elementary)\)/g, '(Beginner)').replace(/\(Expert\)/g, '(Advanced)').replace(/\(Emperor\)/g, '(Imperial)').replace(/\(God\)/g, '(Divine)'), 'magic tier words');
+        }
+        // a slot with nothing to show is left out
+        for (let i = items.length - 1; i >= 0; i--) {
+            const it = items[i];
+            if (it.block || it.divider) continue;
+            const t = sem(it);
+            if (SIX_OPTIONAL_RE.test(t)) { notes.push(`empty ${t.split(':')[0].replace(/[[\]]/g, '').trim()} line left out`); items.splice(i, 1); continue; }
+            if (/^\s*Active Paths\s*:\s*$/i.test(t)) {
+                const next = items[i + 1];
+                if (!next || !/^\s*[-–•]\s*(?:Change|Divergence)\s*:/i.test(sem(next))) { notes.push('empty Active Paths left out'); items.splice(i, 1); }
+            }
+        }
+        // the player is the HUD itself, not on Present
+        const pres = find(/^\s*Present\s*:/i);
+        if (pres && ctx.userName && plain(pres)) {
+            const me = lockKey(ctx.userName), first = me.split(' ')[0];
+            const parts = hmsSplitTop(String(pres.text).replace(/^\s*Present\s*:\s*/i, ''), /\s*,\s*/g);
+            const keep = parts.filter(p => { const n = lockKey(String(p).replace(/\s*\(.*$/, '')); return n !== me && !(n === first && first.length > 2); });
+            if (keep.length !== parts.length && keep.length) set(pres, `Present: ${keep.join(', ')}`, 'the player left off Present');
+        }
+        // the header lines print every turn: a dropped Race or Era / Arc line comes back from the last HUD
+        for (const [re, after] of [[/^\s*Race\s*:/i, /^\s*◆|^\s*📍/], [/^\s*Era\s*\/\s*Arc\s*:/i, /^\s*Race\s*:/i]]) {
+            if (find(re)) continue;
+            const old = ctx.prev ? ctx.prev.lines.find(l => !l.block && re.test(hudSemanticText(String(l.text || '')))) : null;
+            if (!old) continue;
+            const at = items.findIndex(it => !it.block && after.test(sem(it)));
+            if (at < 0) continue;
+            items.splice(at + 1, 0, { key: old.key, text: old.text, kind: old.kind || 'field', block: null, divider: false });
+            notes.push(`${re.source.includes('Race') ? 'Race' : 'Era / Arc'} line restored`);
+        }
+    }
+
+    if (ctx.format) {
+        // Panel and Card are written as plain Classic; the display draws them (card's error list)
+        if (ctx.plainStyle && items.some(it => !it.block && /\*\*[^*]+:\*\*/.test(String(it.text || '')))) {
+            for (let i = items.length - 1; i >= 0; i--) {
+                const it = items[i];
+                if (it.block && !it.divider) continue;
+                if (/^\s*━{3,}\s*$/.test(String(it.text || ''))) { items.splice(i, 1); continue; }
+                const flat = hudSemanticText(String(it.text || '')).replace(/\s*·\s*(?=(?:Time|Origin|Age|Reserve|Status|Faction|Guild|Game Mode)\b)/g, ' | ').trim();
+                if (flat && flat !== it.text) { it.text = flat; it.flat = true; }
+            }
+            notes.push('Panel/Card HUD written as plain Classic');
+        }
+        // the slot map's fixed order
+        const RANK = [[/^Armored Dragon Calendar:/i, 0], [/^[◆📍]/u, 1], [/^Race:/i, 2], [/^Era \/ Arc:/i, 3], [/^Memory:/i, 10], [/^Game Mode:/i, 11], [/^Player:/i, 11.5], [/^Mana Capacity:/i, 12], [/^Touki \(Battle Aura\):/i, 13],
+            [/^Sword Style:/i, 14], [/^Skills:/i, 14], [/^Magic Tiers:/i, 15], [/^Voiceless Casting:/i, 16], [/^Languages:/i, 17], [/^Training:/i, 18], [/^\[?DEMON EYE/i, 19], [/^\[?CURSE \/ BLESSING/i, 20],
+            [/^Dream Link:/i, 21], [/^Condition:/i, 22], [/^Equipment:/i, 23], [/^Standing:/i, 24], [/^Renown:/i, 25], [/^Bonds:/i, 26], [/TURNING POINT \d+\s*:\s*ACTIVE/i, 27],
+            [/^(?:⏳|📖|⚠️)?\s*(?:Canon reference|World event|Next Canon Event|Next Turning Point|Canon Begins)\b/iu, 28], [/^Active Paths:/i, 29], [/^Present:/i, 30], [/^Narrative Mode:/i, 31]];
+        const flatOk = items.every(it => !it.block && !/\*\*/.test(String(it.text || '')));
+        if (flatOk) {
+            let last = -1;
+            const ranked = items.map((it, i) => {
+                const t = hudSemanticText(String(it.text || '')).trim();
+                const hit = RANK.find(([re]) => re.test(t) || re.test(String(it.text || '').trim()));
+                const raw = String(it.text || '').trim();
+                const child = /^(?:[-–•]\s*(?:Change|Divergence)|(?:⚠️\s*)?Checkpoint\b|✅|❌|Back on canon|Canon changed)/iu.test(t) || /^(?:⚠️\s*Checkpoint|✅|❌)/u.test(raw) || /^\s{2,}/.test(String(it.text || ''));
+                const r = child && last >= 29 && last < 30 ? 29 : hit ? hit[1] : last;
+                last = r;
+                return { it, r, i };
+            });
+            const sorted = ranked.slice().sort((a, b) => a.r - b.r || a.i - b.i);
+            if (sorted.some((x, i) => x !== ranked[i])) { items.splice(0, items.length, ...sorted.map(x => x.it)); notes.push('lines put back in the card\'s slot order'); }
+        }
+    }
+
+    if (ctx.math && ctx.cal) {
+        const cal = ctx.cal;
+        // the player's age from the birth date, the 🎂 in the birthday month the turn it rises, a reincarnate's mind age
+        const race = find(/^\s*Race\s*:.*\bAge\s*:/i);
+        if (race && plain(race)) {
+            const t = String(race.text);
+            const m = t.match(/\bAge\s*:\s*(\d{1,4})(\s*\((?:mind:\s*(\d{1,4})[^)]*|born K(\d{3,4})(?:,\s*Month\s*(\d{1,2}))?)\))?/i);
+            const bm = t.match(/\bborn\s+K(\d{3,4})(?:,\s*Month\s*(\d{1,2}))?/i);
+            if (m && bm && !/looks|body|ageless|unaging/i.test(t)) {
+                const born = Number(bm[1]), month = bm[2] ? Number(bm[2]) : null;
+                const age = cal.year - born - (month && cal.month < month ? 1 : 0);
+                let next = t;
+                if (Number(m[1]) !== age && age >= 0) next = next.replace(/\bAge\s*:\s*\d{1,4}/i, `Age: ${age}`);
+                const pm = prevFind(/^\s*Race\s*:.*\bAge\s*:/i);
+                const prevAge = pm ? Number((pm.match(/\bAge\s*:\s*(\d{1,4})/i) || [])[1]) : null;
+                const mind = t.match(/\bmind\s*:\s*(\d{1,4})/i), prevMind = pm ? pm.match(/\bmind\s*:\s*(\d{1,4})/i) : null;
+                if (mind && prevMind && Number.isFinite(prevAge)) { const want = age + (Number(prevMind[1]) - prevAge); if (Number(mind[1]) !== want) next = next.replace(/\bmind\s*:\s*\d{1,4}/i, `mind: ${want}`); }
+                const rose = Number.isFinite(prevAge) && age > prevAge;
+                if (month && cal.month !== month && /🎂/.test(next)) next = next.replace(/\s*🎂/g, '');
+                else if (rose && month && cal.month === month && !/🎂/.test(next)) next = next.replace(/(\bborn\s+K\d{3,4}(?:,\s*Month\s*\d{1,2})?\))/i, '$1 🎂');
+                set(race, next, `Age ${age}`);
+            }
+        }
+        // Training: the next rank's session count; a rank-up moves the line on; the count never goes back;
+        // and, when the reporter said how many sessions happened, the last count plus those
+        const tr = find(/^\s*Training\s*:/i);
+        if (tr && plain(tr)) {
+            const prevTr = prevLines.length ? mtTraining(prevLines) : [];
+            const rankOf = (re, list, skill) => {
+                const line = items.map(sem).find(t => re.test(t)) || '';
+                const head = lockKey(skill).replace(/\b(?:magic|style)\b/g, '').trim().split(' ')[0];
+                for (const mm of line.matchAll(/([^,()·:]+?)\s*\(([^)]+)\)/g)) {
+                    if (lockKey(mm[1]).replace(/\b(?:magic|style)\b/g, '').trim().split(' ')[0] !== head) continue;
+                    const true_ = mm[2].match(/True:\s*([A-Za-z]+)/i);
+                    return list.findIndex(r => new RegExp(`^${r}$`, 'i').test((true_ ? true_[1] : mm[2]).trim().split(/[\s—–-]/)[0]));
+                }
+                return -1;
+            };
+            const parts = String(tr.text).replace(/^\s*Training\s*:\s*/i, '').split(/\s*·\s*/);
+            const rebuilt = parts.map(part => {
+                const m = part.match(/^(.+?)\s*(→|->|⟶)\s*(.+?)\s*\(\s*(\d+(?:\.\d+)?)\s*\/\s*(\d+)\s*(sessions?)\s*\)(.*)$/i);
+                if (!m) return part;
+                let [, skill, arrow, next, done, needed, word, tail] = m;
+                done = Number(done); needed = Number(needed);
+                const magic = /magic|water|earth|fire|wind|healing|detox|summon/i.test(skill) && !/sword|style|god|north|touki/i.test(skill);
+                const list = magic ? SIX_MAGIC : SIX_SWORD;
+                const p = prevTr.find(x => lockKey(x.skill) === lockKey(skill));
+                // a rank earned: the line moves to the next step, from 0
+                const cur = rankOf(magic ? /^\s*Magic Tiers\s*:/i : /^\s*Sword Style\s*:/i, list, skill);
+                const nextIdx = list.findIndex(r => r.toLowerCase() === next.trim().toLowerCase());
+                if (cur >= 0 && nextIdx >= 0 && cur >= nextIdx && list[cur + 1]) { next = list[cur + 1]; done = 0; notes.push(`${skill}: rank reached, Training moves to ${next}`); }
+                else if (p && lockKey(p.next) === lockKey(next)) {
+                    const s = Array.isArray(ctx.sessions) ? ctx.sessions.find(x => x && lockKey(String(x.skill || '')).split(' ')[0] === lockKey(skill).split(' ')[0]) : null;
+                    const days = Number.isFinite(ctx.elapsedDays) ? ctx.elapsedDays : null;
+                    if (s && Number(s.count) > 0 && typeof s.teacher === 'boolean' && (days === null || Number(s.count) <= Math.floor(days) + 1)) {
+                        const want = Math.round((p.done + Number(s.count) * (s.teacher ? 1.5 : 1)) * 10) / 10;
+                        if (Math.abs(want - done) > 0.01) { notes.push(`${skill}: ${p.done} + ${s.count} session${Number(s.count) === 1 ? '' : 's'} = ${want} (the HUD said ${done})`); done = want; }
+                    } else if (done < p.done) { notes.push(`${skill}: the count went back to ${done}; kept at ${p.done}`); done = p.done; }
+                }
+                const want = SIX_NEED[list.find(r => r.toLowerCase() === next.trim().toLowerCase())];
+                if (want && needed !== want) { notes.push(`${skill} → ${next} needs ${want} sessions`); needed = want; }
+                const shown = Number.isInteger(done) ? String(done) : String(Math.round(done * 10) / 10);
+                return `${skill} ${arrow} ${next} (${shown}/${needed} ${word})${tail}`;
+            });
+            const lead = String(tr.text).match(/^\s*Training\s*:\s*/i)[0];
+            const text = lead + rebuilt.join(' · ');
+            if (text !== tr.text) tr.text = text;
+        }
+        // countdowns to a dated event: "— in 10 months (K417)", recomputed from the HUD date month by month
+        // (Canon Clock rule 0); the month comes from the line, else from the card's calendar row
+        for (const it of items) {
+            if (it.block || !plain(it)) continue;
+            const t = String(it.text);
+            if (!/(?:World event|Next Canon Event|Next Turning Point|Canon Begins|Checkpoint)\s*:/i.test(t)) continue;
+            let m = t.match(/^(.*?:\s*)(.+?)\s+—\s+in\s+([^()]+?)\s*\(~?K(\d{3,4})(?:,\s*Month\s*(\d{1,2}))?\)\s*$/i), span0, year, month = null, name;
+            if (m) { name = m[2]; span0 = m[3]; year = Number(m[4]); month = m[5] ? Number(m[5]) : null; }
+            else {
+                m = t.match(/^(.*?:\s*)(.+?\bby\s+~?K(\d{3,4})[^—]*?)\s+—\s+in\s+([^()]+?)\s*$/i);
+                if (!m) continue;
+                name = m[2]; year = Number(m[3]); span0 = m[4];
+            }
+            if (!month) {
+                const arc = t.match(/\(Arc\s*(\d+\.\d+)\)/i);
+                const words = lockKey(name.replace(/\bby\s+~?K\d+.*$/i, '')).split(' ').filter(w => w.length > 3);
+                const row = arc ? (ctx.rows || []).find(r => r.year === year && new RegExp(`\\bArc ${arc[1].replace('.', '\\.')}\\b`).test(r.text))
+                    : (ctx.rows || []).find(r => r.year === year && words.length && words.filter(w => lockKey(r.text).includes(w)).length >= Math.min(2, words.length));
+                month = row ? row.month : null;
+            }
+            const said = sixParseSpan(span0);
+            if (!month || said === null) continue;
+            const months = sixMonthsBetween(cal, { year, month });
+            if (months < 0 || months === said || (months === 0 && /days?/i.test(span0))) continue;
+            const span = sixSpan(months, 0);
+            set(it, t.replace(`in ${span0}`, months === 0 ? 'this month' : `in ${span}`), `${name.replace(/\s*\bby\s+~?K\d+.*$/i, '').trim()}: ${months === 0 ? 'this month' : `in ${span}`}`);
+        }
+        // the time-of-day word, when it contradicts the clock ("09:00 (Evening)")
+        const date = items.find(it => !it.block && /Armored Dragon Calendar/i.test(sem(it)));
+        if (date && plain(date)) {
+            let t = String(date.text);
+            const tm = t.match(/\bTime:\s*(\d{1,2}):(\d{2})\s*\(([^)]+)\)/i);
+            if (tm) {
+                const h = Number(tm[1]), word = tm[3].trim().toLowerCase(), ok = SIX_PERIOD_OK[word];
+                if (ok && !(h >= ok[0] && h < ok[1]) && !(h + 24 >= ok[0] && h + 24 < ok[1])) t = t.replace(tm[0], `Time: ${tm[1]}:${tm[2]} (${sixPeriod(h)})`);
+            }
+            // the named calendar: month name, weekday and season follow from the date (Named Calendar entry)
+            const nm = t.match(/K\d{3,4},\s*([A-Za-z]+)\s*\(Month\s*(\d{1,2})\),\s*Day\s*(\d{1,2})(?:\s*—\s*([A-Za-z]+))?/i);
+            if (nm) {
+                const mo = Number(nm[2]), d = Number(nm[3]);
+                if (mo >= 1 && mo <= 12 && SIX_MONTHS.some(x => x.toLowerCase() === nm[1].toLowerCase()) && nm[1] !== SIX_MONTHS[mo - 1]) t = t.replace(`${nm[1]} (Month`, `${SIX_MONTHS[mo - 1]} (Month`);
+                if (d >= 1 && d <= 30 && nm[4] && SIX_WEEK.some(x => x.toLowerCase() === nm[4].toLowerCase()) && nm[4] !== SIX_WEEK[(d - 1) % 6]) t = t.replace(`— ${nm[4]}`, `— ${SIX_WEEK[(d - 1) % 6]}`);
+                const se = t.match(/\bSeason:\s*([A-Za-z]+)/i);
+                if (se && mo >= 1 && mo <= 12 && /^(?:winter|spring|summer|autumn|fall)$/i.test(se[1]) && se[1] !== SIX_SEASON(mo)) t = t.replace(se[0], `Season: ${SIX_SEASON(mo)}`);
+            }
+            set(date, t, 'date words');
+        }
+    }
+    return notes;
+}
+
+/** The Training line set from the sessions the reporter counted: the last HUD's number plus those (math only). */
+function sixTrainingFromSessions(content, prevHud, sessions) {
+    const hud = parseHud(content);
+    if (!hud || !prevHud) return null;
+    const cal = hmsCalNow(hud), pcal = hmsCalNow(prevHud);
+    const elapsedDays = cal && pcal ? Math.max(0, (cal.year * 360 + (cal.month - 1) * 30 + cal.day) - (pcal.year * 360 + (pcal.month - 1) * 30 + pcal.day)) : null;
+    let notes = [];
+    const r = rewriteHud(content, items => { notes = sixUpkeep(items, { cal, prev: prevHud, sessions, elapsedDays, math: true, format: false, rows: [] }).filter(n => /session/.test(n)); return notes.length > 0; });
+    return r.changed && notes.length ? { content: r.content, notes } : null;
+}
+/** Card-rule warnings for Worth a look: things only the story can fix. Six-Sided HUDs only. */
+function hmsCardRuleChecks(chat, tl, userName, chatId = null) {
+    const out = [];
+    const last = tl.length ? tl[tl.length - 1] : null;
+    if (!last) return out;
+    const lines = last.hud.lines.filter(l => !l.block).map(l => hudSemanticText(String(l.text || '')));
+    if (!lines.some(t => /^Armored Dragon Calendar:/i.test(t))) return out;
+    const prev = tl.length > 1 ? tl[tl.length - 2] : null;
+    const prevLines = prev ? prev.hud.lines.filter(l => !l.block).map(l => hudSemanticText(String(l.text || ''))) : [];
+    const first = tl[0] ? tl[0].hud.lines.filter(l => !l.block).map(l => hudSemanticText(String(l.text || ''))) : [];
+    const get = (ls, re) => ls.find(t => re.test(t)) || null;
+    const d = getSwipeData(last.msg) || {};
+    const y = isPlainObject(d.survival) ? d.survival : {};
+    const add = (text, fix) => out.push({ kind: 'card', text, fix });
+    const dl = get(lines, /^Armored Dragon Calendar:/i) || '';
+    const dm = dl.match(/Month\s*(\d{1,2}).*?Day\s*(\d{1,2})/i);
+    if (dm && (Number(dm[1]) < 1 || Number(dm[1]) > 12 || Number(dm[2]) < 1 || Number(dm[2]) > 30)) add(`The date reads Month ${dm[1]}, Day ${dm[2]}; the calendar has 12 months of 30 days.`, `(OOC fix: correct the date on the Armored Dragon Calendar line: 30-day months, 12 months a year.)`);
+    const cal = hmsCalNow(last.hud), pcal = prev ? hmsCalNow(prev.hud) : null;
+    // distance is time: a new continent in less than a week
+    const contOf = e => { const seg = e && e.hud && Array.isArray(e.hud.location) ? e.hud.location : []; const c = seg.find(x => /Continent/i.test(String(x))); return c ? String(c).trim() : null; };
+    const cont = ls => ls === lines ? contOf(last) : contOf(prev);
+    if (prev && cont(lines) && cont(prevLines) && cont(lines) !== cont(prevLines) && Number.isFinite(last.clock) && Number.isFinite(prev.clock) && last.clock - prev.clock < 7 * 1440) {
+        const body = textOf(last.msg.content), prose = /^\s*\*\*\*\s*$/m.test(body) ? body.split(/^\s*\*\*\*\s*$/m).slice(1).join('\n') : body;
+        if (!/teleport|calamity|pillar of light|transfer circle|magic circle/i.test(prose)) add(`${cont(prevLines)} to ${cont(lines)} in ${Math.max(0, Math.round((last.clock - prev.clock) / 1440))} day(s): the card's rule is that distance is time (a sea crossing takes weeks).`, `(OOC fix: the journey from ${cont(prevLines)} to ${cont(lines)} takes the time it really takes; advance the date to fit, or the party is still on the way.)`);
+    }
+    // a night's sleep advances the day and refills the reserve
+    if (y.slept === true && cal && pcal && cal.year === pcal.year && cal.month === pcal.month && cal.day === pcal.day && /\b(?:1[89]|2\d):\d{2}/.test(get(prevLines, /^Armored Dragon Calendar:/i) || '')) add('The story shows a night\'s sleep, but the date did not move.', '(OOC fix: the night passed; advance the date to the morning after.)');
+    const res = (get(lines, /^Mana Capacity:/i) || '').match(/Reserve:\s*([A-Za-z]+)/i);
+    // A nap is not a night: the reserve rule needs the date to have moved on since the last HUD.
+    const dayNo = c => c ? c.year * 360 + ((c.month || 1) - 1) * 30 + c.day : null;
+    const night = y.slept === true && cal && pcal && dayNo(cal) > dayNo(pcal);
+    if (night && res && !/^full$/i.test(res[1]) && !(Array.isArray(y.spells) && y.spells.length)) add(`A night's sleep refills the Reserve (card rule), but it reads ${res[1]}.`, '(OOC fix: after the night\'s sleep, Reserve: Full unless magic was used since waking.)');
+    // limits
+    const pres = hmsPresentPeople(last.hud);
+    if (pres.length > 6) add(`${pres.length} people on Present; the card shows at most 6.`, '(OOC fix: keep the 6 who matter most in the scene on the Present line.)');
+    const bonds = (get(lines, /^Bonds:/i) || '').replace(/^Bonds:\s*/i, '');
+    const bondParts = bonds ? hmsSplitTop(bonds, /\s*,\s*/g).filter(Boolean) : [];
+    if (bondParts.length > 3) add(`${bondParts.length} Bonds; the card keeps the 3 most important.`, '(OOC fix: keep the 3 most important bonds on the Bonds line.)');
+    const BOND = /^(?:Acquaintance|Friend|Trusted|Family|Partner|Rival|Wary|Hostile)$/i;
+    const oddBond = bondParts.map(b => (b.match(/\(([^)]+)\)\s*$/) || [])[1]).filter(s => s && !BOND.test(s.trim()));
+    if (oddBond.length) add(`Bond stage${oddBond.length > 1 ? 's' : ''} ${oddBond.join(', ')} not in the card's list (Acquaintance, Friend, Trusted, Family, Partner, Rival, Wary, Hostile).`, `(OOC fix: write each bond with one of the card's stages.)`);
+    if (mtTraining(lines).length > 2) add('More than two Training lines; the card shows at most two.', '(OOC fix: keep the two skills being trained on the Training line.)');
+    const ren = get(lines, /^Renown:/i);
+    if (ren) { const tiers = [...ren.matchAll(/:\s*([A-Za-z ]+?)\s*(?=\||·|$)/g)].map(x => x[1].trim()).filter(x => x && !/^(?:Unknown|Noticed|Local name|Regional|Famous|Legend)$/i.test(x) && !/^[A-Z]{1,2}$/.test(x)); if (tiers.length) add(`Renown tier ${tiers.join(', ')} is not in the card's list (Unknown, Noticed, Local name, Regional, Famous, Legend).`, '(OOC fix: write Renown with the card\'s tiers.)'); }
+    const lang = get(lines, /^Languages:/i);
+    if (lang) { const lv = [...lang.matchAll(/\(([^)]+)\)/g)].map(x => x[1].split(',')[0].trim()).filter(x => !/^(?:None|Basic|Conversational|Fluent)$/i.test(x)); if (lv.length) add(`Language level ${lv.join(', ')} is not in the card's list (None, Basic, Conversational, Fluent).`, '(OOC fix: write each tongue with None, Basic, Conversational or Fluent.)'); }
+    // what the start command chose: Game Mode and Narrative Mode
+    const userText = (chat || []).filter(m => m.role === 'user').map(m => textOf(m.content)).join('\n').toLowerCase();
+    const modes = t => (t || '').replace(/^Game Mode:\s*/i, '').split(/\s*[,|]\s*/).map(s => s.trim()).filter(Boolean);
+    const firstModes = new Set(modes(get(first, /^Game Mode:/i)).map(lockKey));
+    const newModes = modes(get(lines, /^Game Mode:/i)).filter(x => !firstModes.has(lockKey(x)) && !/^(?:Branch Run|Party Mode.*|Guide:.*|Canon:.*)$/i.test(x) && !userText.includes(x.toLowerCase().split(' (')[0]));
+    if (newModes.length) add(`Game Mode shows ${newModes.join(', ')}, which the start command never chose (card rule: only chosen modes print).`, `(OOC fix: Game Mode prints only what the start command chose; take out ${newModes.join(', ')}.)`);
+    const nmFirst = get(first, /^Narrative Mode:/i), nmNow = get(lines, /^Narrative Mode:/i);
+    if (nmFirst && nmNow && lockKey(nmFirst) !== lockKey(nmNow) && !userText.includes(nmNow.replace(/^Narrative Mode:\s*/i, '').toLowerCase())) add(`Narrative Mode changed from "${nmFirst.replace(/^Narrative Mode:\s*/i, '')}" to "${nmNow.replace(/^Narrative Mode:\s*/i, '')}" without you asking.`, `(OOC fix: ${nmFirst}, as the start command set it.)`);
+    // permanent once set
+    const memPrev = get(prevLines, /^Memory:/i), memNow = get(lines, /^Memory:/i);
+    if (memPrev && memNow && lockKey(memPrev) !== lockKey(memNow)) add(`Memory changed ("${memPrev}" → "${memNow}"); the card keeps it permanent once set.`, `(OOC fix: ${memPrev}, as it was set.)`);
+    const birth = t => ((t || '').match(/—\s*[^,]+,\s*House[^,]+,\s*([^·]+)/i) || [])[1];
+    const sp = birth(get(prevLines, /^Standing:/i)), sn = birth(get(lines, /^Standing:/i));
+    // The same birth said more exactly ("Younger Child" → "Second Son") is not a change.
+    const birthKind = t => { const k = lockKey(t || ''); return /\b(?:heir|eldest|first|firstborn|oldest)\b/.test(k) ? 'first' : /\b(?:younger|youngest|second|third|fourth|fifth|middle|spare|[2-9](?:nd|rd|th))\b/.test(k) ? 'younger' : /\b(?:only)\b/.test(k) ? 'only' : /\b(?:bastard|illegitimate|natural)\b/.test(k) ? 'natural' : /\b(?:adopted|ward|foster)\b/.test(k) ? 'ward' : k; };
+    if (sp && sn && lockKey(sp) !== lockKey(sn) && birthKind(sp) !== birthKind(sn)) add(`Standing's birth changed ("${sp.trim()}" → "${sn.trim()}"); it is set once.`, `(OOC fix: keep Standing's birth as "${sp.trim()}".)`);
+    const back = l => l.some(t => /✅\s*Back on canon/i.test(t));
+    if (back(lines) && back(prevLines)) add('"✅ Back on canon" stayed for more than one turn.', '(OOC fix: "✅ Back on canon" shows for one turn; then show the next checkpoint.)');
+    // age and power rules
+    const ageM = (get(lines, /^Race:.*\bAge:/i) || '').match(/\bAge:\s*(\d{1,4})/i);
+    const age = ageM ? Number(ageM[1]) : null;
+    const touki = (get(lines, /^Touki \(Battle Aura\):/i) || '').replace(/^Touki \(Battle Aura\):\s*/i, '');
+    const sword = get(lines, /^Sword Style:/i) || '';
+    if (/\((?:Saint|King|Emperor|God)\)/.test(sword) && /\bLocked\b/i.test(touki)) add('A sword style at Saint or above with Touki Locked; the card says Saint and above require Touki.', '(OOC fix: Saint rank in a sword style needs Touki; keep the rank below Saint until Touki is active.)');
+    if (age !== null && age <= 4 && /\b(?:Active|Mastered)\b/i.test(touki)) add(`Touki ${touki} at age ${age}; the card keeps it Locked from 0 to 4.`, '(OOC fix: Touki (Battle Aura): Locked until age 5.)');
+    const origin = (get(lines, /^Race:/i) || '').match(/Origin:\s*([A-Za-z]+)/i);
+    const vcNow = /^Voiceless Casting:\s*Active/i.test(get(lines, /^Voiceless Casting:/i) || ''), vcFirst = /^Voiceless Casting:\s*Active/i.test(get(first, /^Voiceless Casting:/i) || '');
+    if (origin && /^Native$/i.test(origin[1]) && vcNow && !vcFirst && age !== null && age >= 10) add('Voiceless Casting became Active for a Native at 10 or older; the card allows it only if learned before 10.', '(OOC fix: a Native learns Voiceless Casting only before 10: Voiceless Casting stays Locked.)');
+    const dream = get(lines, /^Dream Link:/i);
+    if (dream && !get(prevLines, /^Dream Link:/i) && !(chat || []).some(m => /Hitogami|Man-God|white void|faceless mosaic/i.test(textOf(m.content)))) add('Dream Link appeared before any dream of Hitogami.', '(OOC fix: Dream Link appears only after the first real dream of Hitogami.)');
+    // lorebook facts: a canon character not born yet, a dated event already past
+    if (cal) {
+        let lore = new Map();
+        try { lore = chatId ? sixLoreBirths(chatId) : new Map(); } catch { lore = new Map(); }
+        for (const p of pres) { const b = lore.get(lockKey(p.name)) || lore.get(lockKey(p.name).split(' ')[0]); if (b && b.born > cal.year) add(`${p.name} is on Present, but by the lorebook they are born ${b.approx ? '~' : ''}K${b.born}: not yet.`, `(OOC fix: ${p.name} is not born until K${b.born}; they cannot be in the scene.)`); }
+        for (const t of lines) {
+            const m = t.match(/^(?:⚠️\s*)?(?:World event|⏳\s*Next Canon Event|Next Turning Point)\s*:\s*(.+?)\s+—\s+in\s+[^()]+\(~?K(\d{3,4})(?:,\s*Month\s*(\d{1,2}))?\)/i);
+            if (!m) continue;
+            let evMonth = m[3] ? Number(m[3]) : null;
+            if (!evMonth) { const words = lockKey(m[1]).split(' ').filter(w => w.length > 3); const row = (chatId ? sixCanonRows(chatId) : []).find(r => r.year === Number(m[2]) && words.length && words.filter(w => lockKey(r.text).includes(w)).length >= Math.min(2, words.length)); evMonth = row ? row.month : null; }
+            if (Number(m[2]) < cal.year || (evMonth && Number(m[2]) === cal.year && evMonth < cal.month)) add(`"${m[1]}" is still ahead on the HUD, but its date (K${m[2]}${evMonth ? `, Month ${evMonth}` : ''}) has passed.`, `(OOC fix: ${m[1]} happened on its date (card: at zero the event happens); show its result and the next row of the calendar.)`);
+        }
+    }
+    return out;
+}
+
 function hmsClockText(hud) {
     const top = hud ? hud.lines.filter(l => !l.block).slice(0, 4).map(l => l.text).join(' | ') : '';
     const cal = mtCalendar(top), tm = top.match(/\b(\d{1,2}:\d{2})\b/);
@@ -19749,6 +20374,26 @@ spindle.onFrontendMessage(async (payload, userId) => {
                 try { await hmsTodoIdeas(payload.chatId); }
                 catch (e) { setStatus(payload.chatId, 'error', `Could not get suggestions: ${String(e?.message || e).replace(/^PROVIDER_BUSY:\s*/, 'your provider is busy. ')}`); }
                 toFrontend({ type: 'todo_ideas_done', chatId: payload.chatId });
+                await pushState(payload.chatId);
+                break;
+            }
+            case 'carry_link': {
+                if (!payload.chatId || typeof payload.from !== 'string' || !payload.from) return;
+                await carryLink(payload.chatId, payload.from);
+                await pushState(payload.chatId);
+                break;
+            }
+            case 'carry_unlink': {
+                if (!payload.chatId) return;
+                await carryUnlink(payload.chatId);
+                await pushState(payload.chatId);
+                break;
+            }
+            case 'carry_dismiss': {
+                if (!payload.chatId) return;
+                const st = await getChatState(payload.chatId);
+                st.carryDismissed = true;
+                await saveChatState(payload.chatId, st);
                 await pushState(payload.chatId);
                 break;
             }

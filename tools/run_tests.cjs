@@ -14,6 +14,8 @@ const steps = [
     ['Six-Sided card coverage (every HUD slot, three styles)', ['tools/test_card_coverage.cjs']],
     ['lifecycle (swipes, regenerations, saves, OOC, hypotheticals, time)', ['tools/test_lifecycle.cjs']],
     ['cross-card (every demo world through the real reply pipeline)', ['tools/test_cross_card.cjs']],
+    ['HUD upkeep (the Companion does the card\'s math and format)', ['tools/test_hud_upkeep.cjs']],
+    ['carry-over (a continued save keeps the earlier chat\'s history)', ['tools/test_carry.cjs']],
     ['smoke (payload, request, render)', ['tools/test_smoke.cjs']],
 ];
 let failed = 0;

@@ -27,7 +27,7 @@ globalThis.__api = (lore, user) => { let chat = [];
     return ctx.__api(lore, user);
 }
 const A = load(oldFile), B = load(newFile);
-const scrub = v => JSON.stringify(v, (k, x) => (k === 'version' || k === 'at' || k === 'readAt' || k === 'checkpoint') ? undefined : typeof x === 'string' ? x.replace(/\b\d+\.\d+\.\d+( RC)?\b/g, 'V') : x);
+const scrub = v => JSON.stringify(v, (k, x) => (k === 'version' || k === 'at' || k === 'readAt' || k === 'checkpoint' || k === 'carry') ? undefined : typeof x === 'string' ? x.replace(/\b\d+\.\d+\.\d+( RC)?\b/g, 'V') : x);
 const firstDiff = (a, b) => { let i = 0; while (i < a.length && a[i] === b[i]) i++; return `…${a.slice(Math.max(0, i - 60), i + 60)}… vs …${b.slice(Math.max(0, i - 60), i + 60)}…`; };
 (async () => {
     let same = 0, diff = 0;

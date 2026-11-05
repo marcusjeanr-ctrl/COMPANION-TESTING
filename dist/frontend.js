@@ -2070,6 +2070,7 @@ export function setup(ctx) {
             if (msg.chapters !== undefined) state.chapters = msg.chapters;
             if (msg.chronicle !== undefined) state.chronicle = msg.chronicle;
             if (msg.newGame !== undefined) state.newGame = msg.newGame;
+            state.carry = msg.carry || null;
             if (msg.ooc !== undefined) state.ooc = msg.ooc;
             if (msg.world !== undefined) state.world = msg.world;
             if (msg.plotView !== undefined) state.plotView = msg.plotView;
@@ -2442,7 +2443,8 @@ export function setup(ctx) {
             return out;
         }
         const ng = renderNewGame();
-        if (hmsOn()) { const r = renderHmsTrackers(); if (ng) r.splice(1, 0, ng); const oo = renderOoc(); if (oo) r.push(oo); return r; }
+        const cn = renderCarryNotice();
+        if (hmsOn()) { const r = renderHmsTrackers(); if (ng) r.splice(1, 0, ng); if (cn) r.splice(1, 0, cn); const oo = renderOoc(); if (oo) r.push(oo); return r; }
         if (ng) out.push(ng);
         const d = state.data;
         if (!d.userStats && !d.infoBox && !(d.characters && d.characters.length)) {
@@ -2952,7 +2954,7 @@ export function setup(ctx) {
                 h('button', { class: 'rpgc-btn', disabled: !state.chatId ? true : null, onclick: async () => {
                     const res = ctx.ui.showConfirm ? await uiCall('showConfirm', { title: 'Restore a backup?', message: 'What the Companion keeps for this chat is replaced by the file. Messages stay as they are.', variant: 'danger' }) : { confirmed: true };
                     if (res?.confirmed) restoreIn.click();
-                } }, 'Restore a backup'), restoreIn));
+                } }, 'Restore a backup'), restoreIn), renderCarrySettings());
         backup.dataset.openKey = 's-backup'; backup.addEventListener('toggle', () => { state.open['s-backup'] = backup.open; });
 
         return hmsOn()
@@ -7039,6 +7041,44 @@ export function setup(ctx) {
         ng.edited = null; ng.fill = null;
         ngCheckSoon(); render();
     }
+    // A chat that continues a saved game: offer to carry the earlier chat's history over.
+    function carryChoiceLabel(c) {
+        const when = c.at ? new Date(c.at).toLocaleDateString() : '';
+        return [c.date, c.place].filter(Boolean).join(' · ') + ` — ${c.count} messages${when ? `, last opened ${when}` : ''}`;
+    }
+    function carryChoices(list) {
+        return h('div', { class: 'rpgc-col' }, list.map(c => h('div', { class: 'rpgc-row' },
+            h('span', { class: 'rpgc-note' }, (c.match ? '✓ Matches your save: ' : '') + carryChoiceLabel(c)),
+            h('button', { class: 'rpgc-btn' + (c.match ? ' primary' : ''), onclick: async () => {
+                const res = ctx.ui.showConfirm ? await uiCall('showConfirm', { title: 'Carry over this chat?', message: 'The Companion reads that chat\'s history (a saved copy, read only) in front of this one, so People, the Spellbook, gear, money, quests, ages and the Chronicle continue from it. You can undo it under Settings → Backup.', confirmLabel: 'Carry over' }) : { confirmed: true };
+                if (res?.confirmed) send({ type: 'carry_link', chatId: state.chatId, from: c.chatId });
+            } }, 'Carry over'))));
+    }
+    function renderCarryNotice() {
+        const c = state.carry;
+        if (!c || c.linked || !c.continued || c.dismissed) return null;
+        const body = [h('p', { class: 'rpgc-note' }, 'This chat starts from a save. The Companion keeps its history per chat, so the people, spells, gear, money, quests and Chronicle from your earlier chat are not here yet.')];
+        if (c.choices && c.choices.length) body.push(carryChoices(c.choices.slice(0, 4)));
+        else body.push(h('p', { class: 'rpgc-note' }, 'No earlier chat found yet. Open the chat you saved from once (with this version of the Companion), then come back here.'));
+        body.push(h('div', { class: 'rpgc-row' }, h('button', { class: 'rpgc-btn', onclick: () => send({ type: 'carry_dismiss', chatId: state.chatId }) }, 'Not now')));
+        return section('carry', 'Continue from your saved chat', state.open, null, ...body);
+    }
+    function renderCarrySettings() {
+        const c = state.carry;
+        if (!c) return null;
+        if (c.linked) {
+            const l = c.linked;
+            return h('div', { class: 'rpgc-col' },
+                h('p', { class: 'rpgc-note' }, `This chat continues an earlier one: ${[l.date, l.place].filter(Boolean).join(' · ')} (${l.count} messages carried over, read only).`),
+                l.missing ? h('p', { class: 'rpgc-note' }, '⚠️ The saved copy of the earlier chat could not be read. Undo and carry it over again.') : null,
+                h('div', { class: 'rpgc-row' }, h('button', { class: 'rpgc-btn danger', onclick: async () => {
+                    const res = ctx.ui.showConfirm ? await uiCall('showConfirm', { title: 'Undo the carry-over?', message: 'The panels go back to this chat\'s own history. Nothing in either chat is changed.', variant: 'danger', confirmLabel: 'Undo' }) : { confirmed: true };
+                    if (res?.confirmed) send({ type: 'carry_unlink', chatId: state.chatId });
+                } }, 'Undo carry-over')));
+        }
+        if (!c.choices || !c.choices.length) return null;
+        return h('div', { class: 'rpgc-col' }, h('p', { class: 'rpgc-note' }, 'Continue from another chat (after Mushoku_Save, or any new chat that picks up an old story):'), carryChoices(c.choices));
+    }
     function renderNewGame() {
         const info = state.newGame;
         if (!info || S()?.showNewGame === false) return null;
@@ -8304,7 +8344,12 @@ html,body{background:${panelBg}!important;}`;
             toggle('Ask for present characters and thoughts', () => s.hmsCompanion, v => { s.hmsCompanion = v; }, 'A small block after the prose, hidden from the chat. Off means the extension adds nothing to the reply at all.'),
             toggle('Fetch a forgotten side-panel block', () => s.catchUp !== false, v => { s.catchUp = v; }, 'Some models leave the block out now and then. Only then, it is fetched with a quick second call, so the panel does not go stale. Three misses running and the panel suggests Separate mode.'),
             toggle('Watch for dropped HUD lines', () => s.hmsGuard, v => { s.hmsGuard = v; }, 'Flags lines that vanish between replies, with a one-click restore.'),
-            toggle('Remind the model of pinned lines', () => s.hmsPinReminder, v => { s.hmsPinReminder = v; }, 'Your pinned HUD lines are repeated in the prompt, so they are less likely to drop in the first place.'));
+            toggle('Remind the model of pinned lines', () => s.hmsPinReminder, v => { s.hmsPinReminder = v; }, 'Your pinned HUD lines are repeated in the prompt, so they are less likely to drop in the first place.'),
+            h('p', { class: 'rpgc-note' }, 'Six-Sided World: the HUD rules that are arithmetic or format are kept by the extension, the way ages are. The narrator copies the repaired HUD forward.'),
+            toggle('Keep the HUD numbers (Six-Sided)', () => s.hmsHudMath !== false, v => { s.hmsHudMath = v; }, 'Training totals (from the sessions the story shows), your age and 🎂, countdowns to dated events, the time-of-day word, weekday and season.'),
+            toggle('Keep the HUD format (Six-Sided)', () => s.hmsHudFormat !== false, v => { s.hmsHudFormat = v; }, 'Labels and rank words as the card writes them, empty slots left out, the card\'s slot order, you off the Present line, a dropped Race or Era line back, Panel and Card as plain Classic.'),
+            toggle('Canon birth years from the lorebook', () => s.hmsLoreBirths !== false, v => { s.hmsLoreBirths = v; }, 'A canon character the HUD has not dated yet gets the birth year from their dossier ("Born: ~K405").'),
+            toggle('Card rule warnings (Six-Sided)', () => s.hmsCardChecks !== false, v => { s.hmsCardChecks = v; }, 'Worth a look notes for what only the story can fix: impossible dates, travel too fast, limits on Present and Bonds, modes nobody chose, permanent slots that changed.'));
     }
 
 

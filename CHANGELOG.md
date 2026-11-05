@@ -4,6 +4,17 @@
 
 Built on 1.1.0 RC2. Report: `docs/release/1.2.0-INTEGRATION-REPORT.md`.
 
+**New: carry-over for a continued save (Mushoku_Save → Mushoku_Continue_Handler)**
+- The Companion keeps each chat's history separately, so a new chat that resumes from a save used to start empty: no People beyond who was Present, an empty Spellbook, no gear history, ledger, agenda, secrets or Chronicle, and fresh duplicate quests (found in Marcus's save, chat 1 → chat 2).
+- A chat that starts with a continue turn now offers **Continue from your saved chat**, with the matching earlier chat found by date and place. Carry over stores a read-only copy of that chat's story (active swipes only, about 1 MB for 200 replies) and reads it in front of the new chat, so every panel and narrator reminder continues from the save. Your hand marks from the old chat (birth years, pins, corrections) come along where the new chat has none.
+- Nothing is written to either chat; the old chat can be deleted afterwards. Chains (chat 3 → chat 2 → chat 1) work; loops are refused. **Settings → Backup** shows the link, offers it for any chat, and has **Undo carry-over**.
+- The earlier chat has to have been opened once with this version, so the Companion knows it exists.
+
+**New: HUD upkeep (the Companion does the card's math and format)**
+- Six-Sided HUD lines the Companion can compute are corrected in the reply before it is saved: ages and 🎂 from the birth date, training counts (1.5 per session with a teacher; a count never goes down; rank-ups move the line on), countdowns (World event, Next Canon Event, Turning Point, Checkpoint) from the lorebook's Canon Clock, month names, weekdays and seasons; and format: labels, rank words, empty slots, the card's line order, Race and Era restored, and you off your own Present line.
+- **Rule warnings** for what it cannot fix safely (an impossible date, a new continent in under a week, a night's sleep with no new day or a Reserve still low after one, more than 6 Present or 3 Bonds, words outside the card's lists, modes nobody chose, permanent lines that changed, power at an age the card forbids, a canon character not born yet, a dated event already passed). Each comes with an OOC fix.
+- Settings: HUD math, HUD format, lorebook birth years, card rule warnings (all on).
+
 **Fixes**
 - **Deaths need the story to show them.** A death the side panel reports only counts when the reply (or your message before it) names the person and some sentence tells a real death, not a threat, a guess or a dream ("If you fail, Halvin would die" is not a death). Before this, a reported name alone marked someone dead. The People view, the Present reminder and the 🕯️ group all read the checked list.
 - **Groups and creatures aren't people.** "Acid Wolf", "Two bandits" or "Black Wolf pack" in a scene were treated as named people: the narrator was asked to put them on Present, and the check asked for their birth year. Groups, counts and creatures are now left alone, like shopkeepers.
@@ -22,6 +33,8 @@ Built on 1.1.0 RC2. Report: `docs/release/1.2.0-INTEGRATION-REPORT.md`.
 **New checks**
 - `tools/test_card_coverage.cjs`: every slot of the Six-Sided HUD template in Classic/Panel, Compact and Visual; style switches; the Present forms the card allows; people vs groups.
 - `tools/test_lifecycle.cjs`: discarded swipes, regenerations with state kept between pushes, repeats, backup/restore, OOC turns, hypothetical vs shown deaths, year rollover, long skips, request size.
+- `tools/test_hud_upkeep.cjs`: every upkeep fix and rule warning, with negative cases (a nap is not a night; "Younger Child" → "Second Son" is the same birth).
+- `tools/test_carry.cjs`: carry-over through the real chat API and storage code: the offer, the match, panels continuing, read-only history, restart and deleted source, chains, loops, undo.
 - `tools/test_cross_card.cjs`: every built-in demo world (Re:Zero, Overlord, Classroom of the Elite, Mushoku, Undertale, Dark Souls, Skyrim, BG3, Classic) played through the real reply pipeline.
 
 ## 1.1.0 RC — Six-Sided World v1.1
