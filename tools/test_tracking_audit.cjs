@@ -44,6 +44,15 @@ check('progress on an unchanged objective does not regress', () => {
     assert.equal(t.questDetailsLatest(chat).find(x => x.key === 'q_road').progress, 60);
 });
 
+// 2b. A longer old place does not outlive the story: it stays only while it refines the new report.
+check('quest place follows a new place; a refinement keeps its detail', () => {
+    const at = (where) => ({ quests: [{ ...quest('Depart for the capital', 10).quests[0], where }] });
+    const moved = [user('go'), reply(at("north row market, the wand-maker's stall")), user('next'), reply(at('Old Hall')), user('next'), reply(at('Old Hall'))];
+    assert.equal(t.questDetailsLatest(moved).find(x => x.key === 'q_road').where, 'Old Hall');
+    const refined = [user('go'), reply(at('Old Hall, east yard')), user('next'), reply(at('Old Hall'))];
+    assert.equal(t.questDetailsLatest(refined).find(x => x.key === 'q_road').where, 'Old Hall, east yard');
+});
+
 // 3. A bond ending with a copy of the standing loses the copy; other bonds and pinned bonds are untouched.
 check('bond drops a trailing copy of the standing only', () => {
     const rc = t.relCfg(null);

@@ -11740,16 +11740,21 @@ function hmsPanelStateRead(chatId, chat, st) {
         active: true,
         messageId: msg ? msg.id : null,
         hud: hud ? { lines: hud.lines, time: hud.time, location: hud.location, arc: hud.arc, quests: hud.quests, fromHtml: !!hud.find.fromHtml } : null,
-        hudChanged: (() => { try {
-            const tl = hmsTimeline(chat); if (!hud || tl.length < 2) return null;
+        ...(() => { try {
+            const tl = hmsTimeline(chat); if (!hud || tl.length < 2) return { hudChanged: null };
             const prev = tl[tl.length - 2].hud, before = new Map(prev.lines.filter(l => !l.block).map(l => [l.key, String(l.text).trim()]));
-            return hud.lines.filter(l => !l.block && before.get(l.key) !== String(l.text).trim()).map(l => l.key);
-        } catch { return null; } })(),
+            const moved = hud.lines.filter(l => !l.block && before.get(l.key) !== String(l.text).trim());
+            // what each changed line said the reply before (absent = new line), so the card can show old -> new
+            const hudWas = {};
+            for (const l of moved) if (before.has(l.key)) hudWas[l.key] = before.get(l.key).slice(0, 300);
+            return { hudChanged: moved.map(l => l.key), hudWas };
+        } catch { return { hudChanged: null }; } })(),
         noHud: hud ? null : hudDiagnosis(msg),
         guard,
         ...(() => { const warnings = consistencyWarnings(chatId, chat, hud, guard); return warnings.length ? {consistency:warnings} : {}; })(),
         pins,
         questNotes: st.questNotes || [],
+        questPairs: isPlainObject(st.questPairs) ? st.questPairs : {},
         todoIdeas: isPlainObject(st.todoIdeas) ? { ...st.todoIdeas, stale: !!st.todoIdeas.at && st.todoIdeas.at !== (hmsTimeline(chat).at(-1)?.msg.id || null) } : null,
         atlas: (() => { try { return atlasHereInfo(chatId, hud, chat); } catch (e) { logW(`[RPG Companion HMS] Atlas read failed: ${e?.message || e}`); return null; } })(),
         arcCheck: (() => { try { return arcCheck(chatId, hud); } catch { return null; } })(),
@@ -18479,7 +18484,8 @@ function questUnique(list) {
         const row = matches[0];
         for (const [key, value] of Object.entries(q)) {
             if (key === 'key' && row.key) continue;
-            if (key === 'where' && row.where && value && row.where.length > value.length) continue;
+            // the longer place is kept only when it refines the new one; a different place is news
+            if (key === 'where' && row.where && value && row.where.length > value.length && questPlaceCompatible(row.where, value)) continue;
             if (value !== null && value !== undefined && value !== '') row[key] = value;
         }
     }
@@ -19020,7 +19026,7 @@ function questDetailsLatest(chat) {
                     if (key === 'identityHistory' && Array.isArray(row.identityHistory)) continue;
                     if (key === 'objective' && identityRefinement && !idLinked && !explicitObjective && row.objective && value && row.objective.length > value.length) continue;
                     if (key === 'key' && row.key) continue;
-                    if (key === 'where' && row.where && value && row.where.length > value.length &&
+                    if (key === 'where' && row.where && value && row.where.length > value.length && questPlaceCompatible(row.where, value) &&
                         !(contractLink && questStageReferenceCue(continuityLines || []))) continue;
                     if (value !== null && value !== undefined && value !== '') row[key] = value;
                 }
@@ -20454,6 +20460,21 @@ spindle.onFrontendMessage(async (payload, userId) => {
                 const st = await getChatState(payload.chatId);
                 const key = typeof payload.key === 'string' && payload.key.trim() ? lockKey(payload.key) : lockKey(payload.name || '');
                 st.questFocus = key && key !== st.questFocus ? key : null;
+                await saveChatState(payload.chatId, st);
+                await pushState(payload.chatId);
+                break;
+            }
+            case 'quest_pair': {
+                // the player's call on two quests that look alike: shown as one card, or kept apart and not asked again.
+                // Display only: tracking keeps both rows exactly as the story reports them.
+                if (!payload.chatId || typeof payload.a !== 'string' || typeof payload.b !== 'string') return;
+                const st = await getChatState(payload.chatId);
+                const pair = [lockKey(payload.a), lockKey(payload.b)].sort().join(' || ');
+                const pairs = isPlainObject(st.questPairs) ? { ...st.questPairs } : {};
+                if (payload.verdict === 'same' || payload.verdict === 'different') pairs[pair] = payload.verdict; else delete pairs[pair];
+                const keys = Object.keys(pairs);
+                for (const k of keys.slice(0, Math.max(0, keys.length - 60))) delete pairs[k];
+                st.questPairs = pairs;
                 await saveChatState(payload.chatId, st);
                 await pushState(payload.chatId);
                 break;

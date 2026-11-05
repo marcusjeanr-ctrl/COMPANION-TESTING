@@ -141,6 +141,35 @@ const fails = []; const check = (ok, what) => { if (!ok) fails.push(what); };
         } catch (e) { fails.push('gear check stopped: ' + String(e.message).split('\n')[0]); }
         await q.close();
     }
+    // 1.3.0 Quests: two look-alike quests get a hint (never merged on their own); "Show as one" folds one under the other
+    {
+        const qp = JSON.parse(JSON.stringify(payload));
+        const qq = (key, name, objective, category) => ({ key, name, objective, category, giver: 'Old Mentor', where: 'Old Hall', cls: 'active', state: 'active' });
+        qp.hms.systems = { ...(qp.hms.systems || {}), quests: [qq('road', 'The Long Road', 'Travel north to the capital and begin training with the blade master', 'main'),
+            qq('blade', 'Study under the Blade Master', 'Begin training with the blade master in the capital', 'main'), qq('guild', 'Guild papers', 'Register at the guild', 'side')],
+            objectives: [], journal: [], abilities: (qp.hms.systems || {}).abilities || [] };
+        fs.writeFileSync(tmp, page(process.env.FRONTEND || path.join(root, 'dist', 'frontend.js'), 420, `localStorage.setItem('rpgc-view','all');`));
+        const q = await browser.newPage({ viewport: { width: 460, height: 900 } }); q.setDefaultTimeout(3000);
+        q.on('pageerror', e => fails.push('quests: script error ' + e.message));
+        await q.goto('file://' + tmp);
+        try {
+            const facts = () => q.evaluate(() => { const sec = document.querySelector('details.rpgc-sec[data-sec="quests"]'); return sec ? { hint: !!sec.querySelector('.rpgc-qhint'), cards: [...sec.querySelectorAll('.rpgc-qcard .name')].map(n => n.textContent), also: [...sec.querySelectorAll('.rpgc-qalso b')].map(n => n.textContent), bands: sec.querySelectorAll('.rpgc-qband').length } : null; });
+            await q.evaluate(d => window.__recv(d), qp); await q.waitForTimeout(60);
+            let f = await facts();
+            check(f && f.hint && f.cards.length === 3 && f.bands === 2, `quests: look-alike hint or Main/Side bands missing (${JSON.stringify(f)})`);
+            await q.evaluate(() => { const s = document.querySelector('details.rpgc-sec[data-sec="quests"]'); s.open = true; });
+            await q.click('.rpgc-qhint button:has-text("Show as one")');
+            const sent = await q.evaluate(() => (window.__sent || []).filter(m => m.type === 'quest_pair').at(-1));
+            check(sent && sent.verdict === 'same' && sent.a === 'road' && sent.b === 'blade', 'quests: Show as one does not send the pair');
+            qp.hms.questPairs = { 'blade || road': 'same' };
+            await q.evaluate(d => window.__recv(d), qp); await q.waitForTimeout(60); f = await facts();
+            check(f && !f.hint && f.cards.length === 2 && f.also.join() === 'Study under the Blade Master', `quests: a pair shown as one is not folded under one card (${JSON.stringify(f)})`);
+            qp.hms.questPairs = { 'blade || road': 'different' };
+            await q.evaluate(d => window.__recv(d), qp); await q.waitForTimeout(60); f = await facts();
+            check(f && !f.hint && f.cards.length === 3, 'quests: a pair marked different is still hinted or folded');
+        } catch (e) { fails.push('quests check stopped: ' + String(e.message).split('\n')[0]); }
+        await q.close();
+    }
     // render time: a full render of All, new build vs FRONTEND_OLD
     const time = async file => { const q = await open(420, 'modern', 'all', file); const ms = await q.evaluate(d => { const t = []; for (let i = 0; i < 7; i++) { const a = performance.now(); window.__recv(JSON.parse(JSON.stringify(d))); t.push(performance.now() - a); } t.sort((x, y) => x - y); return t[3]; }, payload); await q.close(); return ms; };
     const now = await time(path.join(root, 'dist', 'frontend.js'));

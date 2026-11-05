@@ -1365,6 +1365,84 @@ button.rpgc-chip.intel:hover { border-color: var(--lumiverse-accent, #7aa2f7); }
 .rpgc [data-sec="family"] .rpgc-person>details.rpgc-subdet:not([open])>summary{margin:0}
 .rpgc [data-sec="family"] .rpgc-person .rpgc-chip.here,.rpgc [data-sec="family"] .rpgc-person .rpgc-chip.ok{font-weight:650}
 
+/* 1.3.0: World State — the HUD in small sections, with what changed this reply shown old -> new */
+.rpgc .rpgc-hud-now{padding:8px 10px;margin-bottom:8px;border-radius:var(--u-radius-s);border:1px solid color-mix(in srgb,var(--u-accent) 35%,var(--u-line));background:radial-gradient(120% 100% at 0 0,color-mix(in srgb,var(--u-accent) 12%,transparent),transparent 70%),var(--u-glass)}
+.rpgc .rpgc-hud-nowhead{font-size:10px;font-weight:750;letter-spacing:.1em;text-transform:uppercase;color:var(--u-accent);margin-bottom:2px}
+.rpgc .rpgc-hud-was{flex-basis:100%;margin:1px 0 0 22px;font-size:11px;color:var(--u-muted);text-decoration:line-through;text-decoration-color:color-mix(in srgb,var(--u-muted) 60%,transparent)}
+.rpgc .rpgc-hud-was .k{text-decoration:none;display:inline-block;font-size:9.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;margin-right:6px;padding:0 6px;border-radius:999px;background:var(--u-raise)}
+.rpgc .rpgc-hud-was.new{text-decoration:none}.rpgc .rpgc-hud-was.new .k{color:var(--u-ok)}
+.rpgc .rpgc-hud-now .rpgc-hud-row,.rpgc .rpgc-hud-grouped .rpgc-hud-row{flex-wrap:wrap}
+.rpgc .rpgc-hud-grouped{gap:6px}
+.rpgc .rpgc-hud-group{border:1px solid var(--u-line);border-radius:var(--u-radius-s);background:var(--u-glass)}
+.rpgc .rpgc-hud-group>summary{display:flex;align-items:center;gap:8px;padding:6px 10px;cursor:pointer;list-style:none;font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--u-muted)}
+.rpgc .rpgc-hud-group>summary::-webkit-details-marker{display:none}
+.rpgc .rpgc-hud-group>summary .ic{font-size:14px;letter-spacing:0}.rpgc .rpgc-hud-group>summary .lbl{flex:1}
+.rpgc .rpgc-hud-group>summary .n{font-size:10.5px;padding:0 7px;border-radius:999px;background:var(--u-raise);letter-spacing:0}
+.rpgc .rpgc-hud-moved{font-size:10px;letter-spacing:0;text-transform:none;padding:1px 8px;border-radius:999px;color:var(--u-accent-fg);background:var(--u-accent)}
+.rpgc .rpgc-hud-group>summary::after{content:"▸";transition:transform .2s}.rpgc .rpgc-hud-group[open]>summary::after{transform:rotate(90deg)}
+.rpgc .rpgc-hud-group>.rows{display:flex;flex-direction:column;gap:4px;padding:2px 8px 8px}
+.rpgc .rpgc-hud-group[data-g="time"]{border-left:3px solid color-mix(in srgb,var(--u-accent) 70%,transparent)}
+.rpgc .rpgc-hud-group[data-g="you"]{border-left:3px solid color-mix(in srgb,var(--u-ok) 60%,transparent)}
+.rpgc .rpgc-hud-group[data-g="skills"]{border-left:3px solid color-mix(in srgb,#b48cff 65%,transparent)}
+.rpgc .rpgc-hud-group[data-g="standing"]{border-left:3px solid color-mix(in srgb,var(--u-warn) 60%,transparent)}
+.rpgc .rpgc-hud-group[data-g="story"]{border-left:3px solid color-mix(in srgb,#e0a37a 60%,transparent)}
+.rpgc .rpgc-hud-row.changed>.body{position:relative}
+.rpgc .rpgc-hud-grouped .rpgc-hud-row.changed{background:color-mix(in srgb,var(--u-accent) 7%,transparent);border-radius:6px}
+.rpgc .rpgc-hud-grouped .rpgc-hud-row.changed>.body::before{content:"";position:absolute;left:-3px;top:-2px;width:5px;height:5px;border-radius:50%;background:var(--u-accent);box-shadow:0 0 8px var(--u-glow)}
+.rpgc .rpgc-hud-bullet .body{display:flex;gap:6px;align-items:baseline;flex-wrap:nowrap;padding-left:8px;border-left:2px solid var(--u-line)}
+.rpgc .rpgc-hud-bullet .rpgc-hud-tag{flex:none;font-size:9.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding:1px 7px;border-radius:999px;background:var(--u-raise);color:var(--u-muted)}
+.rpgc .rpgc-hud-bullet.done .v{opacity:.6;text-decoration:line-through}
+
+/* 1.3.0: Quests — Main / Side bands and the look-alike hint */
+.rpgc .rpgc-qband{margin:4px 0 10px}
+.rpgc .rpgc-qband-h{display:flex;align-items:center;gap:8px;margin:0 0 5px;font-size:10.5px;font-weight:750;letter-spacing:.1em;text-transform:uppercase;color:var(--u-muted)}
+.rpgc .rpgc-qband-h::after{content:"";flex:1;height:1px;background:linear-gradient(90deg,var(--u-line),transparent)}
+.rpgc .rpgc-qband-h .n{order:2;font-size:10px;padding:0 7px;border-radius:999px;background:var(--u-raise);letter-spacing:0}
+.rpgc .rpgc-qband.main .rpgc-qband-h span:first-child{color:var(--u-warn)}
+.rpgc .rpgc-qband.main .rpgc-qcard{border-left:3px solid color-mix(in srgb,var(--u-warn) 60%,transparent)}
+.rpgc .rpgc-qband.side .rpgc-qcard{border-left:3px solid color-mix(in srgb,var(--u-accent) 50%,transparent)}
+.rpgc .rpgc-qhint{padding:9px 11px;margin:0 0 10px;border-radius:var(--u-radius-s);border:1px dashed color-mix(in srgb,var(--u-warn) 55%,var(--u-line));background:color-mix(in srgb,var(--u-warn) 7%,var(--u-glass))}
+.rpgc .rpgc-qhint .top{display:flex;align-items:center;gap:6px;font-size:12.5px}
+.rpgc .rpgc-qhint .pair{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin:6px 0 2px}.rpgc .rpgc-qhint .eq{color:var(--u-warn);font-weight:800}
+.rpgc .rpgc-qhint .rpgc-note{margin:4px 0 6px;font-size:11px}
+.rpgc .rpgc-qalso{margin-top:6px;padding-top:6px;border-top:1px dashed var(--u-line);font-size:11.5px}
+.rpgc .rpgc-qalso .row{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px}
+.rpgc .rpgc-qalso .k{font-size:9.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--u-muted);margin-right:3px}
+.rpgc .rpgc-qalso .o{color:var(--u-muted);flex:1;min-width:0}
+
+/* 1.3.0: Abilities — HUD tiers as school tiles, martial skills by kind, how firm each one is */
+.rpgc .rpgc-abil-src{margin-left:8px;font-family:system-ui,sans-serif;font-size:9.5px;font-weight:600;letter-spacing:.04em;text-transform:none;font-variant:normal;color:var(--u-muted);padding:0 7px;border-radius:999px;border:1px solid var(--u-line)}
+.rpgc .rpgc-tiers{display:grid;grid-template-columns:repeat(auto-fill,minmax(118px,1fr));gap:6px}
+.rpgc .rpgc-tier{display:flex;flex-direction:column;gap:2px;padding:8px 10px;border-radius:var(--u-radius-s);border:1px solid color-mix(in srgb,var(--sc) 40%,var(--u-line));
+  background:radial-gradient(120% 100% at 0 0,color-mix(in srgb,var(--sc) 16%,transparent),transparent 70%),var(--u-glass)}
+.rpgc .rpgc-tier b{font-size:13px;color:color-mix(in srgb,var(--sc) 55%,var(--u-text))}.rpgc .rpgc-tier .rk{font-size:10.5px;color:var(--u-muted)}
+.rpgc .rpgc-tier .pips{display:flex;gap:3px;margin-top:3px}.rpgc .rpgc-tier .pips i{flex:1;height:4px;border-radius:2px;background:var(--u-raise)}
+.rpgc .rpgc-tier .pips i.on{background:var(--sc);box-shadow:0 0 6px -1px var(--sc)}
+.rpgc .rpgc-abil-kinds{display:flex;flex-direction:column;gap:7px}
+.rpgc .rpgc-abil-kind .kh{display:flex;align-items:center;gap:6px;margin:0 0 4px;font-size:10.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--u-muted)}
+.rpgc .rpgc-abil-kind .kh .n{font-size:10px;padding:0 6px;border-radius:999px;background:var(--u-raise);letter-spacing:0}
+.rpgc .rpgc-chip.abil{display:inline-flex;align-items:center;gap:4px}
+.rpgc .rpgc-chip.abil[data-school]{border-color:color-mix(in srgb,var(--sc) 45%,var(--u-line))}
+.rpgc .rpgc-chip.abil .dot{width:7px;height:7px;border-radius:50%;flex:none;background:var(--u-muted)}
+.rpgc .rpgc-chip.abil.t-firm .dot{background:var(--u-ok);box-shadow:0 0 6px var(--u-ok)}
+.rpgc .rpgc-chip.abil.t-grow .dot{background:var(--u-accent);box-shadow:0 0 6px var(--u-glow)}
+.rpgc .rpgc-chip.abil.t-new .dot{background:transparent;border:1.5px dashed var(--u-muted)}
+.rpgc .rpgc-chip.abil.t-firm{border-color:color-mix(in srgb,var(--u-ok) 40%,var(--u-line))}
+.rpgc .rpgc-chip.abil .st{font-size:10.5px;color:var(--u-muted)}
+.rpgc .rpgc-chip.abil .hr{font-size:10px;font-weight:700;padding:0 6px;border-radius:999px;background:color-mix(in srgb,var(--u-warn) 18%,transparent);color:color-mix(in srgb,var(--u-warn) 70%,var(--u-text))}
+
+/* 1.3.0: story checks */
+.rpgc .rpgc-chk-list{display:flex;flex-direction:column;gap:6px;margin-top:6px}
+.rpgc .rpgc-chk{--cc:var(--u-warn);padding:8px 10px;border-radius:var(--u-radius-s);border:1px solid color-mix(in srgb,var(--cc) 40%,var(--u-line));border-left:3px solid var(--cc);background:color-mix(in srgb,var(--cc) 7%,var(--u-glass))}
+.rpgc .rpgc-chk.high{--cc:var(--u-bad)}.rpgc .rpgc-chk.low{--cc:var(--u-muted)}
+.rpgc .rpgc-chk .top{display:flex;align-items:center;gap:6px;font-size:11px;font-weight:700}
+.rpgc .rpgc-chk .top .k{flex:1;letter-spacing:.04em;text-transform:uppercase;color:color-mix(in srgb,var(--cc) 70%,var(--u-text))}
+.rpgc .rpgc-chk .sev{font-size:9.5px;font-weight:700;padding:1px 7px;border-radius:999px;background:color-mix(in srgb,var(--cc) 20%,transparent);color:var(--u-text)}
+.rpgc .rpgc-chk .tx{font-size:12px;margin:4px 0 2px;line-height:1.35}
+.rpgc .rpgc-chk .acts{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin-top:5px}
+.rpgc .rpgc-chk .fx{flex:1 1 180px;min-width:0;font-size:10.5px;color:var(--u-muted);white-space:normal;padding:4px 7px;border-radius:6px;background:var(--u-raise)}
+.rpgc .rpgc-consistency .rpgc-chk-list{margin:6px 0}
+
 `;
 
 // The guide, embedded from GUIDE.md so it ships inside the extension (tools/embed_guide.py refreshes it).
@@ -4326,6 +4404,54 @@ export function setup(ctx) {
         return h('div', { class: 'rpgc-hud-row' + (pinned ? ' pinned' : '') }, pinBtn(line), body);
     }
 
+    // World State groups: read from the line's own label, so every card's HUD sorts without a list per card
+    const HUD_GROUPS = [
+        ['time', '\uD83D\uDD70\uFE0F', 'Time & place', /^(location|.*calendar|date|time|day|season|weather|clock|moon|year|turn|week|month)\b/],
+        ['you', '\uD83E\uDDCD', 'You', /^(race|origin|age|class|level|lv|xp|exp|hp|health|mp|sp|mana|stamina|touki|aura|status|condition|body|injur|wound|hunger|fatigue|mood|stress|sanity|vitals?|stats?|attributes?|appearance|name|species|job|role|title)\b/],
+        ['skills', '\u2728', 'Skills & training', /^(sword|style|magic|spell|tier|cast|voiceless|language|training|skill|abilit|technique|tech|art|blessing|divine|authority|discipline|school|affinit|element)/],
+        ['standing', '\uD83D\uDC51', 'Gear, standing & people', /^(equipment|gear|inventory|items?|money|purse|coin|gold|wallet|funds|standing|social|renown|reputation|fame|rank|nobility|house|faction|bonds?|relationship|party|present|companions?|allies|followers|contacts|points|ppt|class points)/],
+        ['story', '\uD83D\uDCDC', 'Story', /^(era|arc|game mode|mode|guide|canon|world event|event|active paths|paths?|quests?|goals?|objectives?|narrative|chapter|plot|threads?|flags?|loop|route|scenario|timeline|divergence|warning|\u26A0)/],
+    ];
+    function hudGroupOf(line) {
+        if (line.kind === 'location') return 'time';
+        const lab = String((line.fields && line.fields[0] && line.fields[0].label) || line.key || '').toLowerCase().replace(/^[^a-z\u26A0]+/, '');
+        for (const [id, , , re] of HUD_GROUPS) if (re.test(lab)) return id;
+        return 'other';
+    }
+    // a "- Change: ..." path line reads as a bullet under Active Paths, not as a field named "- Change"
+    function hudBulletOf(line) {
+        const f = line.fields && line.fields[0];
+        if (!f || !/^\s*[-\u2022*]\s*/.test(String(f.label || ''))) return null;
+        return { tag: String(f.label).replace(/^\s*[-\u2022*]\s*/, '').trim(), value: String(f.value || '') };
+    }
+    function hudWasText(line) {
+        const was = state.hms?.hudWas && state.hms.hudWas[line.key];
+        if (was == null) return null;
+        const lab = line.fields && line.fields[0] && line.fields[0].label;
+        let t = String(was);
+        if (lab && t.toLowerCase().startsWith(String(lab).toLowerCase())) t = t.slice(String(lab).length).replace(/^\s*:\s*/, '');
+        t = t.replace(/\s*\|\s*/g, ' \u00B7 ');
+        if (line.kind === 'location') t = t.replace(/^\s*\u25C6\s*/, '').split(/\s*\u2192\s*/).slice(-2).join(' \u203A ');
+        return t.trim();
+    }
+    function hudRowPlus(line, opts = {}) {
+        const bul = hudBulletOf(line);
+        let el;
+        if (bul) {
+            const pinned = !!(state.hms.pins && state.hms.pins[line.key]);
+            const done = /\u2014\s*done\s*$|\(done\)/i.test(bul.value);
+            el = h('div', { class: 'rpgc-hud-row rpgc-hud-bullet' + (pinned ? ' pinned' : '') + (done ? ' done' : '') }, pinBtn(line),
+                h('div', { class: 'body' }, bul.tag ? h('span', { class: 'rpgc-hud-tag' }, bul.tag) : null, h('span', { class: 'v' }, bul.value)));
+        } else el = hudLineEl(line);
+        if (opts.changed) el.classList.add('changed');
+        if (opts.was) {
+            const was = hudWasText(line);
+            if (was) el.appendChild(h('div', { class: 'rpgc-hud-was', title: 'What this line said the reply before' }, h('span', { class: 'k' }, T('was')), was));
+            else if (state.hms?.hudWas && !(line.key in state.hms.hudWas)) el.appendChild(h('div', { class: 'rpgc-hud-was new' }, h('span', { class: 'k' }, T('new line'))));
+        }
+        return el;
+    }
+
     function guardEl() {
         const g = state.hms.guard;
         if (!g) return null;
@@ -4363,6 +4489,40 @@ export function setup(ctx) {
     }
 
 
+    // 1.3.0: story checks as cards — how serious, what is off, and the OOC line that fixes it, one tap to copy
+    const CHECK_META = {
+        'no-hud': ['high', '\uD83D\uDCDF', 'HUD'], clock: ['high', '\u23F1\uFE0F', 'Clock'], 'start-setting': ['high', '\u2699\uFE0F', 'Start settings'],
+        training: ['mid', '\uD83C\uDF93', 'Training'], age: ['mid', '\uD83C\uDF82', 'Age'], birth: ['mid', '\uD83D\uDC76', 'Birth'], present: ['mid', '\uD83D\uDC65', 'Present'],
+        condition: ['mid', '\uD83E\uDE79', 'Condition'], gear: ['mid', '\uD83C\uDF92', 'Gear'], 'relationship-jump': ['mid', '\uD83D\uDC9E', 'Standing'],
+        'relationship-positive-drop': ['mid', '\uD83D\uDC94', 'Standing'], ooc: ['low', '\uD83D\uDCAC', 'Out of character'],
+    };
+    function consistencyCheck(w) {
+        const f = w.field, ex = w.expected, ac = w.actual;
+        const fix = w.code === 'clock' ? '(OOC fix: the HUD clock went backwards last reply. Keep the date and time moving forward from the reply before.)'
+            : w.code === 'start-setting' && f ? `(OOC fix: ${f} reads ${ex} at this point, per the start settings.)`
+            : /^relationship/.test(w.code || '') && f && ex ? `(OOC fix: nothing in the scene moved ${f}'s standing from ${ex} to ${ac}. Keep it at ${ex} unless something happens on screen.)` : null;
+        return { kind: w.code, text: T(w.message) + (f ? `: ${f}${ex || ac ? ` (${ex} \u2192 ${ac})` : ''}` : '') + (w.reason ? ` \u2014 ${w.reason}` : ''), fix };
+    }
+    function storyCheckCards(list) {
+        const rank = { high: 0, mid: 1, low: 2 };
+        const rows = list.map(c => ({ c, m: CHECK_META[c.kind] || ['mid', '\u26A0\uFE0F', 'Check'] })).sort((x, y) => rank[x.m[0]] - rank[y.m[0]]);
+        return h('div', { class: 'rpgc-chk-list' }, rows.map(({ c, m }) => {
+            const card = h('div', { class: 'rpgc-chk ' + m[0], role: 'note' },
+                h('div', { class: 'top' }, h('span', { class: 'ic', 'aria-hidden': 'true' }, m[1]), h('span', { class: 'k' }, T(m[2])),
+                    h('span', { class: 'sev' }, m[0] === 'high' ? T('fix soon') : m[0] === 'low' ? T('minor') : T('worth a look'))),
+                h('div', { class: 'tx' }, c.text));
+            if (c.fix) card.appendChild(h('div', { class: 'acts' }, h('code', { class: 'fx' }, c.fix), h('button', { class: 'rpgc-btn rpgc-fixbtn', title: c.fix, onclick: async (e) => {
+                const b = e.currentTarget;
+                const ok = await copyText(c.fix);
+                b.textContent = ok ? T('Copied: paste it in the chat') : T('Select the line below and copy it');
+                // the line itself, ready to select, in case this browser blocks copying
+                if (!card.querySelector('.rpgc-fixline')) { const box = h('textarea', { class: 'rpgc-fixline', readonly: true, rows: 2 }, c.fix); card.appendChild(box); if (!ok) { box.focus(); box.select(); } }
+                setTimeout(() => { if (b.isConnected) b.textContent = T('Copy OOC fix'); }, 3000);
+            } }, T('Copy OOC fix'))));
+            return card;
+        }));
+    }
+
     function renderWorldState() {
         const hud = state.hms.hud;
         const content = [];
@@ -4385,7 +4545,9 @@ export function setup(ctx) {
             if (d.reason !== 'no-reply') content.push(h('div', { class: 'rpgc-row' }, rereadButton('Read the last reply again')));
         } else {
             const rows = [];
-            let blk = null;
+            const rowGroup = [];   // each row's group, parallel to rows
+            const changedSet = Array.isArray(state.hms?.hudChanged) ? new Set(state.hms.hudChanged) : null;
+            let blk = null, lastG = 'other';
             const shownElsewhere = (title) => !!((state.world && S()?.worldCard !== false && (state.world.blocks || []).some(b => String(title).toUpperCase().startsWith(b)))
                 || (/^D&D CHARACTER SHEET/i.test(String(title)) && hudSheetNow() && dndOn() && (!isObj(S()?.dnd) || S().dnd.useHud !== false)));
             const pointed = new Set();
@@ -4393,28 +4555,50 @@ export function setup(ctx) {
                 if (l.block === 'fence') { blk = null; continue; }
                 if (l.block && shownElsewhere(l.block)) {
                     const k = String(l.block).split(/\s+[\u2014\u2013-]\s+/)[0];
-                    if (!pointed.has(k)) { pointed.add(k); rows.push(h('div', { class: 'rpgc-hud-block pointer' }, h('div', { class: 'row' }, `${k} \u2014 shown in the ${/D&D/.test(k) ? 'D&D' : state.world.label} card.`))); }
+                    if (!pointed.has(k)) { pointed.add(k); rows.push(h('div', { class: 'rpgc-hud-block pointer' }, h('div', { class: 'row' }, `${k} \u2014 shown in the ${/D&D/.test(k) ? 'D&D' : state.world.label} card.`))); rowGroup.push(lastG); }
                     blk = null;
                     continue;
                 }
                 if (l.block) {
-                    if (!blk) { blk = h('div', { class: 'rpgc-hud-block', title: 'An inline block: rendered by its own module, not a HUD line. The guard and pins leave it alone.' }); rows.push(blk); }
+                    if (!blk) { blk = h('div', { class: 'rpgc-hud-block', title: 'An inline block: rendered by its own module, not a HUD line. The guard and pins leave it alone.' }); rows.push(blk); rowGroup.push(lastG); }
                     blk.appendChild(h('div', { class: 'row' }, l.text.replace(/^\s{0,2}/, '')));
                     continue;
                 }
                 blk = null;
-                rows.push(hudLineEl(l));
+                // a bullet follows the line it hangs under (the paths under Active Paths)
+                const gid = hudBulletOf(l) ? lastG : hudGroupOf(l);
+                lastG = gid;
+                rows.push(hudRowPlus(l, { changed: !!(changedSet && changedSet.has(l.key)) }));
+                rowGroup.push(gid);
             }
+            // grouped into small sections once the HUD is long enough to need it; HUD order kept inside each
+            const used = new Set(rowGroup);
+            let full;
+            if (rows.length >= 8 && used.size >= 2) {
+                const defs = [...HUD_GROUPS.map(([id, ic, label]) => [id, ic, label]), ['other', '\u2022', 'More']];
+                full = h('div', { class: 'rpgc-hud rpgc-hud-grouped' }, defs.filter(([id]) => used.has(id)).map(([id, ic, label]) => {
+                    const mine = rows.filter((_, i) => rowGroup[i] === id);
+                    const nChanged = mine.filter(r => r.classList.contains('changed')).length;
+                    const d = h('details', { class: 'rpgc-hud-group', 'data-g': id },
+                        h('summary', null, h('span', { class: 'ic', 'aria-hidden': 'true' }, ic), h('span', { class: 'lbl' }, T(label)),
+                            nChanged ? h('span', { class: 'rpgc-hud-moved', title: 'Lines that changed this reply' }, `${nChanged} ${T('changed')}`) : h('span', { class: 'n' }, String(mine.length))),
+                        h('div', { class: 'rows' }, mine));
+                    const key = 'hudg-' + id;
+                    d.open = state.open[key] !== false;
+                    d.dataset.openKey = key; d.addEventListener('toggle', () => { state.open[key] = d.open; });
+                    return d;
+                }));
+            } else full = h('div', { class: 'rpgc-hud' }, rows);
             // what moved since the reply before stays in view; the whole HUD is one click away
-            const changed = Array.isArray(state.hms?.hudChanged) ? new Set(state.hms.hudChanged) : null;
+            const changed = changedSet;
             if (changed && changed.size < hud.lines.filter(l => !l.block).length) {
-                const now = hud.lines.filter(l => !l.block && changed.has(l.key)).map(hudLineEl);
-                content.push(h('div', { class: 'rpgc-hud' }, now.length ? now : [h('p', { class: 'rpgc-note' }, T('Nothing on the HUD changed this reply.'))]));
-                const all = h('details', { class: 'rpgc-subdet' }, h('summary', null, TT('Show all {0} lines', hud.lines.filter(l => !l.block).length)), h('div', { class: 'rpgc-hud' }, rows));
+                const now = hud.lines.filter(l => !l.block && changed.has(l.key)).map(l => hudRowPlus(l, { was: true }));
+                content.push(h('div', { class: 'rpgc-hud rpgc-hud-now' }, h('div', { class: 'rpgc-hud-nowhead' }, T('This reply')), now.length ? now : [h('p', { class: 'rpgc-note' }, T('Nothing on the HUD changed this reply.'))]));
+                const all = h('details', { class: 'rpgc-subdet' }, h('summary', null, TT('Show all {0} lines', hud.lines.filter(l => !l.block).length)), full);
                 all.open = state.open['hud-all'] === true;
                 all.dataset.openKey = 'hud-all'; all.addEventListener('toggle', () => { state.open['hud-all'] = all.open; });
                 content.push(all);
-            } else content.push(h('div', { class: 'rpgc-hud' }, rows));
+            } else content.push(full);
             const sysw = sysOf();
             if (sysw && sysw.rolls && sysw.rolls.length) content.push(h('div', { class: 'rpgc-rolls' }, sysw.rolls.map(r => h('div', { class: 'rpgc-rollline ' + (/SUCC|CRIT|PASS|HIT/.test(r.result) ? 'win' : /FAIL|MISS/.test(r.result) ? 'lose' : '') },
                 '\uD83C\uDFB2 ', h('b', null, r.what), ` ${r.total}${r.dc !== null ? ` vs DC ${r.dc}` : ''} \u2192 `, h('b', null, r.result)))));
@@ -4422,15 +4606,7 @@ export function setup(ctx) {
             if (!Object.keys(state.hms.pins || {}).length) content.push(h('p', { class: 'rpgc-note' }, 'Pin a line to have it carried forward unchanged every turn.'));
         }
         const checks = Array.isArray(state.hms?.checks) ? state.hms.checks : [];
-        if (checks.length) content.push(h('div', { class: 'rpgc-checks' }, h('b', null, T('Worth a look')), h('ul', null, checks.map(c => h('li', { class: 'rpgc-note' }, c.text,
-            c.fix ? h('button', { class: 'rpgc-btn rpgc-fixbtn', title: c.fix, onclick: async (e) => {
-                const b = e.currentTarget, li = b.closest('li');
-                const ok = await copyText(c.fix);
-                b.textContent = ok ? T('Copied: paste it in the chat') : T('Select the line below and copy it');
-                // the line itself, ready to select, in case this browser blocks copying
-                if (li && !li.querySelector('.rpgc-fixline')) { const box = h('textarea', { class: 'rpgc-fixline', readonly: true, rows: 2 }, c.fix); li.appendChild(box); if (!ok) { box.focus(); box.select(); } }
-                setTimeout(() => { if (b.isConnected) b.textContent = T('Copy fix'); }, 3000);
-            } }, T('Copy fix')) : null)))));
+        if (checks.length) content.push(h('div', { class: 'rpgc-checks' }, h('b', null, T('Worth a look')), storyCheckCards(checks.map(c => ({ kind: c.kind, text: c.text, fix: c.fix })))));
         if (hud && hud.fromHtml) content.push(h('p', { class: 'rpgc-note' }, 'This HUD was written in HTML and is read through it. The guard can flag dropped lines here, but cannot put them back into the reply.'));
         return section('world', 'World State', state.open, hud && hud.time ? hud.time : null, ...content);
     }
@@ -4633,7 +4809,7 @@ export function setup(ctx) {
                 h('div', {class:'rpgc-row rpgc-tools-row'}, h('label', {class:'rpgc-note'}, T('Panel'), ' ', panelModeSelect()), S()?.uiTestZone === false ? null : testZoneButton(), rereadButton(), h('button', {class:'rpgc-btn', onclick:exportCharacterSheet}, 'Export character sheet')),
                 foldAllRow(), snapshots)];
         const warnings = state.hms?.consistency || [];
-        if (warnings.length) out.push(h('details', {class:'rpgc-consistency'}, h('summary', null, T('Consistency warnings') + ' (' + warnings.length + ')'), h('ul', null, warnings.map(w => h('li', null, T(w.message), w.field ? `: ${w.field} (${w.expected} → ${w.actual})` : '', w.reason ? document.createTextNode(' — ' + w.reason) : null)))));
+        if (warnings.length) out.push(h('details', {class:'rpgc-consistency'}, h('summary', null, T('Consistency warnings') + ' (' + warnings.length + ')'), storyCheckCards(warnings.map(consistencyCheck))));
         const hint = worldHint();
         if (hint) out.push(hint);
         const story = view === 'scene' || view === 'all' ? hmsStoryRow() : null;
@@ -4934,6 +5110,26 @@ export function setup(ctx) {
         return det;
     }
 
+    // two open quests that read like one goal: a hint for the player, never a merge on its own
+    const QUEST_STOP = new Set('the and for with from into onto under over before after having once then this that their there his her its them they will would should must can could about while when where what which who whom been being have has had was were are not but nor yet also only just still some such than very more most much many each every both either other another'.split(' '));
+    const questWordsMemo = new WeakMap();
+    function questWords(q) {
+        if (questWordsMemo.has(q)) return questWordsMemo.get(q);
+        const w = questWordsRead(q); questWordsMemo.set(q, w); return w;
+    }
+    function questWordsRead(q) {
+        const txt = [q.name, q.objective, q.where, ...(q.identityHistory || []).map(x => x && x.objective)].filter(Boolean).join(' ').toLowerCase();
+        return new Set((txt.match(/[\p{L}][\p{L}']{2,}/gu) || []).map(w => w.replace(/'s$/, '')).filter(w => !QUEST_STOP.has(w)));
+    }
+    function questLookalike(a, b) {
+        if ((a.category || '') && (b.category || '') && a.category !== b.category) return false;
+        if (a.giver && b.giver && lockKey(a.giver) !== lockKey(b.giver)) return false;
+        const A = questWords(a), B = questWords(b);
+        let shared = 0; for (const w of A) if (B.has(w)) shared++;
+        return shared >= 3 && shared / Math.max(1, Math.min(A.size, B.size)) >= 0.25;
+    }
+    const questPairKey = (a, b) => [lockKey(a.key || a.name), lockKey(b.key || b.name)].sort().join(' || ');
+
     function renderHmsQuests() {
         const sys = sysOf();
         const legacy = (state.hms && state.hms.hud && state.hms.hud.quests) || [];
@@ -4966,7 +5162,42 @@ export function setup(ctx) {
                     q.reward ? h('span', { class: 'rpgc-chip' }, h('em', null, 'Reward: '), q.reward) : null,
                     ...chainLabel(q), due(q.dueIn)) : null);
             const groups = questDisplayGroups(sorted);
-            if (groups.open.length) items.push(h('div', { class: 'rpgc-cards' }, groups.open.map(q => card(q))));
+            // the player's calls on look-alike pairs: "same" shows them as one card, "different" stops asking
+            const verdicts = isObj(state.hms?.questPairs) ? state.hms.questPairs : {};
+            const hidden = new Map();   // folded quest -> the card it shows under
+            const hints = [];
+            for (let i = 0; i < groups.open.length; i++) for (let j = i + 1; j < groups.open.length; j++) {
+                const a = groups.open[i], b = groups.open[j], v = verdicts[questPairKey(a, b)];
+                if (v === 'same') { if (!hidden.has(a) && !hidden.has(b)) hidden.set(b, a); }
+                else if (!v && hints.length < 2 && questLookalike(a, b)) hints.push([a, b]);
+            }
+            const withFolded = (q) => {
+                const c = card(q);
+                const under = [...hidden].filter(([, top]) => top === q).map(([x]) => x);
+                if (under.length) c.appendChild(h('div', { class: 'rpgc-qalso' }, under.map(x => h('div', { class: 'row' },
+                    h('span', { class: 'k' }, T('Also tracked as')), h('b', null, x.name), x.objective ? h('span', { class: 'o' }, ' \u2014 ' + x.objective) : null,
+                    h('button', { class: 'rpgc-mini', title: T('Show them as two quests again'), 'aria-label': TT('Split {0} back out', x.name), onclick: () => send({ type: 'quest_pair', chatId: state.chatId, a: q.key || q.name, b: x.key || x.name, verdict: null }) }, '\u2194')))));
+                return c;
+            };
+            for (const [a, b] of hints) {
+                const fix = `(OOC: "${a.name}" and "${b.name}" are the same quest. Keep only "${a.name}" on the quest list from now on and carry "${b.name}"'s objective into it.)`;
+                const fixBtn = h('button', { class: 'rpgc-btn', title: fix, onclick: async (e) => { const ok = await copyText(fix); e.currentTarget.textContent = ok ? T('Copied: paste it in the chat') : fix; } }, T('Copy OOC fix'));
+                items.push(h('div', { class: 'rpgc-qhint', role: 'note' },
+                    h('div', { class: 'top' }, h('span', { class: 'ic', 'aria-hidden': 'true' }, '\uD83D\uDD0D'), h('b', null, T('Looks like the same quest?'))),
+                    h('div', { class: 'pair' }, h('span', { class: 'rpgc-chip' }, a.name), h('span', { class: 'eq', 'aria-hidden': 'true' }, '\u2248'), h('span', { class: 'rpgc-chip' }, b.name)),
+                    h('p', { class: 'rpgc-note' }, T('Both stay tracked either way. Showing them as one only tidies this card; the OOC line asks the story to print one name.')),
+                    h('div', { class: 'rpgc-row' },
+                        h('button', { class: 'rpgc-btn primary', onclick: () => send({ type: 'quest_pair', chatId: state.chatId, a: a.key || a.name, b: b.key || b.name, verdict: 'same' }) }, T('Show as one')),
+                        h('button', { class: 'rpgc-btn', onclick: () => send({ type: 'quest_pair', chatId: state.chatId, a: a.key || a.name, b: b.key || b.name, verdict: 'different' }) }, T('They\u2019re different')),
+                        fixBtn)));
+            }
+            const shown = groups.open.filter(q => !hidden.has(q));
+            const main = shown.filter(q => q.category === 'main'), side = shown.filter(q => q.category === 'side'), rest = shown.filter(q => q.category !== 'main' && q.category !== 'side');
+            const bands = [[main, 'Main', 'main'], [side, 'Side', 'side'], [rest, main.length || side.length ? 'Other' : '', 'other']].filter(([l]) => l.length);
+            if (bands.length > 1) for (const [list, label, cls] of bands) items.push(h('div', { class: 'rpgc-qband ' + cls },
+                h('div', { class: 'rpgc-qband-h' }, h('span', null, T(label)), h('span', { class: 'n' }, String(list.length))),
+                h('div', { class: 'rpgc-cards' }, list.map(withFolded))));
+            else if (shown.length) items.push(h('div', { class: 'rpgc-cards' }, shown.map(withFolded)));
             const folded = (key, label, rows, completed) => {
                 const det = simSubdet(key, TT(label, rows.length));
                 let filled = false;
@@ -5219,13 +5450,51 @@ export function setup(ctx) {
             }
             return { kept, under };
         };
-        const out = groups.map(g => { const f = foldGroup(g.items); const notes = [...f.under.entries()]; return h('div', { class: 'rpgc-abil' },
-            h('h4', null, g.category),
-            h('div', { class: 'rpgc-chips' }, f.kept.map(it => h('span', { class: 'rpgc-chip abil', title: [it.label, it.state, ...(it.observations || []).map(x => [x.name, x.state, x.progress !== null && x.progress !== undefined ? x.progress + '%' : null, x.note, x.evidence].filter(Boolean).join(' · '))].filter(Boolean).join(' \u00B7 ') || null },
-                it.label ? h('em', null, it.label + ': ') : null,
+        // 1.3.0: the HUD's own rank for a style, read from its Sword Style line ("Sword God (Advanced)"), shown beside what play reports
+        const hudRanks = new Map();
+        for (const l of (state.hms?.hud?.lines || [])) {
+            if (l.block || !/style|school|discipline/i.test(String(l.key || ''))) continue;
+            const v = String((l.fields && l.fields[0] && l.fields[0].value) || l.text || '');
+            for (const m of v.matchAll(/([A-Z][\p{L}' -]{1,40}?)\s*\(([A-Za-z]+)\)/gu)) hudRanks.set(keyOf(m[1]).replace(/\s+style$/, ''), m[2]);
+        }
+        const hudRankOf = it => { const k = keyOf(it.name).replace(/\s+style$/, ''); return hudRanks.get(k) || null; };
+        const stateTone = st => { const t = String(st || '').toLowerCase();
+            return /master|reliabl|perfect|complete|learned|known|proficient|expert/.test(t) ? 'firm' : /attempt|tried|first|fail|struggl|clumsy|rough/.test(t) ? 'new' : /practi|train|improv|drill|develop|learning|progress/.test(t) ? 'grow' : ''; };
+        const MARTIAL_KINDS = [['touki', '\uD83D\uDD25', 'Aura & body', /\b(touki|aura|ki|qi|battle aura|reinforce|mana armou?r)\b/i],
+            ['unarmed', '\uD83E\uDD4B', 'Unarmed & footwork', /\b(fall|break-?fall|rolls?|unarmed|grapple|throw|escape|dodge|evasion|footwork|kick|punch|fist|tumbl)/i],
+            ['weapon', '\u2694\uFE0F', 'Weapons & styles', /./]];
+        const abilChip = (it, f, school) => {
+            const tone = stateTone(it.state), hr = hudRankOf(it);
+            return h('span', { class: 'rpgc-chip abil' + (tone ? ' t-' + tone : ''), 'data-school': school || null, title: [it.label, it.state, hr ? `HUD rank: ${hr}` : null, ...(it.observations || []).map(x => [x.name, x.state, x.progress !== null && x.progress !== undefined ? x.progress + '%' : null, x.note, x.evidence].filter(Boolean).join(' · '))].filter(Boolean).join(' \u00B7 ') || null },
+                tone ? h('span', { class: 'dot', 'aria-hidden': 'true' }) : null,
                 it.name,
                 it.level ? h('span', { class: 'lv' }, ` Lv ${it.level}`) : null,
-                it.state ? h('span', { class: 'st' }, ` (${it.state})`) : null, f.under.has(it) ? h('small', { class: 'rpgc-note' }, ` +${f.under.get(it).length}`) : null))),
+                hr ? h('span', { class: 'hr', title: T('The rank the HUD prints') }, hr) : null,
+                it.state ? h('span', { class: 'st' }, ` ${it.state}`) : null, f && f.under.has(it) ? h('small', { class: 'rpgc-note' }, ` +${f.under.get(it).length}`) : null);
+        };
+        // magic tiers straight off the HUD: one tile per school, its tier on the rank ladder
+        const tierTiles = items => h('div', { class: 'rpgc-tiers' }, items.map(it => {
+            const school = schoolKey(it.name), i = TRAIN_LADDER.findIndex(r => r.toLowerCase() === String(it.state || '').toLowerCase());
+            return h('div', { class: 'rpgc-tier', 'data-school': school, title: it.label ? `${it.label}: ${it.name} (${it.state || '?'})` : null },
+                h('b', null, it.name), h('span', { class: 'rk' }, it.state || ''),
+                i >= 0 ? h('span', { class: 'pips', 'aria-hidden': 'true' }, TRAIN_LADDER.map((_, j) => h('i', { class: j <= i ? 'on' : '' }))) : null);
+        }));
+        const out = groups.map(g => { const f = foldGroup(g.items); const notes = [...f.under.entries()];
+            const fromHud = f.kept.length && f.kept.every(it => it.src && it.label && !(it.observations || []).length);
+            const isMagic = /magic|spell|sorcery|arcane/i.test(g.category);
+            let body;
+            if (fromHud && isMagic) body = tierTiles(f.kept);
+            else if (!isMagic && /martial|combat|sword|fight/i.test(g.category) && f.kept.length >= 5) {
+                const by = new Map();
+                for (const it of f.kept) { const k = MARTIAL_KINDS.find(([, , , re]) => re.test(it.name)); if (!by.has(k)) by.set(k, []); by.get(k).push(it); }
+                const kinds = MARTIAL_KINDS.filter(k => by.has(k));
+                body = kinds.length > 1 ? h('div', { class: 'rpgc-abil-kinds' }, kinds.map(k => h('div', { class: 'rpgc-abil-kind' },
+                    h('div', { class: 'kh' }, h('span', { 'aria-hidden': 'true' }, k[1]), T(k[2]), h('span', { class: 'n' }, String(by.get(k).length))),
+                    h('div', { class: 'rpgc-chips' }, by.get(k).map(it => abilChip(it, f)))))) : h('div', { class: 'rpgc-chips' }, f.kept.map(it => abilChip(it, f)));
+            } else body = h('div', { class: 'rpgc-chips' }, f.kept.map(it => abilChip(it, f, isMagic ? schoolKey(it.name) : null)));
+            return h('div', { class: 'rpgc-abil' },
+            h('h4', null, g.category, fromHud ? h('span', { class: 'rpgc-abil-src' }, T('from the HUD')) : null),
+            body,
             notes.length ? h('details', { class: 'rpgc-abil-notes' }, h('summary', null, `Practice notes (${notes.reduce((a, [, l]) => a + l.length, 0)})`),
                 h('ul', null, notes.flatMap(([b, l]) => l.map(it => h('li', { class: 'rpgc-note' }, h('b', null, `${b.name}: `), String(it.name).slice(String(b.name).length).replace(/^[\s:,—–-]+/, ''), it.state ? ` (${it.state})` : ''))))) : null); });
         for (const g of (sys.attributes || [])) {
