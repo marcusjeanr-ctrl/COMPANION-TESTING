@@ -6040,8 +6040,8 @@ export function setup(ctx) {
               partyOf().members.slice(0, 8).map(m => h('button', { class: 'rpgc-ptab', role: 'tab', type: 'button', title: [m.name, ...(m.alerts || []).map(a => a.text)].join(' \u00B7 '),
                   onclick: () => { state.dossierName = m.name; render(); } }, ringed(avatarImg(m.name) || monogram(m.name), { tone: 'pos' }), h('span', null, String(m.name).split(/\s+/)[0]),
                   (m.alerts || []).some(a => a.sev === 'high') ? h('span', { class: 'al', 'aria-hidden': 'true' }, '!') : null)))); }
-        { if (view === 'scene' || view === 'all') { const bd = birthdayCard(); if (bd) head.unshift(bd); const room = roomStrip(); if (room) head.unshift(room); }
-          const rib = view === 'scene' || view === 'all' ? sinceRibbon() : null; if (rib) head.unshift(rib); const strip = hudStrip(view === 'scene' || view === 'all'); if (strip) head.unshift(strip); }
+        { if (view === 'scene' || view === 'all') { const bd = birthdayCard(); if (bd) head.unshift(bd); if (view === 'all') { const room = roomStrip(); if (room) head.unshift(room); } }
+          const rib = view === 'all' ? sinceRibbon() : null; if (rib) head.unshift(rib); const strip = hudStrip(view === 'scene' || view === 'all'); if (strip) head.unshift(strip); }
         out.push(h('div', { class: 'rpgc-shell' }, viewBar(view), h('div', { class: 'rpgc-main' }, ...head, h('div', { class: 'rpgc-view rpgc-view-' + view }, ...built))));
         return out;
     }
