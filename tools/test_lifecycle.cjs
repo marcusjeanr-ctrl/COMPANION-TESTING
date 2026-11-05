@@ -189,6 +189,9 @@ const A = { gear: [{ name: 'silver locket', state: 'worn' }], deaths: ['Halvin']
         assert.ok(['stowed', 'dropped'].includes(item('taller travel bag')?.state), 'luggage by the door stays in the list');
         assert.equal(item('oilcloth wrap')?.inside, 'taller travel bag');
         assert.ok(elsewhere.includes('old practice sword') && !gone.includes('old practice sword'), 'still yours goes under Elsewhere');
+        const nail = g.gone.find(x => x.name === 'horseshoe nail');
+        assert.equal(nail.reason, 'given'); assert.equal(nail.holder, 'Aurelia'); assert.ok(nail.place && nail.when, 'where you were and when it left you');
+        assert.equal(item('Plain road sword')?.state ?? null, null);
     });
     await check('the narrator request stays bounded with many open items', async () => {
         L.setState({}); const many = Array.from({ length: 40 }, (_, i) => ({ key: `errand ${i}`, what: `Errand number ${i} at the market`, when: `in ${i + 1} days`, kind: 'errand', state: 'open' }));

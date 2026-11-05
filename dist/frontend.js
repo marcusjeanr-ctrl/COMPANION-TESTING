@@ -1152,7 +1152,7 @@ button.rpgc-chip.intel:hover { border-color: var(--lumiverse-accent, #7aa2f7); }
 .rpgc li.rpgc-gear-item>.rpgc-box-toggle{grid-area:tog;align-self:center}
 .rpgc li.rpgc-gear-item>.name{grid-area:nm;min-width:0;font-weight:650;font-size:12.5px;overflow:hidden;text-overflow:ellipsis}
 .rpgc .rpgc-gi-note{color:color-mix(in srgb,var(--u-accent) 55%,var(--u-muted))}
-.rpgc li.rpgc-gear-item>.rpgc-gear-state{grid-area:nm;justify-self:end;align-self:center;font-size:10.5px;padding:1px 7px;margin-left:6px}
+.rpgc li.rpgc-gear-item>.meta>.rpgc-gear-state{display:inline-block;font-size:10px;padding:0 7px;margin:1px 6px 1px 0;vertical-align:1px;color:var(--u-text)}
 .rpgc li.rpgc-gear-item>.meta{grid-area:mt;min-width:0;font-size:10.5px;color:var(--u-muted)}
 .rpgc li.rpgc-gear-item>.rpgc-gear-move{grid-area:mv;max-width:92px;opacity:.75}
 .rpgc li.rpgc-gear-item:hover>.rpgc-gear-move,.rpgc li.rpgc-gear-item.open>.rpgc-gear-move{opacity:1}
@@ -1275,6 +1275,24 @@ button.rpgc-chip.intel:hover { border-color: var(--lumiverse-accent, #7aa2f7); }
 .rpgc .rpgc-ge-place .pl::after{content:" ·"}
 .rpgc .rpgc-ge-chip{font:inherit;font-size:11.5px;padding:3px 9px;border-radius:999px;border:1px dashed var(--u-line-2);background:var(--u-glass);color:var(--u-text);cursor:pointer}
 .rpgc .rpgc-ge-chip .back{opacity:0;transition:opacity .15s}.rpgc .rpgc-ge-chip:hover{border-style:solid;border-color:var(--u-accent)}.rpgc .rpgc-ge-chip:hover .back{opacity:1}
+
+/* 1.3.0: by-where / by-kind switch, kind groups, Gone by what happened */
+.rpgc .rpgc-gear-viewsw{display:inline-flex;gap:2px;padding:2px;margin:0 0 8px;border-radius:999px;background:var(--u-raise);border:1px solid var(--u-line)}
+.rpgc .rpgc-gv{font:inherit;font-size:11.5px;padding:4px 11px;border-radius:999px;border:0;background:transparent;color:var(--u-muted);cursor:pointer}
+.rpgc .rpgc-gv.on{background:var(--u-accent);color:var(--u-accent-fg);font-weight:650;box-shadow:0 4px 12px -6px var(--u-glow)}
+.rpgc .rpgc-gear-kind{margin:6px 0;border:1px solid var(--u-line);border-radius:var(--u-radius-s);background:var(--u-glass)}
+.rpgc .rpgc-gear-kind>summary{display:flex;align-items:center;gap:8px;padding:7px 10px;cursor:pointer;list-style:none}
+.rpgc .rpgc-gear-kind>summary::-webkit-details-marker{display:none}
+.rpgc .rpgc-gear-kind>summary .ic{font-size:15px}.rpgc .rpgc-gear-kind>summary b{flex:1;font-size:12.5px}
+.rpgc .rpgc-gear-kind>summary .n{font-size:11px;padding:1px 8px;border-radius:999px;background:var(--u-raise);color:var(--u-muted)}
+.rpgc .rpgc-gear-kind>summary::after{content:"▸";color:var(--u-muted);transition:transform .2s}.rpgc .rpgc-gear-kind[open]>summary::after{transform:rotate(90deg)}
+.rpgc .rpgc-gear-kind>ul{list-style:none;margin:0;padding:0 8px 8px;display:flex;flex-direction:column;gap:5px}
+.rpgc .rpgc-gone-group h4{margin:8px 0 4px}
+.rpgc .rpgc-gone-group ul{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:4px}
+.rpgc .rpgc-gone-item{display:grid;grid-template-columns:30px minmax(0,1fr);grid-template-areas:"ic nm" "ic mt";column-gap:8px;padding:5px 7px;border-radius:var(--u-radius-s);border:1px dashed var(--u-line);opacity:.9}
+.rpgc .rpgc-gone-item .rpgc-gi-icon{grid-area:ic;filter:grayscale(.5)}
+.rpgc .rpgc-gone-item .nm{grid-area:nm;font-weight:600;font-size:12px}.rpgc .rpgc-gone-item .to{color:var(--u-accent);font-weight:650}
+.rpgc .rpgc-gone-item .meta{grid-area:mt;font-size:10.5px;color:var(--u-muted)}
 
 `;
 
@@ -5748,6 +5766,32 @@ export function setup(ctx) {
         [/\b(key|lockpick)s?\b/i, '🗝️'], [/\b(torch|lantern|lamp|candle)\b/i, '🕯️'], [/\b(rope|cord|twine)\b/i, '🪢'], [/\b(crystal|gem|stone|jewel|shard)\b/i, '💎'],
         [/\b(nail|horseshoe|tool|kit|whetstone|flint)\b/i, '🔧'], [/\b(phone|watch|card)\b/i, '🎴']
     ];
+    // 1.3.0: kinds of things, read from the name (and the maker's note); a group appears only when you own one
+    const GEAR_KINDS = [
+        ['weapons', '⚔️', 'Weapons', /\b(sword|blade|sabre|saber|katana|rapier|longsword|shortsword|scimitar|dagger|knife|dirk|stiletto|bow|crossbow|arrows?|bolts?|quiver|axe|hatchet|spear|lance|pike|halberd|glaive|hammer|mace|club|maul|sling|whip|flail|scabbard|sheath)\b/i],
+        ['magic', '🪄', 'Magic', /\b(wand|staff|rod|focus|scepter|sceptre|orb|grimoire|spellbook|spell ?books?|magic stone|mana stone|magic crystal|rune|talisman|amulet of)\b/i],
+        ['clothing', '🧥', 'Clothing & armour', /\b(cloak|coat|jacket|robe|cape|mantle|tunic|shirt|dress|scarf|hood|hat|cap|gloves?|boots?|shoes?|sandals?|belt|baldric|harness|bandolier|bracer|vambrace|gauntlets?|armou?r|mail|cuirass|breastplate|helm|helmet|shield|buckler|outfit|clothes|trousers|breeches|cowl|sash)\b/i],
+        ['bags', '🎒', 'Bags & luggage', /\b(bags?|backpacks?|packs?|satchels?|sacks?|pouch(?:es)?|luggage|trunks?|chests?|cases?|box(?:es)?|wrap|wrapping|oilcloth|bundle|parcel|saddlebags?)\b/i],
+        ['money', '👛', 'Money & valuables', /\b(purse|coins?|wallet|money|silver|gold|copper|ring|necklace|pendant|locket|brooch|jewel|gem|crystal|keepsake|heirloom|charm)\b/i],
+        ['papers', '📜', 'Books & papers', /\b(books?|tome|primer|journal|diary|notebook|letter|scroll|paper|map|note|parchment|document|contract|slate|tablet|chalk|ink|quill|pen|wax|seal)\b/i],
+        ['food', '🍞', 'Food & drink', /\b(food|bread|cheese|ration|cake|apple|meat|jerky|cider|wine|ale|beer|tea|water ?skin|flask|bottle|canteen|potion|vial|elixir|tonic)\b/i],
+        ['tools', '🔧', 'Tools & supplies', /\b(nail|horseshoe|tool|kit|whetstone|flint|rope|cord|twine|torch|lantern|lamp|candle|key|lockpick|needle|thread|blanket|bedroll|tent|spoon|knife-sharpener|oil)\b/i]
+    ];
+    // the most telling word wins: a "travel bundle of paper sheets" is papers, a "belt pouch" is a bag, a "spell book" is magic
+    const GEAR_KIND_PRIORITY = ['weapons', 'magic', 'money', 'papers', 'food', 'tools', 'bags', 'clothing'];
+    function gearKind(it) {
+        const kinds = GEAR_KIND_PRIORITY.map(id => GEAR_KINDS.find(k => k[0] === id));
+        for (const k of kinds) if (k[3].test(it.name || '')) return k;
+        for (const k of kinds) if (k[3].test(it.note || '')) return k;
+        return ['other', '✦', 'Other', null];
+    }
+    // a state chip goes at the start of the place line, so a long name never runs into it
+    function gearTagRow(row, tag) {
+        let meta = row.querySelector(':scope > .meta');
+        if (!meta) { meta = h('span', { class: 'meta' }); const nm = row.querySelector(':scope > .name'); if (nm) nm.after(meta); else row.appendChild(meta); }
+        meta.prepend(tag);
+    }
+    const GONE_REASONS = { given: ['🤝', 'Given'], sold: ['💰', 'Sold or traded'], lent: ['📤', 'Lent'], stolen: ['🕵️', 'Stolen'], lost: ['❓', 'Lost'], broken: ['💥', 'Broken'], used: ['🍽️', 'Used up'], gone: ['🌫️', 'Gone'] };
     function gearIcon(name) { const n = String(name || ''); for (const [re, ic] of GEAR_ICONS) if (re.test(n)) return ic; return '✦'; }
     const GEAR_ACTIONS = [['in hand', '✋', 'Hold'], ['worn', '👕', 'Wear'], ['sheathed', '🗡️', 'Sheathe'], ['on body', '🎒', 'Carry'], ['stowed', '📍', 'Leave here'], ['dropped', '⬇️', 'Drop']];
     function gearTray(g, it) {
@@ -5779,6 +5823,25 @@ export function setup(ctx) {
         });
         return li;
     }
+    function renderGearKinds(g) {
+        const groups = new Map();
+        for (const it of g.items) { const k = gearKind(it); if (!groups.has(k[0])) groups.set(k[0], { k, items: [] }); groups.get(k[0]).items.push(it); }
+        const order = [...GEAR_KINDS.map(k => k[0]), 'other'];
+        return order.filter(id => groups.has(id)).map(id => {
+            const { k, items } = groups.get(id), key = 'gear-kind-' + id;
+            const det = h('details', { class: 'rpgc-gear-kind', 'data-kind': id }, h('summary', null, h('span', { class: 'ic', 'aria-hidden': 'true' }, k[1]), h('b', null, T(k[2])), h('span', { class: 'n' }, String(items.length))),
+                h('ul', null, items.map(it => {
+                    const row = gearRow(g, it);
+                    const g0 = GEAR_GROUPS.find(([st]) => st === it.state);
+                    const label = it.state === 'in container' ? `📥 ${TT('in {0}', it.inside || T('a container'))}` : `${g0 ? String(g0[1]).split(' ')[0] : '❔'} ${T(GEAR_LABEL[it.state] || 'not sure how')}`;
+                    gearTagRow(row, h('span', { class: 'rpgc-chip rpgc-gear-state' }, label));
+                    return row;
+                })));
+            det.open = state.open[key] !== false;
+            det.dataset.openKey = key; det.addEventListener('toggle', () => { state.open[key] = det.open; });
+            return det;
+        });
+    }
     function renderGear() {
         const g = gearOf();
         const c = (sysCfg().gear) || {};
@@ -5796,8 +5859,15 @@ export function setup(ctx) {
                 stat('🎒', countOf(it => it.state === 'on body'), 'carried'),
                 stat('📥', countOf(it => it.state === 'in container'), 'packed'),
                 stat('📍', countOf(it => it.state === 'stowed' || it.state === 'dropped'), 'left behind'))));
+        // By where (hands, worn, on you, luggage) or By kind (weapons, clothing, magic…): one switch, remembered
+        const byKind = state.open['gear-view-kind'] === true;
+        if (g.items.length) out.push(h('div', { class: 'rpgc-gear-viewsw', role: 'group', 'aria-label': T('Sort gear') },
+            h('button', { type: 'button', class: 'rpgc-gv' + (byKind ? '' : ' on'), 'aria-pressed': byKind ? 'false' : 'true', onclick: () => { state.open['gear-view-kind'] = false; render(); } }, '📍 ' + T('By where')),
+            h('button', { type: 'button', class: 'rpgc-gv' + (byKind ? ' on' : ''), 'aria-pressed': byKind ? 'true' : 'false', onclick: () => { state.open['gear-view-kind'] = true; render(); } }, '🗂️ ' + T('By kind'))));
         const now = g.items.filter(it => it.changedNow);
         if (now.length) out.push(h('div', { class: 'rpgc-gear-now' }, h('span', { class: 'k' }, '✨ ' + T('This turn')), ...now.map(it => h('span', { class: 'rpgc-gn-chip' }, h('span', { 'aria-hidden': 'true' }, gearIcon(it.name)), ` ${it.name} → ${it.state === 'in container' ? TT('in {0}', it.inside || T('a container')) : T(GEAR_LABEL[it.state] || 'carried')}`))));
+        if (byKind) out.push(...renderGearKinds(g));
+        else {
         // 3.6.0: a container's contents sit under the container's own row, wherever that row is (worn, on you,
         // dropped, left somewhere, or inside another bag). Display only: the tracked "inside" name decides, with the
         // same exact-name rule as before; nothing is inferred. A container with no row of its own, or a loop of
@@ -5844,7 +5914,7 @@ export function setup(ctx) {
                 kids.length ? kids.map(k => { used.add(k.key); const row = boxItemRow(k, depth + 1);
                     // under its holder, a row that is not simply "in a container" says how it is carried (🗡️ sheathed)
                     if (k.state && k.state !== 'in container') { const g0 = GEAR_GROUPS.find(([st]) => st === k.state); const icon = g0 ? String(g0[1]).split(' ')[0] : '';
-                        const tag = h('span', { class: 'rpgc-chip rpgc-gear-state' }, `${icon} ${T(GEAR_LABEL[k.state] || k.state)}`.trim()); const nm = row.querySelector ? row.querySelector('.name') : null; if (nm) nm.after(tag); else row.appendChild(tag); }
+                        const tag = h('span', { class: 'rpgc-chip rpgc-gear-state' }, `${icon} ${T(GEAR_LABEL[k.state] || k.state)}`.trim()); if (row.querySelector) gearTagRow(row, tag); else row.appendChild(tag); }
                     return row; }) : h('li', { class: 'rpgc-note' }, T('Nothing known inside.')));
             const peek = kids.slice(0, 2).map(k => k.name).join(', ') + (kids.length > 2 ? ` +${kids.length - 2}` : '');
             const peekEl = h('span', { class: 'rpgc-gear-peek', hidden: open || !kids.length ? '' : null }, peek);
@@ -5897,6 +5967,7 @@ export function setup(ctx) {
         // safety net: anything not drawn yet (an unknown state, or a bag whose own row was never drawn) still shows
         const rest = g.items.filter(it => !used.has(it.key));
         if (rest.length) { rest.forEach(it => used.add(it.key)); out.push(h('div', { class: 'rpgc-gear-group' }, h('h4', null, '❔ ' + T('Other')), h('ul', null, rest.map(it => gearRow(g, it))))); }
+        }
         if (!g.items.length) out.push(h('p', { class: 'rpgc-note' }, g.ask
             ? 'Write what you do with your things — “I sheathe my sword”, “I sling the pack on my back”, “the letter goes in my coat pocket” — and it shows up here after the reply. What the HUD lists under Equipment or Items shows up too.'
             : 'Asking the story about your gear is off (Settings → HMS systems → Gear). The HUD’s Equipment and Items lines still show here, and you can add things by hand.'));
@@ -5922,12 +5993,15 @@ export function setup(ctx) {
                         onclick: () => send({ type: 'gear', chatId: state.chatId, op: 'set', key: x.key, name: x.name, state: 'on body' }) }, h('span', { 'aria-hidden': 'true' }, gearIcon(x.name)), ' ', x.name, h('span', { class: 'back', 'aria-hidden': 'true' }, ' ↩')))))));
         }
         if (g.gone && g.gone.length) {
-            const det = h('details', { class: 'rpgc-subdet' }, h('summary', null, `Gone (${g.gone.length})`, g.usedUp ? h('span', { class: 'meta' }, ` · ${TT('{0} used up', g.usedUp)}`) : null),
-                // where each was last seen; one still yours (left somewhere, with someone) can come back on you
-                h('div', { class: 'rpgc-note' }, ...g.gone.map(x => h('div', { style: 'display:flex;align-items:center;gap:6px;margin:2px 0' },
-                    h('span', { class: 'grow', style: 'min-width:0' }, x.name, x.where ? h('span', { style: 'color:var(--lumiverse-text-muted,#aaa)' }, ` · ${x.where}`) : null, gearAgo(x.ago) ? h('span', { style: 'color:var(--lumiverse-text-muted,#aaa)' }, ` (${gearAgo(x.ago)})`) : null),
-                    x.owned ? h('button', { class: 'rpgc-btn', 'aria-label': `${T('Back on you')}: ${x.name}`,
-                        onclick: () => send({ type: 'gear', chatId: state.chatId, op: 'set', key: x.key, name: x.name, state: 'on body' }) }, T('Back on you')) : null))));
+            // 1.3.0: grouped by what happened, each with who has it now and where you were when it left you
+            const byWhy = new Map();
+            for (const x of g.gone) { const r = x.reason || 'gone'; if (!byWhy.has(r)) byWhy.set(r, []); byWhy.get(r).push(x); }
+            const det = h('details', { class: 'rpgc-subdet rpgc-gone' }, h('summary', null, `Gone (${g.gone.length})`, g.usedUp ? h('span', { class: 'meta' }, ` · ${TT('{0} used up', g.usedUp)}`) : null),
+                ...[...byWhy].map(([r, xs]) => h('div', { class: 'rpgc-gone-group' }, h('h4', null, `${(GONE_REASONS[r] || GONE_REASONS.gone)[0]} ${T((GONE_REASONS[r] || GONE_REASONS.gone)[1])} · ${xs.length}`),
+                    h('ul', null, xs.slice().reverse().map(x => h('li', { class: 'rpgc-gone-item' },
+                        h('span', { class: 'rpgc-gi-icon', 'aria-hidden': 'true' }, gearIcon(x.name)),
+                        h('span', { class: 'nm' }, x.name, x.holder ? h('span', { class: 'to' }, ` → ${x.holder}`) : null),
+                        h('span', { class: 'meta' }, [x.where && !(x.holder && x.where.includes(x.holder) && x.where.length < 40) ? x.where : null, x.place ? `📍 ${x.place}` : null, x.when || gearAgo(x.ago)].filter(Boolean).join(' · '))))))));
             det.open = state.open['gear-gone'] === true;
             det.dataset.openKey = 'gear-gone'; det.addEventListener('toggle', () => { state.open['gear-gone'] = det.open; });
             out.push(det);

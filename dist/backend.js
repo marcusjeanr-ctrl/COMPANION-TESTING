@@ -14186,6 +14186,17 @@ function gearReadUncached(chat, st, cfg) {
         const outer = String(it.outerHint).split(/\s*[,;]\s*/).map(x => find(gearBare(x))).find(x => x && x !== it);
         if (outer) { it.state = 'in container'; it.inside = outer.name; }
     }
+    // "sheathed — corner rack", "worn — by the door": a place that is not on you means it was set down there
+    const SET_PLACE_RE = /\b(?:beside|by the (?:door|bed|bags|window|wall|luggage|hearth|fire)|on the (?:floor|ground|table|bed|desk|shelf|chair|rack|bench|peg|hook)|corner rack|(?:weapon|sword|coat|hat) rack|alongside the luggage|in the corner|on a (?:peg|hook|rack|chair|table))\b/i;
+    for (const it of items.values()) {
+        if (['sheathed', 'worn', 'on body'].includes(it.state) && it.where && SET_PLACE_RE.test(it.where) && !GEAR_BODY_RE.test(it.where) && !/\b(?:held|carried|worn) by\b/i.test(it.where)) it.state = 'stowed';
+    }
+    // The bags themselves: one report says where "the travel bags" are, so each travel bag with no place of its own is there too
+    const set = [...items.values()].filter(it => /^(?:the\s+|my\s+)?(?:travel(?:ling)? bags|luggage|bags)$/i.test(it.name) && ['stowed', 'dropped'].includes(it.state) && it.where);
+    if (set.length) {
+        const lead = set.sort((a, b) => (b.idx || 0) - (a.idx || 0))[0];
+        for (const it of items.values()) if (it !== lead && !it.state && GEAR_LUGGAGE_LIST_RE.test(it.name)) { it.state = lead.state; it.where = lead.where; }
+    }
     // "stowed — belt, right hip": a place on the body is on you, whatever the report called it
     for (const it of items.values()) {
         if (['stowed', 'dropped'].includes(it.state) && it.where && GEAR_BODY_RE.test(it.where) && !GEAR_FURNITURE_RE.test(it.where)
@@ -14236,12 +14247,44 @@ function hmsGearPanel(chat, st, cfg) {
     const spentFood = it => GEAR_CONSUMABLE_RE.test(it.name);
     const neverMine = it => !it.mine && it.from !== 'hud' && !it.onHud && !it.where && !(it.history || []).some(h => ['worn', 'sheathed', 'on body', 'in container'].includes(h.state));
     const awayRows = items.filter(it => away(it) && !shopItem(it)).sort((a, b) => a.idx - b.idx);
-    const gone = awayRows.filter(it => !owned(it) && !spentFood(it) && !neverMine(it)).slice(-20).map(it => ({ key: it.key, name: it.name, ago: ago(it.at), where: it.where || null, owned: false, onHud: !!it.onHud }));
-    const elsewhere = awayRows.filter(it => owned(it)).slice(-20).map(it => ({ key: it.key, name: it.name, ago: ago(it.at), where: it.where || null, owned: true, onHud: !!it.onHud }));
+    // 1.3.0: where it went, who has it, and where you were when it left you (the HUD at that reply)
+    const seenAt = new Map();
+    try { for (const t of hmsTimeline(chat)) seenAt.set(t.msg.id, t.hud); } catch { /* no HUD, no place */ }
+    const trace = it => {
+        const hud = it.msgId ? seenAt.get(it.msgId) : null;
+        const loc = hud && Array.isArray(hud.location) ? hud.location.filter(Boolean) : [];
+        const top = hud ? (hud.lines.filter(l => !l.block)[0] || {}).text || '' : '';
+        const when = (top.split('|')[0].split(/:\s*/).slice(1).join(': ') || '').trim().slice(0, 40) || null;
+        return { reason: gearGoneReason(it), holder: gearHolder(it.where), place: loc.length ? loc.slice(-2).join(' → ') : null, when };
+    };
+    const gone = awayRows.filter(it => !owned(it) && !spentFood(it) && !neverMine(it)).slice(-30).map(it => ({ key: it.key, name: it.name, ago: ago(it.at), where: it.where || null, owned: false, onHud: !!it.onHud, ...trace(it) }));
+    const elsewhere = awayRows.filter(it => owned(it)).slice(-30).map(it => ({ key: it.key, name: it.name, ago: ago(it.at), where: it.where || null, owned: true, onHud: !!it.onHud, ...trace(it) }));
     const usedUp = awayRows.filter(it => !owned(it) && spentFood(it)).length;
     const containers = [...new Set(list.filter(x => x.state === 'in container' && x.inside).map(x => x.inside))];
     for (const it of list) if (/\b(bag|backpack|pack|pouch|satchel|sack|purse|chest|box|case|quiver|bandolier|bag of holding|inventory)\b/i.test(it.name) && !containers.some(cn => relSameWords(cn, it.name))) containers.push(it.name);
     return { items: list, gone, elsewhere, usedUp, containers, ask: gc.ask, tell: gc.tell };
+}
+
+// Why a thing left you, from the story's own words about it
+function gearGoneReason(it) {
+    const w = `${it.where || ''} ${(it.history || []).slice(-1).map(h => h.where || '').join(' ')}`;
+    if (/\b(?:given|gave|gift(?:ed)?|handed (?:over|to)|passed to|left (?:for|to))\b/i.test(w)) return 'given';
+    if (/\b(?:sold|traded|bartered|pawned|exchanged)\b/i.test(w)) return 'sold';
+    if (/\b(?:lent|loaned|borrowed)\b/i.test(w)) return 'lent';
+    if (/\b(?:stolen|taken by|snatched|pickpocket(?:ed)?|robbed)\b/i.test(w)) return 'stolen';
+    if (/\b(?:broke|broken|shattered|snapped|destroyed|burn(?:t|ed)|smashed|ruined|melted)\b/i.test(w)) return 'broken';
+    if (/\b(?:lost|dropped|fell|missing|left behind)\b/i.test(w)) return 'lost';
+    if (/\b(?:eaten|ate|drunk|drank|used up|consumed|spent)\b/i.test(w) || GEAR_CONSUMABLE_RE.test(it.name || '')) return 'used';
+    return 'gone';
+}
+// Who has it now: "given to Aurelia", "held by Aurelia Veyrath", "with Seraphina", "sold to Halvin"
+function gearHolder(where) {
+    const w = String(where || '');
+    const m = /\b(?:given|handed|gave|passed|sold|traded|lent|loaned|left)\s+(?:back\s+|over\s+)?(?:to|with)\s+([\p{Lu}][\p{L}'’-]+(?:\s+[\p{Lu}][\p{L}'’-]+)?)/u.exec(w)
+        || /\b(?:held|kept|carried|taken|worn)\s+by\s+([\p{Lu}][\p{L}'’-]+(?:\s+[\p{Lu}][\p{L}'’-]+)?)/u.exec(w)
+        || /\bwith\s+([\p{Lu}][\p{L}'’-]+(?:\s+[\p{Lu}][\p{L}'’-]+)?)/u.exec(w)
+        || /\b([\p{Lu}][\p{L}'’-]+)['’]s\s+(?:hands?|keeping|room|pack|bag|care)\b/u.exec(w);
+    return m ? m[1].replace(/['’]s$/, '').slice(0, 40) : null;
 }
 
 function gearLine(it) {

@@ -132,6 +132,11 @@ const fails = []; const check = (ok, what) => { if (!ok) fails.push(what); };
             const held = await q.evaluate(() => (window.__sent || []).filter(m => m.type === 'gear').at(-1));
             check(held && held.op === 'set' && held.name === 'cloak' && held.state === 'in hand', 'gear: a quick move does not send the move');
             check(await q.evaluate(() => !!document.querySelector('.rpgc-gear-loadout .rpgc-gl-hand')), 'gear: the loadout bar is missing');
+            // By kind: every item still drawn exactly once, in kind groups; then back to By where
+            await q.click('button.rpgc-gv:has-text("By kind")');
+            const kinds = await q.evaluate(() => ({ groups: document.querySelectorAll('details.rpgc-gear-kind').length, rows: [...document.querySelectorAll('details.rpgc-gear-kind li.rpgc-gear-item > .name')].map(n => n.textContent) }));
+            check(kinds.groups >= 2 && kinds.rows.length === new Set(kinds.rows).size && kinds.rows.length === items.length, `gear: By kind does not show each item once (${kinds.rows.length}/${items.length})`);
+            await q.click('button.rpgc-gv:has-text("By where")');
             if (shots) await q.screenshot({ path: path.join(shots, 'gear-containers.png'), fullPage: true });
         } catch (e) { fails.push('gear check stopped: ' + String(e.message).split('\n')[0]); }
         await q.close();

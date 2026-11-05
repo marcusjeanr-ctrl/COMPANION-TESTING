@@ -14,6 +14,11 @@
 - **Luggage:** travel bags, trunks and chests by the door or on the courier's wagon are one dashed group with their place in the header, bags and contents nested, still part of your kit.
 - "Stowed — belt, right hip" is on you; a wrap named "taller travel bag, oilcloth wrap" goes inside that bag; an empty bag or purse is a plain row with no "nothing inside" line.
 
+**Gear by kind, Gone with a trail, sharper places** (from Marcus's request)
+- **By where / By kind switch** (remembered): By kind sorts into Weapons, Magic, Clothing & armour, Bags & luggage, Money & valuables, Books & papers, Food & drink, Tools & supplies and Other, each a dropdown that appears only when you own one; every item keeps a chip for how it is carried. Kinds come from the name (the most telling word wins: a "travel bundle of paper sheets" is papers) and then the maker's note.
+- **Gone grouped by what happened:** Given, Sold or traded, Lent, Stolen, Lost, Broken; each with who has it now ("horseshoe nail → Aurelia", read from the story's words) and where and when you were when it left you (the HUD at that reply).
+- **Places read more exactly:** "sheathed — corner rack", "laid alongside the luggage" are set down, not on you; a travel bag with no place of its own is where "the travel bags" were put; state chips sit at the start of the place line so a long name never runs into them.
+
 **A polished look across every card** (visual only, same tokens, so Looks and world themes keep their colours)
 - Cards with a soft accent glow, a lit top edge and a medallion emblem; headers with a pill for the summary; cards open with a short rise (off with reduced motion).
 - Headings inside cards as small tracked labels with a fading rule; sub-sections as pills; brighter chips, buttons with a lift, focus rings, softer status lines, bars with a glow, nicer scrollbars, a lit view switcher.
