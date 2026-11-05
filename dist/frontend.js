@@ -1623,6 +1623,87 @@ button.rpgc-chip.intel:hover { border-color: var(--lumiverse-accent, #7aa2f7); }
 .rpgc .rpgc-web .tie{stroke-linecap:round;transition:opacity .2s}
 .rpgc .rpgc-web .node.focus .halo{animation:rpgc-pulse 2s ease-in-out infinite}
 
+/* 1.4.0: you */
+.rpgc .rpgc-sheet{display:flex;flex-direction:column;gap:10px}
+.rpgc .rpgc-sheet-id{display:flex;align-items:center;gap:12px;padding:10px;border-radius:var(--u-radius-s);background:radial-gradient(120% 100% at 0 0,color-mix(in srgb,var(--u-accent) 20%,transparent),transparent 65%),var(--u-raise);border:1px solid var(--u-line)}
+.rpgc .rpgc-sheet-id .rpgc-mono,.rpgc .rpgc-sheet-id .rpgc-avatar{width:54px;height:54px;font-size:20px}
+.rpgc .rpgc-sheet-id .tx{display:flex;flex-direction:column;gap:2px;min-width:0;flex:1}
+.rpgc .rpgc-sheet-id .nm{font:700 var(--u-fs-xl)/1.1 var(--u-display)}.rpgc .rpgc-sheet-id .sub{font-size:var(--u-fs-s);color:var(--u-muted)}
+.rpgc .rpgc-sheet-id .rpgc-chip.standing{align-self:flex-start}
+.rpgc .rpgc-st-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(92px,1fr));gap:6px}
+.rpgc .rpgc-st-tile{display:flex;flex-direction:column;align-items:center;gap:1px;padding:7px 4px;border-radius:var(--u-radius-s);border:1px solid var(--u-line);background:linear-gradient(180deg,var(--u-raise),transparent)}
+.rpgc .rpgc-st-tile .ic{font-size:16px}.rpgc .rpgc-st-tile .k{font-size:9.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--u-muted)}
+.rpgc .rpgc-st-tile b{font-size:var(--u-fs-m);color:color-mix(in srgb,var(--u-accent) 65%,var(--u-text));text-align:center}
+.rpgc .rpgc-st-ranks{display:flex;flex-direction:column;gap:5px}
+.rpgc .rpgc-st-rank{display:grid;grid-template-columns:20px minmax(0,1fr) auto;grid-template-areas:"ic nm rk" "ic pp pp";column-gap:6px;align-items:center;padding:5px 8px;border-radius:8px;background:var(--u-raise)}
+.rpgc .rpgc-st-rank .ic{grid-area:ic}.rpgc .rpgc-st-rank b{grid-area:nm;font-size:var(--u-fs-m)}.rpgc .rpgc-st-rank .rk{grid-area:rk;font-size:var(--u-fs-xs);color:var(--u-muted)}
+.rpgc .rpgc-st-rank .rpgc-rpips{grid-area:pp}
+.rpgc .rpgc-rpips{display:flex;gap:3px}.rpgc .rpgc-rpips i{flex:1;height:4px;border-radius:2px;background:var(--u-line)}
+.rpgc .rpgc-rpips i.on{background:var(--sc,var(--u-accent));box-shadow:0 0 6px -1px var(--sc,var(--u-glow))}
+.rpgc .rpgc-st-rank.sword{--sc:#e2b45a}
+.rpgc .rpgc-st-train .row{display:grid;grid-template-columns:minmax(0,1fr) 90px auto;gap:6px;align-items:center;font-size:var(--u-fs-s)}
+.rpgc .rpgc-st-train .bar,.rpgc .rpgc-load .bar{height:6px;border-radius:3px;background:var(--u-line);overflow:hidden}
+.rpgc .rpgc-st-train .bar i,.rpgc .rpgc-load .bar i{display:block;height:100%;background:linear-gradient(90deg,var(--u-accent),var(--u-ok))}
+.rpgc .rpgc-st-train .n{color:var(--u-muted);font-variant-numeric:tabular-nums}
+.rpgc .rpgc-doll{display:grid;grid-template-columns:1fr 92px 1fr;grid-template-areas:"l m r" "b b b";gap:6px;margin:4px 0 10px}
+.rpgc .rpgc-doll .col{display:flex;flex-direction:column;gap:6px}.rpgc .rpgc-doll .col.l{grid-area:l}.rpgc .rpgc-doll .col.r{grid-area:r}
+.rpgc .rpgc-doll .mid{grid-area:m;display:flex;flex-direction:column;align-items:center;gap:6px}
+.rpgc .rpgc-doll .row{grid-area:b;display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.rpgc .rpgc-doll-fig{width:70px;height:140px}
+.rpgc .rpgc-doll-fig circle,.rpgc .rpgc-doll-fig path{fill:color-mix(in srgb,var(--u-text) 12%,transparent);stroke:var(--u-line-2);stroke-width:1}
+.rpgc .rpgc-doll-fig .lit{fill:color-mix(in srgb,var(--u-accent) 30%,transparent);stroke:var(--u-accent)}
+.rpgc .rpgc-doll-slot{padding:5px 7px;border-radius:8px;border:1px solid var(--u-line);background:var(--u-raise);min-width:0}
+.rpgc .rpgc-doll-slot.empty{opacity:.55;border-style:dashed}
+.rpgc .rpgc-doll-slot .k{display:block;font-size:9.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--u-muted);margin-bottom:2px}
+.rpgc .rpgc-doll-slot .items{display:flex;flex-direction:column;gap:2px}
+.rpgc .rpgc-doll-it{font-size:var(--u-fs-s);line-height:1.25;overflow:hidden;text-overflow:ellipsis}
+.rpgc .rpgc-doll-it.new{color:var(--u-accent)}.rpgc .rpgc-doll-slot .none{color:var(--u-muted);font-size:var(--u-fs-s)}
+.rpgc .rpgc-load{display:grid;grid-template-columns:auto 1fr auto;gap:8px;align-items:center;font-size:var(--u-fs-s);margin:0 0 8px}
+.rpgc .rpgc-load .bar i.warn{background:var(--u-warn)}.rpgc .rpgc-load .bar i.bad{background:var(--u-bad)}
+.rpgc .rpgc-ttree{display:flex;flex-direction:column;gap:10px}
+.rpgc .rpgc-ttree-style .hd{display:flex;align-items:center;gap:6px;margin-bottom:4px}
+.rpgc .rpgc-ttree-style .tiers{position:relative;display:flex;flex-direction:column;gap:4px;padding-left:12px;border-left:2px solid var(--u-line)}
+.rpgc .rpgc-ttree-style .tier{position:relative;display:grid;grid-template-columns:76px minmax(0,1fr);gap:6px;align-items:start}
+.rpgc .rpgc-ttree-style .tier::before{content:"";position:absolute;left:-17px;top:6px;width:8px;height:8px;border-radius:50%;background:var(--u-line-2)}
+.rpgc .rpgc-ttree-style .tier.open::before{background:var(--u-ok);box-shadow:0 0 8px var(--u-ok)}.rpgc .rpgc-ttree-style .tier.next::before{background:var(--u-accent)}
+.rpgc .rpgc-ttree-style .rk{font-size:var(--u-fs-xs);color:var(--u-muted);padding-top:3px}
+.rpgc .rpgc-ttree-style .nodes{display:flex;flex-wrap:wrap;gap:4px}
+.rpgc .rpgc-ttree-style .node{font-size:var(--u-fs-s);padding:2px 8px;border-radius:999px;border:1px solid var(--u-line);color:var(--u-muted)}
+.rpgc .rpgc-ttree-style .node.known,.rpgc .rpgc-ttree-style .node.mastered{color:var(--u-text);border-color:color-mix(in srgb,var(--u-ok) 55%,transparent);background:color-mix(in srgb,var(--u-ok) 14%,transparent)}
+.rpgc .rpgc-ttree-style .node.reach,.rpgc .rpgc-ttree-style .node.open{color:var(--u-text)}
+.rpgc .rpgc-ttree-style .node.next{border-style:dashed;border-color:var(--u-accent)}.rpgc .rpgc-ttree-style .node.locked{opacity:.5}
+.rpgc .rpgc-ttree-style .node.study{border-color:var(--u-accent);color:var(--u-accent)}
+.rpgc .rpgc-rankup{display:flex;flex-wrap:wrap;gap:8px}
+.rpgc .rpgc-rankup .stamp{display:flex;flex-direction:column;align-items:center;padding:8px 16px;border-radius:var(--u-radius-s);border:2px solid var(--u-warn);color:var(--u-warn);background:color-mix(in srgb,var(--u-warn) 10%,transparent);transform:rotate(-2deg);animation:rpgc-stamp .5s cubic-bezier(.2,1.6,.4,1) both}
+.rpgc .rpgc-rankup .k{font-size:9.5px;font-weight:800;letter-spacing:.2em;text-transform:uppercase}
+.rpgc .rpgc-rankup b{font:800 22px/1.1 var(--u-display);letter-spacing:.04em}.rpgc .rpgc-rankup .w{font-size:var(--u-fs-xs);color:var(--u-text)}
+@keyframes rpgc-stamp{from{transform:scale(2.2) rotate(-12deg);opacity:0}to{transform:rotate(-2deg);opacity:1}}
+.rpgc .rpgc-coins{position:relative;display:inline-block;width:22px;height:30px}
+.rpgc .rpgc-coins i{position:absolute;left:1px;bottom:calc(var(--i) * 2.4px);width:20px;height:6px;border-radius:50%;background:linear-gradient(#f0d27a,#b88a2e);box-shadow:0 1px 0 #0005}
+.rpgc .rpgc-coins.silver i{background:linear-gradient(#f2f4f8,#9aa3b0)}.rpgc .rpgc-coins.copper i{background:linear-gradient(#e7a16b,#8c4a22)}.rpgc .rpgc-coins.other i{background:linear-gradient(#cfd8e6,#6c7a90)}
+.rpgc .rpgc-spend{display:flex;align-items:flex-end;gap:6px;height:70px;padding:4px 4px 0;margin:0 0 8px;border-bottom:1px solid var(--u-line)}
+.rpgc .rpgc-spend .col{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;height:100%}
+.rpgc .rpgc-spend .bars{flex:1;display:flex;align-items:flex-end;gap:2px;width:100%;justify-content:center}
+.rpgc .rpgc-spend .bars i{width:8px;border-radius:3px 3px 0 0;min-height:1px}.rpgc .rpgc-spend .bars i.in{background:var(--u-ok)}.rpgc .rpgc-spend .bars i.out{background:var(--u-bad)}
+.rpgc .rpgc-spend .d{font-size:9px;color:var(--u-muted);white-space:nowrap}
+.rpgc .rpgc-shop{padding:7px 10px;margin:0 0 8px;border-radius:var(--u-radius-s);border:1px dashed var(--u-line-2);background:var(--u-raise)}
+.rpgc .rpgc-shop .k{font-size:var(--u-fs-xs);font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--u-muted)}
+.rpgc .rpgc-shop ul{list-style:none;margin:4px 0 0;padding:0}.rpgc .rpgc-shop li{font-size:var(--u-fs-m);padding:2px 0}
+.rpgc .rpgc-week{margin:0 0 10px}
+.rpgc .rpgc-week .strip{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
+.rpgc .rpgc-wk-day{display:flex;flex-direction:column;align-items:center;gap:3px;font:inherit;padding:5px 2px;border-radius:8px;border:1px solid var(--u-line);background:var(--u-raise);color:var(--u-muted);cursor:pointer}
+.rpgc .rpgc-wk-day .n{font-size:var(--u-fs-xs);font-weight:650}
+.rpgc .rpgc-wk-day.today{border-color:var(--u-accent);color:var(--u-text)}.rpgc .rpgc-wk-day.has{color:var(--u-text)}
+.rpgc .rpgc-wk-day.sel{background:color-mix(in srgb,var(--u-accent) 20%,transparent)}
+.rpgc .rpgc-wk-day .dots{display:flex;gap:2px;height:5px}.rpgc .rpgc-wk-day .dots i{width:5px;height:5px;border-radius:50%;background:var(--u-accent)}
+.rpgc .rpgc-wk-day .dots i.now{background:var(--u-ok)}.rpgc .rpgc-wk-day .dots i.late{background:var(--u-bad)}
+.rpgc .rpgc-wk-list{list-style:none;margin:6px 0 0;padding:6px 8px;border-radius:8px;background:var(--u-raise);font-size:var(--u-fs-s)}
+/* spellbook pages */
+.rpgc [data-sec="magic"] .rpgc-spell-row{position:relative;background:linear-gradient(90deg,color-mix(in srgb,var(--sc,var(--u-accent)) 7%,transparent),transparent 40%),var(--u-raise);border-radius:8px}
+.rpgc [data-sec="magic"] .rpgc-spell-row.known::after,.rpgc [data-sec="magic"] .rpgc-spell-row.mastered::after{content:"";position:absolute;right:8px;bottom:6px;width:14px;height:14px;border-radius:50%;background:radial-gradient(circle at 35% 35%,color-mix(in srgb,var(--sc,var(--u-accent)) 80%,#fff),var(--sc,var(--u-accent)));opacity:.7}
+/* holdings as property cards */
+.rpgc [data-sec="holdings"] .rpgc-holding{background:radial-gradient(120% 90% at 100% 0,color-mix(in srgb,var(--u-warn) 12%,transparent),transparent 60%),var(--u-raise);border-radius:var(--u-radius-s)}
+
 `;
 
 // The guide, embedded from GUIDE.md so it ships inside the extension (tools/embed_guide.py refreshes it).
@@ -1828,7 +1909,7 @@ function rememberedOpen(initial) {
 }
 
 // 3.5.0: each card carries a medallion, so the eye finds a card by shape before reading it.
-const SECTION_SIGIL = { training: '🏋️', todo: '📝', world: '🌍', worldcard: '📜', map: '🗺️', atlas: '🧭', agenda: '📅', you: '🧍', gear: '🎒', holdings: '🏰', money: '🪙', dnd: '🎲',
+const SECTION_SIGIL = { sheet: '🛡️', threads: '🧵', foreshadow: '🔮', milestones: '🏆', stats: '📊', compare: '🔀', training: '🏋️', todo: '📝', world: '🌍', worldcard: '📜', map: '🗺️', atlas: '🧭', agenda: '📅', you: '🧍', gear: '🎒', holdings: '🏰', money: '🪙', dnd: '🎲',
     people: '👥', relweb: '🕸️', family: '🏡', factions: '⚜️', secrets: '🗝️', phone: '📱', body: '❤️', injuries: '🩹', mind: '🧠', survival: '🔥',
     magic: '✨', techniques: '⚔️', abilities: '💠', quests: '🎯', chronicle: '📖', chapter: '🔖', party: '🛡️', danger: '⚠️' };
 function section(id, title, openState, extra, ...content) {
@@ -5271,6 +5352,160 @@ export function setup(ctx) {
             h('span', null, T('Your birthday month'), age !== null ? h('span', { class: 'rpgc-note' }, ' \u00B7 ' + TT('the HUD says {0}', age)) : null));
     }
 
+    // ─────────── 1.4.0: you — the sheet, the paper doll, the technique tree, the rank-up, the purse, the load ───────────
+    const RANK_LADDER = ['Beginner', 'Intermediate', 'Advanced', 'Saint', 'King', 'Emperor', 'God'];
+    const rankStep = r => { const t = String(r || '').toLowerCase(); const i = RANK_LADDER.findIndex(x => t.includes(x.toLowerCase())); return i >= 0 ? i : /elementary/.test(t) ? 0 : -1; };
+    function rankPips(step, cls = '') {
+        return h('span', { class: 'rpgc-rpips ' + cls, 'aria-hidden': 'true' }, RANK_LADDER.map((_, i) => h('i', { class: i <= step ? 'on' : '' })));
+    }
+    function renderSheet() {
+        const w = state.world || {}, y = youOf ? youOf() : null;
+        if (S()?.uiSheet === false || (!w.race && !w.magic && !w.martial)) return null;
+        const name = state.userName || T('You');
+        const tile = (ic, k, v, cls = '') => v ? h('div', { class: 'rpgc-st-tile ' + cls }, h('span', { class: 'ic', 'aria-hidden': 'true' }, ic), h('span', { class: 'k' }, T(k)), h('b', null, String(v))) : null;
+        const ranks = [...(w.martial || []).map(m => ({ ...m, kind: 'sword' })), ...(w.magic || []).map(m => ({ ...m, kind: 'magic' }))];
+        const body = [
+            h('div', { class: 'rpgc-sheet-id' }, ringed(avatarImg(name) || monogram(name), { bond: 'family', tone: 'top' }),
+                h('div', { class: 'tx' }, h('b', { class: 'nm' }, name),
+                    h('span', { class: 'sub' }, [w.race, w.age ? TT('{0} years', w.age) : null, w.origin].filter(Boolean).join(' · ')),
+                    w.standing?.text ? h('span', { class: 'rpgc-chip standing top' }, w.standing.rank || w.standing.kind || w.standing.text) : null,
+                    w.standing?.house ? h('span', { class: 'sub' }, [w.standing.house, w.standing.birth].filter(Boolean).join(' · ')) : null),
+                y?.mood ? h('span', { class: 'rpgc-chip mood' }, y.mood) : null),
+            h('div', { class: 'rpgc-st-grid' }, tile('💧', 'Mana', w.mana, 'mana'), tile('🔋', 'Reserve', w.reserve), tile('🔥', 'Touki', w.touki, 'touki'), tile('🤫', 'Casting', w.casting)),
+            ranks.length ? h('div', { class: 'rpgc-st-ranks' }, ranks.map(r => h('div', { class: 'rpgc-st-rank ' + r.kind, 'data-school': r.kind === 'magic' ? schoolKey(r.name) : null },
+                h('span', { class: 'ic', 'aria-hidden': 'true' }, r.kind === 'sword' ? '⚔️' : '✨'), h('b', null, r.name), h('span', { class: 'rk' }, r.rank || '?'), rankPips(Number.isFinite(r.step) ? r.step : rankStep(r.rank))))) : null,
+            (w.training || []).length ? h('div', { class: 'rpgc-st-train' }, w.training.map(t => h('div', { class: 'row' }, h('span', { class: 'k' }, `${t.skill} → ${t.next}`),
+                h('span', { class: 'bar' }, h('i', { style: `width:${Math.round(100 * Math.min(1, t.done / Math.max(1, t.needed)))}%` })), h('span', { class: 'n' }, `${t.done}/${t.needed}`)))) : null,
+            (w.languages || []).length ? h('div', { class: 'rpgc-chips' }, w.languages.map(l => h('span', { class: 'rpgc-chip' }, '🗣️ ', l.name, l.fluency ? h('span', { class: 'rpgc-note' }, ' ' + l.fluency) : null))) : null];
+        return section('sheet', T('Character sheet'), state.open, w.standing?.rank || null, h('div', { class: 'rpgc-sheet' }, body));
+    }
+    // the paper doll: where each thing sits on you, from its tracked state and place
+    const DOLL_SLOTS = [['hands', '✋', 'Hands'], ['head', '🧢', 'Head'], ['shoulders', '🧥', 'Shoulders & back'], ['body', '👕', 'Body'],
+        ['arms', '🧤', 'Arms & wrists'], ['belt', '🪢', 'Belt & hips'], ['feet', '🥾', 'Feet'], ['bags', '🎒', 'Bags'], ['set', '📍', 'Set down']];
+    function dollSlot(it, byName) {
+        const where = String(it.where || '').toLowerCase(), name = String(it.name || '').toLowerCase();
+        if (it.state === 'in hand') return 'hands';
+        if (['stowed', 'dropped'].includes(it.state)) return 'set';
+        if (it.state === 'in container') {
+            const box = byName.get(String(it.inside || '').toLowerCase());
+            if (box && box !== it) { const s = dollSlot(box, new Map()); return s === 'set' ? 'set' : s === 'bags' ? 'bags' : s; }
+            return /bag|pack|satchel|sack|trunk|chest|wrap|bundle/.test(String(it.inside || '').toLowerCase()) ? 'bags' : 'body';
+        }
+        if (/\b(?:head|hair|brow|hat|hood|helm|circlet|crown)\b/.test(where + ' ' + name)) return 'head';
+        if (/\b(?:forearm|wrist|arm|hand|finger|ring|bracer|glove|gauntlet)\b/.test(where) || /\b(?:bracer|glove|gauntlet|ring|bracelet)\b/.test(name)) return 'arms';
+        if (/\b(?:belt|hip|waist|sash|thigh)\b/.test(where)) return 'belt';
+        if (/\b(?:back|shoulder|shoulders|cloak|cape)\b/.test(where) || /\b(?:cloak|cape|baldric|quiver)\b/.test(name)) return 'shoulders';
+        if (/\b(?:boot|shoe|feet|foot|ankle)\b/.test(where + ' ' + name)) return 'feet';
+        if (/\b(?:bag|pack|satchel|rucksack|backpack|pouch)\b/.test(name) && it.state !== 'worn') return 'bags';
+        return 'body';
+    }
+    function paperDoll(g) {
+        const byName = new Map(g.items.map(it => [String(it.name || '').toLowerCase(), it]));
+        const slots = new Map(DOLL_SLOTS.map(([id]) => [id, []]));
+        for (const it of g.items) slots.get(dollSlot(it, byName)).push(it);
+        const box = ([id, ic, label]) => { const list = slots.get(id); return h('div', { class: 'rpgc-doll-slot s-' + id + (list.length ? '' : ' empty') },
+            h('span', { class: 'k' }, h('span', { 'aria-hidden': 'true' }, ic), ' ', T(label)),
+            list.length ? h('div', { class: 'items' }, list.map(it => h('span', { class: 'rpgc-doll-it' + (it.changedNow ? ' new' : ''), title: [it.name, it.state, it.where, it.inside ? TT('in {0}', it.inside) : null].filter(Boolean).join(' · ') },
+                h('span', { 'aria-hidden': 'true' }, gearIcon(it.name)), ' ', String(it.name).replace(/\s*\(.*?\)\s*/g, ' ').trim()))) : h('span', { class: 'none' }, '—')); };
+        const NS = 'http://www.w3.org/2000/svg';
+        const fig = document.createElementNS(NS, 'svg'); fig.setAttribute('viewBox', '0 0 60 120'); fig.setAttribute('class', 'rpgc-doll-fig'); fig.setAttribute('aria-hidden', 'true');
+        fig.innerHTML = '<circle cx="30" cy="14" r="9"/><path d="M18 28 Q30 24 42 28 L46 62 L40 62 L38 44 L37 70 L40 114 L33 114 L30 78 L27 114 L20 114 L23 70 L22 44 L20 62 L14 62 Z"/>';
+        const filled = id => slots.get(id).length > 0;
+        for (const [id, sel] of [['head', 'circle'], ['body', 'path']]) if (filled(id)) fig.querySelector(sel)?.classList.add('lit');
+        return h('div', { class: 'rpgc-doll' },
+            h('div', { class: 'col l' }, ['head', 'shoulders', 'arms'].map(id => box(DOLL_SLOTS.find(s => s[0] === id)))),
+            h('div', { class: 'mid' }, fig, box(DOLL_SLOTS[0])),
+            h('div', { class: 'col r' }, ['body', 'belt', 'feet'].map(id => box(DOLL_SLOTS.find(s => s[0] === id)))),
+            h('div', { class: 'row' }, box(DOLL_SLOTS.find(s => s[0] === 'bags')), box(DOLL_SLOTS.find(s => s[0] === 'set'))));
+    }
+    // a rough load from what is on you: weapons and armour weigh, papers and coins hardly do (display only, off by default)
+    const LOAD_KG = { weapons: 2.5, armor: 5, clothing: 1, magic: 0.5, bags: 0.8, money: 0.2, papers: 0.3, food: 0.5, tools: 1, other: 0.6 };
+    function loadBar(g) {
+        if (S()?.uiLoad !== true) return null;
+        const carried = g.items.filter(it => !['stowed', 'dropped'].includes(it.state) && !(it.state === 'in container' && g.items.some(b => b.name === it.inside && ['stowed', 'dropped'].includes(b.state))));
+        const kg = carried.reduce((a, it) => a + (LOAD_KG[(gearKind(it) || ['other'])[0]] ?? 0.6), 0);
+        const pct = Math.min(100, Math.round(kg / 25 * 100));
+        const word = kg < 8 ? T('light') : kg < 16 ? T('moderate') : kg < 22 ? T('heavy') : T('very heavy');
+        return h('div', { class: 'rpgc-load', title: T('A rough guess from the kinds of things you carry, not from the story') },
+            h('span', { class: 'k' }, '⚖️ ', T('Load')), h('span', { class: 'bar' }, h('i', { style: `width:${pct}%`, class: pct > 85 ? 'bad' : pct > 60 ? 'warn' : '' })), h('span', { class: 'v' }, `~${Math.round(kg)} kg · ${word}`));
+    }
+    // the technique tree: each style's techniques by rank, lit as you learn them
+    function techTree(L) {
+        const schools = (L.schools || []).filter(g => g.mine || g.known);
+        if (!schools.length) return null;
+        return h('div', { class: 'rpgc-ttree' }, schools.map(g => {
+            const byRank = new Map();
+            for (const sp of g.spells || []) { const k = Number.isFinite(sp.step) ? sp.step : 99; if (!byRank.has(k)) byRank.set(k, []); byRank.get(k).push(sp); }
+            const tiers = [...byRank].sort((a, b) => a[0] - b[0]);
+            return h('div', { class: 'rpgc-ttree-style' }, h('div', { class: 'hd' }, h('b', null, g.name), g.rank ? h('span', { class: 'rpgc-chip' }, g.rank) : null),
+                h('div', { class: 'tiers' }, tiers.map(([step, list]) => h('div', { class: 'tier' + (Number.isFinite(g.step) && step <= g.step ? ' open' : step === (g.step ?? -9) + 1 ? ' next' : '') },
+                    h('span', { class: 'rk' }, step === 99 ? T('Unranked') : (list[0].rank || RANK_LADDER[step] || '')),
+                    h('div', { class: 'nodes' }, list.map(sp => h('span', { class: 'node ' + sp.status, title: [sp.name, sp.why, sp.effect].filter(Boolean).join(' — ') },
+                        ['known', 'mastered'].includes(sp.status) ? '◆ ' : sp.status === 'study' ? '◈ ' : '◇ ', sp.name)))))));
+        }));
+    }
+    // a rank that went up this reply gets its moment
+    function rankUps() {
+        const hms = state.hms || {}, was = isObj(hms.hudWas) ? hms.hudWas : {};
+        const out = [];
+        for (const l of hms.hud?.lines || []) {
+            if (l.block || !(l.key in was) || !/style|magic|tier|rank|level|class|skill/i.test(l.key)) continue;
+            const before = String(was[l.key]), now = String((l.fields && l.fields[0] && l.fields[0].value) || l.text);
+            for (const m of now.matchAll(/([A-Z][\p{L}' -]{1,30}?)\s*\(([A-Za-z]+)\)/gu)) {
+                const prev = before.match(new RegExp(m[1].replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '\\s*\\(([A-Za-z]+)\\)'));
+                if (prev && rankStep(m[2]) > rankStep(prev[1]) && rankStep(prev[1]) >= 0) out.push({ what: m[1].trim(), from: prev[1], to: m[2] });
+            }
+            const lv = now.match(/\b(?:Lv|Level)\.?\s*(\d+)/i), lw = before.match(/\b(?:Lv|Level)\.?\s*(\d+)/i);
+            if (lv && lw && +lv[1] > +lw[1]) out.push({ what: T('Level'), from: lw[1], to: lv[1] });
+        }
+        if (!out.length) return null;
+        return h('div', { class: 'rpgc-rankup', role: 'status' }, out.slice(0, 3).map(r => h('div', { class: 'stamp' },
+            h('span', { class: 'k' }, T('Rank up')), h('b', null, `${r.to}!`), h('span', { class: 'w' }, `${r.what} · ${r.from} → ${r.to}`))));
+    }
+    // a coin stack per currency, and spending by the story's day
+    function coinStack(n, cur) {
+        const k = Math.max(1, Math.min(10, Math.ceil(Math.log2(Math.max(1, n) + 1))));
+        const tone = /gold/i.test(cur) ? 'gold' : /silver/i.test(cur) ? 'silver' : /copper|bronze/i.test(cur) ? 'copper' : 'other';
+        return h('span', { class: 'rpgc-coins ' + tone, 'aria-hidden': 'true' }, Array.from({ length: k }, (_, i) => h('i', { style: `--i:${i}` })));
+    }
+    function spendChart(m) {
+        const days = new Map();
+        for (const x of [...(m.ledger || [])].reverse()) { if (x.dir !== 'out' && x.dir !== 'in') continue; const d = x.when || '?'; if (!days.has(d)) days.set(d, { out: 0, in: 0 }); days.get(d)[x.dir] += Number(x.amount) || 0; }
+        if (days.size < 2) return null;
+        const list = [...days].slice(-8), max = Math.max(1, ...list.map(([, v]) => Math.max(v.out, v.in)));
+        return h('div', { class: 'rpgc-spend', role: 'img', 'aria-label': T('Money in and out by day') }, list.map(([d, v]) => h('div', { class: 'col', title: `${d}: +${v.in} / −${v.out}` },
+            h('span', { class: 'bars' }, h('i', { class: 'in', style: `height:${Math.round(v.in / max * 100)}%` }), h('i', { class: 'out', style: `height:${Math.round(v.out / max * 100)}%` })),
+            h('span', { class: 'd' }, String(d).replace(/^K\d+,\s*/, '').replace(/Month\s*/i, 'M').replace(/,?\s*Day\s*/i, '·')))));
+    }
+    // things someone asked you to bring back, from the Agenda's own wording
+    function shoppingList() {
+        const items = (state.hms?.agenda?.items || []).filter(x => ['open', 'in_progress'].includes(x.state) && /\b(?:bring (?:back|home)|buy|fetch|pick up|find (?:a|an|the|her|him)|get (?:a|an|the|her|him))\b/i.test(x.what || ''));
+        if (!items.length) return null;
+        return h('div', { class: 'rpgc-shop' }, h('span', { class: 'k' }, '🛍️ ', T('To bring back')),
+            h('ul', null, items.map(x => h('li', null, h('button', { class: 'rpgc-mini', title: T('Got it'), 'aria-label': TT('Got it: {0}', x.what), onclick: () => send({ type: 'agenda', chatId: state.chatId, op: 'set', key: x.key, state: 'kept' }) }, '☐'), ' ', x.what, x.with ? h('span', { class: 'rpgc-note' }, ' · ' + x.with) : null))));
+    }
+
+
+    // the next seven story days as a strip, a dot per thing due that day; tap a day to see it
+    function agendaWeek(rows) {
+        if (S()?.uiWeek === false) return null;
+        const live = rows.filter(x => ['open', 'in_progress'].includes(x.state));
+        const dayOf = x => { const d = x.agendaTiming?.delta; if (Number.isFinite(d)) return Math.floor(((state.hms?.systems?.clock ?? 0) % 1440 + d) / 1440); if (Number.isFinite(x.agendaTiming?.dayIn)) return x.agendaTiming.dayIn; if (Number.isFinite(x.dayIn)) return x.dayIn; return null; };
+        const by = new Map();
+        for (const x of live) { const d = dayOf(x); if (d === null || d < 0 || d > 6) continue; if (!by.has(d)) by.set(d, []); by.get(d).push(x); }
+        if (!by.size) return null;
+        const sel = Number.isFinite(state.agendaDay) ? state.agendaDay : null;
+        const today = state.world?.day ? +state.world.day : null;
+        const cells = Array.from({ length: 7 }, (_, i) => { const list = by.get(i) || [];
+            return h('button', { class: 'rpgc-wk-day' + (i === 0 ? ' today' : '') + (sel === i ? ' sel' : '') + (list.length ? ' has' : ''), type: 'button', 'aria-pressed': sel === i ? 'true' : 'false',
+                onclick: () => { state.agendaDay = sel === i ? null : i; render(); }, title: list.map(x => x.what).join(' · ') || T('Nothing set') },
+                h('span', { class: 'n' }, i === 0 ? T('Today') : i === 1 ? T('Tmrw') : today ? String(((today - 1 + i) % 30) + 1) : '+' + i),
+                h('span', { class: 'dots' }, list.slice(0, 4).map(x => h('i', { class: x.state === 'in_progress' ? 'now' : x.status === 'overdue' ? 'late' : '' })))); });
+        const picked = sel !== null ? (by.get(sel) || []) : null;
+        return h('div', { class: 'rpgc-week' }, h('div', { class: 'strip' }, cells),
+            picked ? h('ul', { class: 'rpgc-wk-list' }, picked.length ? picked.map(x => h('li', null, (AGENDA_ICON[x.kind] || '•') + ' ', h('b', null, x.what), x.when ? h('span', { class: 'rpgc-note' }, ' · ' + x.when) : null)) : h('li', { class: 'rpgc-note' }, T('Nothing set that day.'))) : null);
+    }
+
     function renderHmsTrackers() {
         const s = S();
         const snapshots = renderTrackerSnapshots();
@@ -5298,7 +5533,7 @@ export function setup(ctx) {
         const cards = [
             ['scene', renderRecap], ['scene', renderNow], ['scene', renderTodo], ['scene', renderLooseEnds], ['scene', renderWorldState], ['scene', renderWorldCard], ['scene', renderMap], ['journey', renderAtlas], ['journey', renderAgenda],
             ['journey', () => h('div', { class: 'rpgc-row rpgc-journey-top', 'data-open-key': 'recap-btn' }, h('button', { class: 'rpgc-btn', onclick: () => { state.recap = { since: null }; goTo('scene'); } }, '📜 ' + T('Previously…')))],
-            ['you', renderYou], ['you', renderGear], ['you', renderHoldings], ['you', renderMoney], ['you', renderDnd],
+            ['you', renderSheet], ['you', renderYou], ['you', renderGear], ['you', renderHoldings], ['you', renderMoney], ['you', renderDnd],
             ['people', renderPeopleAll], ['people', renderRelationshipWeb], ['people', renderFamily], ['people', renderFactions], ['people', renderSecrets], ['people', renderPhone],
             ['you', renderBody], ['you', renderInjuries], ['you', renderMind], ['you', renderSurvival], ['you', renderMagic], ['you', renderTechniques], ['you', renderAbilities], ['you', renderTraining],
             ['journey', () => s.showQuests ? renderHmsQuests() : null], ['journey', renderChronicle], ['journey', renderChapter]];
@@ -5308,6 +5543,7 @@ export function setup(ctx) {
         if (order) built.sort((a, b) => order.indexOf(a.dataset?.openKey) - order.indexOf(b.dataset?.openKey));
         if (!built.length) built.push(h('p', { class: 'rpgc-note rpgc-empty-view' }, T('Nothing here yet. Cards appear as the story reports them.')));
         const head = out.splice(2); // tools, notices and story actions sit above the view, inside the main column
+        { const ru = rankUps(); if (ru) head.unshift(ru); }
         { if (view === 'scene' || view === 'all') { const bd = birthdayCard(); if (bd) head.unshift(bd); const room = roomStrip(); if (room) head.unshift(room); }
           const rib = view === 'scene' || view === 'all' ? sinceRibbon() : null; if (rib) head.unshift(rib); const strip = hudStrip(view === 'scene' || view === 'all'); if (strip) head.unshift(strip); }
         out.push(h('div', { class: 'rpgc-shell' }, viewBar(view), h('div', { class: 'rpgc-main' }, ...head, h('div', { class: 'rpgc-view rpgc-view-' + view }, ...built))));
@@ -6298,12 +6534,13 @@ export function setup(ctx) {
         if (m.totals.length) out.push(h('div', { class: 'rpgc-purse' }, m.totals.map(t => {
             const left = (t.in || 0) - (t.out || 0), known = left >= 0;
             return h('div', { class: 'rpgc-purse-tile', title: T('What came in, what went out, and what that leaves') },
-                h('span', { class: 'coin', 'aria-hidden': 'true' }, /gold/i.test(t.currency) ? '🟡' : /silver/i.test(t.currency) ? '⚪' : /copper|bronze/i.test(t.currency) ? '🟤' : '🪙'),
+                h('span', { class: 'coin', 'aria-hidden': 'true' }, coinStack(Math.max(t.in || 0, t.out || 0, Math.abs(left)), t.currency)),
                 h('span', { class: 'cur' }, t.currency),
                 known ? h('b', { class: 'left' }, fmtAmt(left, '')) : h('b', { class: 'left spent' }, TT('spent {0}', t.out)),
                 h('span', { class: 'flow' }, h('span', { class: 'in' }, `+${t.in || 0}`), ' / ', h('span', { class: 'out' }, `−${t.out || 0}`)),
                 known ? null : h('span', { class: 'why' }, T('from money the story never counted in')));
         })));
+        { const ch = spendChart(m); if (ch) out.push(ch); }
         if (m.debts.length) out.push(h('div', { class: 'rpgc-gear-group' }, h('h4', null, '📝 Open debts'), h('ul', null, m.debts.map(d => h('li', { class: 'rpgc-money-row ' + (d.owe ? 'owe' : 'owed') },
             h('span', { class: 'body' }, d.owe ? TT('You owe {0}', d.with || T('someone')) : TT('{0} owes you', d.with || T('Someone')), d.what ? h('span', { class: 'meta' }, ` · ${d.what}`) : null),
             h('b', { class: 'amt' }, fmtAmt(d.left, d.currency) + (d.left !== d.amount ? ` of ${d.amount}` : '')),
@@ -6489,6 +6726,7 @@ export function setup(ctx) {
             return {...item,status:timing.status,agendaTiming:timing};
         });
         const out = [];
+        { const wk = agendaWeek(rows); if (wk) out.push(wk); const sh = shoppingList(); if (sh) out.push(sh); }
         // 1.3.0: Next up — the nearest thing with a time, big, with its countdown
         const live = rows.filter(x => x.state === 'open' || x.state === 'in_progress');
         const rank = { in_progress: 0, overdue: 1, soon: 2, today: 3, upcoming: 4 };
@@ -6729,7 +6967,10 @@ export function setup(ctx) {
         const byKind = state.open['gear-view-kind'] === true;
         if (g.items.length) out.push(h('div', { class: 'rpgc-gear-viewsw', role: 'group', 'aria-label': T('Sort gear') },
             h('button', { type: 'button', class: 'rpgc-gv' + (byKind ? '' : ' on'), 'aria-pressed': byKind ? 'false' : 'true', onclick: () => { state.open['gear-view-kind'] = false; render(); } }, '📍 ' + T('By where')),
-            h('button', { type: 'button', class: 'rpgc-gv' + (byKind ? ' on' : ''), 'aria-pressed': byKind ? 'true' : 'false', onclick: () => { state.open['gear-view-kind'] = true; render(); } }, '🗂️ ' + T('By kind'))));
+            h('button', { type: 'button', class: 'rpgc-gv' + (byKind ? ' on' : ''), 'aria-pressed': byKind ? 'true' : 'false', onclick: () => { state.open['gear-view-kind'] = true; render(); } }, '🗂️ ' + T('By kind')),
+            h('button', { type: 'button', class: 'rpgc-gv' + (state.open['gear-doll'] === true ? ' on' : ''), 'aria-pressed': state.open['gear-doll'] === true ? 'true' : 'false', title: T('Show where each thing sits on you'), onclick: () => { state.open['gear-doll'] = !(state.open['gear-doll'] === true); render(); } }, '🧍 ' + T('On you'))));
+        if (g.items.length && state.open['gear-doll'] === true) out.push(paperDoll(g));
+        { const lb = g.items.length ? loadBar(g) : null; if (lb) out.push(lb); }
         const now = g.items.filter(it => it.changedNow);
         if (now.length) out.push(h('div', { class: 'rpgc-gear-now' }, h('span', { class: 'k' }, '✨ ' + T('This turn')), ...now.map(it => h('span', { class: 'rpgc-gn-chip' }, h('span', { 'aria-hidden': 'true' }, gearIcon(it.name)), ` ${it.name} → ${it.state === 'in container' ? TT('in {0}', it.inside || T('a container')) : T(GEAR_LABEL[it.state] || 'carried')}`))));
         if (byKind) out.push(...renderGearKinds(g));
@@ -9208,7 +9449,11 @@ html,body{background:${panelBg}!important;}`;
         const c = sysCfg().magic || {};
         if (!L || c.enabled === false) return null;
         const knownN = L.schools.reduce((a, g) => a + g.known, 0);
-        return section('techniques', 'Combat techniques', state.open, knownN ? (knownN === 1 ? T('1 technique') : TT('{0} techniques', knownN)) : null, renderSpellList(L, 'tech'));
+        const treeOn = state.open['tech-tree'] === true, tree = treeOn ? techTree(L) : null;
+        const sw = h('div', { class: 'rpgc-gear-viewsw', role: 'group', 'aria-label': T('Show techniques as') },
+            h('button', { class: 'rpgc-gv' + (!treeOn ? ' on' : ''), onclick: () => { state.open['tech-tree'] = false; render(); } }, '📋 ', T('List')),
+            h('button', { class: 'rpgc-gv' + (treeOn ? ' on' : ''), onclick: () => { state.open['tech-tree'] = true; render(); } }, '🌳 ', T('Tree')));
+        return section('techniques', 'Combat techniques', state.open, knownN ? (knownN === 1 ? T('1 technique') : TT('{0} techniques', knownN)) : null, sw, tree || renderSpellList(L, 'tech'));
     }
 
     function renderSpellList(L, kind = 'spell') {
