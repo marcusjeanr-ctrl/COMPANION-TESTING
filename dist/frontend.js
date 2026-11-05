@@ -1266,6 +1266,16 @@ button.rpgc-chip.intel:hover { border-color: var(--lumiverse-accent, #7aa2f7); }
 .rpgc .rpgc-agenda-item{transition:border-color .15s,background .15s}
 .rpgc .rpgc-agenda-item:hover{background:var(--u-hover)}
 
+/* 1.3.0: luggage and things left elsewhere */
+.rpgc .rpgc-gear-group.luggage>ul{padding:6px;border-radius:var(--u-radius-s);border:1px dashed color-mix(in srgb,var(--u-accent) 35%,var(--u-line));background:color-mix(in srgb,var(--u-accent) 5%,transparent)}
+.rpgc .rpgc-gear-group.luggage h4 .meta{text-transform:none;font-variant:normal;letter-spacing:0;font-weight:500;font-family:inherit;font-size:11px}
+.rpgc .rpgc-gear-elsewhere{margin-top:4px}
+.rpgc .rpgc-ge-place{display:flex;flex-wrap:wrap;align-items:center;gap:5px;margin:3px 0}
+.rpgc .rpgc-ge-place .pl{font-size:10.5px;color:var(--u-muted);margin-right:2px}
+.rpgc .rpgc-ge-place .pl::after{content:" ·"}
+.rpgc .rpgc-ge-chip{font:inherit;font-size:11.5px;padding:3px 9px;border-radius:999px;border:1px dashed var(--u-line-2);background:var(--u-glass);color:var(--u-text);cursor:pointer}
+.rpgc .rpgc-ge-chip .back{opacity:0;transition:opacity .15s}.rpgc .rpgc-ge-chip:hover{border-style:solid;border-color:var(--u-accent)}.rpgc .rpgc-ge-chip:hover .back{opacity:1}
+
 `;
 
 // The guide, embedded from GUIDE.md so it ships inside the extension (tools/embed_guide.py refreshes it).
@@ -5732,7 +5742,7 @@ export function setup(ctx) {
         [/\b(shield|buckler)\b/i, '🛡️'], [/\b(bracer|vambrace|gauntlet|glove)s?\b/i, '🧤'], [/\b(baldric|belt|harness|strap|sash|scabbard|sheath|holster|bandolier)\b/i, '🎗️'],
         [/\b(armou?r|mail|cuirass|breastplate|plate|helm|helmet)\b/i, '🦺'], [/\b(cloak|coat|jacket|robe|cape|mantle|tunic|shirt|dress|scarf)\b/i, '🧥'],
         [/\b(boots?|shoes?|sandals?)\b/i, '🥾'], [/\b(ring|amulet|necklace|pendant|locket|talisman|charm|brooch)\b/i, '💍'],
-        [/\b(purse|coins?|wallet|money|silver|gold)\b/i, '👛'], [/\b(bag|backpack|pack|satchel|sack|pouch|luggage|trunk|chest|case|box)\b/i, '🎒'],
+        [/\b(purse|coins?|wallet|money|silver|gold)\b/i, '👛'], [/\b(bags?|backpacks?|packs?|satchels?|sacks?|pouch(?:es)?|luggage|trunks?|chests?|cases?|box(?:es)?)\b/i, '🎒'], [/\b(wrap|wrapping|oilcloth|cloth|bundle|parcel)\b/i, '📦'],
         [/\b(books?|tome|grimoire|spellbook|primer|journal|diary|notebook)\b/i, '📘'], [/\b(letter|scroll|paper|map|note|parchment|document|contract)\b/i, '📜'],
         [/\b(slate|tablet|chalk)\b/i, '🪧'], [/\b(potion|vial|flask|bottle|elixir|tonic)\b/i, '🧪'], [/\b(food|bread|cheese|ration|cake|apple|meat|jerky|cider|wine|water)\b/i, '🍞'],
         [/\b(key|lockpick)s?\b/i, '🗝️'], [/\b(torch|lantern|lamp|candle)\b/i, '🕯️'], [/\b(rope|cord|twine)\b/i, '🪢'], [/\b(crystal|gem|stone|jewel|shard)\b/i, '💎'],
@@ -5824,6 +5834,8 @@ export function setup(ctx) {
             const cn = low(it.name);
             if (!nestable.has(cn) || depth > 4) return gearRow(g, it);
             const kids = contentsOf(cn);
+            // an empty bag or purse is just a row: no toggle and no "nothing inside" line
+            if (!kids.length) return gearRow(g, it);
             const boxKey = 'gear-box-' + cn, open = state.open[boxKey] !== false;
             const li = gearRow(g, it);
             li.classList.add('rpgc-gear-box');
@@ -5847,7 +5859,17 @@ export function setup(ctx) {
             return li;
         };
         const rowFor = it => { used.add(it.key); return boxItemRow(it, 0); };
+        // 1.3.0: luggage (bags by the door, on the courier's wagon) is one group with its place in the header
+        const LUG = /\b(?:luggage|travel(?:ling)? bags?|(?:taller|second|top|bottom|small|large|other) travel bag|trunk|chest|saddlebags?|travel case|bags)\b/i;
+        const isLug = it => LUG.test(it.name) && (!it.state || it.state === 'stowed' || it.state === 'dropped');
         for (const [st, title] of GEAR_GROUPS) {
+            if (st === 'stowed') {
+                const lug = g.items.filter(it => isLug(it) && !used.has(it.key) && !nestedUnderRow(it));
+                if (lug.length) {
+                    const place = (lug.find(it => it.where) || {}).where || null;
+                    out.push(h('div', { class: 'rpgc-gear-group luggage' }, h('h4', null, '🧳 ' + T('Luggage'), place ? h('span', { class: 'meta' }, ' · ' + place) : null), h('ul', null, lug.map(rowFor))));
+                }
+            }
             if (st === 'in container') {
                 // containers without a row of their own (or caught in a loop): the older "Inside …" group
                 for (const cn of g.containers) {
@@ -5868,7 +5890,7 @@ export function setup(ctx) {
                 if (loose.length) out.push(h('div', { class: 'rpgc-gear-group' }, h('h4', null, '👜 Packed away'), h('ul', null, loose.map(it => gearRow(g, it)))));
                 continue;
             }
-            const list = g.items.filter(it => (st === null ? !it.state : it.state === st) && !used.has(it.key) && !nestedUnderRow(it));
+            const list = g.items.filter(it => (st === null ? !it.state : it.state === st) && !used.has(it.key) && !nestedUnderRow(it) && !isLug(it));
             if (!list.length) continue;
             out.push(h('div', { class: 'rpgc-gear-group' + (st === 'in hand' ? ' hands' : '') }, h('h4', null, title), h('ul', null, list.map(rowFor))));
         }
@@ -5890,8 +5912,17 @@ export function setup(ctx) {
         };
         nameIn.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); add(); } });
         out.push(h('div', { class: 'rpgc-add' }, nameIn, stSel, h('button', { class: 'rpgc-btn', onclick: add }, 'Add')));
+        // 1.3.0: still yours but not with you (with someone, at home, in a drawer): small chips by place, one tap to take back
+        if (g.elsewhere && g.elsewhere.length) {
+            const byPlace = new Map();
+            for (const x of g.elsewhere) { const k = x.where || T('somewhere'); if (!byPlace.has(k)) byPlace.set(k, []); byPlace.get(k).push(x); }
+            out.push(h('div', { class: 'rpgc-gear-elsewhere' }, h('h4', null, '📍 ' + T('Still yours, elsewhere')),
+                ...[...byPlace].map(([place, xs]) => h('div', { class: 'rpgc-ge-place' }, h('span', { class: 'pl' }, place),
+                    ...xs.map(x => h('button', { type: 'button', class: 'rpgc-ge-chip', title: `${T('Back on you')}: ${x.name}`, 'aria-label': `${T('Back on you')}: ${x.name}`,
+                        onclick: () => send({ type: 'gear', chatId: state.chatId, op: 'set', key: x.key, name: x.name, state: 'on body' }) }, h('span', { 'aria-hidden': 'true' }, gearIcon(x.name)), ' ', x.name, h('span', { class: 'back', 'aria-hidden': 'true' }, ' ↩')))))));
+        }
         if (g.gone && g.gone.length) {
-            const det = h('details', { class: 'rpgc-subdet' }, h('summary', null, `Gone (${g.gone.length})`),
+            const det = h('details', { class: 'rpgc-subdet' }, h('summary', null, `Gone (${g.gone.length})`, g.usedUp ? h('span', { class: 'meta' }, ` · ${TT('{0} used up', g.usedUp)}`) : null),
                 // where each was last seen; one still yours (left somewhere, with someone) can come back on you
                 h('div', { class: 'rpgc-note' }, ...g.gone.map(x => h('div', { style: 'display:flex;align-items:center;gap:6px;margin:2px 0' },
                     h('span', { class: 'grow', style: 'min-width:0' }, x.name, x.where ? h('span', { style: 'color:var(--lumiverse-text-muted,#aaa)' }, ` · ${x.where}`) : null, gearAgo(x.ago) ? h('span', { style: 'color:var(--lumiverse-text-muted,#aaa)' }, ` (${gearAgo(x.ago)})`) : null),

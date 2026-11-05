@@ -13810,6 +13810,8 @@ const GEAR_LUGGAGE_RE = /\b(?:travel(?:ling)? bags?|luggage|trunk|chest|crate|sa
 // "(laid beside bags)", "(packed, top bag)": where it is, already shown as its place; not part of its name.
 const GEAR_PLACE_NOTE_RE = /\b(?:laid|set down|beside|next to|by the|on the|in(?:side)? (?:the |a |my )?[\w'’-]*\s*(?:bag|pack|bracer|case|chest|trunk|drawer)|packed|stowed|left (?:at|in|on|by)|top bag|bottom bag)\b/i;
 const GEAR_FURNITURE_RE = /\b(?:desk|table|shelf|shelves|shelving|counter|nightstand|dresser|cabinet|rack|stand|floor|ground|bench|bed|sideboard|mantel|tray|ledge)\b/i;
+const GEAR_LUGGAGE_LIST_RE = /\b(?:luggage|travel(?:ling)? bags?|(?:taller|second|top|bottom|small|large|other) travel bag|trunk|chest|saddlebags?|travel case|bags)\b/i;
+const GEAR_CONSUMABLE_RE = /\b(?:cake|bread|cheese|cider|wine|ale|beer|mead|tea|soup|stew|meal|food|snack|drink|cup of|mug of|apple|pie|biscuits?|candy|sweets?|porridge|milk|juice|jerky|ration)\b/i;
 const GEAR_BODY_RE = /\b(?:belt|back|hip|hips|shoulder|shoulders|neck|wrist|waist|chest|arm|arms|thigh|leg|ankle|pocket|bandolier|harness|strap|strapped|slung|on (?:him|her|you|them))\b/i;
 const GEAR_STATES = ['in hand', 'worn', 'sheathed', 'on body', 'in container', 'stowed', 'dropped', 'gone'];
 const GEAR_SYN = [
@@ -14079,7 +14081,11 @@ function gearReadUncached(chat, st, cfg) {
             const it = ensure(r.name, 'story', reported);
             if (!it) continue;
             reported.add(it);
-            if (r.state === 'in container' && r.inside && !find(gearBare(r.inside)) && !/\b(pocket|bolso|bolsillo)\b/i.test(r.inside)) { const box = ensure(r.inside, 'story'); if (box && !box.state) box.state = GEAR_LUGGAGE_RE.test(r.inside) ? null : 'on body'; }
+            if (r.state === 'in container' && r.inside && !find(gearBare(r.inside)) && !/\b(pocket|bolso|bolsillo)\b/i.test(r.inside)) { const box = ensure(r.inside, 'story'); if (box && !box.state) {
+                // "taller travel bag, oilcloth wrap against the dry inner wall": the wrap is in that bag, not on you
+                const outer = String(r.where || '').split(/\s*[,;]\s*/).map(x => find(gearBare(x))).find(x => x && x !== box && x !== it);
+                if (outer) { box.state = 'in container'; box.inside = outer.name; } else { box.state = GEAR_LUGGAGE_RE.test(r.inside) ? null : 'on body'; box.outerHint = r.where || null; }
+            } }
             // "on body" means slung/strapped; reported with a desk or shelf as its place, it was set down there.
             const setDown = String(r.state || '').toLowerCase() === 'on body' && GEAR_FURNITURE_RE.test(r.where || '') && !GEAR_BODY_RE.test(r.where || '');
             // "in hand", but "held by Aurelia Veyrath": someone in the scene has it, not the player.
@@ -14174,6 +14180,18 @@ function gearReadUncached(chat, st, cfg) {
         if (it.idx > after) continue;
         if (ed.state) { if (it.state !== ed.state || !relSameWords(it.inside || '', ed.inside || '')) it.history.push({ state: ed.state, where: ed.where || null, inside: ed.inside || null, at: null, msgId: null, you: true }); it.state = ed.state; it.where = ed.where || null; it.inside = ed.state === 'in container' ? ed.inside || null : null; it.mine = true; }
     }
+    // an implied wrap whose bag was named before the bag itself appeared in the reports
+    for (const it of items.values()) {
+        if (!it.outerHint || it.inside || it.state !== 'on body' || it.history.length > 1) continue;
+        const outer = String(it.outerHint).split(/\s*[,;]\s*/).map(x => find(gearBare(x))).find(x => x && x !== it);
+        if (outer) { it.state = 'in container'; it.inside = outer.name; }
+    }
+    // "stowed — belt, right hip": a place on the body is on you, whatever the report called it
+    for (const it of items.values()) {
+        if (['stowed', 'dropped'].includes(it.state) && it.where && GEAR_BODY_RE.test(it.where) && !GEAR_FURNITURE_RE.test(it.where)
+            && !/\b(?:held|carried|kept|worn|taken)\s+by\b|\bwith\s+\p{Lu}/u.test(it.where)
+            && !/\b(?:beside|by the|next to|on the (?:floor|ground|table|bed|shelf)|in (?:the |a )?(?:bag|pack|chest|trunk|drawer|room))\b/i.test(it.where)) it.state = 'on body';
+    }
     // "seated in the slide-bracer", "sheathed in the baldric": inside another thing you own, so it shows under it
     for (const it of items.values()) {
         if (it.inside || !/^(?:on body|worn|in hand|sheathed)$/.test(it.state || '') || !it.where) continue;
@@ -14202,7 +14220,9 @@ function hmsGearPanel(chat, st, cfg) {
     const SPENT_RE = /\b(sold|eaten|ate|drunk|drank|given (?:away|as)|gift(?:ed)?|traded|spent|broke|broken|destroyed|lost|burn(?:t|ed)?|used up|consumed|stolen|thrown|smashed)\b/i;
     const owned = it => it.state === 'stowed' || it.state === 'dropped' || (it.state === 'gone' && KEPT_RE.test(it.where || '') && !SPENT_RE.test(it.where || ''));
     // Still on the HUD's Equipment line (laid by the bags for the morning): shown with what you carry, under Left somewhere.
-    const away = it => it.state === 'gone' || (it.state === 'stowed' && !it.onHud) || (it.state === 'dropped' && ago(it.at) !== null && ago(it.at) >= DAY);
+    // Luggage (the travel bags by the door, on the courier's wagon) is still your kit: it stays in the list, under Luggage.
+    const luggage = it => GEAR_LUGGAGE_LIST_RE.test(it.name) && (!it.state || ['stowed', 'dropped'].includes(it.state));
+    const away = it => !luggage(it) && (it.state === 'gone' || (it.state === 'stowed' && !it.onHud) || (it.state === 'dropped' && ago(it.at) !== null && ago(it.at) >= DAY));
     // Put back on someone else's rail, rack or stall (a smith's display blade tried and returned): never yours
     const shopItem = it => (it.state === 'dropped' || it.state === 'stowed' || it.state === 'gone') && !it.mine &&
         /\b[\p{Lu}][\p{L}'’-]*['’]s\s+(?:rail|rack|stall|counter|display|stand|table|bench|shop|wares|cart)\b/u.test(it.where || '') && !/\b(?:drawer|keeping|trueing|repair|mending|kept|holding)\b/i.test(it.where || '');
@@ -14211,10 +14231,17 @@ function hmsGearPanel(chat, st, cfg) {
         ago: ago(it.at), changedNow: !!lastId && it.msgId === lastId && it.history.length > 0,
         history: it.history.slice(-5).map(h => ({ state: h.state, where: h.where, inside: h.inside, ago: ago(h.at), you: !!h.you }))
     }));
-    const gone = items.filter(it => away(it) && !shopItem(it)).sort((a, b) => a.idx - b.idx).slice(-20).map(it => ({ key: it.key, name: it.name, ago: ago(it.at), where: it.where || null, owned: owned(it), onHud: !!it.onHud }));
+    // Gone keeps what you really lost, sold or gave away. A meal or a drink you finished is not a loss, and a thing that was
+    // never yours (tried at a stall, handed back, never on the HUD, nowhere to be found) is not listed at all.
+    const spentFood = it => GEAR_CONSUMABLE_RE.test(it.name);
+    const neverMine = it => !it.mine && it.from !== 'hud' && !it.onHud && !it.where && !(it.history || []).some(h => ['worn', 'sheathed', 'on body', 'in container'].includes(h.state));
+    const awayRows = items.filter(it => away(it) && !shopItem(it)).sort((a, b) => a.idx - b.idx);
+    const gone = awayRows.filter(it => !owned(it) && !spentFood(it) && !neverMine(it)).slice(-20).map(it => ({ key: it.key, name: it.name, ago: ago(it.at), where: it.where || null, owned: false, onHud: !!it.onHud }));
+    const elsewhere = awayRows.filter(it => owned(it)).slice(-20).map(it => ({ key: it.key, name: it.name, ago: ago(it.at), where: it.where || null, owned: true, onHud: !!it.onHud }));
+    const usedUp = awayRows.filter(it => !owned(it) && spentFood(it)).length;
     const containers = [...new Set(list.filter(x => x.state === 'in container' && x.inside).map(x => x.inside))];
     for (const it of list) if (/\b(bag|backpack|pack|pouch|satchel|sack|purse|chest|box|case|quiver|bandolier|bag of holding|inventory)\b/i.test(it.name) && !containers.some(cn => relSameWords(cn, it.name))) containers.push(it.name);
-    return { items: list, gone, containers, ask: gc.ask, tell: gc.tell };
+    return { items: list, gone, elsewhere, usedUp, containers, ask: gc.ask, tell: gc.tell };
 }
 
 function gearLine(it) {

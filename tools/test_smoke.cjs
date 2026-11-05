@@ -87,8 +87,10 @@ globalThis.__hooks = (chat, lore, user) => {
     assert.equal(q.objective, 'Pack for the road', 'quest follows its current stage');
     assert.equal(h.relations.people[0].bond, 'teacher', 'standing copy removed from bond');
     assert.equal(h.agenda.items.length, 1, 'one agenda entry');
-    const map = h.gear.gone.find(i => i.name === 'map');
-    assert.ok(map && map.owned && /desk/.test(map.where || ''), 'on body + desk reads as left there, still yours, under Gone with where it was left');
+    // 1.3.0: what is still yours moved from Gone to "Still yours, elsewhere"
+    const map = (h.gear.elsewhere || []).find(i => i.name === 'map');
+    assert.ok(map && map.owned && /desk/.test(map.where || ''), 'on body + desk reads as left there, still yours, under Elsewhere with where it was left');
+    assert.ok(!h.gear.gone.some(i => i.name === 'map'), 'a thing still yours is not under Gone');
     const iceBlade = h.magic.list.schools.flatMap(g => g.spells).find(s => s.name === 'Ice Blade');
     assert.equal(iceBlade.status, 'known');
     assert.match(iceBlade.note || '', /practical casts left/, 'known spell keeps its practice note');

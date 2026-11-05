@@ -174,6 +174,22 @@ const A = { gear: [{ name: 'silver locket', state: 'worn' }], deaths: ['Halvin']
         L.set([...base(), user('I pack my books.'), reply({ gear: [{ name: 'spell books', state: 'in container', inside: 'travel bag' }] }, 'The books go into the travel bag.', { equipment: 'Plain road sword', time: '21:55' })]);
         assert.notEqual((await L.push()).hms.gear.items.find(i => i.name === 'travel bag')?.state, 'on body');
     });
+    await check('Gone keeps real losses only; luggage stays listed; "stowed at the belt" is on you; a wrap goes in the bag it is in', async () => {
+        L.setState({});
+        L.set([...base(), user('I eat, try a sword, pack.'), reply({ gear: [{ name: 'Honey cake slice', state: 'in hand' }, { name: 'Plain steel sword', state: 'in hand' }, { name: 'horseshoe nail', state: 'on body' }, { name: 'coin purse', state: 'on body', where: 'coat pocket' },
+                { name: 'travel paper', state: 'in container', where: 'taller travel bag, oilcloth wrap', inside: 'oilcloth wrap' }, { name: 'taller travel bag', state: 'on body' }] }, 'You eat the honey cake, try the steel sword and hand it back.', { equipment: 'Plain road sword', time: '20:00' }),
+            user('I set the bags by the door and give Aurelia the nail.'), reply({ gear: [{ name: 'Honey cake slice', state: 'gone' }, { name: 'Plain steel sword', state: 'gone' }, { name: 'horseshoe nail', state: 'gone', where: 'given to Aurelia' },
+                { name: 'coin purse', state: 'stowed', where: 'belt, right hip' }, { name: 'taller travel bag', state: 'dropped', where: 'beside the bedroom door' }, { name: 'old practice sword', state: 'stowed', where: 'left in the east yard rack' }] }, 'The bags go by the door; Aurelia takes the nail.', { equipment: 'Plain road sword', time: '21:00' })]);
+        const g = (await L.push()).hms.gear, item = n => g.items.find(i => i.name === n);
+        const gone = g.gone.map(x => x.name), elsewhere = (g.elsewhere || []).map(x => x.name);
+        assert.ok(!gone.includes('Honey cake slice') && g.usedUp >= 1, 'a meal is not a loss');
+        assert.ok(!gone.includes('Plain steel sword'), 'a sword tried and handed back was never yours');
+        assert.ok(gone.includes('horseshoe nail'), 'a thing given away is gone');
+        assert.equal(item('coin purse')?.state, 'on body');
+        assert.ok(['stowed', 'dropped'].includes(item('taller travel bag')?.state), 'luggage by the door stays in the list');
+        assert.equal(item('oilcloth wrap')?.inside, 'taller travel bag');
+        assert.ok(elsewhere.includes('old practice sword') && !gone.includes('old practice sword'), 'still yours goes under Elsewhere');
+    });
     await check('the narrator request stays bounded with many open items', async () => {
         L.setState({}); const many = Array.from({ length: 40 }, (_, i) => ({ key: `errand ${i}`, what: `Errand number ${i} at the market`, when: `in ${i + 1} days`, kind: 'errand', state: 'open' }));
         L.set([...base(), user('I plan.'), reply({ agenda: many }, 'A long list.', { time: '10:00' })]); await L.push();

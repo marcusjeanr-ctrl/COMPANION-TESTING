@@ -8,6 +8,12 @@
 - **Tap a card for quick moves:** Hold, Wear, Sheathe, Carry, Leave here, Drop, Into a bag, Gone, plus its story so far. They send the same move as the Move menu, which stays.
 - **This turn** shows each change as a chip; stowed and dropped things look set aside.
 
+**Gear keeps what matters** (from Marcus's Gone list: a cake, a cider and a sword he only tried)
+- **Gone** now lists only real losses: given, sold, lost, broken. A meal or drink you finished is "used up" (a count, nothing listed), and a thing that was never yours (tried and handed back, never on the HUD) is not listed.
+- **Still yours, elsewhere:** things you own but don't have on you (with someone, at home, in a rack) sit as small chips grouped by place; tap one to take it back.
+- **Luggage:** travel bags, trunks and chests by the door or on the courier's wagon are one dashed group with their place in the header, bags and contents nested, still part of your kit.
+- "Stowed — belt, right hip" is on you; a wrap named "taller travel bag, oilcloth wrap" goes inside that bag; an empty bag or purse is a plain row with no "nothing inside" line.
+
 **A polished look across every card** (visual only, same tokens, so Looks and world themes keep their colours)
 - Cards with a soft accent glow, a lit top edge and a medallion emblem; headers with a pill for the summary; cards open with a short rise (off with reduced motion).
 - Headings inside cards as small tracked labels with a fading rule; sub-sections as pills; brighter chips, buttons with a lift, focus rings, softer status lines, bars with a glow, nicer scrollbars, a lit view switcher.
