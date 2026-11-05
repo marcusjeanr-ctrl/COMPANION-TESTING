@@ -15,7 +15,7 @@ const ctx = {
 };
 ctx.globalThis = ctx;
 vm.createContext(ctx);
-vm.runInContext(source.slice(0, startup) + '\nglobalThis.__t = { agendaRead, readingSource, getSwipeData, rewriteReplyText: typeof rewriteReplyText === \'function\' ? rewriteReplyText : null, setChatApi: (fn) => { chatApi.updateMessage = fn; }, factionFromHud, chronBondReworded: typeof chronBondReworded === \'function\' ? chronBondReworded : () => false, chronWhen, parseHud, techStanding: typeof techStanding === \'function\' ? techStanding : () => new Map(), questDetailsLatest, relGuard, relCfg, martialAbilityItems, techListPanel, posMovedNow, keepRoomReading, posRoomKey, setState: (st) => { getChatState = async () => st; saveChatState = async () => {}; }, setPool: p => { loreCatalogPool = () => p; }, spellStoryFold, moneyHudBalance: typeof moneyHudBalance === \'function\' ? moneyHudBalance : commsBalance, commsCfg, messageHud, moneyRead };', ctx);
+vm.runInContext(source.slice(0, startup) + '\nglobalThis.__t = { chronicleBuild, agendaRead, readingSource, getSwipeData, rewriteReplyText: typeof rewriteReplyText === \'function\' ? rewriteReplyText : null, setChatApi: (fn) => { chatApi.updateMessage = fn; }, factionFromHud, chronBondReworded: typeof chronBondReworded === \'function\' ? chronBondReworded : () => false, chronWhen, parseHud, techStanding: typeof techStanding === \'function\' ? techStanding : () => new Map(), questDetailsLatest, relGuard, relCfg, martialAbilityItems, techListPanel, posMovedNow, keepRoomReading, posRoomKey, setState: (st) => { getChatState = async () => st; saveChatState = async () => {}; }, setPool: p => { loreCatalogPool = () => p; }, spellStoryFold, moneyHudBalance: typeof moneyHudBalance === \'function\' ? moneyHudBalance : commsBalance, commsCfg, messageHud, moneyRead };', ctx);
 const t = ctx.__t;
 
 let n = 0;
@@ -232,6 +232,15 @@ check('a letter waiting on the arrival is not in progress at home', () => {
     assert.equal(t.agendaRead(chat, {}).items[0].state, 'open');
     chat.push(user('I arrive.'), scene('Riverton, inn', '[D:Inn]"Paper and ink, sir."[/D] You start the first letter to Tess.', { agenda: [letter('Write the first letter from Riverton to Tess', 'Tess Vale', 'in_progress')] }));
     assert.equal(t.agendaRead(chat, {}).items[0].state, 'in_progress', 'in Riverton it can be under way');
+});
+
+// 8b. The Chronicle logs a learned spell only when the Spellbook accepts it: a sentence in the learned slot is not a spell.
+check('a reporter sentence in the learned slot is not a learned spell', () => {
+    const rep = learned => scene('Old Hall, yard', 'Water gathers in your palm and holds.', { survival: { learned } });
+    const chat = [user('I practise.'), rep(['Water Ball']), user('Again.'), rep(['Lord Boreas wants Marcus as steady company for his nephew, not for any gift of mana'])];
+    const texts = (t.chronicleBuild(chat, {}, 'Marcus') || []).map(e => e.text).filter(x => /Learned/.test(x));
+    assert(!texts.some(x => /Lord Boreas/.test(x)), 'the sentence is not logged as a spell');
+    assert(texts.some(x => /Water Ball/.test(x)), 'a real spell is still logged');
 });
 
 (async () => {

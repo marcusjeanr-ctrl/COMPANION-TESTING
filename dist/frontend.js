@@ -1704,6 +1704,75 @@ button.rpgc-chip.intel:hover { border-color: var(--lumiverse-accent, #7aa2f7); }
 /* holdings as property cards */
 .rpgc [data-sec="holdings"] .rpgc-holding{background:radial-gradient(120% 90% at 100% 0,color-mix(in srgb,var(--u-warn) 12%,transparent),transparent 60%),var(--u-raise);border-radius:var(--u-radius-s)}
 
+/* 1.4.0: story and time */
+.rpgc .rpgc-sky[class*=" land-"]::after{content:"";position:absolute;left:0;right:0;bottom:0;height:34px;z-index:-1;opacity:.55;pointer-events:none}
+.rpgc .rpgc-sky.land-hall::after{background:linear-gradient(transparent 0 0),conic-gradient(from 180deg at 18% 0,transparent 0 0);
+  -webkit-mask:none;background:linear-gradient(180deg,transparent 30%,#0006 30%) 0 0/100% 100%,
+  linear-gradient(90deg,transparent 8%,#000a 8% 22%,transparent 22% 30%,#000a 30% 34%,transparent 34% 60%,#000a 60% 78%,transparent 78% 84%,#000a 84% 92%,transparent 92%)}
+.rpgc .rpgc-sky.land-town::after{background:linear-gradient(90deg,#000a 0 10%,transparent 10% 12%,#000a 12% 20%,transparent 20% 23%,#000a 23% 36%,transparent 36% 38%,#000a 38% 52%,transparent 52% 55%,#000a 55% 70%,transparent 70% 72%,#000a 72% 88%,transparent 88% 90%,#000a 90%);clip-path:polygon(0 40%,5% 20%,10% 40%,12% 55%,16% 30%,20% 55%,23% 45%,30% 10%,36% 45%,38% 60%,45% 25%,52% 60%,55% 35%,62% 15%,70% 35%,72% 50%,80% 20%,88% 50%,90% 40%,95% 25%,100% 40%,100% 100%,0 100%)}
+.rpgc .rpgc-sky.land-forest::after{background:#0a1a10cc;clip-path:polygon(0 70%,4% 30%,8% 70%,10% 45%,14% 10%,18% 55%,22% 35%,26% 60%,30% 20%,35% 65%,40% 30%,44% 60%,48% 15%,53% 62%,58% 35%,62% 58%,66% 22%,71% 64%,76% 30%,80% 60%,84% 18%,89% 62%,93% 35%,97% 60%,100% 40%,100% 100%,0 100%)}
+.rpgc .rpgc-sky.land-mountain::after{height:46px;background:linear-gradient(#e8eef8aa 0 18%,#14182acc 18%);clip-path:polygon(0 80%,15% 30%,25% 55%,40% 5%,55% 50%,65% 25%,80% 60%,90% 35%,100% 65%,100% 100%,0 100%)}
+.rpgc .rpgc-sky.land-road::after{height:30px;background:linear-gradient(#1a2a14cc,#0c140acc);clip-path:polygon(0 50%,30% 40%,60% 55%,100% 35%,100% 100%,0 100%)}
+.rpgc .rpgc-sky.land-water::after{height:24px;background:repeating-linear-gradient(90deg,#1a3a5acc 0 14px,#24507acc 14px 28px);clip-path:polygon(0 30%,10% 45%,20% 30%,30% 45%,40% 30%,50% 45%,60% 30%,70% 45%,80% 30%,90% 45%,100% 30%,100% 100%,0 100%)}
+.rpgc .rpgc-sky.mood-tense{box-shadow:inset 0 0 0 1px #ff5a5a55,inset 0 -30px 40px -20px #ff3a3a44}
+.rpgc .rpgc-sky.mood-uneasy{box-shadow:inset 0 -30px 40px -24px #ffb04a33}
+.rpgc .rpgc-qline{display:flex;align-items:center;gap:0;margin:4px 0 2px}
+.rpgc .rpgc-qline .stop{position:relative;flex:1;height:12px;display:flex;align-items:center}
+.rpgc .rpgc-qline .stop::before{content:"";position:absolute;left:0;right:0;top:5px;height:2px;background:var(--u-line-2)}
+.rpgc .rpgc-qline .stop:first-child::before{left:50%}.rpgc .rpgc-qline .stop.cur::before{right:50%}
+.rpgc .rpgc-qline .stop i{position:relative;margin:0 auto;width:8px;height:8px;border-radius:50%;background:var(--u-muted)}
+.rpgc .rpgc-qline .stop.past i{background:var(--u-ok)}
+.rpgc .rpgc-qline .stop.cur i{width:12px;height:12px;background:var(--u-accent);box-shadow:0 0 0 3px color-mix(in srgb,var(--u-accent) 25%,transparent),0 0 12px var(--u-glow)}
+.rpgc .rpgc-qline .lbl{flex:none;margin-left:8px;font-size:var(--u-fs-xs);color:var(--u-muted)}
+.rpgc .rpgc-threads{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:4px}
+.rpgc .rpgc-thread{display:grid;grid-template-columns:22px minmax(0,1fr) auto;gap:8px;align-items:start;width:100%;font:inherit;text-align:left;padding:6px 8px;border-radius:8px;border:1px solid var(--u-line);background:var(--u-raise);color:var(--u-text);cursor:pointer}
+.rpgc .rpgc-thread:hover{border-color:var(--u-accent)}
+.rpgc .rpgc-thread .tx{display:flex;flex-direction:column;min-width:0}.rpgc .rpgc-thread .tx b{font-size:var(--u-fs-m)}
+.rpgc .rpgc-thread .sub{font-size:var(--u-fs-xs);color:var(--u-muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rpgc .rpgc-thread .age{font-size:var(--u-fs-xs);color:var(--u-muted);white-space:nowrap}
+.rpgc .rpgc-ss-arc{font:600 var(--u-fs-l)/1.3 var(--u-display);margin:0 0 8px}
+.rpgc .rpgc-arcbox{display:flex;align-items:center;gap:10px;margin:0 0 8px}
+.rpgc .rpgc-arcring{width:56px;height:56px;flex:none}.rpgc .rpgc-arcring .tr{fill:none;stroke:var(--u-line);stroke-width:5}
+.rpgc .rpgc-arcring .fi{fill:none;stroke:var(--u-accent);stroke-width:5;stroke-linecap:round}.rpgc .rpgc-arcring text{fill:var(--u-text);font-size:11px;font-weight:700}
+.rpgc .rpgc-arcbox .tx{display:flex;flex-direction:column}.rpgc .rpgc-arcbox .k{font-size:9.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--u-muted)}.rpgc .rpgc-arcbox .sub{font-size:var(--u-fs-xs);color:var(--u-muted)}
+.rpgc .rpgc-ss-stats{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:6px;margin:0 0 8px}
+.rpgc .rpgc-ss-stat{display:flex;flex-direction:column;align-items:center;padding:7px 4px;border-radius:8px;background:var(--u-raise);border:1px solid var(--u-line);font-size:var(--u-fs-xs);color:var(--u-muted);text-align:center}
+.rpgc .rpgc-ss-stat b{font:700 var(--u-fs-l)/1.2 var(--u-display);color:var(--u-text)}
+.rpgc .rpgc-ss-moments,.rpgc .rpgc-ss-choices{margin:4px 0 8px 18px;padding:0;font-size:var(--u-fs-m)}.rpgc .rpgc-ss-moments li,.rpgc .rpgc-ss-choices li{margin:3px 0}
+.rpgc .rpgc-ss-moments .tm{font-size:var(--u-fs-xs);color:var(--u-muted);margin-right:6px}
+.rpgc .rpgc-ss-choices li.kept .st{color:var(--u-ok)}.rpgc .rpgc-ss-choices li.missed .st{color:var(--u-bad)}
+.rpgc .rpgc-trophies{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:6px}
+.rpgc .rpgc-trophy{display:flex;flex-direction:column;align-items:center;gap:2px;padding:8px 6px;border-radius:var(--u-radius-s);text-align:center;border:1px solid var(--u-line);background:linear-gradient(180deg,color-mix(in srgb,var(--u-warn) 10%,transparent),transparent 70%),var(--u-raise)}
+.rpgc .rpgc-trophy .ic{font-size:22px;filter:drop-shadow(0 2px 6px #0008)}.rpgc .rpgc-trophy .tx{font-size:var(--u-fs-xs);line-height:1.3}.rpgc .rpgc-trophy .when{font-size:9.5px;color:var(--u-muted)}
+.rpgc .rpgc-trophy.star{border-color:color-mix(in srgb,var(--u-warn) 55%,var(--u-line))}
+.rpgc .rpgc-heat{margin:8px 0 4px}.rpgc .rpgc-heat .k{font-size:var(--u-fs-xs);color:var(--u-muted)}
+.rpgc .rpgc-heat .grid{display:grid;grid-template-columns:repeat(14,1fr);gap:3px;margin-top:4px}
+.rpgc .rpgc-heat .grid i{aspect-ratio:1;border-radius:3px;background:var(--u-line)}
+.rpgc .rpgc-heat .grid i.l1{background:color-mix(in srgb,var(--u-ok) 30%,transparent)}.rpgc .rpgc-heat .grid i.l2{background:color-mix(in srgb,var(--u-ok) 55%,transparent)}
+.rpgc .rpgc-heat .grid i.l3{background:color-mix(in srgb,var(--u-ok) 78%,transparent)}.rpgc .rpgc-heat .grid i.l4{background:var(--u-ok);box-shadow:0 0 6px var(--u-ok)}
+.rpgc .rpgc-cmp{list-style:none;margin:6px 0;padding:0;font-size:var(--u-fs-s)}.rpgc .rpgc-cmp li{padding:4px 0;border-bottom:1px dashed var(--u-line)}
+.rpgc .rpgc-cmp .k{display:block;font-size:9.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--u-muted)}.rpgc .rpgc-cmp .old{color:var(--u-muted)}
+.rpgc .rpgc-wlist li.spoil{cursor:pointer}.rpgc .rpgc-wlist li.spoil .ttl{filter:blur(4px);user-select:none}
+.rpgc .rpgc-wlist li.spoil:hover .ttl{filter:blur(2.5px)}
+.rpgc .rpgc-agenda-item.letter{background:linear-gradient(135deg,#f3e7cc0f,transparent 60%),var(--u-raise);border-left:3px solid #c9b48a}
+.rpgc .rpgc-agenda-item.letter .ico{position:relative}
+.rpgc .rpgc-agenda-item.letter::after{content:"";position:absolute;right:42px;top:10px;width:10px;height:10px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#e0574a,#9e2219);opacity:.8}
+.rpgc .rpgc-agenda-item{position:relative}
+.rpgc .hand .tx,.rpgc .rpgc-agenda-item.hand b,.rpgc .rpgc-chron-item.hand .tx{font-family:'Segoe Print','Bradley Hand','Comic Neue','Comic Sans MS',cursive;letter-spacing:.01em}
+.rpgc .rpgc-chron-day{display:flex!important;align-items:center;gap:8px;flex-wrap:wrap;width:auto!important}
+.rpgc .rpgc-chron-day .n{font-size:9.5px;font-weight:600;letter-spacing:0;text-transform:none;color:var(--u-muted)}
+.rpgc .rpgc-chron-day .key{font-size:var(--u-fs-xs);font-weight:500;letter-spacing:0;text-transform:none;color:var(--u-warn)}
+.rpgc .rpgc-chron-list.journal{padding:10px 12px;border-radius:6px;background:linear-gradient(90deg,#00000022 0 18px,transparent 18px),repeating-linear-gradient(180deg,transparent 0 26px,color-mix(in srgb,var(--u-text) 6%,transparent) 26px 27px),color-mix(in srgb,#f3e2bf 7%,var(--u-surface))}
+.rpgc .rpgc-chron-list.journal::before{display:none}
+.rpgc .rpgc-chron-list.journal .rpgc-chron-item{font-family:'Iowan Old Style','Palatino Linotype',Georgia,serif;font-size:13px}
+.rpgc .rpgc-chron-list.journal .rpgc-chron-item.star,.rpgc .rpgc-chron-list.journal .rpgc-chron-item.big{background:linear-gradient(90deg,#ffd36a12,transparent 70%);border-color:transparent;border-left:3px solid var(--u-warn);border-radius:0 6px 6px 0}
+.rpgc .rpgc-chron-list.journal .rpgc-chron-item .ic{background:none;box-shadow:none}
+.rpgc .rpgc-atlas-route .gap{font-size:9.5px;color:var(--u-accent);margin-left:4px;white-space:nowrap}
+.rpgc .rpgc-atlas-tile{background:radial-gradient(100% 80% at 100% 0,color-mix(in srgb,var(--u-accent) 10%,transparent),transparent 60%),var(--u-raise)}
+.rpgc .rpgc-atlas-tile.here{box-shadow:0 0 0 1px var(--u-accent),0 0 16px -6px var(--u-glow)}
+.rpgc .rpgc-chekhov li{padding:5px 8px;border-radius:6px;background:linear-gradient(90deg,#ffd36a0d,transparent 60%);border-left:3px solid color-mix(in srgb,var(--u-warn) 40%,transparent);margin:3px 0}
+.rpgc .rpgc-chekhov li.ripe{border-left-color:var(--u-warn);box-shadow:inset 0 0 0 1px #ffd36a22}
+
 `;
 
 // The guide, embedded from GUIDE.md so it ships inside the extension (tools/embed_guide.py refreshes it).
@@ -2558,6 +2627,7 @@ export function setup(ctx) {
             render();
             return;
         }
+        if (msg.type === 'hud_compare') { if (msg.chatId === state.chatId) { state.hudCompare = { ...msg }; render(); } return; }
         if (msg.type === 'chronicle') {
             if (msg.chatId === state.chatId) { state.chronData = msg.chronicle ? { ...msg.chronicle, chatId: msg.chatId } : { none: true, chatId: msg.chatId, version: null, entries: [] }; state.chronReq = false;  render(); }
             return;
@@ -4870,6 +4940,7 @@ export function setup(ctx) {
         }
         const checks = Array.isArray(state.hms?.checks) ? state.hms.checks : [];
         if (checks.length) content.push(h('div', { class: 'rpgc-checks' }, h('b', null, T('Worth a look')), storyCheckCards(checks.map(c => ({ kind: c.kind, text: c.text, fix: c.fix })))));
+        if (hud) content.push(hudCompareBox());
         if (hud && hud.fromHtml) content.push(h('p', { class: 'rpgc-note' }, 'This HUD was written in HTML and is read through it. The guard can flag dropped lines here, but cannot put them back into the reply.'));
         return section('world', 'World State', state.open, hud && hud.time ? hud.time : null, ...content);
     }
@@ -5016,7 +5087,8 @@ export function setup(ctx) {
             onkeydown: e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); goTo('scene', 'map'); } } } : { class: 'rpgc-sky-place' };
         const time = String(hud.time || '').replace(/\s*\(([^)]*)\)\s*$/, '');
         const part = (String(hud.time || '').match(/\(([^)]*)\)/) || [])[1];
-        return h('div', { class: 'rpgc-sky sky-' + phase },
+        const land = landOf(path), mood = moodOf();
+        return h('div', { class: 'rpgc-sky sky-' + phase + (land && S()?.uiScenery !== false ? ' land-' + land : '') + (mood ? ' mood-' + mood : '') },
             phase === 'night' ? h('span', { class: 'stars', 'aria-hidden': 'true' }) : null,
             clock !== null ? h('span', { class: 'orb ' + (day ? 'sun' : 'moon'), 'aria-hidden': 'true', style: `left:${x.toFixed(1)}%;top:${y.toFixed(1)}%` }) : null,
             h('div', { class: 'rpgc-sky-text' },
@@ -5506,6 +5578,124 @@ export function setup(ctx) {
             picked ? h('ul', { class: 'rpgc-wk-list' }, picked.length ? picked.map(x => h('li', null, (AGENDA_ICON[x.kind] || '•') + ' ', h('b', null, x.what), x.when ? h('span', { class: 'rpgc-note' }, ' · ' + x.when) : null)) : h('li', { class: 'rpgc-note' }, T('Nothing set that day.'))) : null);
     }
 
+    function uiSetting(k) { return (S() || {})[k]; }
+    // ─────────── 1.4.0: story and time ───────────
+    // the scene's landscape and mood, from the place's own words and the danger the panel already knows
+    function landOf(path) {
+        const t = (path || []).join(' ').toLowerCase();
+        return /\b(?:sea|ocean|lake|river|harbou?r|port|ship|dock|shore|beach|coast)\b/.test(t) ? 'water'
+            : /\b(?:forest|wood|woods|jungle|grove|glade|thicket)\b/.test(t) ? 'forest'
+            : /\b(?:mountain|peak|pass|cliff|summit|glacier|tundra)\b/.test(t) ? 'mountain'
+            : /\b(?:road|wagon|courier|caravan|path|trail|highway|crossing|bridge)\b/.test(t) ? 'road'
+            : /\b(?:market|town|city|street|square|village|plaza|row|district|quarter)\b/.test(t) ? 'town'
+            : /\b(?:hall|house|manor|castle|palace|mansion|estate|room|study|chamber|yard|gate|tower|keep|academy|school)\b/.test(t) ? 'hall' : null;
+    }
+    function moodOf() {
+        const d = state.hms?.systems?.danger;
+        if (Array.isArray(d) && d.length) return 'tense';
+        if (state.encounterActive) return 'tense';
+        const fear = (state.hms?.you?.stress ?? 0) >= 3;
+        return fear ? 'uneasy' : null;
+    }
+    // a quest's path as a little journey line: each stage a stop, the current one lit
+    function questLine(q) {
+        const stages = questStages(q);
+        if (stages.length < 2) return null;
+        const shown = stages.slice(-6);
+        return h('div', { class: 'rpgc-qline', role: 'img', 'aria-label': TT('Stage {0} of the path so far', stages.length) },
+            shown.map((o, i) => h('span', { class: 'stop' + (i === shown.length - 1 ? ' cur' : ' past'), title: o }, h('i'))),
+            h('span', { class: 'lbl' }, TT('stage {0}', stages.length)));
+    }
+    // the open threads: everything still unresolved, across the cards, oldest first
+    function renderThreads() {
+        if (S()?.uiThreads === false) return null;
+        const hms = state.hms || {}, rows = [];
+        for (const q of hms.systems?.quests || []) if (!['done', 'completed', 'closed', 'failed', 'abandoned', 'ended'].includes(q.cls || q.state)) rows.push({ ic: '🎯', text: q.name, sub: q.objective, go: ['journey', 'quests'], age: null });
+        for (const t of state.plotView?.threads || []) if (t.state !== 'resolved') rows.push({ ic: '🧵', text: t.name, sub: t.note, go: ['journey', 'quests'], age: null });
+        for (const x of hms.agenda?.items || []) if (['open', 'in_progress'].includes(x.state)) rows.push({ ic: AGENDA_ICON[x.kind] || '📅', text: x.what, sub: [x.with, x.when].filter(Boolean).join(' · '), go: ['journey', 'agenda'], age: null });
+        for (const c of hms.minds?.chekhov?.chamber || []) if (c.status === 'live') rows.push({ ic: '🔫', text: c.what, sub: c.ripe ? T('ripe: it could come back any time') : null, go: ['scene', 'todo'], age: c.age ?? null });
+        if (!rows.length) return null;
+        // quests and plot first, then promises, then the loose ends the story left lying around (oldest first)
+        const ORDER = { '\uD83C\uDFAF': 0, '\uD83E\uDDF5': 1, '\uD83D\uDD2B': 3 };
+        rows.forEach((r, i) => { r.i = i; });
+        rows.sort((a, b) => ((ORDER[a.ic] ?? 2) - (ORDER[b.ic] ?? 2)) || ((b.age ?? -1) - (a.age ?? -1)) || a.i - b.i);
+        const shown = state.open['threads-all'] ? rows : rows.slice(0, 8);
+        return section('threads', T('Open threads'), state.open, String(rows.length),
+            h('ul', { class: 'rpgc-threads' }, shown.map(r => h('li', null, h('button', { class: 'rpgc-thread', type: 'button', onclick: () => goTo(r.go[0], r.go[1]) },
+                h('span', { class: 'ic', 'aria-hidden': 'true' }, r.ic), h('span', { class: 'tx' }, h('b', null, r.text), r.sub ? h('span', { class: 'sub' }, r.sub) : null),
+                r.age ? h('span', { class: 'age' }, TT('{0} replies', r.age)) : null)))),
+            rows.length > 8 ? h('button', { class: 'rpgc-btn', onclick: () => { state.open['threads-all'] = !state.open['threads-all']; render(); } }, state.open['threads-all'] ? T('Show fewer') : TT('Show all {0}', rows.length)) : null);
+    }
+    // the story so far: arc, days, people, the moments that mattered, the choices you made
+    function renderStorySoFar() {
+        if (S()?.uiStory === false) return null;
+        const w = state.world || {}, id = state.hms?.you?.identity?.story || {}, saga = w.saga || null;
+        const D = state.chronData && state.chronData.chatId === state.chatId ? state.chronData : null;
+        if (!D && !state.chronReq && state.open.story !== false) { state.chronReq = true; send({ type: 'chronicle_get', chatId: state.chatId }); }
+        const entries = (D?.entries || []).filter(e => !e.hidden);
+        // what happened, not bookkeeping: a relabelled bond ("X → Y") or a plot line is not a moment
+        const moments = entries.filter(e => e.kind !== 'plot' && !(e.kind === 'bond' && /→/.test(e.text || '')) && (e.star || e.kind === 'milestone' || e.kind === 'moment' || e.imp >= 8)).slice(-5);
+        const choices = (state.hms?.agenda?.items || []).filter(x => x.kind === 'promise' || /deal|promise|swore|agreed/i.test(x.what || '')).slice(0, 5);
+        // arc ring: how far the date is between the current arc's start and the next one
+        let ring = null;
+        if (saga && Array.isArray(saga.arcs) && saga.year) {
+            const now = saga.year * 12 + (saga.month || 1);
+            const arcs = saga.arcs.map(a => ({ ...a, at: a.year * 12 + (a.month || 1) })).sort((a, b) => a.at - b.at);
+            const cur = [...arcs].reverse().find(a => a.at <= now), next = arcs.find(a => a.at > now);
+            if (cur && next) {
+                const f = Math.max(0, Math.min(1, (now - cur.at) / Math.max(1, next.at - cur.at)));
+                const NS = 'http://www.w3.org/2000/svg', R = 22, C = 2 * Math.PI * R;
+                const svg = document.createElementNS(NS, 'svg'); svg.setAttribute('viewBox', '0 0 56 56'); svg.setAttribute('class', 'rpgc-arcring');
+                svg.innerHTML = `<circle cx="28" cy="28" r="${R}" class="tr"/><circle cx="28" cy="28" r="${R}" class="fi" stroke-dasharray="${(C * f).toFixed(1)} ${C.toFixed(1)}" transform="rotate(-90 28 28)"/><text x="28" y="32" text-anchor="middle">${Math.round(f * 100)}%</text>`;
+                ring = h('div', { class: 'rpgc-arcbox' }, svg, h('div', { class: 'tx' }, h('span', { class: 'k' }, T('Canon arc')), h('b', null, `Arc ${cur.no}: ${cur.title}`), h('span', { class: 'sub' }, TT('next: Arc {0}, {1}', next.no, next.title))));
+            }
+        }
+        const stat = (ic, n, label) => n ? h('div', { class: 'rpgc-ss-stat' }, h('span', { 'aria-hidden': 'true' }, ic), h('b', null, String(n)), h('span', null, T(label))) : null;
+        const money = (state.hms?.money?.totals || []).map(t => t.out ? `${t.out} ${t.currency}` : null).filter(Boolean).join(', ');
+        return section('story', T('The story so far'), state.open, saga?.personalArc ? String(saga.personalArc).split(/\s*[—–]\s*/)[0] : null,
+            saga?.personalArc ? h('p', { class: 'rpgc-ss-arc' }, saga.personalArc) : null,
+            ring,
+            h('div', { class: 'rpgc-ss-stats' }, stat('📆', id.days, 'story days'), stat('💬', id.replies, 'replies'), stat('👥', id.met, 'people met'),
+                stat('📍', state.hms?.atlas?.recent?.length ? state.hms.atlas.count : null, 'places in the book'), stat('🎯', (state.hms?.systems?.quests || []).length, 'quests'),
+                money ? h('div', { class: 'rpgc-ss-stat' }, h('span', { 'aria-hidden': 'true' }, '🪙'), h('b', null, money), h('span', null, T('spent'))) : null),
+            moments.length ? [h('h4', null, T('Moments that mattered')), h('ol', { class: 'rpgc-ss-moments' }, moments.map(e => h('li', null, e.when ? h('span', { class: 'tm' }, String(e.when).split(',')[0]) : null, e.text)))] : !D ? h('p', { class: 'rpgc-note' }, T('Reading the Chronicle…')) : null,
+            choices.length ? [h('h4', null, T('Promises and deals')), h('ul', { class: 'rpgc-ss-choices' }, choices.map(x => h('li', { class: x.state }, h('span', { class: 'st' }, x.state === 'kept' ? '✓' : x.state === 'missed' ? '✗' : '…'), ' ', x.what, x.with ? h('span', { class: 'rpgc-note' }, ' · ' + x.with) : null)))] : null);
+    }
+    // milestones as a trophy shelf, from the Chronicle's own milestones and starred moments
+    function renderMilestones() {
+        if (S()?.uiMilestones === false) return null;
+        const D = state.chronData && state.chronData.chatId === state.chatId ? state.chronData : null;
+        const list = (D?.entries || []).filter(e => !e.hidden && (e.kind === 'milestone' || e.star));
+        if (!list.length) return null;
+        const icon = t => /death|died|loop/i.test(t) ? '💀' : /learn|spell|technique|rank|saint|king|level/i.test(t) ? '🎓' : /arc|chapter/i.test(t) ? '📜' : /met|bond|friend/i.test(t) ? '🤝' : /quest|done|complet/i.test(t) ? '🏅' : '🏆';
+        return section('milestones', T('Milestones'), state.open, String(list.length),
+            h('div', { class: 'rpgc-trophies' }, list.slice(-24).reverse().map(e => h('div', { class: 'rpgc-trophy' + (e.star ? ' star' : ''), title: [e.when, e.text].filter(Boolean).join(' — ') },
+                h('span', { class: 'ic', 'aria-hidden': 'true' }, icon(e.text || '')), h('span', { class: 'tx' }, String(e.text || '').length > 70 ? String(e.text).slice(0, 67) + '…' : e.text), e.when ? h('span', { class: 'when' }, String(e.when).split(',')[0]) : null))));
+    }
+    // training by day, like a contribution chart: darker on the days the Training count went up most
+    function trainingHeat() {
+        const days = state.hms?.trainingDays || [];
+        if (days.length < 2) return null;
+        const max = Math.max(1, ...days.map(d => d.n));
+        return h('div', { class: 'rpgc-heat', role: 'img', 'aria-label': TT('{0} training days', days.length) },
+            h('span', { class: 'k' }, TT('{0} days trained', days.length)),
+            h('div', { class: 'grid' }, days.slice(-84).map(d => h('i', { class: 'l' + Math.min(4, Math.ceil(d.n / max * 4)), title: `${d.day}: +${d.n}` }))));
+    }
+    // two replies' HUDs compared, on request only
+    function hudCompareBox() {
+        const c = state.hudCompare;
+        const a = h('input', { type: 'number', min: '1', max: '300', value: String(c?.a ?? 5), 'aria-label': T('Replies back'), style: 'width:64px' });
+        const ask = () => send({ type: 'hud_compare', chatId: state.chatId, a: Number(a.value) || 1, b: 0 });
+        const det = h('details', { class: 'rpgc-subdet rpgc-compare' }, h('summary', null, '🔀 ', T('Compare with an earlier reply')),
+            h('div', { class: 'rpgc-row' }, h('span', { class: 'rpgc-note' }, T('The HUD of')), a, h('span', { class: 'rpgc-note' }, T('replies back, against now')), h('button', { class: 'rpgc-btn', onclick: ask }, T('Compare'))),
+            c && c.rows ? (c.rows.length ? h('ul', { class: 'rpgc-cmp' }, c.rows.map(r => h('li', null, h('span', { class: 'k' }, r.key),
+                r.before ? h('s', { class: 'old' }, r.before) : h('span', { class: 'rpgc-note' }, T('(new)')), h('span', { class: 'arr' }, ' → '), r.after ? h('b', null, r.after) : h('span', { class: 'rpgc-note' }, T('(gone)')))))
+                : h('p', { class: 'rpgc-note' }, T('Nothing on the HUD differs.'))) : null,
+            c && c.rows && c.a ? h('p', { class: 'rpgc-note' }, `${c.a.when || '?'} → ${c.b?.when || T('now')}`) : null);
+        det.open = state.open['hud-compare'] === true; det.dataset.openKey = 'hud-compare'; det.addEventListener('toggle', () => { state.open['hud-compare'] = det.open; });
+        return det;
+    }
+
     function renderHmsTrackers() {
         const s = S();
         const snapshots = renderTrackerSnapshots();
@@ -5536,8 +5726,8 @@ export function setup(ctx) {
             ['you', renderSheet], ['you', renderYou], ['you', renderGear], ['you', renderHoldings], ['you', renderMoney], ['you', renderDnd],
             ['people', renderPeopleAll], ['people', renderRelationshipWeb], ['people', renderFamily], ['people', renderFactions], ['people', renderSecrets], ['people', renderPhone],
             ['you', renderBody], ['you', renderInjuries], ['you', renderMind], ['you', renderSurvival], ['you', renderMagic], ['you', renderTechniques], ['you', renderAbilities], ['you', renderTraining],
-            ['journey', () => s.showQuests ? renderHmsQuests() : null], ['journey', renderChronicle], ['journey', renderChapter]];
-        const order = view === 'journey' ? ['recap-btn', 'agenda', 'quests', 'chronicle', 'chapter', 'atlas'] : null;
+            ['journey', () => s.showQuests ? renderHmsQuests() : null], ['journey', renderThreads], ['journey', renderChronicle], ['journey', renderStorySoFar], ['journey', renderMilestones], ['journey', renderChapter]];
+        const order = view === 'journey' ? ['recap-btn', 'agenda', 'quests', 'threads', 'chronicle', 'story', 'milestones', 'chapter', 'atlas'] : null;
         const built = [];
         for (const [group, fn] of cards) if (view === 'all' || view === group) { const el = fn(); if (el) built.push(el); }
         if (order) built.sort((a, b) => order.indexOf(a.dataset?.openKey) - order.indexOf(b.dataset?.openKey));
@@ -5866,6 +6056,7 @@ export function setup(ctx) {
                     q.category ? h('span', { class: 'rpgc-chip' }, q.category) : null,
                     q.state ? h('span', { class: 'qst ' + q.cls + (completed ? ' st done' : ''), title: q.lifecycleEvidence?.quote || null }, q.state) : q.fromStory ? h('span', { class: 'qst active' }, 'in the story') : null),
                 q.objective ? h('div', { class: 'obj' }, '\u25B8 ' + q.objective) : null,
+                questLine(q),
                 questPath(q),
                 (q.giver || q.where || q.reward || q.dueIn !== undefined) ? h('div', { class: 'rpgc-chips' },
                     q.giver ? h('span', { class: 'rpgc-chip' }, h('em', null, 'From: '), q.giver) : null,
@@ -6708,7 +6899,7 @@ export function setup(ctx) {
     }
     function agendaRow(x) {
         const act = (st, label, title) => h('button', { class: 'rpgc-mini', title, 'aria-label': `${label}: ${x.what}`, onclick: () => send({ type: 'agenda', chatId: state.chatId, op: 'set', key: x.key, state: st }) }, label);
-        return h('li', { class: 'rpgc-agenda-item ' + x.status + (x.isNew ? ' new' : '') },
+        return h('li', { class: 'rpgc-agenda-item ' + x.status + (x.isNew ? ' new' : '') + (x.kind === 'letter' ? ' letter' : '') + (x.from === 'you' ? ' hand' : '') },
             h('span', { class: 'ico', 'aria-hidden': 'true' }, AGENDA_ICON[x.kind] || '📅'),
             // the time goes under the title, so a long "when" wraps instead of squeezing the title to a column
             h('span', { class: 'body' }, h('b', null, x.what),
@@ -8653,6 +8844,9 @@ export function setup(ctx) {
         const list = (f==='bond' && playOn('quietChronicle') ? dailyBondGroups(grouped.map(g=>({...g.entry,displayGroup:g}))) : grouped).reverse();
         const limit = state.chronShow || 40;
         const out = [];
+        out.push(h('div', { class: 'rpgc-gear-viewsw', role: 'group', 'aria-label': T('Chronicle look') },
+            h('button', { class: 'rpgc-gv' + (!state.open['chron-journal'] ? ' on' : ''), onclick: () => { state.open['chron-journal'] = false; render(); } }, '\uD83D\uDCCB ', T('Timeline')),
+            h('button', { class: 'rpgc-gv' + (state.open['chron-journal'] ? ' on' : ''), onclick: () => { state.open['chron-journal'] = true; render(); } }, '\uD83D\uDCD6 ', T('Journal'))));
         out.push(h('div', { class: 'rpgc-row rpgc-filters', role: 'group', 'aria-label': 'Show' },
             [...CHRON_FILTERS,...(playOn('quietChronicle')?[['highlights','Highlights']]:[])].map(([k, l]) => h('button', { class: 'rpgc-btn' + (k === f ? ' primary' : ''), 'aria-pressed': k === f ? 'true' : 'false', onclick: () => { state.chronFilter = k; state.chronShow = 40; render(); } }, l))));
         const noteIn = h('input', { type: 'text', placeholder: 'Add a moment of your own', 'aria-label': 'Add a moment of your own', maxlength: '240' });
@@ -8671,7 +8865,7 @@ export function setup(ctx) {
                 : !e.settled ? h('span', { class: 'st wait', title: 'Waits until you answer this reply — a swipe could still change it', 'aria-label': 'Waits for your answer' }, '⏳')
                 : e.goes && !e.hidden ? h('span', { class: 'st wait', title: 'Goes into the Memory Cortex with the next write', 'aria-label': 'Next write' }, '•')
                 : h('span', { class: 'st', title: 'Stays in the Chronicle (below what you chose to write)', 'aria-label': 'Stays here' }, '');
-            const cls = ['rpgc-chron-item', e.kind, e.star ? 'star' : '', e.imp >= 8 ? 'big' : '', e.hidden ? 'hidden' : ''].filter(Boolean).join(' ');
+            const cls = ['rpgc-chron-item', e.kind, e.star ? 'star' : '', e.imp >= 8 ? 'big' : '', e.hidden ? 'hidden' : '', e.user ? 'hand' : ''].filter(Boolean).join(' ');
             return h('li', { class: cls },
                 h('span', { class: 'ic', 'aria-hidden': 'true' }, CHRON_ICON[e.kind] || '•'),
                 h('span', { class: 'tx' }, tpart ? h('span', { class: 'tm' }, tpart) : null, chronText(e), displayRepeatCount(group),
@@ -8685,7 +8879,10 @@ export function setup(ctx) {
             const e = group.entry;
             if (D.loops && e.loop !== loop) { loop = e.loop; day = undefined; out.push(h('div', { class: 'rpgc-chron-loop' }, e.loop ? `Loop ${e.loop}` : 'Before the loops')); }
             const dpart = (e.when || '').split(',')[0].trim();
-            if (dpart !== day || !ul) { day = dpart; if (dpart) out.push(h('div', { class: 'rpgc-chron-day' }, dpart)); ul = h('ul', { class: 'rpgc-chron-list' }); out.push(ul); }
+            if (dpart !== day || !ul) { day = dpart;
+                if (dpart) { const sameDay = list.filter(g => String(g.entry.when || '').split(',')[0].trim() === dpart); const key = sameDay.find(g => g.entry.star || g.entry.imp >= 8);
+                    out.push(h('div', { class: 'rpgc-chron-day' }, h('span', { class: 'd' }, dpart), h('span', { class: 'n' }, TT('{0} entries', sameDay.length)), key ? h('span', { class: 'key' }, '\u2605 ' + String(key.entry.text).slice(0, 60) + (String(key.entry.text).length > 60 ? '\u2026' : '')) : null)); }
+                ul = h('ul', { class: 'rpgc-chron-list' + (state.open['chron-journal'] ? ' journal' : '') }); out.push(ul); }
             if(group.daily) {
                 const det=simSubdet('daily-bond-'+e.id,(e.who || []).join(', ')+' — '+TT('Bond entries: {0}',group.members.length));det.classList.add('rpgc-daily-bond');
                 let filled=false;
@@ -9289,7 +9486,8 @@ html,body{background:${panelBg}!important;}`;
             h('ol', null, recent.map((r, i) => h('li', { class: i === 0 ? 'now' : '' },
                 h('span', { class: 'pin', 'aria-hidden': 'true' }),
                 r.id != null && A ? h('button', { class: 'pl', onclick: () => { const n = idx.get(r.id); state.atlasFocus = n && !n.children.length && n.parent != null ? n.parent : r.id; state.atlasSel = r.id; render(); } }, r.name) : h('span', { class: 'pl' }, r.name),
-                r.when ? h('span', { class: 'wh' }, i === 0 ? T('now') : r.when) : null)))) : null;
+                r.when ? h('span', { class: 'wh' }, i === 0 ? T('now') : r.when) : null,
+                i > 0 && Number.isFinite(r.at) && Number.isFinite(recent[i - 1].at) && recent[i - 1].at > r.at ? h('span', { class: 'gap', title: T('Story time between the two') }, '+' + fmtSpan(recent[i - 1].at - r.at)) : null)))) : null;
         if (route) { route.open = state.open['atlas-route'] === true; route.addEventListener('toggle', () => { state.open['atlas-route'] = route.open; }); }
         if (!A) return section('atlas', 'Atlas', state.open, `${info.count} places`, trail, route, h('p', { class: 'rpgc-note' }, 'Opening the location book\u2026'));
         // what to show: the place you chose, or the one around you
@@ -9400,9 +9598,14 @@ html,body{background:${panelBg}!important;}`;
         const where = S.personalArc && /^Sandbox\s*[—–-]/i.test(S.personalArc) ? 'No scheduled canon progression' : S.next ? (S.next.inYears > 1 ? TT('{0} years to Arc {1}', S.next.inYears, S.next.no) : S.next.inYears === 1 ? TT('1 year to Arc {0}', S.next.no) : TT('Arc {0} begins this year', S.next.no)) : T('the last arc');
         const head = S.personalArc ? S.personalArc : cur && S.participation === 'explicit' ? TT('Arc {0}', cur.no) + (S.part ? (/^\d+$/.test(S.part) ? '.' : '-') + S.part : '') + ': ' + (S.partName || cur.title) : TT('Year K.{0}', S.year);
         const near = S.arcs.filter(a => S.current === null || (a.no >= S.current - 2 && a.no <= S.current + 4));
-        const row = (a) => h('li', { class: (S.current !== null && a.no < S.current) || (S.current === null && a.year < S.year) ? 'past' : a.no === S.current ? 'cur' : '' },
-            h('b', null, `K.${a.year}`), ` \u2014 ${TT('Arc {0}', a.no)}: `, document.createTextNode(a.title));
-        const all = h('details', { class: 'rpgc-spells' }, h('summary', null, TT('All {0} arcs', S.arcs.length)), h('ul', { class: 'rpgc-wlist' }, S.arcs.map(row)));
+        // 1.4.0 spoiler guard: arcs more than one ahead of where the story stands stay blurred until you tap
+        const guard = uiSetting('uiSpoilers') !== false && !state.open['mt-spoilers'];
+        const ahead = a => (S.current !== null ? a.no > S.current + 1 : a.year > S.year + 1);
+        const row = (a) => h('li', { class: ((S.current !== null && a.no < S.current) || (S.current === null && a.year < S.year) ? 'past' : a.no === S.current ? 'cur' : '') + (guard && ahead(a) ? ' spoil' : ''),
+                title: guard && ahead(a) ? T('Ahead of your story: tap to show') : null, onclick: guard && ahead(a) ? () => { state.open['mt-spoilers'] = true; render(); } : null },
+            h('b', null, `K.${a.year}`), ` \u2014 ${TT('Arc {0}', a.no)}: `, h('span', { class: 'ttl' }, a.title));
+        const all = h('details', { class: 'rpgc-spells' }, h('summary', null, TT('All {0} arcs', S.arcs.length)), h('ul', { class: 'rpgc-wlist' }, S.arcs.map(row)),
+            state.open['mt-spoilers'] && uiSetting('uiSpoilers') !== false ? h('button', { class: 'rpgc-btn', onclick: () => { state.open['mt-spoilers'] = false; render(); } }, T('Hide what is ahead again')) : null);
         all.open = !!state.open['mt-saga-all']; all.addEventListener('toggle', () => { state.open['mt-saga-all'] = all.open; });
         return h('div', { class: 'rpgc-set' }, h('h4', null, document.createTextNode(head)),
             S.participation !== 'explicit' ? h('p', { class: 'rpgc-note' }, T('Canon reference') + (S.canonMode ? ` (${S.canonMode})` : '') + ': ', cur ? document.createTextNode(TT('Arc {0}', cur.no) + (S.part ? (/^\d+$/.test(S.part) ? '.' : '-') + S.part : '') + ' \u2014 ' + cur.title) : T('no matching arc'), '. ', T('Your personal story is tracked separately.')) : null,
@@ -9442,6 +9645,7 @@ html,body{background:${panelBg}!important;}`;
                 trainLadder(t),
                 levelBar(Math.min(100, t.done / Math.max(1, t.needed) * 100), t.done >= t.needed ? 'ok' : ''),
                 t.done >= t.needed ? h('p', { class: 'rpgc-note' }, T('Sessions done: the rank still needs its proof in the story.')) : h('p', { class: 'rpgc-note' }, TT('{0} sessions to go', t.needed - t.done)))),
+            trainingHeat(),
             h('p', { class: 'rpgc-note' }, T('Read from the HUD\u2019s Training line. A new skill shows here as soon as the narrator adds it.')));
     }
     function renderTechniques() {

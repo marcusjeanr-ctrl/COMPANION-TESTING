@@ -4873,7 +4873,7 @@ function atlasHereInfo(chatId, hud, chat = null) {
             last = k;
             if (recent.some(r => r.key === k)) continue;
             const m = loc.length ? atlasLocate(atlas, loc) : null;
-            recent.push({ key: k, name: loc.slice(-2).join(' \u203A '), id: m && !m.past?.length ? atlas.ix.get(m.id) : null, when: (when.get(tl[i].msg.id) || {}).when || null });
+            recent.push({ key: k, name: loc.slice(-2).join(' \u203A '), id: m && !m.past?.length ? atlas.ix.get(m.id) : null, when: (when.get(tl[i].msg.id) || {}).when || null, at: Number.isFinite(tl[i].clock) ? tl[i].clock : null });
         }
     } catch { /* no trail */ }
     return { version: atlas.version, count: atlas.nodes.size, here: here ? { id: atlas.ix.get(here.id), past: here.past, transit: here.transit } : null, trail, recent: recent.map(({ key, ...r }) => r),
@@ -8986,7 +8986,7 @@ function chronicleBuild(chat, st, userName = null) {
     const out = [], seenIds = new Set();
     const seenPlace = new Set(), powers = new Set(), quests = new Map(), threads = new Map(), people = new Map(), objectives = new Map(), everMet = new Set(), kin = new Map();
     const famOn = famCfg(cfg).on;
-    let chronTechKeys = null;
+    let chronTechKeys = null, chronSpellKeys = null;
     let loop = 1, rewindWorld = false, arc = null, prevE = null, began = false;
     const notesBy = new Map();
     for (const n of ch.notes) { if (!notesBy.has(n.msgId)) notesBy.set(n.msgId, []); notesBy.get(n.msgId).push(n); }
@@ -9088,7 +9088,13 @@ function chronicleBuild(chat, st, userName = null) {
         }
         const d = getSwipeData(m) || {};
         // spells the story says were learned
-        for (const n of d.survival && Array.isArray(d.survival.learned) ? d.survival.learned : []) {
+        for (const raw of d.survival && Array.isArray(d.survival.learned) ? d.survival.learned : []) {
+            // only what the Spellbook itself accepts as learned: a reporter's sentence ("Lord Boreas wants Marcus as
+            // steady company…", "Aura slips when surprised…") in the learned slot is not a spell
+            const n = String(raw || '').replace(/\s*\([^)]*\)\s*$/, '').split(/\s+[—–]\s+/)[0].trim();
+            if (!n) continue;
+            if (!chronSpellKeys) { try { const f = spellStoryFold(chat, chatIdOf(chat)); chronSpellKeys = new Set([...f.learned.keys(), ...(f.established || new Map()).keys(), ...f.mastered.keys()]); } catch { chronSpellKeys = null; } }
+            if (chronSpellKeys && !chronSpellKeys.has(spellKey(n))) continue;
             const sk = 'sp:' + spellKey(n);
             if (kin.has(sk)) continue;
             kin.set(sk, 'learned');
@@ -11800,6 +11806,7 @@ function hmsPanelStateRead(chatId, chat, st) {
         ...(() => { const warnings = consistencyWarnings(chatId, chat, hud, guard); return warnings.length ? {consistency:warnings} : {}; })(),
         pins,
         voices: (() => { try { return hmsVoices(chat, userNameCache.get(chatId) || null); } catch { return null; } })(),
+        trainingDays: (() => { try { return hmsTrainingDays(chat); } catch { return null; } })(),
         questNotes: st.questNotes || [],
         questPairs: isPlainObject(st.questPairs) ? st.questPairs : {},
         todoIdeas: isPlainObject(st.todoIdeas) ? { ...st.todoIdeas, stale: !!st.todoIdeas.at && st.todoIdeas.at !== (hmsTimeline(chat).at(-1)?.msg.id || null) } : null,
@@ -15483,6 +15490,25 @@ function hmsVoices(chat, userName = null) {
         });
         for (const [k, n] of tally) { const [name, t] = k.split('\u0000'); if (n >= 2 && (!calls[name] || calls[name].n < n)) calls[name] = { term: t, n }; }
         return { speakers: speakers.slice(0, 12), quotes, calls: Object.fromEntries(Object.entries(calls).map(([k, v]) => [k, v.term])) };
+    });
+}
+
+/** 1.4.0, display only: the story days on which a Training count went up, and by how much (from the HUD timeline). */
+function hmsTrainingDays(chat) {
+    return memoRead(chat, 'training-days', () => {
+        const tl = hmsTimeline(chat), when = hudWhenMap(chat), days = new Map();
+        let prev = null;
+        for (const t of tl) {
+            const tr = mtTraining(t.hud.lines.filter(l => !l.block).map(l => l.text));
+            if (!tr.length) continue;
+            const sum = tr.reduce((a, x) => a + x.done, 0);
+            if (prev !== null && sum > prev) {
+                const d = String((when.get(t.msg.id) || {}).when || '').trim() || '?';
+                days.set(d, (days.get(d) || 0) + (sum - prev));
+            }
+            prev = sum;
+        }
+        return [...days].slice(-120).map(([day, n]) => ({ day, n }));
     });
 }
 
@@ -20585,6 +20611,21 @@ spindle.onFrontendMessage(async (payload, userId) => {
                 st.questFocus = key && key !== st.questFocus ? key : null;
                 await saveChatState(payload.chatId, st);
                 await pushState(payload.chatId);
+                break;
+            }
+            case 'hud_compare': {
+                // 1.4.0: two replies' HUDs side by side, only when asked (n replies back from the latest)
+                if (!payload.chatId) return;
+                const chat = await chatApi.getMessages(payload.chatId);
+                const tl = hmsTimeline(chat);
+                const at = n => tl[Math.max(0, tl.length - 1 - Math.max(0, Math.min(tl.length - 1, Math.floor(Number(n) || 0))))];
+                const A = at(payload.a), B = at(payload.b ?? 0);
+                if (!A || !B) { toFrontend({ type: 'hud_compare', chatId: payload.chatId, rows: [] }); return; }
+                const map = x => new Map(x.hud.lines.filter(l => !l.block).map(l => [l.key, String(l.text).trim()]));
+                const a = map(A), b = map(B), keys = [...new Set([...a.keys(), ...b.keys()])];
+                const rows = keys.filter(k => a.get(k) !== b.get(k)).slice(0, 40).map(k => ({ key: k, before: (a.get(k) || '').slice(0, 300) || null, after: (b.get(k) || '').slice(0, 300) || null }));
+                const w = hudWhenMap(chat);
+                toFrontend({ type: 'hud_compare', chatId: payload.chatId, rows, a: { n: payload.a, when: (w.get(A.msg.id) || {}).when || null }, b: { n: payload.b ?? 0, when: (w.get(B.msg.id) || {}).when || null }, total: tl.length });
                 break;
             }
             case 'quest_pair': {
