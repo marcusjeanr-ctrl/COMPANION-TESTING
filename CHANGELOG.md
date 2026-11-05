@@ -1,5 +1,13 @@
 # Changelog — RPG Companion HMS Edition
 
+## 1.3.0 (in development, branch `release/1.3.0`, built on 1.2.0)
+
+**A game-style Gear card** (display only: tracking, stored data and token use are unchanged)
+- **Loadout bar:** your two hands as slots (what you hold, or an empty hand), then counts of what is worn, carried, packed and left behind.
+- **Item cards** with a picture from the item's name (⚔️ sword, 🪄 wand, 🧤 bracer, 🎗️ baldric, 👛 purse, 📘 book, 🪧 slate…), the maker's note in colour, where it is, and what sits inside it.
+- **Tap a card for quick moves:** Hold, Wear, Sheathe, Carry, Leave here, Drop, Into a bag, Gone, plus its story so far. They send the same move as the Move menu, which stays.
+- **This turn** shows each change as a chip; stowed and dropped things look set aside.
+
 ## 1.2.0 (in development, branch `release/1.2.0`)
 
 Built on 1.1.0 RC2. Report: `docs/release/1.2.0-INTEGRATION-REPORT.md`.

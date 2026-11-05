@@ -123,6 +123,15 @@ const fails = []; const check = (ok, what) => { if (!ok) fails.push(what); };
             await q.selectOption('select[aria-label="Move rope"]', 's:dropped');
             const moved = await q.evaluate(() => (window.__sent || []).filter(m => m.type === 'gear').at(-1));
             check(moved && moved.op === 'set' && moved.name === 'rope' && moved.state === 'dropped', 'gear: Move no longer sends the move');
+            // 1.3.0: tap a card for quick moves; a button sends the same move as the menu, and nested cards open alone
+            await q.click('li.rpgc-gear-item[data-state="worn"] > .name');
+            const tray = await q.evaluate(() => { const li = [...document.querySelectorAll('li.rpgc-gear-item')].find(l => l.querySelector('.name')?.textContent === 'cloak');
+                return { open: !li.querySelector(':scope > .rpgc-gi-tray').hasAttribute('hidden'), others: [...document.querySelectorAll('.rpgc-gi-tray')].filter(t => !t.hasAttribute('hidden')).length }; });
+            check(tray.open && tray.others === 1, 'gear: tapping a card does not open its quick moves alone');
+            await q.click('button[aria-label="Hold: cloak"]');
+            const held = await q.evaluate(() => (window.__sent || []).filter(m => m.type === 'gear').at(-1));
+            check(held && held.op === 'set' && held.name === 'cloak' && held.state === 'in hand', 'gear: a quick move does not send the move');
+            check(await q.evaluate(() => !!document.querySelector('.rpgc-gear-loadout .rpgc-gl-hand')), 'gear: the loadout bar is missing');
             if (shots) await q.screenshot({ path: path.join(shots, 'gear-containers.png'), fullPage: true });
         } catch (e) { fails.push('gear check stopped: ' + String(e.message).split('\n')[0]); }
         await q.close();
