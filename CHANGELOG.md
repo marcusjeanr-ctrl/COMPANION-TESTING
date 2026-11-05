@@ -34,6 +34,8 @@
 
 **Left out on purpose:** ambient sound (it needs audio files), pop-out windows (Lumiverse may not allow them; the mini bar covers it), a real pin map (no card gives place coordinates; Places lately and the illustrated tiles instead), a reply-by-reply timeline scrubber (you compare two replies on request), a PDF library (the print dialog saves PDF), and a power comparison with canon characters (the payload has no lorebook ranks to compare with).
 
+**No blink on click:** a click or a toggle redraws the panel, and every card used to replay its fade-in and rise each time. Entrance animations now play only when you change view or a new reply lands; an ordinary redraw runs none.
+
 **Tracking fix found on the way**
 - **The Chronicle no longer logs a reporter sentence as a learned spell.** "Learned a spell — Lord Boreas wants Marcus as steady company…" came from the tracker's learned slot. It now logs only what the Spellbook accepts, so "Flash Slash" is logged as a technique.
 

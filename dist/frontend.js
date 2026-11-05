@@ -1805,7 +1805,7 @@ button.rpgc-chip.intel:hover { border-color: var(--lumiverse-accent, #7aa2f7); }
 @keyframes rpgc-view-in{from{opacity:0;transform:translateY(6px) scale(.995)}to{opacity:1;transform:none}}
 .rpgc .rpgc-view>*{animation:rpgc-in .3s ease-out both}.rpgc .rpgc-view>*:nth-child(2){animation-delay:.03s}.rpgc .rpgc-view>*:nth-child(3){animation-delay:.06s}.rpgc .rpgc-view>*:nth-child(4){animation-delay:.09s}
 /* new this turn: a soft glow, once */
-.rpgc .new,.rpgc .changed{animation:rpgc-newglow 1.6s ease-out 1}
+.rpgc.rpgc-fresh .new,.rpgc.rpgc-fresh .changed{animation:rpgc-newglow 1.6s ease-out 1}
 @keyframes rpgc-newglow{0%{box-shadow:0 0 0 0 color-mix(in srgb,var(--u-accent) 60%,transparent)}100%{box-shadow:0 0 0 10px transparent}}
 .rpgc .rpgc-qcard.focus .rpgc-ring-wrap{animation:rpgc-pulse 2.4s ease-in-out infinite}
 /* seasons and the near Calamity */
@@ -1828,6 +1828,11 @@ button.rpgc-chip.intel:hover { border-color: var(--lumiverse-accent, #7aa2f7); }
 .rpgc .rpgc-ptab{position:relative;flex:none;display:flex;align-items:center;gap:6px;font:inherit;font-size:var(--u-fs-s);padding:3px 10px 3px 3px;border-radius:999px;border:1px solid var(--u-line);background:var(--u-raise);color:var(--u-text);cursor:pointer}
 .rpgc .rpgc-ptab .rpgc-mono,.rpgc .rpgc-ptab .rpgc-avatar{width:24px;height:24px;font-size:10px}
 .rpgc .rpgc-ptab .al{position:absolute;top:-3px;right:-3px;width:14px;height:14px;border-radius:50%;background:var(--u-bad);color:#fff;font-size:10px;display:grid;place-items:center}
+
+/* 1.4.0: an ordinary redraw (a click, a toggle) is still: nothing fades or rises again */
+.rpgc.rpgc-still .rpgc-view,.rpgc.rpgc-still .rpgc-view>*,.rpgc.rpgc-still .rpgc-sec[open]>.rpgc-body,.rpgc.rpgc-still .rpgc-rib,
+.rpgc.rpgc-still .rpgc-rankup .stamp,.rpgc.rpgc-still .rpgc-person.flipped,.rpgc.rpgc-still .rpgc-tour,.rpgc.rpgc-still .rpgc-recap,.rpgc.rpgc-still .rpgc-rollline::before{animation:none!important}
+.rpgc.rpgc-still .rpgc-sec{transition:none}
 
 `;
 
@@ -2938,6 +2943,7 @@ export function setup(ctx) {
             for (const card of view.children) viewObserver.observe(card);
         }
     }
+    let animReply = null;   // the reply whose arrival last played the entrance animations
     let pendingRender = false;
     let deferredEl = null;
     const fieldDrafts = new Map();   // what the player has typed into the panel's boxes, until they clear or submit it
@@ -2947,7 +2953,10 @@ export function setup(ctx) {
     function render(fromBackend = false) {
         if (!panelVisible) { hiddenRender = true; return; }
         applyLang();
-        root.className = 'rpgc' + themeClass() + ' look-' + currentLook() + (S()?.compactMobile ? ' rpgc-compact-mobile' : '') + deckClass();
+        // 1.4.0: still on an ordinary redraw (same view, same reply), set here with the rest so no style flips mid-render
+        const animKey = state.view === 'trackers' ? 'v:' + (state.viewTab || '') : state.view, animFresh = (state.hms?.messageId || null) !== animReply;
+        root.className = 'rpgc' + themeClass() + ' look-' + currentLook() + (S()?.compactMobile ? ' rpgc-compact-mobile' : '') + deckClass() +
+            (renderedViewKey !== null && animKey === renderedViewKey && !animFresh ? ' rpgc-still' : '') + (renderedViewKey !== null && animFresh ? ' rpgc-fresh' : '');
         { const st = deckStyle(); if (root.getAttribute('style') !== st) { if (st) root.setAttribute('style', st); else root.removeAttribute('style'); } }
         if (encModal) encModal.root.className = 'rpgc rpgc-enc' + themeClass();
         const active = document.activeElement;
@@ -2989,6 +2998,9 @@ export function setup(ctx) {
         }
         layoutViewColumns();
         tab.root.scrollTop = viewChanged ? (viewScroll[viewKey] || 0) : scroll;
+        // 1.4.0: entrance animations play when you change view or a new reply lands, never on an ordinary redraw
+        // (a click repaints the panel, and replaying every card's fade-in read as a blink)
+        animReply = state.hms?.messageId || null;
         renderedViewKey = viewKey;
         if (state.jumpTo) {
             const id = state.jumpTo; state.jumpTo = null;
