@@ -160,6 +160,16 @@ const A = { gear: [{ name: 'silver locket', state: 'worn' }], deaths: ['Halvin']
         assert.equal(by('Plain road sword')?.state ?? null, null);
         assert.ok(!g.gone.some(x => /baldric|bracer/.test(x.name)), 'HUD-listed gear went to Gone');
     });
+    await check('"at first bell" said late at night is tomorrow, not late; "(top bag)" alone still means packed', async () => {
+        L.setState({});
+        const eq = "Plain road sword, Aurelia's prize slate (packed, top bag)";
+        L.set([...base(), user('I pack.'), reply({ agenda: [{ key: 'departure at first bell', what: 'Departure at first bell', with: 'Seraphina Veyrath', where: 'the gate', when: 'first bell', kind: 'meeting', state: 'open' }] }, 'Seraphina says the courier leaves at first bell.', { equipment: eq, time: '21:50' }),
+            user('I pack my books.'), reply({}, 'The books go in flat.', { equipment: eq.replace('packed, top bag', 'top bag'), time: '21:55' })]);
+        const st = (await L.push()).hms;
+        const dep = st.agenda.items.find(a => /first bell/i.test(a.what));
+        assert.ok(dep && dep.dueIn > 0 && dep.status !== 'overdue', JSON.stringify(dep));
+        assert.equal(st.gear.items.find(i => /slate/.test(i.name))?.state, 'in container');
+    });
     await check('the narrator request stays bounded with many open items', async () => {
         L.setState({}); const many = Array.from({ length: 40 }, (_, i) => ({ key: `errand ${i}`, what: `Errand number ${i} at the market`, when: `in ${i + 1} days`, kind: 'errand', state: 'open' }));
         L.set([...base(), user('I plan.'), reply({ agenda: many }, 'A long list.', { time: '10:00' })]); await L.push();

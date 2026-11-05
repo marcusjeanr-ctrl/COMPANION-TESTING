@@ -14113,17 +14113,20 @@ function gearReadUncached(chat, st, cfg) {
         // "Aurelia's slate (packed, top bag)": the narrator's own note that it is put away, on every HUD since a reply
         // newer than the last report about it, wins over that report (the side panel missed the packing).
         // Only put-away notes: "(Halvin's mark, worn)" is the blade's wear, not how it is carried.
-        if (!relisted && ['in container', 'stowed'].includes(x.hint) && it.state !== x.hint && it.state !== 'gone') {
+        // "(top bag)" alone is the bag it is in, as much as "(packed, top bag)".
+        const putAway = y => y && (['in container', 'stowed'].includes(y.hint) ? y.hint : !y.hint && /^(?:in(?:side)?\s+(?:the\s+|my\s+)?)?(?:[\w'’-]+\s+)?(?:bag|backpack|pack|pouch|satchel|saddlebags?|chest|trunk|case|sack)$/i.test(y.paren || '') ? 'in container' : null);
+        const hint = putAway(x);
+        if (!relisted && hint && it.state !== hint && it.state !== 'gone') {
             let since = null;
             for (let k = tl.length - 1; k >= 0; k--) {
                 const y = gearFromHud(tl[k].hud).find(z => find(gearBare(z.name)) === it || lockKey(gearBare(z.name)) === it.key);
-                if (!y || y.hint !== x.hint) break;
+                if (!y || putAway(y) !== hint) break;
                 since = idxOf.has(tl[k].msg.id) ? idxOf.get(tl[k].msg.id) : since;
             }
             if (since !== null && (!Number.isFinite(it.idx) || since > it.idx)) {
-                const box = x.hint === 'in container' ? ((x.paren || '').match(/\b((?:[\w'’-]+\s+)?(?:bag|backpack|pack|pouch|satchel|pocket|chest|box|case|sack|purse|saddlebags?))\b/i) || [])[1] || null : null;
-                it.history.push({ state: x.hint, where: x.hint === 'stowed' ? x.paren : null, inside: box, at: it.at, msgId: null });
-                it.state = x.hint; it.where = x.hint === 'stowed' ? x.paren : null; it.inside = box;
+                const box = hint === 'in container' ? ((x.paren || '').match(/\b((?:[\w'’-]+\s+)?(?:bag|backpack|pack|pouch|satchel|pocket|chest|box|case|sack|purse|saddlebags?))\b/i) || [])[1] || null : null;
+                it.history.push({ state: hint, where: hint === 'stowed' ? x.paren : null, inside: box, at: it.at, msgId: null });
+                it.state = hint; it.where = hint === 'stowed' ? x.paren : null; it.inside = box; if (box && it.note && relSameWords(it.note, box)) it.note = null;
             }
         }
         if (it.state === 'gone' && !(it.msgId && hudListedWhenGone(it))) it.state = null;
@@ -14322,7 +14325,11 @@ function agendaWhen(due, when, at, hud = null, source = null) {
     const clockText = `${Math.floor(clock / 60)}:${String(clock % 60).padStart(2, '0')}`;
     const explicit = text.replace(/\b\d{1,2}:\d{2}\s*(?:am|pm)?\b|\b\d{1,2}\s*(?:am|pm|o'clock|h)\b|\b(?:half past|quarter past|quarter to)\s+\w+\b/i, clockText);
     const parsed = hmsParseWhen(explicit, at, hud);
-    return parsed !== null && Number.isFinite(parsed) ? parsed : dayStart + clock;
+    if (parsed !== null && Number.isFinite(parsed)) return parsed;
+    // "at first bell" said at 21:50 is tomorrow's first bell, not this morning's (chat 2: a departure shown late).
+    // Only when it is long past and nothing ties it to today ("this noon" an hour ago is late, not tomorrow).
+    const t0 = dayStart + clock;
+    return at - t0 > 6 * 60 && !/\b(?:this|today|tonight|now|earlier|already|ago|past|late|overdue)\b/i.test(text) ? t0 + 1440 : t0;
 }
 
 function agendaNormalize(list) {
