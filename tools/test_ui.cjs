@@ -170,6 +170,31 @@ const fails = []; const check = (ok, what) => { if (!ok) fails.push(what); };
         } catch (e) { fails.push('quests check stopped: ' + String(e.message).split('\n')[0]); }
         await q.close();
     }
+    // 1.4.0: the deck — strip, pins, mini bar, arrange, compare, settings tabs; every one display only
+    {
+        fs.writeFileSync(tmp, page(process.env.FRONTEND || path.join(root, 'dist', 'frontend.js'), 420, `localStorage.setItem('rpgc-view','people');`));
+        const q = await browser.newPage({ viewport: { width: 460, height: 900 } }); q.setDefaultTimeout(3000);
+        q.on('pageerror', e => fails.push('deck: script error ' + e.message));
+        await q.goto('file://' + tmp); await q.evaluate(d => window.__recv(d), payload); await q.waitForTimeout(60);
+        try {
+            const pin = await q.$('.rpgc-person .rpgc-pin');
+            if (pin) { await pin.click(); await q.waitForTimeout(40); check(await q.evaluate(() => !!document.querySelector('.rpgc-focusbar .rpgc-focus')), 'deck: a pinned person is not on the focus bar'); }
+            await q.evaluate(() => document.querySelector('.rpgc-tools').open = true);
+            await q.click('button:has-text("Mini bar")'); await q.waitForTimeout(40);
+            check(await q.evaluate(() => !!document.querySelector('.rpgc-minibar') && !document.querySelector('.rpgc-views')), 'deck: the mini bar does not fold the panel');
+            await q.click('.rpgc-minibar'); await q.waitForTimeout(40);
+            check(await q.evaluate(() => !!document.querySelector('.rpgc-views')), 'deck: the mini bar does not open again');
+            await q.evaluate(() => document.querySelector('.rpgc-tools').open = true);
+            await q.click('button:has-text("Arrange cards")'); await q.waitForTimeout(40);
+            check(await q.evaluate(() => document.querySelectorAll('.rpgc-arrange').length > 0), 'deck: Arrange shows no move buttons');
+            await q.click('.tb-settings'); await q.waitForTimeout(60);
+            const tabs = await q.evaluate(() => document.querySelectorAll('.rpgc-set-tab').length);
+            check(tabs >= 4, 'deck: settings tabs missing');
+            await q.click('.rpgc-set-tab:has-text("Look")'); await q.waitForTimeout(40);
+            check(await q.evaluate(() => [...document.querySelectorAll('details.rpgc-sec')].some(c => !c.hidden) && [...document.querySelectorAll('details.rpgc-sec')].some(c => c.hidden)), 'deck: a settings tab does not filter the sections');
+        } catch (e) { fails.push('deck check stopped: ' + String(e.message).split('\n')[0]); }
+        await q.close();
+    }
     // render time: a full render of All, new build vs FRONTEND_OLD
     const time = async file => { const q = await open(420, 'modern', 'all', file); const ms = await q.evaluate(d => { const t = []; for (let i = 0; i < 7; i++) { const a = performance.now(); window.__recv(JSON.parse(JSON.stringify(d))); t.push(performance.now() - a); } t.sort((x, y) => x - y); return t[3]; }, payload); await q.close(); return ms; };
     const now = await time(path.join(root, 'dist', 'frontend.js'));
