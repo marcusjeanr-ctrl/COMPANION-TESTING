@@ -34,6 +34,21 @@
 - **An old routine is "Last seen", not "now":** Cassian "eating with the family until supper is over", reported three months of story time ago, showed as what he is doing. Anything older than half a story-day reads 🕰️ Last seen · 3 months ago.
 - Ledger rows and Gone items carry the HUD's date and place at that reply.
 
+**The rest of the cards** (from Marcus's request: "do it for every other panel")
+- **World State:** the HUD in small sections (Time & place, You, Skills & training, Gear/standing/people, Story), each folding on its own with a count of lines that changed. **This reply** shows each changed line with what it said the reply before, struck through, or "new line". Paths under Active Paths read as bullets with a "Change" tag.
+- **Quests:** Main and Side bands. Two open quests that read like one goal get a **Looks like the same quest?** hint: **Show as one** folds one under the other ("Also tracked as", ↔ to split it back), **They're different** stops asking, **Copy OOC fix** asks the story to print one name. Display only: both quests stay tracked as the story reports them.
+- **Abilities:** HUD magic tiers as school tiles on the rank ladder; martial skills grouped (Aura & body, Unarmed & footwork, Weapons & styles), each with a dot for how firm it is (attempted, practising, reliable) and the HUD's own rank beside a style.
+- **Story checks:** each warning is a card with how serious it is (fix soon / worth a look / minor) and a **Copy OOC fix** button; consistency warnings get the same cards and fix lines.
+- **Atlas:** **Places lately**, the last places the HUD stood in, newest first, each a tap to open it.
+- **Chronicle:** a timeline down the left, day pills, and a bond that moved shows only the words that changed.
+- Chapters, Factions, D&D, Phone and Holdings get the new card look. "1 techniques" / "1 spells" read right.
+
+**Tracking fixes found on the way** (Marcus's chats)
+- **Sword styles with a True rank count as your style:** "Sword God (Advanced) — True: Advanced (…)" was read as a style named "Sword God (Advanced) — True", so every Sword God technique showed "Not one of your styles". It is now Sword God at its True rank: Flash Slash known, four within reach, Longsword of Light the next rank.
+- **A quest's place follows the story:** "Two Years in Roa" kept "north row market, Ferren's stall" from two months earlier because a longer old place always won. The older place now stays only when it refines the new one (Veyrath Hall, east yard over Veyrath Hall).
+- **Renown is not a faction:** "Renown: Asura: Unknown" made Asura a neutral faction. An unknown renown is skipped; a real reputation still counts.
+- **Chronicle:** a bond reworded ("the keeper of his slate" → "keeper of the slate") is no longer logged as a bond change (nor sent to the Memory Cortex), and a calendar with months keeps the month in the day ("Month 4 · Day 1", so it is not mixed up with Month 1's Day 1).
+
 **A polished look across every card** (visual only, same tokens, so Looks and world themes keep their colours)
 - Cards with a soft accent glow, a lit top edge and a medallion emblem; headers with a pill for the summary; cards open with a short rise (off with reduced motion).
 - Headings inside cards as small tracked labels with a fading rule; sub-sections as pills; brighter chips, buttons with a lift, focus rings, softer status lines, bars with a glow, nicer scrollbars, a lit view switcher.

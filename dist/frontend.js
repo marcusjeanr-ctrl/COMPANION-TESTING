@@ -1443,6 +1443,51 @@ button.rpgc-chip.intel:hover { border-color: var(--lumiverse-accent, #7aa2f7); }
 .rpgc .rpgc-chk .fx{flex:1 1 180px;min-width:0;font-size:10.5px;color:var(--u-muted);white-space:normal;padding:4px 7px;border-radius:6px;background:var(--u-raise)}
 .rpgc .rpgc-consistency .rpgc-chk-list{margin:6px 0}
 
+/* 1.3.0: Atlas — your route */
+.rpgc .rpgc-atlas-route{margin:6px 0 8px;border:1px solid var(--u-line);border-radius:var(--u-radius-s);background:var(--u-glass)}
+.rpgc .rpgc-atlas-route>summary{display:flex;align-items:center;gap:6px;padding:6px 10px;cursor:pointer;font-size:12px;font-weight:650;list-style:none}
+.rpgc .rpgc-atlas-route>summary::-webkit-details-marker{display:none}
+.rpgc .rpgc-atlas-route>summary .n{margin-left:auto;font-size:10.5px;padding:0 7px;border-radius:999px;background:var(--u-raise);color:var(--u-muted)}
+.rpgc .rpgc-atlas-route ol{list-style:none;margin:0;padding:2px 10px 8px 14px}
+.rpgc .rpgc-atlas-route li{position:relative;display:flex;align-items:baseline;gap:8px;padding:3px 0 3px 14px;font-size:12px}
+.rpgc .rpgc-atlas-route li::before{content:"";position:absolute;left:3px;top:0;bottom:0;border-left:2px dotted var(--u-line-2)}
+.rpgc .rpgc-atlas-route li:last-child::before{bottom:50%}.rpgc .rpgc-atlas-route li:first-child::before{top:50%}
+.rpgc .rpgc-atlas-route .pin{position:absolute;left:0;top:calc(50% - 4px);width:8px;height:8px;border-radius:50%;background:var(--u-muted)}
+.rpgc .rpgc-atlas-route li.now .pin{background:var(--u-accent);box-shadow:0 0 0 3px color-mix(in srgb,var(--u-accent) 25%,transparent),0 0 10px var(--u-glow)}
+.rpgc .rpgc-atlas-route li.now .pl{font-weight:700}
+.rpgc .rpgc-atlas-route .pl{flex:1;min-width:0;font:inherit;text-align:left;background:none;border:0;padding:0;color:var(--u-text)}
+.rpgc .rpgc-atlas-route button.pl{cursor:pointer}.rpgc .rpgc-atlas-route button.pl:hover{color:var(--u-accent);text-decoration:underline}
+.rpgc .rpgc-atlas-route .wh{font-size:10.5px;color:var(--u-muted);white-space:nowrap}
+
+/* 1.3.0: Chronicle — a timeline down the left, day pills, bond changes as a diff */
+.rpgc .rpgc-chron-day{display:block;width:max-content;max-width:100%;margin:12px 0 4px;padding:2px 10px;border-radius:999px;background:var(--u-raise);border:1px solid var(--u-line);color:var(--u-text);letter-spacing:.08em}
+.rpgc .rpgc-chron-list{position:relative;padding-left:2px}
+.rpgc .rpgc-chron-list::before{content:"";position:absolute;left:13px;top:6px;bottom:6px;border-left:2px solid var(--u-line)}
+.rpgc .rpgc-chron-item{position:relative}
+.rpgc .rpgc-chron-item .ic{position:relative;z-index:1;width:22px;height:22px;line-height:22px;border-radius:50%;background:var(--u-surface,#16171f);box-shadow:0 0 0 1px var(--u-line)}
+.rpgc .rpgc-chron-item.big .ic,.rpgc .rpgc-chron-item.star .ic{box-shadow:0 0 0 1.5px var(--u-warn),0 0 10px -2px var(--u-warn)}
+.rpgc .rpgc-chron-item.milestone{background:color-mix(in srgb,var(--u-accent) 7%,transparent);border-color:color-mix(in srgb,var(--u-accent) 25%,transparent)}
+.rpgc .rpgc-chron-diff .same{color:var(--u-muted)}.rpgc .rpgc-chron-diff .old{color:var(--u-muted);opacity:.75}.rpgc .rpgc-chron-diff .new{color:var(--u-text)}
+.rpgc .rpgc-chron-item.bond .tx{font-weight:400}
+
+/* 1.3.0: the smaller cards — Chapters, Factions, D&D, Phone, Holdings */
+.rpgc .rpgc-chapter{border:1px solid var(--u-line);border-left:3px solid color-mix(in srgb,var(--u-accent) 55%,transparent);border-radius:var(--u-radius-s);padding:7px 10px;margin:6px 0;background:var(--u-glass)}
+.rpgc .rpgc-chapter.loop{border-left-color:color-mix(in srgb,var(--u-bad) 60%,transparent)}.rpgc .rpgc-chapter.arc{border-left-color:color-mix(in srgb,var(--u-warn) 60%,transparent)}
+.rpgc .rpgc-chapter.unsummarised{border-style:dashed;border-left-style:solid}
+.rpgc .rpgc-chapter>summary b{font-size:13px}.rpgc .rpgc-chapter[open]{box-shadow:0 10px 24px -18px var(--u-glow)}
+.rpgc .rpgc-chsum{padding:8px 10px;border-radius:8px;background:var(--u-raise);font-size:12.5px}
+.rpgc [data-sec="factions"] .rpgc-person{border-left:3px solid var(--u-line-2)}
+.rpgc [data-sec="factions"] .rpgc-person.neg{border-left-color:var(--u-bad);background:color-mix(in srgb,var(--u-bad) 5%,var(--u-glass))}
+.rpgc [data-sec="factions"] .rpgc-person.pos{border-left-color:color-mix(in srgb,var(--u-ok) 60%,transparent)}
+.rpgc [data-sec="factions"] .rpgc-person.top{border-left-color:var(--u-ok);background:color-mix(in srgb,var(--u-ok) 6%,var(--u-glass))}
+.rpgc [data-sec="factions"] .rpgc-person .head .name{font-weight:700}
+.rpgc .rpgc-dnd-abil{border-color:var(--u-line);border-radius:var(--u-radius-s);background:linear-gradient(180deg,var(--u-raise),transparent);padding:6px}
+.rpgc .rpgc-dnd-abil .mod{font-size:19px;color:color-mix(in srgb,var(--u-accent) 70%,var(--u-text))}
+.rpgc .rpgc-dnd-abil .ab{letter-spacing:.08em;text-transform:uppercase;font-weight:700}
+.rpgc .rpgc-phone-head{padding:6px 8px;border-radius:var(--u-radius-s);background:var(--u-raise);border:1px solid var(--u-line)}
+.rpgc .rpgc-holding{border-radius:var(--u-radius-s)}
+.rpgc .rpgc-holding.new{box-shadow:0 0 0 1px color-mix(in srgb,var(--u-accent) 45%,transparent),0 8px 20px -14px var(--u-glow)}
+
 `;
 
 // The guide, embedded from GUIDE.md so it ships inside the extension (tools/embed_guide.py refreshes it).
@@ -4410,7 +4455,7 @@ export function setup(ctx) {
         ['you', '\uD83E\uDDCD', 'You', /^(race|origin|age|class|level|lv|xp|exp|hp|health|mp|sp|mana|stamina|touki|aura|status|condition|body|injur|wound|hunger|fatigue|mood|stress|sanity|vitals?|stats?|attributes?|appearance|name|species|job|role|title)\b/],
         ['skills', '\u2728', 'Skills & training', /^(sword|style|magic|spell|tier|cast|voiceless|language|training|skill|abilit|technique|tech|art|blessing|divine|authority|discipline|school|affinit|element)/],
         ['standing', '\uD83D\uDC51', 'Gear, standing & people', /^(equipment|gear|inventory|items?|money|purse|coin|gold|wallet|funds|standing|social|renown|reputation|fame|rank|nobility|house|faction|bonds?|relationship|party|present|companions?|allies|followers|contacts|points|ppt|class points)/],
-        ['story', '\uD83D\uDCDC', 'Story', /^(era|arc|game mode|mode|guide|canon|world event|event|active paths|paths?|quests?|goals?|objectives?|narrative|chapter|plot|threads?|flags?|loop|route|scenario|timeline|divergence|warning|\u26A0)/],
+        ['story', '\uD83D\uDCDC', 'Story', /^(era|arc|sandbox|setting|world|game mode|mode|guide|canon|world event|event|active paths|paths?|quests?|goals?|objectives?|narrative|chapter|plot|threads?|flags?|loop|route|scenario|timeline|divergence|warning|\u26A0)/],
     ];
     function hudGroupOf(line) {
         if (line.kind === 'location') return 'time';
@@ -4430,6 +4475,7 @@ export function setup(ctx) {
         const lab = line.fields && line.fields[0] && line.fields[0].label;
         let t = String(was);
         if (lab && t.toLowerCase().startsWith(String(lab).toLowerCase())) t = t.slice(String(lab).length).replace(/^\s*:\s*/, '');
+        for (const f of (line.fields || []).slice(1)) if (f && f.label) t = t.split(`${f.label}: `).join('');
         t = t.replace(/\s*\|\s*/g, ' \u00B7 ');
         if (line.kind === 'location') t = t.replace(/^\s*\u25C6\s*/, '').split(/\s*\u2192\s*/).slice(-2).join(' \u203A ');
         return t.trim();
@@ -7892,6 +7938,17 @@ export function setup(ctx) {
     const CHRON_FILTERS = [['all', 'All'], ['moment', '★ Moments'], ['bond', '💞 Bonds'], ['plot', '🧭 Plot'], ['milestone', '◆ Milestones'], ['place', '📍 Places']];
     const CHRON_MODE = { off: 'writes nothing by itself', key: 'writes only the biggest moments', most: 'writes key moments, bonds, plot and milestones', all: 'writes everything, places too' };
     function chronTime(ms) { if (!ms) return ''; const d = new Date(ms); return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`; }
+    // a bond that moved ("Name: old → new") shows only what changed: the shared words once, the old part struck
+    function chronText(e) {
+        const t = String(e.text || '');
+        const m = e.kind === 'bond' && t.match(/^([^:]{2,60}):\s*(.+?)\s+\u2192\s+(.+)$/);
+        if (!m) return t;
+        const a = m[2].split(/\s+/), b = m[3].split(/\s+/);
+        let i = 0; while (i < a.length && i < b.length && a[i] === b[i]) i++;
+        if (i < 3) return t;
+        return h('span', { class: 'rpgc-chron-diff' }, `${m[1]}: `, h('span', { class: 'same' }, a.slice(0, i).join(' ') + ' '),
+            a.length > i ? h('s', { class: 'old' }, a.slice(i).join(' ')) : null, a.length > i ? ' ' : null, h('b', { class: 'new' }, b.slice(i).join(' ')));
+    }
     function renderChronicle() {
         const info = state.chronicle;
         if (!info || S()?.showChronicle === false || (isObj(S()?.chronicle) && S().chronicle.enabled === false)) return null;
@@ -7934,7 +7991,7 @@ export function setup(ctx) {
             const cls = ['rpgc-chron-item', e.kind, e.star ? 'star' : '', e.imp >= 8 ? 'big' : '', e.hidden ? 'hidden' : ''].filter(Boolean).join(' ');
             return h('li', { class: cls },
                 h('span', { class: 'ic', 'aria-hidden': 'true' }, CHRON_ICON[e.kind] || '•'),
-                h('span', { class: 'tx' }, tpart ? h('span', { class: 'tm' }, tpart) : null, e.text, displayRepeatCount(group),
+                h('span', { class: 'tx' }, tpart ? h('span', { class: 'tm' }, tpart) : null, chronText(e), displayRepeatCount(group),
                     e.who && e.who.length ? h('span', { class: 'who' }, e.who.map(n => h('button', { class: 'rpgc-chip', style: 'cursor:pointer;background:none;color:inherit;font:inherit;font-size:11px', title: `Only ${n}: their timeline with you`, onclick: () => { if(playOn('npcDossier'))state.dossierName=n;else state.chronWho=n;state.chronShow=40;render(); } }, n))) : null),
                 h('span', { class: 'act' }, status,
                     h('button', { class: 'rpgc-mini star', title: e.star ? 'Unstar' : 'Star: a key moment, always written', 'aria-label': e.star ? `Unstar: ${e.text}` : `Star: ${e.text}`, onclick: () => send({ type: 'chronicle_edit', chatId: state.chatId, op: 'star', id: e.id }) }, e.star ? '★' : '☆'),
@@ -8543,14 +8600,22 @@ html,body{background:${panelBg}!important;}`;
             info.here && info.here.transit != null ? h('span', { class: 'rpgc-note' }, ` \u203A on the road${info.here.transit ? ` to ${info.here.transit}` : ''}`) : null,
             info.here && info.here.past && info.here.past.length ? h('span', { class: 'rpgc-note', title: 'The HUD names a place the location book does not have' }, ` \u203A ${info.here.past.join(' \u203A ')} (not in the book)`) : null,
             info.surv ? survBadge(info.surv) : null);
-        if (!A) return section('atlas', 'Atlas', state.open, `${info.count} places`, trail, h('p', { class: 'rpgc-note' }, 'Opening the location book\u2026'));
+        // 1.3.0: the route you took to get here, newest first (from the HUD's own location lines)
+        const recent = Array.isArray(info.recent) ? info.recent : [];
+        const route = recent.length > 1 ? h('details', { class: 'rpgc-atlas-route' }, h('summary', null, '\uD83E\uDDED ', T('Places lately'), h('span', { class: 'n' }, String(recent.length))),
+            h('ol', null, recent.map((r, i) => h('li', { class: i === 0 ? 'now' : '' },
+                h('span', { class: 'pin', 'aria-hidden': 'true' }),
+                r.id != null && A ? h('button', { class: 'pl', onclick: () => { const n = idx.get(r.id); state.atlasFocus = n && !n.children.length && n.parent != null ? n.parent : r.id; state.atlasSel = r.id; render(); } }, r.name) : h('span', { class: 'pl' }, r.name),
+                r.when ? h('span', { class: 'wh' }, i === 0 ? T('now') : r.when) : null)))) : null;
+        if (route) { route.open = state.open['atlas-route'] === true; route.addEventListener('toggle', () => { state.open['atlas-route'] = route.open; }); }
+        if (!A) return section('atlas', 'Atlas', state.open, `${info.count} places`, trail, route, h('p', { class: 'rpgc-note' }, 'Opening the location book\u2026'));
         // what to show: the place you chose, or the one around you
         const here = hereId != null ? idx.get(hereId) : null;
         let focusId = state.atlasFocus != null && idx.has(state.atlasFocus) ? state.atlasFocus : null;
         if (focusId != null && !idx.get(focusId).children.length && idx.get(focusId).parent != null) { state.atlasSel = focusId; focusId = idx.get(focusId).parent; }
         if (focusId == null) focusId = here ? (here.children.length ? here.id : (here.parent != null ? here.parent : here.id)) : (A.roots.length ? A.roots[0] : null);
         const focus = focusId != null ? idx.get(focusId) : null;
-        if (!focus) return section('atlas', 'Atlas', state.open, `${info.count} places`, trail);
+        if (!focus) return section('atlas', 'Atlas', state.open, `${info.count} places`, trail, route);
         const selId = state.atlasSel != null && idx.has(state.atlasSel) ? state.atlasSel : (hereId != null && focus.children.includes(hereId) ? hereId : focus.id);
         const tile = (id) => {
             const n = idx.get(id);
@@ -8596,7 +8661,7 @@ html,body{background:${panelBg}!important;}`;
                 hereId != null && here && focusId !== (here.children.length ? here.id : (here.parent != null ? here.parent : here.id)) ? h('button', { class: 'rpgc-mini', onclick: () => { state.atlasFocus = null; state.atlasSel = null; render(); } }, 'Where am I?') : null),
             focus.children.length ? body : h('p', { class: 'rpgc-note' }, 'Nothing listed inside this place.'),
             det);
-        return section('atlas', 'Atlas', state.open, `${info.count} places`, trail, focusBox);
+        return section('atlas', 'Atlas', state.open, `${info.count} places`, trail, route, focusBox);
     }
 
     // What you carry beyond the HUD: what the bot assumes (standard issue) and what the story handed you.
@@ -8634,7 +8699,7 @@ html,body{background:${panelBg}!important;}`;
                 sp.name, sp.cost ? h('span', { class: 'st' }, ` ${sp.cost}`) : null)))));
         if (m.list) out.push(renderSpellList(m.list));
         const knownN = m.list ? m.list.schools.reduce((a, g) => a + g.known, 0) : m.spellbook.length;
-        return section('magic', 'Magic', state.open, knownN ? TT('{0} spells', knownN) : null, ...out);
+        return section('magic', 'Magic', state.open, knownN ? (knownN === 1 ? T('1 spell') : TT('{0} spells', knownN)) : null, ...out);
     }
 
     // Mushoku Tensei: the saga's timeline, arc by arc, with where the story stands.
@@ -8701,7 +8766,7 @@ html,body{background:${panelBg}!important;}`;
         const c = sysCfg().magic || {};
         if (!L || c.enabled === false) return null;
         const knownN = L.schools.reduce((a, g) => a + g.known, 0);
-        return section('techniques', 'Combat techniques', state.open, knownN ? TT('{0} techniques', knownN) : null, renderSpellList(L, 'tech'));
+        return section('techniques', 'Combat techniques', state.open, knownN ? (knownN === 1 ? T('1 technique') : TT('{0} techniques', knownN)) : null, renderSpellList(L, 'tech'));
     }
 
     function renderSpellList(L, kind = 'spell') {

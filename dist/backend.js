@@ -4845,7 +4845,22 @@ function atlasHereInfo(chatId, hud, chat = null) {
     let n = here ? atlas.nodes.get(here.id) : null;
     while (n) { trail.unshift({ id: atlas.ix.get(n.id), name: n.name }); n = n.parent && atlas.nodes.get(n.parent); }
     const cur = here ? atlas.nodes.get(here.id) : null;
-    return { version: atlas.version, count: atlas.nodes.size, here: here ? { id: atlas.ix.get(here.id), past: here.past, transit: here.transit } : null, trail,
+    // the last few places the HUD stood in, newest first, for the card's route trail (read from the cached timeline)
+    const recent = [];
+    if (chat) try {
+        const tl = hmsTimeline(chat), when = hudWhenMap(chat);
+        let last = null;
+        for (let i = tl.length - 1; i >= 0 && recent.length < 6; i--) {
+            const loc = Array.isArray(tl[i].hud.location) ? tl[i].hud.location.filter(Boolean) : [];
+            const k = loc.join(' > ');
+            if (!k || k === last) continue;
+            last = k;
+            if (recent.some(r => r.key === k)) continue;
+            const m = loc.length ? atlasLocate(atlas, loc) : null;
+            recent.push({ key: k, name: loc.slice(-2).join(' \u203A '), id: m && !m.past?.length ? atlas.ix.get(m.id) : null, when: (when.get(tl[i].msg.id) || {}).when || null });
+        }
+    } catch { /* no trail */ }
+    return { version: atlas.version, count: atlas.nodes.size, here: here ? { id: atlas.ix.get(here.id), past: here.past, transit: here.transit } : null, trail, recent: recent.map(({ key, ...r }) => r),
         surv: cur && cur.surv ? { level: cur.surv.level, label: ATLAS_SURV_LABEL[cur.surv.level] || '' } : null };
 }
 
@@ -7218,6 +7233,10 @@ function mtPowerViews(text) {
 }
 function mtRankRows(text, ranks) {
     return hmsSplitTop(mtPowerViews(text).actual, /\s*[,;·|]\s*/g).map(part => {
+        // Six-Sided v1.1: "Sword God (Advanced) — True: Advanced (age cap; potential: Saint)" is the style, ranked by its True rank
+        const tv = part.match(/^(.+?)\s*\(([^)]+)\)\s*[—–-]\s*True\s*:\s*(.+)$/i);
+        if (tv) { const rank = ranks.find(x => new RegExp(`\\b${x}\\b`, 'i').test(tv[3].split(/\s*\(/)[0])) || (/beginner/i.test(tv[3]) ? ranks[0] : null);
+            return { name: tv[1].trim(), rank: tv[3].split(/\s*\(/)[0].trim(), step: rank ? ranks.indexOf(rank) : spellMtStep(tv[3]) }; }
         const m = part.match(/^(.+?)\s*:\s*(.+)$/) || part.match(/^(.+?)\s*\(([^)]+)\)$/) || part.match(/^(.+?)\s+[—–-]\s+(.+)$/);
         if (!m) return null;
         const rank = ranks.find(x => new RegExp(`\\b${x}\\b`, 'i').test(m[2])) || (/beginner/i.test(m[2]) ? ranks[0] : null);
@@ -8871,6 +8890,14 @@ function chronOf(st) {
     return c;
 }
 
+/** A bond reworded, not changed: the same words once articles and possessives are set aside
+ * ("the keeper of his slate" / "keeper of the slate"). Chronicle only: the People card still shows the new wording. */
+function chronBondReworded(a, b) {
+    const k = v => String(v ?? '').toLowerCase().normalize('NFKC').replace(/[^\p{L}\p{N}]+/gu, ' ')
+        .replace(/\b(?:a|an|the|his|her|their|its|my|your|our)\b/g, ' ').replace(/\s+/g, ' ').trim();
+    return k(a) === k(b);
+}
+
 /** "Day 3, 14:20" or "April 1, 08:50": when a HUD says the reply happens. */
 function chronWhen(hud) {
     if (!hud) return '';
@@ -8878,7 +8905,10 @@ function chronWhen(hud) {
     let date = '';
     const dm = top.match(/\bDay[:\s]+(\d+)/i);
     const mm = top.match(/\b(January|February|March|April|May|June|July|August|September|October|November|December)\s+(\d{1,2})\b/i);
-    if (dm) date = `Day ${dm[1]}`;
+    // a calendar with months ("K416, Month 4, Day 1") keeps its month, so Day 1 of one month is not Day 1 of another
+    const md = top.match(/\bMonth[:\s]+(\d{1,2})\b[^|\n]{0,12}?\bDay[:\s]+(\d+)/i);
+    if (md) date = `Month ${md[1]} \u00B7 Day ${md[2]}`;
+    else if (dm) date = `Day ${dm[1]}`;
     else if (mm) date = `${mm[1].charAt(0).toUpperCase()}${mm[1].slice(1).toLowerCase()} ${mm[2]}`;
     return [date, hud.time || ''].filter(Boolean).join(', ');
 }
@@ -9075,7 +9105,7 @@ function chronicleBuild(chat, st, userName = null) {
                     const big = a !== null && b !== null && (Math.abs(a - b) >= 2 || (a >= rc.neutral) !== (b >= rc.neutral));
                     add('bond', `${r.name}: ${p.standing} → ${r.standing}${r.why ? ` — ${r.why}` : ''}`, big ? CHRON_IMP.standingBig : CHRON_IMP.standing, { who: [r.name], rel });
                 }
-                if (p.bond && r.bond && !relSameWords(p.bond, r.bond)) add('bond', `${r.name}: ${p.bond} → ${r.bond}${r.why ? ` — ${r.why}` : ''}`, CHRON_IMP.bondKind, { who: [r.name], rel });
+                if (p.bond && r.bond && !relSameWords(p.bond, r.bond) && !chronBondReworded(p.bond, r.bond)) add('bond', `${r.name}: ${p.bond} → ${r.bond}${r.why ? ` — ${r.why}` : ''}`, CHRON_IMP.bondKind, { who: [r.name], rel });
             }
             people.set(r.key, { standing: rel.standing, bond: rel.bond });
         }
@@ -15488,6 +15518,8 @@ function factionFromHud(hud) {
                 const name = (m ? m[1] : raw).split(/\s+[—–]\s+/)[0].trim().slice(0, 70);
                 const extra = m && m[2] ? m[2].trim() : null;
                 if (!name) continue;
+                // renown is fame, not a standing: "Renown: Asura: Unknown" says nobody there knows you, not that a group is neutral to you
+                if (/^(?:renown|reputation)$/i.test(lab) && (!extra || /^(?:unknown|none|nobody|no one|unheard|obscure|nil|n\/a|-)\b/i.test(extra))) continue;
                 if (/^guilds?$/i.test(lab) && /^[A-FS](?:[-\s]?Rank)?$/i.test(name)) { out.push({ name: 'Guild', rank: name.replace(/[-\s]?Rank$/i, '').toUpperCase(), standing: 'member' }); continue; }
                 if (isBounty) out.push({ name, bounty: extra || null });
                 // A rank on a membership line ("Faction: Temple Knights (Squire)") is membership.

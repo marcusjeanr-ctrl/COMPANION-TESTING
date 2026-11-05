@@ -15,7 +15,7 @@ const ctx = {
 };
 ctx.globalThis = ctx;
 vm.createContext(ctx);
-vm.runInContext(source.slice(0, startup) + '\nglobalThis.__t = { questDetailsLatest, relGuard, relCfg, martialAbilityItems, techListPanel, posMovedNow, keepRoomReading, posRoomKey, setState: (st) => { getChatState = async () => st; saveChatState = async () => {}; }, setPool: p => { loreCatalogPool = () => p; }, spellStoryFold, moneyHudBalance: typeof moneyHudBalance === \'function\' ? moneyHudBalance : commsBalance, commsCfg, messageHud, moneyRead };', ctx);
+vm.runInContext(source.slice(0, startup) + '\nglobalThis.__t = { factionFromHud, chronBondReworded: typeof chronBondReworded === \'function\' ? chronBondReworded : () => false, chronWhen, parseHud, techStanding: typeof techStanding === \'function\' ? techStanding : () => new Map(), questDetailsLatest, relGuard, relCfg, martialAbilityItems, techListPanel, posMovedNow, keepRoomReading, posRoomKey, setState: (st) => { getChatState = async () => st; saveChatState = async () => {}; }, setPool: p => { loreCatalogPool = () => p; }, spellStoryFold, moneyHudBalance: typeof moneyHudBalance === \'function\' ? moneyHudBalance : commsBalance, commsCfg, messageHud, moneyRead };', ctx);
 const t = ctx.__t;
 
 let n = 0;
@@ -51,6 +51,31 @@ check('quest place follows a new place; a refinement keeps its detail', () => {
     assert.equal(t.questDetailsLatest(moved).find(x => x.key === 'q_road').where, 'Old Hall');
     const refined = [user('go'), reply(at('Old Hall, east yard')), user('next'), reply(at('Old Hall'))];
     assert.equal(t.questDetailsLatest(refined).find(x => x.key === 'q_road').where, 'Old Hall, east yard');
+});
+
+// 2c. Six-Sided v1.1 prints a style as "Name (Shown) — True: Rank (notes)": the style is still yours, at its True rank.
+check('a sword style with a True rank is your style at that rank', () => {
+    const st = t.techStanding(['Sword Style: Sword God (Advanced) — True: Advanced (age cap; potential: Saint)']);
+    assert.deepEqual(JSON.parse(JSON.stringify(st.get('sword god'))), { name: 'Sword God', rank: 'Advanced', step: 2 });
+    const two = t.techStanding(['Sword Style: Sword God (Saint) — True: Intermediate (age cap; potential: Saint), North God (Beginner)']);
+    assert.equal(two.get('sword god').step, 1, 'the True rank decides, not the shown one');
+    assert.equal(two.get('north god').step, 0);
+});
+
+// 2d. The Chronicle: a reworded bond is not a new bond, and a calendar with months keeps the month in its day.
+check('chronicle skips a reworded bond and keeps the month', () => {
+    assert.equal(t.chronBondReworded('his tally-keeper and the keeper of his slate', 'his tally-keeper and keeper of the slate'), true);
+    assert.equal(t.chronBondReworded('keeper of the slate', 'keeper of the first-letter deal'), false);
+    const hud = t.parseHud('### WORLD STATE ###\nArmored Dragon Calendar: K416, Month 4, Day 1 | Time: 06:10 (Dawn)\n◆ Central Continent → Asura Kingdom\n***');
+    assert.match(t.chronWhen(hud), /^Month 4 · Day 1, 06:10/);
+    assert.match(t.chronWhen(t.parseHud('### WORLD STATE ###\nDay 3 | Time: 14:20\n***')), /^Day 3/);
+});
+
+// 2e. Renown is fame, not a standing: an unknown name is no faction; a real reputation still is.
+check('an unknown renown is not a neutral faction', () => {
+    const read = line => JSON.parse(JSON.stringify(t.factionFromHud(t.parseHud(`### WORLD STATE ###\nTime: 09:00\n${line}\n***`))));
+    assert.deepEqual(read('Renown: Asura: Unknown | elsewhere: Unknown'), []);
+    assert.equal(read('Reputation: Adventurers Guild (Respected)').length, 1);
 });
 
 // 3. A bond ending with a copy of the standing loses the copy; other bonds and pinned bonds are untouched.
