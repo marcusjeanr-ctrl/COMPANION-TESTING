@@ -13778,6 +13778,10 @@ async function hmsFamilyEdit(chatId, p) {
 // and the reply), from the HUD's Equipment/Items lines, from things handed over ("got"/"lost"), and
 // from the player's own edits, which hold until the story says something newer about that item.
 
+// Luggage named only as where something went ("in travel bag"): not assumed to be on you (the bags stood by the door).
+const GEAR_LUGGAGE_RE = /\b(?:travel(?:ling)? bags?|luggage|trunk|chest|crate|saddlebags?|travel case|bags by the door)\b/i;
+// "(laid beside bags)", "(packed, top bag)": where it is, already shown as its place; not part of its name.
+const GEAR_PLACE_NOTE_RE = /\b(?:laid|set down|beside|next to|by the|on the|in(?:side)? (?:the |a |my )?[\w'’-]*\s*(?:bag|pack|bracer|case|chest|trunk|drawer)|packed|stowed|left (?:at|in|on|by)|top bag|bottom bag)\b/i;
 const GEAR_FURNITURE_RE = /\b(?:desk|table|shelf|shelves|shelving|counter|nightstand|dresser|cabinet|rack|stand|floor|ground|bench|bed|sideboard|mantel|tray|ledge)\b/i;
 const GEAR_BODY_RE = /\b(?:belt|back|hip|hips|shoulder|shoulders|neck|wrist|waist|chest|arm|arms|thigh|leg|ankle|pocket|bandolier|harness|strap|strapped|slung|on (?:him|her|you|them))\b/i;
 const GEAR_STATES = ['in hand', 'worn', 'sheathed', 'on body', 'in container', 'stowed', 'dropped', 'gone'];
@@ -14048,7 +14052,7 @@ function gearReadUncached(chat, st, cfg) {
             const it = ensure(r.name, 'story', reported);
             if (!it) continue;
             reported.add(it);
-            if (r.state === 'in container' && r.inside && !find(gearBare(r.inside)) && !/\b(pocket|bolso|bolsillo)\b/i.test(r.inside)) { const box = ensure(r.inside, 'story'); if (box && !box.state) box.state = 'on body'; }
+            if (r.state === 'in container' && r.inside && !find(gearBare(r.inside)) && !/\b(pocket|bolso|bolsillo)\b/i.test(r.inside)) { const box = ensure(r.inside, 'story'); if (box && !box.state) box.state = GEAR_LUGGAGE_RE.test(r.inside) ? null : 'on body'; }
             // "on body" means slung/strapped; reported with a desk or shelf as its place, it was set down there.
             const setDown = String(r.state || '').toLowerCase() === 'on body' && GEAR_FURNITURE_RE.test(r.where || '') && !GEAR_BODY_RE.test(r.where || '');
             // "in hand", but "held by Aurelia Veyrath": someone in the scene has it, not the player.
@@ -14093,7 +14097,7 @@ function gearReadUncached(chat, st, cfg) {
         if (!it) continue;
         it.onHud = true;
         it.name = x.name;                                    // shown as the HUD spells it
-        it.note = x.note || null;
+        it.note = x.note && !GEAR_PLACE_NOTE_RE.test(x.note) ? x.note : null;
         // the HUD says you still have it: STATE IS GOD. Except where the reply that said it went (handed back,
         // sold, given away) already carried it on its own HUD: the narrator copies the HUD forward, so a listing
         // that never changed since is a stale copy, not the item coming back.

@@ -159,6 +159,7 @@ const A = { gear: [{ name: 'silver locket', state: 'worn' }], deaths: ['Halvin']
         assert.equal(by("Aurelia's prize slate")?.state, 'in container'); assert.equal(by("Aurelia's prize slate")?.inside, 'top bag');
         assert.equal(by('Plain road sword')?.state ?? null, null);
         assert.ok(!g.gone.some(x => /baldric|bracer/.test(x.name)), 'HUD-listed gear went to Gone');
+        assert.equal(by('leather baldric')?.note, null, 'a place note is not part of the name'); assert.equal(by('slide-bracer')?.note, "Wenna's make");
     });
     await check('"at first bell" said late at night is tomorrow, not late; "(top bag)" alone still means packed', async () => {
         L.setState({});
@@ -169,6 +170,9 @@ const A = { gear: [{ name: 'silver locket', state: 'worn' }], deaths: ['Halvin']
         const dep = st.agenda.items.find(a => /first bell/i.test(a.what));
         assert.ok(dep && dep.dueIn > 0 && dep.status !== 'overdue', JSON.stringify(dep));
         assert.equal(st.gear.items.find(i => /slate/.test(i.name))?.state, 'in container');
+        // luggage named only as where something went is not assumed to be on you
+        L.set([...base(), user('I pack my books.'), reply({ gear: [{ name: 'spell books', state: 'in container', inside: 'travel bag' }] }, 'The books go into the travel bag.', { equipment: 'Plain road sword', time: '21:55' })]);
+        assert.notEqual((await L.push()).hms.gear.items.find(i => i.name === 'travel bag')?.state, 'on body');
     });
     await check('the narrator request stays bounded with many open items', async () => {
         L.setState({}); const many = Array.from({ length: 40 }, (_, i) => ({ key: `errand ${i}`, what: `Errand number ${i} at the market`, when: `in ${i + 1} days`, kind: 'errand', state: 'open' }));
