@@ -195,8 +195,8 @@ const fails = []; const check = (ok, what) => { if (!ok) fails.push(what); };
         } catch (e) { fails.push('deck check stopped: ' + String(e.message).split('\n')[0]); }
         await q.close();
     }
-    // render time: a full render of All, new build vs FRONTEND_OLD
-    const time = async file => { const q = await open(420, 'modern', 'all', file); const ms = await q.evaluate(d => { const t = []; for (let i = 0; i < 7; i++) { const a = performance.now(); window.__recv(JSON.parse(JSON.stringify(d))); t.push(performance.now() - a); } t.sort((x, y) => x - y); return t[3]; }, payload); await q.close(); return ms; };
+    // render time: a full render of All, new build vs FRONTEND_OLD (each run a distinct payload, so a build that skips identical states still renders)
+    const time = async file => { const q = await open(420, 'modern', 'all', file); const ms = await q.evaluate(d => { const t = []; for (let i = 0; i < 7; i++) { const a = performance.now(); window.__recv({ ...JSON.parse(JSON.stringify(d)), _benchRun: i }); t.push(performance.now() - a); } t.sort((x, y) => x - y); return t[3]; }, payload); await q.close(); return ms; };
     const now = await time(path.join(root, 'dist', 'frontend.js'));
     const old = process.env.FRONTEND_OLD ? await time(process.env.FRONTEND_OLD) : null;
     await browser.close();

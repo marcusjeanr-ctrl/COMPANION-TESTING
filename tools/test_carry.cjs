@@ -36,7 +36,9 @@ globalThis.__C = (user) => { let last = null;
     messages: async id => (await chatApi.getMessages(id)).map(m => ({ id: m.id, carried: !!m._rpgcCarried, text: textOf(m.content).slice(0, 40) })),
     update: async (id, mid) => chatApi.updateMessage(id, mid, { content: 'x' }),
     swipe: async (id, mid, data) => { const m = (await chatApi.getMessages(id)).find(x => x.id === mid); return setSwipeData(id, m, data); },
-    status: id => chatStatus.get(id) || null }; };`, ctx);
+    status: id => chatStatus.get(id) || null,
+    burst: async id => { let n = 0; const was = toFrontend; toFrontend = p => { if (p && p.type === 'state') { n++; last = p; } };
+      await Promise.all([pushState(id), pushState(id), pushState(id), pushState(id)]); toFrontend = was; return n; } }; };`, ctx);
 
 let n = 0;
 const HUD = (o = {}) => ['### WORLD STATE ###', `Armored Dragon Calendar: K416, Month ${o.month || 3}, Day ${o.day || 30} | Time: ${o.time || '21:10'} (Night)`,
@@ -161,6 +163,11 @@ const check = async (name, fn) => { try { await fn(); results.push(name); } catc
     });
     await check('an ordinary chat is unchanged and offered nothing at the top', async () => {
         const st = await api.push('A'); assert.equal(st.carry.continued, false); assert.equal(st.carry.linked, null);
+    });
+
+    await check('a burst of pushes builds the panel at most twice (1.4.0)', async () => {
+        const n = await api.burst('A');
+        assert.ok(n >= 1 && n <= 2, `built ${n} times`);
     });
 
     for (const f of failed) console.log('  FAIL ' + f);

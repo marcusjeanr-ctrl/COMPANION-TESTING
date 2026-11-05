@@ -34,12 +34,22 @@
 
 **Left out on purpose:** ambient sound (it needs audio files), pop-out windows (Lumiverse may not allow them; the mini bar covers it), a real pin map (no card gives place coordinates; Places lately and the illustrated tiles instead), a reply-by-reply timeline scrubber (you compare two replies on request), a PDF library (the print dialog saves PDF), and a power comparison with canon characters (the payload has no lorebook ranks to compare with).
 
+**Optimization pass** (same output: compare_backends on six real chats is identical, field for field, to the build before it)
+- **The panel rebuild after a new reply takes about half the time:** roughly 430–540 ms down to 200–250 ms on Marcus's 243-message chat, and about 300 ms down to 170–210 ms when nothing new arrived.
+  - Each reply's fingerprint is kept by id and checked with a plain text compare instead of re-hashing the whole chat on every read.
+  - The hot text helpers (label, spell, quest and agenda keys, HUD line cleanup, fact word sets) remember their answers across reads, within a fixed size.
+  - The gear list of each HUD is read once instead of once per item per reply.
+- **Pushes never overlap:** a burst of requests (a reply, a heal, a click) builds the panel at most twice instead of once per request (regression in test_carry).
+- **The panel skips a repaint** when the backend sends the very same state again.
+- **Cheaper styles:** the substring attribute and `:has()` selectors are now plain classes, and the world-event countdown is built once per strip.
+- **Per view, the panel lays out as fast as 1.3.0** (Scene ~5 ms, You ~17 ms, People ~10 ms; Journey +2 ms for its new cards). A full render of All is about 26 ms against 24 ms for 1.3.0.
+
 **No blink on click:** a click or a toggle redraws the panel, and every card used to replay its fade-in and rise each time. Entrance animations now play only when you change view or a new reply lands; an ordinary redraw runs none.
 
 **Tracking fix found on the way**
 - **The Chronicle no longer logs a reporter sentence as a learned spell.** "Learned a spell — Lord Boreas wants Marcus as steady company…" came from the tracker's learned slot. It now logs only what the Spellbook accepts, so "Flash Slash" is logged as a technique.
 
-**Performance:** a full render of the All view on the smoke payload goes from about 24 ms (1.3.0) to about 31–38 ms. On Marcus's real chat it goes from 84 ms to about 100 ms, measured in the same browser in alternating runs. That is the new cards; the day/night tint is painted in the background and adds no layers.
+**Performance:** see the optimization pass above.
 
 ## 1.3.0 (in development, branch `release/1.3.0`, built on 1.2.0)
 

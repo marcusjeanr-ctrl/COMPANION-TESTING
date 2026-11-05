@@ -2053,12 +2053,18 @@ function readingSource(text) {
 }
 
 const readingSourceCache = new WeakMap();
+// 1.4.0 optimization: the same reply comes back as a new object on every chat read; keep its fingerprint by id and
+// swipe, and reuse it only when the text is the very same (a native string compare, far cheaper than re-hashing)
+const readingSourceById = new Map();
 function messageSource(msg) {
     const text = textOf(msg.content);
     const cached = readingSourceCache.get(msg);
     if (cached && cached.text === text) return cached.source;
-    const source = readingSource(text);
+    const idKey = msg && msg.id != null ? `${msg.id}:${msg.swipe_id ?? 0}` : null;
+    const byId = idKey ? readingSourceById.get(idKey) : null;
+    const source = byId && byId.text === text ? byId.source : readingSource(text);
     readingSourceCache.set(msg, { text, source });
+    if (idKey && (!byId || byId.text !== text)) { if (readingSourceById.size >= 6000) readingSourceById.clear(); readingSourceById.set(idKey, { text, source }); }
     return source;
 }
 function trackingMessageVisible(msg) {
@@ -2609,7 +2615,18 @@ function appendPlayHints(context, hints, remaining) {
     return context;
 }
 
-async function pushState(chatId, snapshot = null) {
+// 1.4.0 optimization: pushes for one chat never overlap. A push asked for while one is building waits for it and then
+// runs once more for everyone who asked in the meantime, so a burst (reply, heal, a click) builds the panel twice, not N times.
+const pushRuns = new Map();
+function pushState(chatId, snapshot = null) {
+    if (!chatId || snapshot) return pushStateNow(chatId, snapshot);
+    let r = pushRuns.get(chatId);
+    if (!r) { r = { run: null, queued: null }; pushRuns.set(chatId, r); }
+    if (!r.run) { const run = pushStateNow(chatId).finally(() => { if (r.run === run) r.run = null; if (!r.run && !r.queued && pushRuns.get(chatId) === r) pushRuns.delete(chatId); }); r.run = run; return run; }
+    if (!r.queued) r.queued = r.run.catch(() => {}).then(() => { r.queued = null; return pushState(chatId); });
+    return r.queued;
+}
+async function pushStateNow(chatId, snapshot = null) {
     trimChatCaches(chatId);
     if (!chatId) {
         toFrontend({ type: 'state', chatId: null, settings, paletteDefault: DIALOGUE_PALETTE_DEFAULT });
@@ -5805,6 +5822,12 @@ const LOCK_INSTRUCTION = '\n\nIMPORTANT: If an item, stat, quest, or field has "
 function lockKey(v) {
     return String(v ?? '').trim().toLowerCase();
 }
+/** 1.4.0 optimization: a pure text -> text function's results, kept across reads (bounded; cleared when full).
+ * Only for functions whose answer depends on the text alone. */
+function textMemo(fn, limit = 6000) {
+    const m = new Map();
+    return v => { const k = String(v ?? ''); let r = m.get(k); if (r === undefined) { r = fn(k); if (m.size >= limit) m.clear(); m.set(k, r); } return r; };
+}
 
 function itemName(it) {
     if (it === null || it === undefined) return '';
@@ -7449,7 +7472,9 @@ function findHudAt(src, m) {
     return { headStart: m.index, headLine: m[0], bodyStart, bodyEnd, sepFound, lines };
 }
 
-function hudSemanticText(raw) {
+const hudSemanticMemo = textMemo(source => hudSemanticTextRead(source), 4000);
+function hudSemanticText(raw) { return hudSemanticMemo(raw == null ? '' : raw); }
+function hudSemanticTextRead(raw) {
     const source = String(raw == null ? '' : raw);
     const visual = /^\s*[\p{Extended_Pictographic}\uFE0F\u200D]+/u.test(source);
     return source.replace(/\*\*/g, '')
@@ -11922,14 +11947,8 @@ function hmsList(text) {
     return String(text || '').split(/[,\n]/).map(s => s.trim()).filter(Boolean);
 }
 
-function hmsNorm(s) {
-    const text = String(s || '');
-    const cache = activeReadPass ? memoRead(activeReadPass.chat, 'normalizedLabels', () => new Map()) : null;
-    if (cache && cache.has(text)) return cache.get(text);
-    const result = text.replace(/^[^\p{L}\p{N}[]+/u, '').replace(/[:\s]+$/, '').trim().toLowerCase();
-    if (cache && cache.size < 512) cache.set(text, result);
-    return result;
-}
+const hmsNormMemo = textMemo(text => text.replace(/^[^\p{L}\p{N}[]+/u, '').replace(/[:\s]+$/, '').trim().toLowerCase());
+function hmsNorm(s) { return hmsNormMemo(s || ''); }
 
 /** Splits on a separator only where it sits outside (), [] and {}. */
 function hmsSplitTop(str, sepRe) {
@@ -13983,7 +14002,16 @@ function gearNormalize(list) {
 
 /** The HUD's own list of what you carry: "Equipment: Longsword (sheathed), Backpack [rope, rations]",
  *  "Gear: Knife · Flashlight | Radio x2", or a label on its own line with the items as bullets under it. */
+const gearFromHudCache = new WeakMap();
+/** What the HUD lists as carried. Read once per parsed HUD (HUD objects are shared through the parse cache);
+ * callers only read the list, never change it. */
 function gearFromHud(hud) {
+    if (!hud) return [];
+    let hit = gearFromHudCache.get(hud);
+    if (!hit) { hit = gearFromHudRead(hud); gearFromHudCache.set(hud, hit); }
+    return hit;
+}
+function gearFromHudRead(hud) {
     const out = [];
     if (!hud) return out;
     const split = (v) => {
@@ -14533,9 +14561,8 @@ function agendaNormalize(list) {
 
 // Agenda-only lexical keys: no global name aliases, fuzzy semantic guesses or
 // changes to other trackers. Preserve numbers, negations and specific modifiers.
-function agendaTextKey(value) {
-    return lockKey(value).normalize('NFKC').replace(/[’‘]/g, "'").replace(/[^\p{L}\p{N}']+/gu, ' ').trim();
-}
+const agendaTextKeyMemo = textMemo(value => lockKey(value).normalize('NFKC').replace(/[’‘]/g, "'").replace(/[^\p{L}\p{N}']+/gu, ' ').trim());
+function agendaTextKey(value) { return agendaTextKeyMemo(value ?? ''); }
 
 function agendaPeopleKey(value) {
     return String(value || '').split(/\s*(?:[,;&]|\band\b)\s*/i).map(name => agendaTextKey(name)
@@ -16538,9 +16565,10 @@ function simApplyMind(minds, pairs, r, i, e, o) {
     for (const t of r.toward || []) simApplyPair(pairs, m, t, i, e, o);
 }
 
+// 1.4.0 optimization: a fact's word set is read once per text (the chamber compares every new detail with every live one)
+const simFactWords = textMemo(s => new Set(s.toLowerCase().normalize('NFKC').replace(/[^\p{L}\p{N}\s]+/gu, ' ').split(/\s+/).filter(w => (w.length > 2 || /\d/.test(w)) && !ATLAS_STOP.has(w))), 4000);
 function simSameFact(a, b) {
-    const n = (s) => String(s || '').toLowerCase().normalize('NFKC').replace(/[^\p{L}\p{N}\s]+/gu, ' ').split(/\s+/).filter(w => (w.length > 2 || /\d/.test(w)) && !ATLAS_STOP.has(w));
-    const A = new Set(n(a)), B = new Set(n(b));
+    const A = simFactWords(a || ''), B = simFactWords(b || '');
     if (!A.size || !B.size) return String(a).trim().toLowerCase() === String(b).trim().toLowerCase();
     let inter = 0;
     for (const w of A) if (B.has(w)) inter++;
@@ -17509,9 +17537,8 @@ const SPELL_MAX = 400;
 const spellCatalogCache = new Map();   // chatId -> { at, list }
 
 /** One spell name for matching: no quotes, no "spell", no case. */
-function spellKey(v) {
-    return String(v ?? '').toLowerCase().replace(/[“”"'‘’*]/g, '').replace(/\b(spell|magic)\s*$/, '').replace(/[^\p{L}\p{N}]+/gu, ' ').trim();
-}
+const spellKeyMemo = textMemo(v => v.toLowerCase().replace(/[“”"'‘’*]/g, '').replace(/\b(spell|magic)\s*$/, '').replace(/[^\p{L}\p{N}]+/gu, ' ').trim());
+function spellKey(v) { return spellKeyMemo(v ?? ''); }
 /** One school for matching: "Earth Magic", "EARTH", "Tsuchi" are all "earth". */
 function spellSchoolKey(v) {
     const s = String(v ?? '').toLowerCase().replace(/\*+/g, '').replace(/\s+magic\b/, '').trim();
@@ -18603,8 +18630,9 @@ function trackingWords(value) {
 
 function questObjectiveKey(value) {
     const text = String(value || '');
-    const cache = activeReadPass ? memoRead(activeReadPass.chat, 'questObjectiveKeys', () => new Map()) : null;
-    if (cache?.has(text)) return cache.get(text);
+    const cache = questObjectiveKeyCache;
+    if (cache.has(text)) return cache.get(text);
+    if (cache.size >= 6000) cache.clear();
     let t = text.normalize('NFKC').toLowerCase().replace(/[’‘]/g, "'").replace(/\b(?:lord|lady|sir)\s+/g, '');
     if (/\b(?:permission|approval|consent)\b/.test(t)) {
         t = t.replace(/^(?:get|gain|secure|earn|win|receive|obtain)\b/, 'obtain')
@@ -18614,9 +18642,10 @@ function questObjectiveKey(value) {
     }
     t = t.replace(/^(?:fix|mend)\b/, 'repair').replace(/^locate\b/, 'find')
         .replace(/\b(?:a|an|the)\b/g, '').replace(/[^\p{L}\p{N}']+/gu, ' ').replace(/\s+/g, ' ').trim();
-    if (cache && cache.size < 512) cache.set(text, t);
+    cache.set(text, t);
     return t;
 }
+const questObjectiveKeyCache = new Map();
 
 function questPlaceCompatible(a, b) {
     if (!a || !b || relSameWords(a, b)) return true;

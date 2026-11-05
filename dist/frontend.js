@@ -1511,8 +1511,8 @@ button.rpgc-chip.intel:hover { border-color: var(--lumiverse-accent, #7aa2f7); }
 .rpgc.skin-dnd{--lumiverse-accent:#e0563f;--u-accent:#e0563f;--u-accent-fg:#1d0703;--u-accent-2:#d9b26a;--u-text:#f0e4d0;--u-muted:#bfa98a;
   --rpgc-card-bg:color-mix(in srgb,#2a1c14 85%,transparent);--u-surface:color-mix(in srgb,#2a1c14 85%,transparent);--u-glow:#e0563f66;--rpgc-gold:#d9b26a;
   --u-display:'Bookman Old Style','Iowan Old Style',Georgia,serif;background:var(--u-tod),linear-gradient(#1a120d,#110b08)}
-.rpgc[class*=" skin-"] .rpgc-body,.rpgc[class*=" skin-"] p,.rpgc[class*=" skin-"] li{font-family:var(--u-read)}
-.rpgc[class*=" skin-"] .rpgc-sec-title{font-family:var(--u-display);letter-spacing:.03em}
+.rpgc.skinned .rpgc-body,.rpgc.skinned p,.rpgc.skinned li{font-family:var(--u-read)}
+.rpgc.skinned .rpgc-sec-title{font-family:var(--u-display);letter-spacing:.03em}
 /* one type scale */
 .rpgc .rpgc-note{font-size:var(--u-fs-s)}
 .rpgc h4{font-size:var(--u-fs-xs)}
@@ -1703,7 +1703,7 @@ button.rpgc-chip.intel:hover { border-color: var(--lumiverse-accent, #7aa2f7); }
 .rpgc [data-sec="holdings"] .rpgc-holding{background:radial-gradient(120% 90% at 100% 0,color-mix(in srgb,var(--u-warn) 12%,transparent),transparent 60%),var(--u-raise);border-radius:var(--u-radius-s)}
 
 /* 1.4.0: story and time */
-.rpgc .rpgc-sky[class*=" land-"]::after{content:"";position:absolute;left:0;right:0;bottom:0;height:34px;z-index:-1;opacity:.55;pointer-events:none}
+.rpgc .rpgc-sky.landed::after{content:"";position:absolute;left:0;right:0;bottom:0;height:34px;z-index:-1;opacity:.55;pointer-events:none}
 .rpgc .rpgc-sky.land-hall::after{background:linear-gradient(transparent 0 0),conic-gradient(from 180deg at 18% 0,transparent 0 0);
   -webkit-mask:none;background:linear-gradient(180deg,transparent 30%,#0006 30%) 0 0/100% 100%,
   linear-gradient(90deg,transparent 8%,#000a 8% 22%,transparent 22% 30%,#000a 30% 34%,transparent 34% 60%,#000a 60% 78%,transparent 78% 84%,#000a 84% 92%,transparent 92%)}
@@ -1814,7 +1814,7 @@ button.rpgc-chip.intel:hover { border-color: var(--lumiverse-accent, #7aa2f7); }
 .rpgc.season-summer .rpgc-hudstrip{background-image:radial-gradient(120% 100% at 100% 0,#ffe08a18,transparent 60%),radial-gradient(120% 100% at 0 0,color-mix(in srgb,var(--u-accent) 16%,transparent),transparent 65%)}
 .rpgc.season-autumn .rpgc-hudstrip{background-image:radial-gradient(120% 100% at 100% 0,#ff9a5a18,transparent 60%),radial-gradient(120% 100% at 0 0,color-mix(in srgb,var(--u-accent) 16%,transparent),transparent 65%)}
 .rpgc.mood-tense{--u-glow:#ff5a5a66}
-.rpgc .rpgc-countdown.hot~*,.rpgc .rpgc-hudstrip:has(.rpgc-countdown.hot){box-shadow:inset 0 0 0 1px #ff5a5a55,0 0 30px -16px #ff3a3a}
+.rpgc .rpgc-hudstrip.hot{box-shadow:inset 0 0 0 1px #ff5a5a55,0 0 30px -16px #ff3a3a}
 /* D&D dice tray */
 .rpgc .rpgc-rollline::before{content:"";display:inline-block;width:14px;height:14px;margin-right:4px;vertical-align:-2px;border-radius:3px;background:linear-gradient(135deg,var(--u-accent),color-mix(in srgb,var(--u-accent) 40%,#000));animation:rpgc-roll .6s ease-out 1}
 @keyframes rpgc-roll{0%{transform:rotate(0) scale(.6)}70%{transform:rotate(540deg) scale(1.15)}100%{transform:rotate(720deg) scale(1)}}
@@ -2647,6 +2647,7 @@ export function setup(ctx) {
     // Ctrl/Cmd+K opens Find anywhere in the panel's window.
     const findKey = e => { if ((e.ctrlKey || e.metaKey) && !e.shiftKey && !e.altKey && String(e.key).toLowerCase() === 'k' && state.view === 'trackers' && state.chatId && hmsOn() && (root.isConnected)) { e.preventDefault(); openFind(); } };
     try { document.addEventListener('keydown', findKey); } catch { /* host without a document */ }
+    let lastStateSig = null;
     const unsubBackend = ctx.onBackendMessage((msg) => {
         if (!msg) return;
         if (msg.type === 'tracker_status') {
@@ -2749,6 +2750,10 @@ export function setup(ctx) {
         }
         if (msg.type !== 'state') return;
         if (msg.chatId && state.chatId && msg.chatId !== state.chatId) return;
+        // 1.4.0 optimization: the very same state again (a second push with nothing new) repaints nothing
+        { let sig = null; try { sig = JSON.stringify(msg); } catch { sig = null; }
+          if (sig && sig === lastStateSig && msg.chatId === state.chatId) { state.expectPush = false; return; }
+          lastStateSig = sig; }
         if (msg.settings) state.settings = msg.settings;
         if (msg.chatId !== undefined) {
             if (msg.data) state.data = msg.data;
@@ -5165,7 +5170,7 @@ export function setup(ctx) {
         const time = String(hud.time || '').replace(/\s*\(([^)]*)\)\s*$/, '');
         const part = (String(hud.time || '').match(/\(([^)]*)\)/) || [])[1];
         const land = landOf(path), mood = moodOf();
-        return h('div', { class: 'rpgc-sky sky-' + phase + (land && S()?.uiScenery !== false ? ' land-' + land : '') + (mood ? ' mood-' + mood : '') },
+        return h('div', { class: 'rpgc-sky sky-' + phase + (land && S()?.uiScenery !== false ? ' landed land-' + land : '') + (mood ? ' mood-' + mood : '') },
             phase === 'night' ? h('span', { class: 'stars', 'aria-hidden': 'true' }) : null,
             clock !== null ? h('span', { class: 'orb ' + (day ? 'sun' : 'moon'), 'aria-hidden': 'true', style: `left:${x.toFixed(1)}%;top:${y.toFixed(1)}%` }) : null,
             h('div', { class: 'rpgc-sky-text' },
@@ -5231,7 +5236,7 @@ export function setup(ctx) {
     function deckClass() {
         const s = S() || {};
         const skin = currentSkin(), tod = s.uiDayNight === false ? null : todOf(hudMinutes());
-        return (skin ? ' skin-' + skin : '') + (tod ? ' tod-' + tod : '') + (s.uiContrast === 'high' ? ' contrast-high' : '') + (s.uiPalette === 'cb' ? ' palette-cb' : '') +
+        return (skin ? ' skinned skin-' + skin : '') + (tod ? ' tod-' + tod : '') + (s.uiContrast === 'high' ? ' contrast-high' : '') + (s.uiPalette === 'cb' ? ' palette-cb' : '') +
             (s.uiMotion === 'reduced' ? ' motion-reduced' : '') + (s.uiSplit === true ? ' split-view' : '') + (state.miniBar ? ' mini-bar' : '') +
             (s.uiPreset ? ' preset-' + s.uiPreset : '') + (s.uiAccent ? ' accent-custom' : '') +
             (seasonOf() && s.uiSeasons !== false ? ' season-' + seasonOf() : '') + (moodOf() === 'tense' ? ' mood-tense' : '') + (state.arrange ? ' arranging' : '');
@@ -5343,17 +5348,18 @@ export function setup(ctx) {
         const WX = { snow: '❄️', rain: '🌧️', storm: '⛈️', blizzard: '🌨️', mist: '🌫️', wind: '🍃', sunny: '☀️', cloudy: '☁️' };
         if (wx && WX[wx.type]) pill(WX[wx.type], T('Weather'), T(wx.type));
         // in the Scene the Now card already carries the sky, the time and the place: the strip keeps only the gauges
-        if (compact) return pills.length || worldCountdown() ? h('div', { class: 'rpgc-hudstrip compact', role: 'region', 'aria-label': T('At a glance') },
-            pills.length ? h('div', { class: 'pills' }, pills) : null, worldCountdown()) : null;
+        const cd = worldCountdown(), hot = cd && cd.classList.contains('hot') ? ' hot' : '';
+        if (compact) return pills.length || cd ? h('div', { class: 'rpgc-hudstrip compact' + hot, role: 'region', 'aria-label': T('At a glance') },
+            pills.length ? h('div', { class: 'pills' }, pills) : null, cd) : null;
         const period = (String(hms.hud.time || '').match(/\((.*)\)/) || [])[1] || state.world?.period || '';
-        return h('div', { class: 'rpgc-hudstrip', role: 'region', 'aria-label': T('At a glance') },
+        return h('div', { class: 'rpgc-hudstrip' + hot, role: 'region', 'aria-label': T('At a glance') },
             h('div', { class: 'top' }, skyDial(min),
                 h('div', { class: 'tx' },
                     h('b', { class: 'tm' }, String(hms.hud.time || '').replace(/\s*\(.*\)/, '') || '—', period ? h('span', { class: 'pd' }, period) : null),
                     dateText ? h('span', { class: 'dt' }, dateText) : null,
                     loc.length ? h('button', { class: 'pl', type: 'button', title: loc.join(' › '), onclick: () => goTo('journey', 'atlas') }, '📍 ', loc.slice(-2).join(' › ')) : null)),
             pills.length ? h('div', { class: 'pills' }, pills) : null,
-            worldCountdown());
+            cd);
     }
 
     // 1.4.0 appearance settings: each one display only, remembered with your other settings
