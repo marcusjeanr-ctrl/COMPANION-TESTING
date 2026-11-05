@@ -149,6 +149,16 @@ const check = async (name, fn) => { try { await fn(); results.push(name); } catc
         assert.deepEqual(JSON.parse(JSON.stringify(ch.filter(c => c.match).map(c => c.chatId))), ['A']);
         assert.ok(!ch.some(c => c.chatId === 'E'));
     });
+    await check('a deleted chat is no longer offered; old rows without the hour give one match, not several', async () => {
+        chats.set('F', [{ id: 'f1', role: 'user', is_user: true, swipe_id: 0, content: 'Mushoku_Continue_Handler\n\n' + HUD().replace('\n***', '') },
+            { id: 'f2', role: 'assistant', swipe_id: 0, content: `${HUD()}\n\nAurelia waits.` }]);
+        const saveD = chats.get('D'); chats.delete('D');
+        vm.runInContext('carryAliveSeen.clear(); for (const r of carryIndex) delete r.time;', ctx);
+        const ch = (await api.push('F')).carry.choices;
+        assert.ok(!ch.some(c => c.chatId === 'D'), 'deleted chat listed');
+        assert.equal(ch.filter(c => c.match).length, 1);
+        chats.set('D', saveD);
+    });
     await check('an ordinary chat is unchanged and offered nothing at the top', async () => {
         const st = await api.push('A'); assert.equal(st.carry.continued, false); assert.equal(st.carry.linked, null);
     });

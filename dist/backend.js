@@ -2843,6 +2843,16 @@ function carryContinueKey(chat) {
     }
     return null;
 }
+// A deleted chat stays in the list until it is checked: ask the host once in a while whether it still has messages.
+const carryAliveSeen = new Map();   // chatId → { ok, at }
+async function carryAlive(id) {
+    const seen = carryAliveSeen.get(id);
+    if (seen && Date.now() - seen.at < 5 * 60 * 1000) return seen.ok;
+    let ok;
+    try { const m = await spindle.chat.getMessages(id); ok = Array.isArray(m) && m.length > 0; } catch { ok = false; }
+    carryAliveSeen.set(id, { ok, at: Date.now() });
+    return ok;
+}
 async function carryPanel(chatId, chat, cs) {
     if (!chatId || chatId === SANDBOX_ID) return null;
     const link = isPlainObject(cs.carry) ? cs.carry : null;
@@ -2850,11 +2860,26 @@ async function carryPanel(chatId, chat, cs) {
     const resume = link ? null : carryContinueKey(chat);
     const idx = await carryIndexLoad();
     const same = (a, b) => !!a && !!b && a.toLowerCase().replace(/\s+/g, ' ') === b.toLowerCase().replace(/\s+/g, ' ');
-    const choices = link ? [] : idx.filter(x => x.chatId !== chatId && x.carried !== chatId).map(x => ({
+    // Only chats that still exist, with a turn of yours in them (an opening page is not a story).
+    let rows = link ? [] : idx.filter(x => x.chatId !== chatId && x.carried !== chatId && (x.count || 0) >= 2);
+    const alive = await Promise.all(rows.map(x => carryAlive(x.chatId)));
+    const gone = rows.filter((x, i) => !alive[i]).map(x => x.chatId);
+    if (gone.length) {
+        carryIndex = idx.filter(x => !gone.includes(x.chatId));
+        const snapshot = carryIndex.slice();
+        carryIndexSaving = (carryIndexSaving || Promise.resolve()).catch(() => {}).then(() => spindle.storage.setJson(CARRY_INDEX_FILE, snapshot)).catch(() => {});
+    }
+    rows = rows.filter((x, i) => alive[i]);
+    const sameDay = x => !!resume && same(x.date, resume.date) && (!resume.place || !x.place || same(x.place, resume.place));
+    // the same hour too: a save at 21:10 is not the chat that went on to 21:55 the same night
+    const exact = x => sameDay(x) && !!resume.time && x.time === resume.time;
+    const anyExact = rows.some(exact);
+    const choices = rows.map(x => ({
         chatId: x.chatId, date: x.date, place: x.place, count: x.count, at: x.at,
-        // the same hour too: a save at 21:10 is not the chat that went on to 21:55 the same night
-        match: !!resume && same(x.date, resume.date) && (!resume.place || !x.place || same(x.place, resume.place)) && (!resume.time || !x.time || resume.time === x.time)
-    })).sort((a, b) => (b.match - a.match) || (b.at - a.at)).slice(0, 8);
+        rank: exact(x) ? 2 : sameDay(x) && (!anyExact && (!resume.time || !x.time)) ? 1 : 0
+    })).sort((a, b) => (b.rank - a.rank) || (b.at - a.at)).slice(0, 8);
+    // One chat is the match: the best one. The rest stay under Settings → Backup.
+    choices.forEach((c, i) => { c.match = i === 0 && c.rank > 0; delete c.rank; });
     return {
         linked: link ? { from: link.from, date: link.date || '', place: link.place || '', count: link.count || 0, at: link.at, missing: !!(mem && mem.missing) } : null,
         continued: !!resume, dismissed: !!cs.carryDismissed, choices

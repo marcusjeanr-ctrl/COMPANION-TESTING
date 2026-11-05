@@ -7058,7 +7058,10 @@ export function setup(ctx) {
         const c = state.carry;
         if (!c || c.linked || !c.continued || c.dismissed) return null;
         const body = [h('p', { class: 'rpgc-note' }, 'This chat starts from a save. The Companion keeps its history per chat, so the people, spells, gear, money, quests and Chronicle from your earlier chat are not here yet.')];
-        if (c.choices && c.choices.length) body.push(carryChoices(c.choices.slice(0, 4)));
+        // The match alone; other chats are under Settings → Backup, so nobody has to pick among look-alikes.
+        const best = (c.choices || []).filter(x => x.match).slice(0, 1);
+        if (best.length) body.push(carryChoices(best), h('p', { class: 'rpgc-note' }, 'Not this one? Settings → Backup lists your other chats.'));
+        else if (c.choices && c.choices.length) body.push(carryChoices(c.choices.slice(0, 4)));
         else body.push(h('p', { class: 'rpgc-note' }, 'No earlier chat found yet. Open the chat you saved from once (with this version of the Companion), then come back here.'));
         body.push(h('div', { class: 'rpgc-row' }, h('button', { class: 'rpgc-btn', onclick: () => send({ type: 'carry_dismiss', chatId: state.chatId }) }, 'Not now')));
         return section('carry', 'Continue from your saved chat', state.open, null, ...body);
