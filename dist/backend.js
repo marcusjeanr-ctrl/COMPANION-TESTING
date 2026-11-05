@@ -2784,14 +2784,15 @@ function carryHudKey(text) {
     const dateLine = lines.find(l => /\b(?:Calendar|Date|Day|Year)\b[^:]*:/i.test(l) && !/^#/.test(l)) || '';
     const date = (dateLine.split('|')[0].split(/:\s*/).slice(1).join(': ') || dateLine).trim().slice(0, 60);
     const place = ((lines.find(l => /^◆/.test(l)) || '').replace(/^◆\s*/, '').split('→').map(s => s.trim()).filter(Boolean).slice(-2).join(' → ')).slice(0, 80);
-    return { date, place };
+    const time = ((dateLine.match(/\bTime:\s*(\d{1,2}:\d{2})/i) || [])[1]) || '';
+    return { date, place, time };
 }
 function carryLastHud(msgs) {
     for (let i = msgs.length - 1; i >= 0; i--) {
         const m = msgs[i];
         if (m && m.role === 'assistant' && trackingMessageVisible(m) && findHud(textOf(m.content))) return carryHudKey(m.content);
     }
-    return { date: '', place: '' };
+    return { date: '', place: '', time: '' };
 }
 async function carryFor(chatId) {
     if (!chatId || chatId === SANDBOX_ID) return null;
@@ -2821,14 +2822,16 @@ async function carryIndexLoad() {
 // Remember every story chat the panel has shown, so a new chat can offer to continue one of them.
 async function carryIndexNote(chatId, chat, cs) {
     if (!chatId || chatId === SANDBOX_ID || !Array.isArray(chat) || !chat.length) return;
+    // A chat still on the card's opening page (no turn of yours yet) is no story to continue.
+    if (!chat.some(m => m && m.role === 'user')) return;
     const own = chat.filter(m => !m._rpgcCarried);
     const lastId = (own[own.length - 1] || chat[chat.length - 1]).id;
     const idx = await carryIndexLoad();
     const old = idx.find(x => x.chatId === chatId);
-    if (old && old.lastId === lastId && old.count === chat.length) return;
-    const { date, place } = carryLastHud(chat);
+    if (old && old.lastId === lastId && old.count === chat.length && old.time !== undefined) return;
+    const { date, place, time } = carryLastHud(chat);
     if (!date && !place) return;
-    const row = { chatId, count: chat.length, lastId, date, place, at: Date.now(), carried: cs && cs.carry ? cs.carry.from : null };
+    const row = { chatId, count: chat.length, lastId, date, place, time, at: Date.now(), carried: cs && cs.carry ? cs.carry.from : null };
     carryIndex = [row, ...idx.filter(x => x.chatId !== chatId)].slice(0, 30);
     const snapshot = carryIndex.slice();
     carryIndexSaving = (carryIndexSaving || Promise.resolve()).catch(() => {}).then(() => spindle.storage.setJson(CARRY_INDEX_FILE, snapshot)).catch(e => logW(`[RPG Companion HMS] Could not save the chat list for carry-over: ${e?.message || e}`));
@@ -2847,11 +2850,10 @@ async function carryPanel(chatId, chat, cs) {
     const resume = link ? null : carryContinueKey(chat);
     const idx = await carryIndexLoad();
     const same = (a, b) => !!a && !!b && a.toLowerCase().replace(/\s+/g, ' ') === b.toLowerCase().replace(/\s+/g, ' ');
-    // A chat another chat already continues is an earlier page of that one: it is never the match.
-    const continued = new Set(idx.map(x => x.carried).filter(Boolean));
     const choices = link ? [] : idx.filter(x => x.chatId !== chatId && x.carried !== chatId).map(x => ({
         chatId: x.chatId, date: x.date, place: x.place, count: x.count, at: x.at,
-        match: !!resume && !continued.has(x.chatId) && same(x.date, resume.date) && (!resume.place || !x.place || same(x.place, resume.place))
+        // the same hour too: a save at 21:10 is not the chat that went on to 21:55 the same night
+        match: !!resume && same(x.date, resume.date) && (!resume.place || !x.place || same(x.place, resume.place)) && (!resume.time || !x.time || resume.time === x.time)
     })).sort((a, b) => (b.match - a.match) || (b.at - a.at)).slice(0, 8);
     return {
         linked: link ? { from: link.from, date: link.date || '', place: link.place || '', count: link.count || 0, at: link.at, missing: !!(mem && mem.missing) } : null,

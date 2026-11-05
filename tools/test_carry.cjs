@@ -140,6 +140,15 @@ const check = async (name, fn) => { try { await fn(); results.push(name); } catc
         assert.deepEqual(facts(st).spells, []); assert.equal(st.carry.linked, null); assert.equal(st.carry.dismissed, true);
         assert.ok(!s.peopleBorn || !s.peopleBorn.halvin); assert.equal(s.pins.mine, true);
     });
+    await check('a restart from an older save matches the chat that ended at that hour, not a later one; opening pages are not offered', async () => {
+        chats.set('D', [{ id: 'd1', role: 'user', is_user: true, swipe_id: 0, content: 'Mushoku_Continue_Handler\n\n' + HUD().replace('\n***', '') },
+            { id: 'd2', role: 'assistant', swipe_id: 0, content: `${HUD()}\n\nAurelia waits.` }]);
+        chats.set('E', [{ id: 'e0', role: 'assistant', swipe_id: 0, content: HUD() + '\n\nPAGE 1' }]);
+        await api.push('E');
+        const st = await api.push('D'), ch = st.carry.choices;
+        assert.deepEqual(JSON.parse(JSON.stringify(ch.filter(c => c.match).map(c => c.chatId))), ['A']);
+        assert.ok(!ch.some(c => c.chatId === 'E'));
+    });
     await check('an ordinary chat is unchanged and offered nothing at the top', async () => {
         const st = await api.push('A'); assert.equal(st.carry.continued, false); assert.equal(st.carry.linked, null);
     });
