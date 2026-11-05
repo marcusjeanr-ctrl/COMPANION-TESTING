@@ -11799,6 +11799,7 @@ function hmsPanelStateRead(chatId, chat, st) {
         guard,
         ...(() => { const warnings = consistencyWarnings(chatId, chat, hud, guard); return warnings.length ? {consistency:warnings} : {}; })(),
         pins,
+        voices: (() => { try { return hmsVoices(chat, userNameCache.get(chatId) || null); } catch { return null; } })(),
         questNotes: st.questNotes || [],
         questPairs: isPlainObject(st.questPairs) ? st.questPairs : {},
         todoIdeas: isPlainObject(st.todoIdeas) ? { ...st.todoIdeas, stale: !!st.todoIdeas.at && st.todoIdeas.at !== (hmsTimeline(chat).at(-1)?.msg.id || null) } : null,
@@ -15450,6 +15451,41 @@ function moneyHudBalance(hud, cc) {
 }
 
 // The HUD's date and place at each reply, so a ledger row or a lost item can say when and where it happened
+/** 1.4.0, display only: who spoke in the latest reply, each person's last line to the scene, and the name they
+ * most often call you, read from the [D:Name]"…" dialogue tags of the last 40 replies (bounded, cached per chat). */
+const VOICE_ADDRESS = ['young master', 'young lord', 'my lord', 'big brother', 'little brother', 'brother', 'sister', 'son', 'boy', 'lad', 'sir', 'master', 'little one', 'dear', 'kid', 'brat', 'nephew', 'cousin'];
+function hmsVoices(chat, userName = null) {
+    return memoRead(chat, 'voices', () => {
+        const re = /\[D:\s*([^\]]{1,60}?)\s*\][ \t]*["\u201C]([^"\u201D\n]{2,400})["\u201D]/g;
+        const replies = chat.filter(m => m.role === 'assistant' && trackingMessageVisible(m) && m._rpgcPurpose !== 'continue');
+        const recent = replies.slice(-40);
+        const quotes = {}, calls = {}, speakers = [];
+        const first = String(userName || '').trim().split(/\s+/)[0] || null;
+        const terms = [...VOICE_ADDRESS, ...(first ? [first.toLowerCase()] : [])];
+        const tally = new Map();
+        recent.forEach((m, i) => {
+            const text = stripThink(textOf(m.content)).replace(COMPANION_RE, '').slice(0, 24000);
+            const last = i === recent.length - 1;
+            for (const mm of text.matchAll(re)) {
+                const name = mm[1].trim(), line = mm[2].trim();
+                if (!name || /^(?:narrator|system|you)$/i.test(name)) continue;
+                if (last && !speakers.includes(name)) speakers.push(name);
+                quotes[name] = { text: line.length > 160 ? line.slice(0, line.lastIndexOf(' ', 157)) + '\u2026' : line, ago: recent.length - 1 - i };
+                // a vocative: the term set off by a comma or at the end of a sentence ("Ride accordingly, boy.")
+                const low = line.toLowerCase();
+                for (const t of terms) {
+                    const esc = t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+                    if (new RegExp(`(?:^|[,;—–]\\s*)${esc}(?=\\s*[,.!?;—–]|$)|^${esc},`, 'i').test(low)) {
+                        const k = name + '\u0000' + t; tally.set(k, (tally.get(k) || 0) + 1);
+                    }
+                }
+            }
+        });
+        for (const [k, n] of tally) { const [name, t] = k.split('\u0000'); if (n >= 2 && (!calls[name] || calls[name].n < n)) calls[name] = { term: t, n }; }
+        return { speakers: speakers.slice(0, 12), quotes, calls: Object.fromEntries(Object.entries(calls).map(([k, v]) => [k, v.term])) };
+    });
+}
+
 function hudWhenMap(chat) {
     return memoRead(chat, 'hud-when', () => {
         const out = new Map();

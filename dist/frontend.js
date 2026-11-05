@@ -1567,6 +1567,62 @@ button.rpgc-chip.intel:hover { border-color: var(--lumiverse-accent, #7aa2f7); }
 .rpgc .rpgc-rib:hover{border-color:var(--u-accent)}
 .rpgc .rpgc-rib:nth-child(3){animation-delay:.04s}.rpgc .rpgc-rib:nth-child(4){animation-delay:.08s}.rpgc .rpgc-rib:nth-child(5){animation-delay:.12s}
 
+/* 1.4.0: people */
+.rpgc .rpgc-ring-face{box-shadow:0 0 0 2px var(--ring,var(--u-line-2)),0 0 12px -4px var(--ring,transparent);border-radius:50%}
+.rpgc [data-ring="family"]{--ring:#e2b45a}.rpgc [data-ring="love"]{--ring:#ff6fa3}.rpgc [data-ring="close"]{--ring:#7fd6a0}
+.rpgc [data-ring="friend"]{--ring:#6fb6ff}.rpgc [data-ring="rival"]{--ring:#ff9a5a}.rpgc [data-ring="enemy"]{--ring:#ff5a5a}.rpgc [data-ring="neutral"]{--ring:var(--u-line-2)}
+.rpgc .rpgc-person{position:relative}
+.rpgc .rpgc-person .head .rpgc-flipbtn{margin-left:auto;order:99;opacity:.55}.rpgc .rpgc-person:hover .rpgc-flipbtn{opacity:1}
+.rpgc .rpgc-person.talk{box-shadow:0 0 0 1px color-mix(in srgb,var(--u-accent) 45%,transparent),0 10px 26px -18px var(--u-glow)}
+.rpgc .rpgc-person.flipped{background:linear-gradient(160deg,color-mix(in srgb,var(--ring,var(--u-accent)) 10%,transparent),transparent 60%),var(--u-surface);animation:rpgc-flip .35s ease-out}
+@keyframes rpgc-flip{from{transform:perspective(600px) rotateY(-70deg);opacity:.2}to{transform:none;opacity:1}}
+.rpgc .rpgc-pback .k{font-size:9.5px;font-weight:750;letter-spacing:.1em;text-transform:uppercase;color:var(--u-muted);margin:4px 0}
+.rpgc .rpgc-pback-ev{margin:6px 0 4px 18px;padding:0;font-size:var(--u-fs-s)}.rpgc .rpgc-pback-ev li{margin:2px 0}
+.rpgc .rpgc-pquote{margin:6px 0 2px;padding:5px 10px;border-left:3px solid var(--ring,var(--u-accent));border-radius:0 8px 8px 0;background:var(--u-raise);font-style:italic;font-size:var(--u-fs-m);line-height:1.4;color:var(--u-text)}
+.rpgc .rpgc-pextra{margin-top:5px}.rpgc .rpgc-calls{font-size:var(--u-fs-xs)}
+.rpgc .rpgc-promise-badge{font:inherit;font-size:var(--u-fs-xs);cursor:pointer;border-color:color-mix(in srgb,var(--u-warn) 50%,var(--u-line))}
+.rpgc .rpgc-sparkchip{padding:1px 6px}
+.rpgc .rpgc-spark{width:72px;height:18px;display:block}.rpgc .rpgc-spark.big{width:100%;height:36px;margin:4px 0}
+.rpgc .rpgc-spark polyline{fill:none;stroke:var(--u-muted);stroke-width:1.6;stroke-linejoin:round;stroke-linecap:round}
+.rpgc .rpgc-spark.up polyline{stroke:var(--u-ok)}.rpgc .rpgc-spark.down polyline{stroke:var(--u-bad)}
+.rpgc .rpgc-spark circle{fill:var(--u-text)}
+.rpgc .rpgc-room{display:flex;align-items:center;gap:6px;overflow-x:auto;padding:4px 2px;scrollbar-width:thin}
+.rpgc .rpgc-room .k{font-size:9.5px;font-weight:750;letter-spacing:.1em;text-transform:uppercase;color:var(--u-muted);flex:none}
+.rpgc .rpgc-room-p{position:relative;flex:none;display:flex;flex-direction:column;align-items:center;gap:3px;font:inherit;font-size:var(--u-fs-xs);padding:3px 4px;border:0;border-radius:10px;background:none;color:var(--u-text);cursor:pointer}
+.rpgc .rpgc-room-p:hover{background:var(--u-hover)}
+.rpgc .rpgc-room-p .rpgc-mono,.rpgc .rpgc-room-p .rpgc-avatar-wrap,.rpgc .rpgc-room-p .rpgc-avatar{width:34px;height:34px}
+.rpgc .rpgc-room-p.talk .rpgc-ring-face{box-shadow:0 0 0 2px var(--u-accent),0 0 16px -2px var(--u-glow)}
+.rpgc .rpgc-room-p .talkdot{position:absolute;top:2px;right:4px;width:8px;height:8px;border-radius:50%;background:var(--u-accent);box-shadow:0 0 0 2px var(--u-surface);animation:rpgc-pulse 1.6s ease-in-out infinite}
+.rpgc .rpgc-tree{display:flex;flex-direction:column;align-items:center;gap:14px;padding:8px 0}
+.rpgc .rpgc-trow{position:relative;display:flex;flex-wrap:wrap;justify-content:center;gap:10px}
+.rpgc .rpgc-trow+.rpgc-trow::before{content:"";position:absolute;left:50%;top:-12px;height:10px;border-left:2px solid var(--u-line-2)}
+.rpgc .rpgc-trow.other{flex-direction:row;align-items:center;padding-top:8px;border-top:1px dashed var(--u-line)}.rpgc .rpgc-trow.other::before{display:none}
+.rpgc .rpgc-trow.other .lbl{font-size:var(--u-fs-xs);color:var(--u-muted);width:100%;text-align:center}
+.rpgc .rpgc-tnode{position:relative;display:flex;flex-direction:column;align-items:center;gap:2px;min-width:64px;padding:6px 8px;border-radius:var(--u-radius-s);border:1px solid var(--u-line);background:var(--u-raise)}
+.rpgc .rpgc-tnode b{font-size:var(--u-fs-s)}.rpgc .rpgc-tnode .rel{font-size:var(--u-fs-xs);color:var(--u-muted);max-width:90px;text-align:center}
+.rpgc .rpgc-tnode.you{border-color:var(--u-accent);box-shadow:0 0 14px -6px var(--u-glow)}
+.rpgc .rpgc-tnode.here::after{content:"";position:absolute;top:5px;right:5px;width:7px;height:7px;border-radius:50%;background:var(--u-ok)}
+.rpgc .rpgc-tnode.dead{opacity:.55;filter:grayscale(.7)}.rpgc .rpgc-tnode .st{position:absolute;top:3px;left:6px;font-size:11px}
+.rpgc .rpgc-tnode .rpgc-mono,.rpgc .rpgc-tnode .rpgc-avatar{width:30px;height:30px}
+.rpgc .rpgc-bday{display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:var(--u-radius-s);border:1px solid color-mix(in srgb,#ff9ad0 40%,var(--u-line));background:linear-gradient(90deg,#ff9ad014,#ffd36a14)}
+.rpgc .rpgc-bday .ic{font-size:18px}
+.rpgc .rpgc-env{position:relative;display:inline-block;flex:none;width:24px;height:17px;border-radius:3px;background:linear-gradient(#efe3c8,#d9c7a2);box-shadow:0 1px 3px #0006}
+.rpgc .rpgc-env .flap{position:absolute;inset:0 0 auto 0;height:10px;clip-path:polygon(0 0,100% 0,50% 100%);background:#c9b48a}
+.rpgc .rpgc-env .seal{position:absolute;left:50%;top:6px;width:9px;height:9px;margin-left:-4.5px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#e0574a,#9e2219)}
+.rpgc .rpgc-env.c1 .seal{background:linear-gradient(60deg,transparent 46%,#1d0b07 47% 53%,transparent 54%),radial-gradient(circle at 35% 35%,#e0574a,#9e2219)}
+.rpgc .rpgc-env.c2 .seal,.rpgc .rpgc-env.c3 .seal{background:linear-gradient(60deg,transparent 46%,#1d0b07 47% 53%,transparent 54%),linear-gradient(-40deg,transparent 46%,#1d0b07 47% 53%,transparent 54%),radial-gradient(circle at 35% 35%,#e0574a,#9e2219)}
+.rpgc .rpgc-env.c4 .seal{background:radial-gradient(circle,#1d0b07 30%,transparent 32%),radial-gradient(circle at 35% 35%,#c0574a,#7e2219);transform:translateY(1px) rotate(12deg)}
+.rpgc .rpgc-env.c4 .flap{transform:translateY(-3px) rotate(-6deg);transform-origin:left}
+
+/* 1.4.0: relationship web, softer and lit */
+.rpgc .rpgc-web .orbit{fill:none;stroke:var(--u-line);stroke-dasharray:2 5}
+.rpgc .rpgc-web .node .disc{filter:drop-shadow(0 2px 6px #0008);transition:transform .2s}
+.rpgc .rpgc-web .node.here .halo{stroke:var(--u-accent);stroke-width:1.5;fill:color-mix(in srgb,var(--u-accent) 12%,transparent)}
+.rpgc .rpgc-web .node.me .disc{fill:color-mix(in srgb,var(--u-accent) 70%,#000)}
+.rpgc .rpgc-web .node:hover .disc,.rpgc .rpgc-web .node.focus .disc{stroke:var(--u-accent);stroke-width:2}
+.rpgc .rpgc-web .tie{stroke-linecap:round;transition:opacity .2s}
+.rpgc .rpgc-web .node.focus .halo{animation:rpgc-pulse 2s ease-in-out infinite}
+
 `;
 
 // The guide, embedded from GUIDE.md so it ships inside the extension (tools/embed_guide.py refreshes it).
@@ -5095,6 +5151,126 @@ export function setup(ctx) {
             tog('Since last reply ribbon', 'uiRibbon')];
     }
 
+    // ─────────── 1.4.0: people — rings, voices, promises, a standing line, the room, the tree ───────────
+    const RING_FAMILY_RE = /\b(?:father|mother|dad|mum|mom|papa|mama|sister|brother|sibling|son|daughter|aunt|uncle|cousin|niece|nephew|grand(?:father|mother|son|daughter|ma|pa)|wife|husband|kin|family|twin|heir)\b/i;
+    const RING_LOVE_RE = /\b(?:lover|beloved|betrothed|fianc[ée]e?|sweetheart|crush|girlfriend|boyfriend|spouse|romance|romantic)\b/i;
+    function ringOf(p) {
+        const bond = String(p?.bond || p?.relation || '');
+        if (RING_LOVE_RE.test(bond)) return 'love';
+        if (RING_FAMILY_RE.test(bond) && !/\b(?:farrier|smith|baker|someone)['’]s\s+(?:son|daughter)\b/i.test(bond)) return 'family';
+        if (p?.tone === 'neg') return (p.rank ?? 9) <= 1 ? 'enemy' : 'rival';
+        if (p?.tone === 'top') return 'close';
+        return p?.tone === 'pos' ? 'friend' : 'neutral';
+    }
+    function ringed(el, p) { if (el && el.setAttribute) { el.setAttribute('data-ring', ringOf(p)); el.classList.add('rpgc-ring-face'); } return el; }
+    function voiceOf(name) {
+        const v = state.hms?.voices; if (!v || !name) return null;
+        const full = String(name).trim(), first = full.split(/\s+/)[0];
+        const pick = k => (k in (v.quotes || {})) ? { quote: v.quotes[k], calls: (v.calls || {})[k] || null } : null;
+        const a = pick(full), b = first !== full ? pick(first) : null;
+        const best = a && b ? (a.quote.ago <= b.quote.ago ? a : b) : a || b;
+        if (best && !best.calls) best.calls = (v.calls || {})[full] || (v.calls || {})[first] || null;
+        return best;
+    }
+    function speaking(name) { const sp = state.hms?.voices?.speakers || []; const first = String(name || '').split(/\s+/)[0]; return sp.some(s => s === name || s === first); }
+    function promisesWith(name) {
+        const first = String(name || '').split(/\s+/)[0].toLowerCase();
+        return (state.hms?.agenda?.items || []).filter(x => ['open', 'in_progress'].includes(x.state) && x.with && String(x.with).toLowerCase().split(/\s*(?:,|&|\band\b)\s*/).some(w => w === String(name).toLowerCase() || w.split(/\s+/)[0] === first));
+    }
+    // how the standing has moved, read from the card's own events ("Friendly → Close", "Met — Acquaintance")
+    function standingSeries(p) {
+        const ladder = state.hms?.relations?.ladder || [];
+        const rank = w => ladder.findIndex(x => x.toLowerCase() === String(w || '').trim().toLowerCase());
+        const out = [];
+        for (const e of p.events || []) {
+            if (/^bond:/i.test(e)) continue;
+            const met = String(e).match(/^Met(?: again)?\s*[—–-]\s*(\w[\w ]*)$/i);
+            if (met && rank(met[1]) >= 0) { out.push(rank(met[1])); continue; }
+            const mv = String(e).match(/^(\w[\w ]*?)\s*→\s*(\w[\w ]*)$/);
+            if (mv && rank(mv[1]) >= 0 && rank(mv[2]) >= 0) { if (!out.length) out.push(rank(mv[1])); out.push(rank(mv[2])); }
+        }
+        if (Number.isFinite(p.rank) && (!out.length || out[out.length - 1] !== p.rank)) out.push(p.rank);
+        return out.length >= 2 ? { pts: out, max: Math.max(1, ladder.length - 1) } : null;
+    }
+    function sparkline(series, cls = '') {
+        if (!series) return null;
+        const NS = 'http://www.w3.org/2000/svg', W = 72, H = 18, n = series.pts.length;
+        const svg = document.createElementNS(NS, 'svg'); svg.setAttribute('viewBox', `0 0 ${W} ${H}`); svg.setAttribute('class', 'rpgc-spark ' + cls);
+        svg.setAttribute('role', 'img'); svg.setAttribute('aria-label', T('How the standing has moved'));
+        const pts = series.pts.map((v, i) => [2 + (W - 4) * (n === 1 ? 1 : i / (n - 1)), H - 2 - (H - 4) * v / series.max]);
+        const line = document.createElementNS(NS, 'polyline'); line.setAttribute('points', pts.map(p => p.join(',')).join(' ')); svg.appendChild(line);
+        const end = document.createElementNS(NS, 'circle'); end.setAttribute('cx', pts[n - 1][0]); end.setAttribute('cy', pts[n - 1][1]); end.setAttribute('r', '2.2'); svg.appendChild(end);
+        const up = series.pts[n - 1] - series.pts[0];
+        svg.classList.add(up > 0 ? 'up' : up < 0 ? 'down' : 'flat');
+        return svg;
+    }
+    // the extras a person card carries in 1.4.0: their last line, what they call you, promises, the standing line, a flip side
+    function personExtras(p) {
+        const v = voiceOf(p.name), pr = promisesWith(p.name), sp = standingSeries(p);
+        const bits = [];
+        if (v && v.quote && S()?.uiVoices !== false) bits.push(h('blockquote', { class: 'rpgc-pquote', title: v.quote.ago ? TT('{0} replies ago', v.quote.ago) : T('this reply') }, '“' + v.quote.text + '”'));
+        const chips = [];
+        if (v && v.calls) chips.push(h('span', { class: 'rpgc-chip rpgc-calls', title: T('What they call you, from their lines') }, '🗣️ ', TT('calls you “{0}”', capWord(v.calls))));
+        if (pr.length) chips.push(h('button', { class: 'rpgc-chip rpgc-promise-badge', type: 'button', title: pr.map(x => x.what).join(' · '), onclick: () => goTo('journey', 'agenda') }, '🤞 ', pr.length === 1 ? T('1 promise') : TT('{0} promises', pr.length)));
+        if (sp) chips.push(h('span', { class: 'rpgc-chip rpgc-sparkchip', title: T('How the standing has moved') }, sparkline(sp)));
+        if (chips.length) bits.push(h('div', { class: 'rpgc-chips rpgc-pextra' }, chips));
+        return bits;
+    }
+    function flipBack(p) {
+        const ev = (p.events || []).filter(e => !/^bond:/i.test(e));
+        const bonds = (p.events || []).filter(e => /^bond:/i.test(e)).map(e => e.replace(/^bond:\s*/i, ''));
+        return h('div', { class: 'rpgc-pback' },
+            h('div', { class: 'k' }, T('Their story with you')),
+            sparkline(standingSeries(p), 'big'),
+            ev.length ? h('ol', { class: 'rpgc-pback-ev' }, ev.slice(-8).map(e => h('li', null, e))) : h('p', { class: 'rpgc-note' }, T('No standing changes yet.')),
+            bonds.length ? h('details', { class: 'rpgc-subdet' }, h('summary', null, TT('How they have been described ({0})', bonds.length)), h('ul', null, bonds.slice(-6).map(b => h('li', { class: 'rpgc-note' }, b)))) : null,
+            p.metAgo ? h('p', { class: 'rpgc-note' }, TT('Known for {0}', fmtSpan(p.metAgo))) : null);
+    }
+    // who is in the room: faces along the top of the Scene, the ones who spoke this reply lit
+    function roomStrip() {
+        if (S()?.uiRoom === false) return null;
+        const people = (state.hms?.relations?.people || []).filter(p => p.present && !p.dead);
+        if (!people.length) return null;
+        return h('div', { class: 'rpgc-room', role: 'list', 'aria-label': T('Who is here') },
+            h('span', { class: 'k' }, T('Here')),
+            people.slice(0, 10).map(p => {
+                const face = ringed(avatarImg(p.name) || monogram(p.name), p);
+                const talk = speaking(p.name);
+                return h('button', { class: 'rpgc-room-p' + (talk ? ' talk' : ''), type: 'button', role: 'listitem', title: [p.name, p.standing, talk ? T('spoke this reply') : null].filter(Boolean).join(' · '),
+                    onclick: () => { if (playOn('npcDossier')) { state.dossierName = p.name; render(); } else goTo('people', 'people'); } },
+                    face, h('span', { class: 'nm' }, String(p.name).split(/\s+/)[0]), talk ? h('span', { class: 'talkdot', 'aria-hidden': 'true' }) : null);
+            }));
+    }
+    // the family as a tree: those above you, you and your siblings, those below, and everyone else
+    const FAM_UP = /\b(?:father|mother|dad|mum|mom|papa|mama|parent|grand(?:father|mother|ma|pa)|aunt|uncle|guardian)\b/i;
+    const FAM_SIB = /\b(?:sister|brother|sibling|twin)\b/i;
+    const FAM_DOWN = /\b(?:son|daughter|child|niece|nephew|grand(?:son|daughter|child))\b/i;
+    function familyTree(members) {
+        const tier = m => { const r = String(m.relation || ''); return FAM_UP.test(r) ? (/grand/i.test(r) ? 0 : 1) : FAM_SIB.test(r) ? 2 : FAM_DOWN.test(r) ? 3 : 4; };
+        const rows = [[], [], [], [], []];
+        for (const m of members) rows[tier(m)].push(m);
+        const node = m => h('div', { class: 'rpgc-tnode ' + (m.status || '') + (m.present ? ' here' : ''), title: [m.relation, m.where, m.doing].filter(Boolean).join(' · ') },
+            ringed(avatarImg(m.name) || monogram(m.name), { bond: m.relation }), h('b', null, String(m.name).split(/\s+/)[0]), h('span', { class: 'rel' }, String(m.relation || '').split(/[,;(]/)[0]),
+            m.status === 'dead' ? h('span', { class: 'st' }, '✝') : m.status === 'missing' ? h('span', { class: 'st' }, '?') : null);
+        const you = h('div', { class: 'rpgc-tnode you' }, ringed(monogram(state.userName || 'You'), { bond: 'family' }), h('b', null, String(state.userName || T('You')).split(/\s+/)[0]), h('span', { class: 'rel' }, T('you')));
+        rows[2] = [...rows[2]];
+        const lines = [
+            rows[0].length ? h('div', { class: 'rpgc-trow' }, rows[0].map(node)) : null,
+            rows[1].length ? h('div', { class: 'rpgc-trow' }, rows[1].map(node)) : null,
+            h('div', { class: 'rpgc-trow sibs' }, you, rows[2].map(node)),
+            rows[3].length ? h('div', { class: 'rpgc-trow' }, rows[3].map(node)) : null,
+            rows[4].length ? h('div', { class: 'rpgc-trow other' }, h('span', { class: 'lbl' }, T('Other kin')), rows[4].map(node)) : null].filter(Boolean);
+        return h('div', { class: 'rpgc-tree' }, lines);
+    }
+    // a birthday in the story's own month, for you (the HUD's birth month) and anyone whose birth the card knows
+    function birthdayCard() {
+        const w = state.world || {};
+        if (!w.month || !w.birthMonth || +w.birthMonth !== +w.month) return null;
+        const age = Number.isFinite(+w.age) ? +w.age : null;
+        return h('div', { class: 'rpgc-bday', role: 'note' }, h('span', { class: 'ic', 'aria-hidden': 'true' }, '🎂'),
+            h('span', null, T('Your birthday month'), age !== null ? h('span', { class: 'rpgc-note' }, ' \u00B7 ' + TT('the HUD says {0}', age)) : null));
+    }
+
     function renderHmsTrackers() {
         const s = S();
         const snapshots = renderTrackerSnapshots();
@@ -5132,7 +5308,8 @@ export function setup(ctx) {
         if (order) built.sort((a, b) => order.indexOf(a.dataset?.openKey) - order.indexOf(b.dataset?.openKey));
         if (!built.length) built.push(h('p', { class: 'rpgc-note rpgc-empty-view' }, T('Nothing here yet. Cards appear as the story reports them.')));
         const head = out.splice(2); // tools, notices and story actions sit above the view, inside the main column
-        { const rib = view === 'scene' || view === 'all' ? sinceRibbon() : null; if (rib) head.unshift(rib); const strip = hudStrip(view === 'scene' || view === 'all'); if (strip) head.unshift(strip); }
+        { if (view === 'scene' || view === 'all') { const bd = birthdayCard(); if (bd) head.unshift(bd); const room = roomStrip(); if (room) head.unshift(room); }
+          const rib = view === 'scene' || view === 'all' ? sinceRibbon() : null; if (rib) head.unshift(rib); const strip = hudStrip(view === 'scene' || view === 'all'); if (strip) head.unshift(strip); }
         out.push(h('div', { class: 'rpgc-shell' }, viewBar(view), h('div', { class: 'rpgc-main' }, ...head, h('div', { class: 'rpgc-view rpgc-view-' + view }, ...built))));
         return out;
     }
@@ -6061,8 +6238,13 @@ export function setup(ctx) {
     }
     function personCard(p, opt = {}) {
         const dossier = !opt.noDossier && p.present && p.details ? Object.entries(p.details).filter(([, v]) => v && typeof v !== 'object') : [];
-        return h('div', { class: 'rpgc-person ' + p.tone },
-            h('div', { class: 'head' }, avatarImg(p.name), npcName(p.name, {class:'name'}), standingChip(p),
+        const fk = 'pflip-' + (p.key || p.name), flipped = state.open[fk] === true;
+        const flip = h('button', { class: 'rpgc-mini rpgc-flipbtn', type: 'button', title: flipped ? T('Back to the card') : T('Their story with you'), 'aria-pressed': flipped ? 'true' : 'false',
+            onclick: (e) => { e.stopPropagation(); state.open[fk] = !flipped; render(); } }, flipped ? '\u21A9' : '\u21BB');
+        if (flipped) return h('div', { class: 'rpgc-person flipped ' + p.tone, 'data-ring': ringOf(p) },
+            h('div', { class: 'head' }, ringed(avatarImg(p.name), p), npcName(p.name, {class:'name'}), standingChip(p), flip), flipBack(p));
+        return h('div', { class: 'rpgc-person ' + p.tone + (speaking(p.name) ? ' talk' : ''), 'data-ring': ringOf(p) },
+            h('div', { class: 'head' }, ringed(avatarImg(p.name), p), npcName(p.name, {class:'name'}), standingChip(p), flip,
                 p.bond ? h('span', { class: 'rpgc-chip bond' + (p.pinned && p.pinned.bond ? ' pinned' : ''), title: 'The kind of relationship' }, p.bond) : null,
                 p.hudBond ? h('span', { class: 'rpgc-chip kind', title: T('The bond stage the HUD shows') }, `${T('HUD')}: ${p.hudBond}`) : null,
                 p.minor ? h('span', { class: 'rpgc-chip minor', title: 'A minor: no romance, no desire' }, 'minor') : null,
@@ -6072,6 +6254,7 @@ export function setup(ctx) {
             p.bars.length ? h('div', { class: 'rpgc-relgrid' }, p.bars.map(relBar)) : null,
             dossier.length ? h('div', { class: 'rpgc-dossier' }, dossier.map(([k, v]) => h('div', { class: 'row' + (/secret/i.test(k) ? ' secret' : '') }, h('span', { class: 'k' }, k), h('span', { class: 'v' }, String(v))))) : null,
             p.why ? h('div', { class: 'rpgc-pconcern' }, p.why) : null,
+            ...personExtras(p),
             relEventsShown(p.events).length ? h('p', { class: 'rpgc-note' }, relEventsShown(p.events).join(' \u00B7 ')) : null,
             bondEditor(p));
     }
@@ -6199,7 +6382,7 @@ export function setup(ctx) {
         const addWho = () => { const n = who.value.trim(); if (!n) return; send({ type: 'secrets', chatId: state.chatId, op: 'knows', key: x.key, name: n }); who.value = ''; };
         who.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); addWho(); } });
         return h('div', { class: 'rpgc-person ' + (yours && x.knownBy.length ? 'neg' : 'neutral') + (x.isNew ? ' rpgc-holding new' : '') },
-            h('div', { class: 'head' }, h('span', { 'aria-hidden': 'true' }, yours ? '🔒' : '🔍'), h('span', { class: 'name' }, x.text),
+            h('div', { class: 'head' }, yours ? h('span', { class: 'rpgc-env c' + Math.min(4, x.knownBy.length), 'aria-hidden': 'true', title: x.knownBy.length ? TT('{0} know', x.knownBy.length) : T('Sealed') }, h('i', { class: 'flap' }), h('i', { class: 'seal' })) : h('span', { 'aria-hidden': 'true' }, '🔍'), h('span', { class: 'name' }, x.text),
                 yours ? h('span', { class: 'rpgc-chip rpgc-sx-level ' + (x.knownBy.length === 0 ? 'safe' : x.knownBy.length < 3 ? 'some' : 'wide') }, x.knownBy.length === 0 ? '🛡️ ' + T('Safe') : x.knownBy.length < 3 ? '👁️ ' + TT('{0} know', x.knownBy.length) : '📣 ' + TT('{0} know', x.knownBy.length)) : null,
                 !yours ? h('span', { class: 'rpgc-chip bond' }, TT("{0}'s secret", x.whose)) : null,
                 h('button', { class: 'rpgc-mini', style: 'margin-left:auto', 'aria-label': `Forget the secret: ${x.text}`, title: 'Remove', onclick: () => send({ type: 'secrets', chatId: state.chatId, op: 'remove', key: x.key }) }, '✕')),
@@ -6766,7 +6949,13 @@ export function setup(ctx) {
         if (!f.members.length) out.push(h('p', { class: 'rpgc-note' }, f.ask
             ? 'Your family shows up here as the story brings them in: who they are to you, whether they are alive, and where they are. Add someone by hand if the story has not named them yet.'
             : 'Asking the story about your family is switched off (Settings → HMS systems → Family). Family bonds in People still show here, and you can add someone by hand.'));
-        else out.push(h('div', { class: 'rpgc-cards' }, f.members.map(famCard)));
+        else {
+            const tree = state.open['family-tree'] === true;
+            out.push(h('div', { class: 'rpgc-gear-viewsw', role: 'group', 'aria-label': T('Show the family as') },
+                h('button', { class: 'rpgc-gv' + (!tree ? ' on' : ''), 'aria-pressed': !tree ? 'true' : 'false', onclick: () => { state.open['family-tree'] = false; render(); } }, '\uD83D\uDCCB ', T('Cards')),
+                h('button', { class: 'rpgc-gv' + (tree ? ' on' : ''), 'aria-pressed': tree ? 'true' : 'false', onclick: () => { state.open['family-tree'] = true; render(); } }, '\uD83C\uDF33 ', T('Tree'))));
+            out.push(tree ? familyTree(f.members) : h('div', { class: 'rpgc-cards' }, f.members.map(famCard)));
+        }
         const nameIn = h('input', { type: 'text', placeholder: 'Name', 'aria-label': 'Family member’s name', maxlength: '60', style: 'flex:1;min-width:0' });
         const relIn = h('input', { type: 'text', placeholder: 'mother, brother…', 'aria-label': 'What they are to you', maxlength: '40', style: 'flex:1;min-width:0' });
         const add = () => { const n = nameIn.value.trim(); if (!n) return; send({ type: 'family', chatId: state.chatId, op: 'add', name: n, relation: relIn.value.trim() }); nameIn.value = ''; relIn.value = ''; };
