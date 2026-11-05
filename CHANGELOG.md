@@ -8,6 +8,12 @@
 - **Tap a card for quick moves:** Hold, Wear, Sheathe, Carry, Leave here, Drop, Into a bag, Gone, plus its story so far. They send the same move as the Move menu, which stays.
 - **This turn** shows each change as a chip; stowed and dropped things look set aside.
 
+**A polished look across every card** (visual only, same tokens, so Looks and world themes keep their colours)
+- Cards with a soft accent glow, a lit top edge and a medallion emblem; headers with a pill for the summary; cards open with a short rise (off with reduced motion).
+- Headings inside cards as small tracked labels with a fading rule; sub-sections as pills; brighter chips, buttons with a lift, focus rings, softer status lines, bars with a glow, nicer scrollbars, a lit view switcher.
+- **Magic in colour:** Water blue, Fire orange, Earth amber, Wind green, Healing gold and so on, on the Spellbook, the tier chips and each school's list; Known, Studying, Within reach and Next rank as distinct badges.
+- **You** as a character-sheet header: the portrait ring glows and the story stats read like a game's.
+
 ## 1.2.0 (in development, branch `release/1.2.0`)
 
 Built on 1.1.0 RC2. Report: `docs/release/1.2.0-INTEGRATION-REPORT.md`.

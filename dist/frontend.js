@@ -1168,6 +1168,104 @@ button.rpgc-chip.intel:hover { border-color: var(--lumiverse-accent, #7aa2f7); }
 .rpgc .rpgc-gi-hist{margin-top:6px;font-size:10.5px;color:var(--u-muted)}.rpgc .rpgc-gi-hist .k{font-weight:700;text-transform:uppercase;letter-spacing:.06em}
 @media (prefers-reduced-motion:reduce){.rpgc li.rpgc-gear-item{transition:none}}
 
+/* ═════ 1.3.0 polish layer: one game-companion look over every card ═════
+   Visual only. It reads the same tokens (--u-*), so looks and world themes keep their colours; a world theme's
+   own rules (.rpgc.theme-…) are more specific and still win. */
+.rpgc{--u-glow:color-mix(in srgb,var(--u-accent) 22%,transparent);--u-glass:color-mix(in srgb,var(--u-text) 4.5%,transparent);--u-ease:cubic-bezier(.2,.8,.2,1)}
+/* cards */
+.rpgc .rpgc-sec{position:relative;overflow:clip;border:1px solid var(--u-line);
+  background:radial-gradient(130% 110px at 0 0,color-mix(in srgb,var(--u-accent) 9%,transparent),transparent 70%),linear-gradient(180deg,var(--u-glass),transparent 160px),var(--rpgc-card-bg,var(--u-surface));
+  box-shadow:0 1px 0 color-mix(in srgb,var(--u-text) 6%,transparent) inset,0 10px 28px -22px #000;transition:border-color .2s,box-shadow .25s}
+.rpgc .rpgc-sec::before{content:"";position:absolute;inset:0 0 auto 0;height:1px;pointer-events:none;
+  background:linear-gradient(90deg,transparent,color-mix(in srgb,var(--u-accent) 70%,transparent) 25%,color-mix(in srgb,var(--u-accent) 25%,transparent) 70%,transparent)}
+.rpgc .rpgc-sec[open]{border-color:color-mix(in srgb,var(--u-accent) 22%,var(--u-line))}
+.rpgc .rpgc-sec:hover{border-color:color-mix(in srgb,var(--u-accent) 30%,var(--u-line))}
+.rpgc .rpgc-sec>summary{padding:10px 12px;gap:10px;min-height:44px}
+.rpgc .rpgc-sec>summary .rpgc-sec-title{font-size:14.5px;letter-spacing:.015em}
+.rpgc .rpgc-sec>summary .rpgc-sum-extra{font-size:11.5px;padding:3px 9px;border-radius:999px;background:var(--u-raise);border:1px solid var(--u-line);max-width:55%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rpgc .rpgc-sec>summary .rpgc-sum-extra:empty{display:none}
+.rpgc .rpgc-sec>.rpgc-body{padding:2px 12px 12px}
+.rpgc .rpgc-sec[open]>.rpgc-body{animation:rpgc-rise .28s var(--u-ease)}
+@keyframes rpgc-rise{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:none}}
+/* the card's emblem: a small lit medallion */
+.rpgc .rpgc-sig{width:32px;height:32px;border-radius:11px;font-size:16px;flex:none;
+  background:radial-gradient(circle at 32% 24%,color-mix(in srgb,var(--u-accent) 40%,transparent),transparent 62%),var(--u-raise);
+  box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--u-accent) 38%,transparent),0 4px 14px -6px var(--u-glow);transition:transform .25s var(--u-ease),box-shadow .25s}
+.rpgc .rpgc-sec[open]>summary .rpgc-sig{transform:none;box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--u-accent) 55%,transparent),0 6px 18px -6px var(--u-glow)}
+.rpgc .rpgc-sec>summary:hover .rpgc-sig{transform:translateY(-1px) rotate(-4deg)}
+/* headings inside cards */
+.rpgc .rpgc-body h4,.rpgc .rpgc-subhead{display:flex;align-items:center;gap:7px;margin:12px 0 6px;font-size:10.5px;font-weight:750;letter-spacing:.1em;text-transform:uppercase;color:var(--u-muted)}
+.rpgc .rpgc-body h4::after,.rpgc .rpgc-subhead::after{content:"";flex:1;height:1px;background:linear-gradient(90deg,var(--u-line-2),transparent)}
+.rpgc .rpgc-subdet>summary{font-weight:600;font-size:11.5px;padding:3px 8px;margin:4px 0;border-radius:999px;background:var(--u-raise);border:1px solid var(--u-line)}
+.rpgc .rpgc-subdet[open]>summary{color:var(--u-text);border-color:color-mix(in srgb,var(--u-accent) 30%,var(--u-line))}
+/* chips, buttons, fields */
+.rpgc .rpgc-chip{background:var(--u-glass);border:1px solid var(--u-line-2);padding:1px 8px;font-size:11px;transition:background .15s,border-color .15s}
+.rpgc .rpgc-chip.here,.rpgc .rpgc-chip.ok{background:color-mix(in srgb,var(--u-ok) 14%,transparent);border-color:color-mix(in srgb,var(--u-ok) 40%,transparent)}
+.rpgc .rpgc-btn{border:1px solid var(--u-line-2);background:linear-gradient(180deg,color-mix(in srgb,var(--u-text) 7%,transparent),color-mix(in srgb,var(--u-text) 3%,transparent));
+  box-shadow:0 1px 0 color-mix(in srgb,var(--u-text) 8%,transparent) inset;padding:5px 11px}
+.rpgc .rpgc-btn:hover:not(:disabled){border-color:color-mix(in srgb,var(--u-accent) 55%,transparent);transform:translateY(-1px);box-shadow:0 6px 16px -10px var(--u-glow)}
+.rpgc .rpgc-btn:active:not(:disabled){transform:translateY(0)}
+.rpgc .rpgc-btn.primary{background:linear-gradient(135deg,var(--u-accent),color-mix(in srgb,var(--u-accent) 70%,#fff 10%));color:var(--u-accent-fg);border-color:transparent;font-weight:650;box-shadow:0 6px 18px -8px var(--u-glow)}
+.rpgc .rpgc-btn.danger:hover:not(:disabled){border-color:var(--u-bad);box-shadow:0 6px 16px -10px color-mix(in srgb,var(--u-bad) 40%,transparent)}
+.rpgc input[type=text],.rpgc input[type=search],.rpgc input[type=number],.rpgc select,.rpgc textarea{border-radius:var(--u-radius-s);transition:border-color .15s,box-shadow .15s}
+.rpgc input:focus-visible,.rpgc select:focus-visible,.rpgc textarea:focus-visible{border-color:var(--u-accent);box-shadow:0 0 0 3px color-mix(in srgb,var(--u-accent) 22%,transparent);outline:none}
+/* notes and status lines */
+.rpgc .rpgc-status{border-radius:var(--u-radius-s);background:var(--u-glass);border-color:var(--u-line);padding:7px 10px}
+.rpgc .rpgc-status.warning{background:color-mix(in srgb,var(--u-warn) 9%,transparent);border-color:color-mix(in srgb,var(--u-warn) 45%,transparent)}
+.rpgc .rpgc-status.error{background:color-mix(in srgb,var(--u-bad) 9%,transparent);border-color:color-mix(in srgb,var(--u-bad) 45%,transparent)}
+/* bars and meters: a soft glow on the fill */
+.rpgc .rpgc-bar,.rpgc .rpgc-relbar{background:color-mix(in srgb,var(--u-text) 10%,transparent);box-shadow:inset 0 1px 2px #0005}
+.rpgc .rpgc-bar>i,.rpgc .rpgc-relbar>i{box-shadow:0 0 10px -2px currentColor;background-image:linear-gradient(180deg,#ffffff30,transparent)}
+/* people */
+.rpgc .rpgc-person{border-radius:var(--u-radius-s);border-color:var(--u-line);background:linear-gradient(180deg,var(--u-glass),transparent);padding:8px 10px;transition:border-color .15s,transform .15s}
+.rpgc .rpgc-person:hover{border-color:var(--u-line-2)}
+/* key/value rows (World State, You) */
+.rpgc .rpgc-wrow{padding:3px 6px;margin:0 -6px;border-radius:7px;transition:background .12s}
+.rpgc .rpgc-wrow:hover{background:var(--u-hover)}
+.rpgc .rpgc-wrow .lbl{font-size:10.5px;letter-spacing:.04em;text-transform:uppercase}
+/* the view switcher: a lit segmented control */
+.rpgc .rpgc-views{background:color-mix(in srgb,var(--u-text) 5%,var(--lumiverse-bg,#0e1016) 90%);backdrop-filter:blur(10px);border:1px solid var(--u-line);box-shadow:0 10px 24px -18px #000}
+.rpgc .rpgc-viewtab{transition:color .15s,background .2s,transform .15s}
+.rpgc .rpgc-viewtab:hover .i{transform:translateY(-1px) scale(1.08);filter:none}
+.rpgc .rpgc-viewtab[aria-pressed="true"],.rpgc .rpgc-viewtab.on,.rpgc .rpgc-viewtab[aria-selected="true"]{box-shadow:0 6px 18px -8px var(--u-glow),inset 0 0 0 1px color-mix(in srgb,#fff 18%,transparent)}
+/* scrollbars */
+.rpgc ::-webkit-scrollbar{width:9px;height:9px}.rpgc ::-webkit-scrollbar-thumb{background:color-mix(in srgb,var(--u-text) 16%,transparent);border-radius:9px;border:2px solid transparent;background-clip:padding-box}
+.rpgc ::-webkit-scrollbar-thumb:hover{background-color:color-mix(in srgb,var(--u-accent) 45%,transparent)}
+.rpgc.look-minimal .rpgc-sec{background:var(--rpgc-card-bg,var(--u-surface))}.rpgc.look-minimal .rpgc-sec::before{display:none}
+@media (prefers-reduced-motion:reduce){.rpgc .rpgc-sec[open]>.rpgc-body{animation:none}.rpgc .rpgc-sig,.rpgc .rpgc-btn,.rpgc .rpgc-viewtab{transition:none}}
+
+/* 1.3.0: schools in colour, spell states as badges */
+.rpgc [data-school]{--sc:var(--u-accent)}
+.rpgc [data-school="water"],.rpgc [data-school="ice"]{--sc:#5aa9ff}.rpgc [data-school="fire"]{--sc:#ff7a45}.rpgc [data-school="earth"]{--sc:#c89a5b}
+.rpgc [data-school="wind"]{--sc:#5fd3a6}.rpgc [data-school="healing"],.rpgc [data-school="holy"],.rpgc [data-school="light"]{--sc:#f2d16b}.rpgc [data-school="detoxification"]{--sc:#9fd36b}
+.rpgc [data-school="summoning"]{--sc:#c48bff}.rpgc [data-school="barrier"]{--sc:#7fc8d8}.rpgc [data-school="gravity"],.rpgc [data-school="dark"],.rpgc [data-school="demon"]{--sc:#a37cff}
+.rpgc [data-school="lightning"]{--sc:#ffe066}.rpgc [data-school="sword"],.rpgc [data-school="north"],.rpgc [data-school="god"]{--sc:#d8dee9}
+.rpgc .rpgc-spellchip{border-color:color-mix(in srgb,var(--sc) 55%,transparent);background:color-mix(in srgb,var(--sc) 13%,transparent);font-weight:600}
+.rpgc .rpgc-spellchip::before{content:"";display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:6px;background:var(--sc);box-shadow:0 0 8px var(--sc);vertical-align:1px}
+.rpgc .rpgc-spell-school>summary>b{color:var(--sc);text-shadow:0 0 14px color-mix(in srgb,var(--sc) 45%,transparent)}
+.rpgc .rpgc-spell-school .rpgc-spell-row{border-left-color:color-mix(in srgb,var(--sc) 25%,transparent);border-radius:0 8px 8px 0;transition:background .12s}
+.rpgc .rpgc-spell-school .rpgc-spell-row:hover{background:var(--u-hover)}
+.rpgc .rpgc-spell-school .rpgc-spell-row.known,.rpgc .rpgc-spell-school .rpgc-spell-row.mastered{border-left-color:var(--sc);background:linear-gradient(90deg,color-mix(in srgb,var(--sc) 10%,transparent),transparent 60%)}
+.rpgc .rpgc-spell-st.known,.rpgc .rpgc-spell-st.mastered{background:color-mix(in srgb,var(--u-ok) 18%,transparent);border-color:color-mix(in srgb,var(--u-ok) 50%,transparent);color:color-mix(in srgb,var(--u-ok) 70%,var(--u-text));font-weight:650}
+.rpgc .rpgc-spell-st.study{background:color-mix(in srgb,var(--u-accent) 18%,transparent);border-color:color-mix(in srgb,var(--u-accent) 50%,transparent)}
+.rpgc .rpgc-spell-st.reach{border-color:color-mix(in srgb,var(--sc) 45%,transparent)}
+.rpgc .rpgc-spell-st.next,.rpgc .rpgc-spell-st.locked{border-style:dashed;opacity:.75}
+/* people rows: names breathe, labels shorten instead of crowding */
+.rpgc .rpgc-person>summary,.rpgc details.rpgc-person>summary{gap:6px}
+
+/* 1.3.0: You — a character sheet header */
+.rpgc .rpgc-you-id{position:relative}
+.rpgc .rpgc-you-top{padding:10px;margin:0 -2px 8px;border-radius:var(--u-radius-s);
+  background:radial-gradient(120% 100% at 0 0,color-mix(in srgb,var(--u-accent) 18%,transparent),transparent 65%),var(--u-glass);border:1px solid var(--u-line)}
+.rpgc .rpgc-you-top .rpgc-avatar{box-shadow:0 0 0 2px color-mix(in srgb,var(--u-accent) 55%,transparent),0 0 22px -4px var(--u-glow)}
+.rpgc .rpgc-you-name{text-shadow:0 0 18px color-mix(in srgb,var(--u-accent) 30%,transparent)}
+.rpgc .rpgc-you-stat{position:relative;overflow:hidden;border:1px solid var(--u-line);background:linear-gradient(180deg,var(--u-raise),transparent)}
+.rpgc .rpgc-you-stat>b{color:color-mix(in srgb,var(--u-accent) 70%,var(--u-text));font-size:19px;letter-spacing:.01em}
+.rpgc .rpgc-you-stat::after{content:"";position:absolute;inset:auto 18% 0 18%;height:2px;border-radius:2px;background:linear-gradient(90deg,transparent,var(--u-accent),transparent);opacity:.55}
+/* the Now card and timeline items get the same lift */
+.rpgc .rpgc-agenda-item{transition:border-color .15s,background .15s}
+.rpgc .rpgc-agenda-item:hover{background:var(--u-hover)}
+
 `;
 
 // The guide, embedded from GUIDE.md so it ships inside the extension (tools/embed_guide.py refreshes it).
@@ -8035,10 +8133,10 @@ html,body{background:${panelBg}!important;}`;
         const out = [];
         for (const v of m.pools) out.push(h('div', { class: 'rpgc-vital ' + v.level }, h('div', { class: 'head' }, h('span', { class: 'lbl' }, v.label), h('span', { class: 'num' }, `${fmtNum(v.cur)} / ${fmtNum(v.max)}`)), levelBar(v.pct, v.level)));
         for (const v of m.meters) out.push(h('div', { class: 'rpgc-vital ' + v.level }, h('div', { class: 'head' }, h('span', { class: 'lbl' }, v.label), h('span', { class: 'num' }, `${fmtNum(v.pct)}%`), v.stage ? h('span', { class: 'stage' }, v.stage) : null), levelBar(v.pct, v.level)));
-        for (const g of m.arts) out.push(h('div', { class: 'rpgc-abil' }, h('h4', null, g.category), h('div', { class: 'rpgc-chips' }, g.items.map(it => h('span', { class: 'rpgc-chip abil' }, it.label ? h('em', null, it.label + ': ') : null, it.name, it.level ? h('span', { class: 'lv' }, ` Lv ${it.level}`) : null, it.state ? h('span', { class: 'st' }, ` (${it.state})`) : null)))));
+        for (const g of m.arts) out.push(h('div', { class: 'rpgc-abil' }, h('h4', null, g.category), h('div', { class: 'rpgc-chips' }, g.items.map(it => h('span', { class: 'rpgc-chip abil' + (schoolKey(it.name) !== 'other' ? ' rpgc-spellchip' : ''), 'data-school': schoolKey(it.name) }, it.label ? h('em', null, it.label + ': ') : null, it.name, it.level ? h('span', { class: 'lv' }, ` Lv ${it.level}`) : null, it.state ? h('span', { class: 'st' }, ` (${it.state})`) : null)))));
         for (const cd of m.cooldowns) out.push(h('p', { class: 'rpgc-note' }, '\u23F3 ' + cd));
         if (m.spellbook.length) out.push(h('div', { class: 'rpgc-abil' }, h('h4', null, `Spellbook (${m.spellbook.length})`),
-            h('div', { class: 'rpgc-chips' }, m.spellbook.map(sp => h('span', { class: 'rpgc-chip abil', title: [sp.note, sp.from === 'fight' ? 'seen in a fight' : 'seen in the story', sp.seen > 1 ? `${sp.seen} times` : null].filter(Boolean).join(' \u00B7 ') },
+            h('div', { class: 'rpgc-chips' }, m.spellbook.map(sp => h('span', { class: 'rpgc-chip abil rpgc-spellchip', 'data-school': spellSchoolOf(m.list, sp.name), title: [sp.note, sp.from === 'fight' ? 'seen in a fight' : 'seen in the story', sp.seen > 1 ? `${sp.seen} times` : null].filter(Boolean).join(' \u00B7 ') },
                 sp.name, sp.cost ? h('span', { class: 'st' }, ` ${sp.cost}`) : null)))));
         if (m.list) out.push(renderSpellList(m.list));
         const knownN = m.list ? m.list.schools.reduce((a, g) => a + g.known, 0) : m.spellbook.length;
@@ -8078,6 +8176,9 @@ html,body{background:${panelBg}!important;}`;
     }
 
     // The spell list: what the bot's lorebook describes, against the ranks your HUD shows.
+    // 1.3.0: each school has its colour (display only)
+    function schoolKey(name) { const n = String(name || '').toLowerCase(); for (const k of ['water', 'fire', 'earth', 'wind', 'healing', 'detoxification', 'summoning', 'barrier', 'gravity', 'god', 'sword', 'north', 'water god', 'demon', 'holy', 'dark', 'light', 'ice', 'lightning']) if (n.includes(k)) return k.split(' ')[0]; return 'other'; }
+    function spellSchoolOf(list, name) { const n = String(name || '').toLowerCase(); for (const g of (list && list.schools) || []) if ((g.spells || []).some(x => String(x.name).toLowerCase() === n)) return schoolKey(g.name); return schoolKey(name); }
     const SPELL_STATUS = { mastered: 'Mastered', known: 'Known', study: 'Studying', reach: 'Within reach', unranked: 'Rank unknown', open: 'In the lorebook', next: 'Next rank', locked: 'Locked', special: 'Special' };
     // Sword techniques: the same list, for the sword styles and the HUD's rank in each.
     // Training: every skill the HUD's Training line tracks, sessions toward the next rank (Six-Sided v1.1)
@@ -8148,7 +8249,7 @@ html,body{background:${panelBg}!important;}`;
             const rows = g.spells.filter(shown);
             if (!rows.length) continue;
             const counts = [g.known ? TT('{0} known', g.known) : null, g.study ? TT('{0} studying', g.study) : null, g.reach ? TT('{0} within reach', g.reach) : null, g.next ? TT('{0} next', g.next) : null, filter === 'all' && g.unranked ? TT('{0} rank unknown', g.unranked) : null].filter(Boolean).join(' \u00B7 ');
-            const det = h('details', { class: 'rpgc-spells rpgc-spell-school' + (g.mine ? ' mine' : '') },
+            const det = h('details', { class: 'rpgc-spells rpgc-spell-school' + (g.mine ? ' mine' : ''), 'data-school': schoolKey(g.name) },
                 h('summary', null, h('b', null, raw(g.name)), g.rank ? h('span', { class: 'rpgc-note' }, raw(' \u2014 ' + rankLabel(g.rank))) : null, counts ? h('span', { class: 'rpgc-note' }, ' \u00B7 ' + counts) : null),
                 rows.map(sp => {
                     const studyingIt = sp.status === 'study' || studyingNow.has(String(sp.name).toLowerCase());
