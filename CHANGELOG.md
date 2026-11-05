@@ -1,5 +1,44 @@
 # Changelog — RPG Companion HMS Edition
 
+## 1.4.0 RC (in development, branch `release/1.4.0`, built on 1.3.0)
+
+**The deck: a new look for the whole panel.** Everything below is display only. The Companion reads what it already has; there are no new tracker fields, no extra model calls and no change to what the story is sent.
+
+**Look and feel**
+- **World skins**, picked by card: Mushoku parchment and ink, Re:Zero violet and witch gold, COTE school tablet, Overlord obsidian and crimson, D&D tavern. You can choose one yourself or turn them off. A wiki theme you chose in Settings still wins.
+- **One type scale**, a display font for titles and a reading font for text, plus a **day and night tint** that follows the HUD clock.
+- **At-a-glance strip:** time, period, date, place, mana, Touki, vitals, conditions and weather as pills, with a small sky that puts the sun or moon where the HUD's clock says. In the Scene the Now card already shows the sky, so the strip keeps only the pills.
+- **World event countdown:** "The Mana Calamity · 9 months", a bar that reddens as it comes.
+- **Since last reply:** one line of what moved (06:25 → 06:40, dining hall → front gate, equipment, who is here, new Agenda items, gear moved). Tap a chip to jump there.
+- Settings → Play style: accent colour, reading font, high contrast, colour-blind status colours, reduced motion, layout presets (Full RPG, Minimal, Reader), and switches for every new part.
+
+**People**
+- **Bond rings** on every face (family, close, friend, rival, enemy, love). Each card shows the person's **last line** and **what they call you**, read from the story's dialogue tags ("calls you 'young master'"), plus a **promise badge** and a **standing line**.
+- A **flip side** with their story with you, a **"Here" strip** of who is in the room (lit when they spoke this reply), a **family tree**, **party tabs**, and secrets as **wax-sealed envelopes** that crack as more people learn them.
+
+**You**
+- A **character sheet:** portrait, standing, mana, Touki and casting tiles, every sword and magic rank on the ladder, training bars and languages.
+- A **paper doll** in Gear (hands, shoulders, arms, belt, body, feet, bags, set down), a **technique tree** (Flash Slash lit, Longsword of Light next), a **rank-up stamp**, **coin stacks**, a **spending chart** by day, a **7-day Agenda strip**, **things to bring back**, and a rough **load** bar (off by default).
+
+**Story and time**
+- **Open threads** (quests, plot, promises and the story's loose ends), **The story so far** (arc, a canon-arc ring, days, replies, people met, money spent, the moments that mattered, promises and deals), and **Milestones** as a trophy shelf.
+- Quest cards get a **journey line** of their stages. The Chronicle gets a **Journal** look and **day cards** (how many entries, the key moment).
+- The Now card gets **scenery and mood** from the place's own words. Letters look like letters and your own notes are handwritten. A **training-by-day** grid, **Places lately** with the story time between places, **Compare with an earlier reply** (HUD lines, only when you ask), and a **spoiler guard** that blurs canon arcs more than one ahead.
+
+**Interaction**
+- **Toasts and confetti** when a quest completes or a promise falls due, a soft glow on what is new, and smooth view changes.
+- A **focus bar** (pin up to three people, quests or Agenda items), a **mini bar** (Alt+M), **Arrange cards** per view, and **Find as a command palette** (go to a view, print, the tour, mark a promise kept…).
+- **Shortcuts:** Alt+1…5 for the views, Alt+F to find, Alt+T for the tour. Swipe an Agenda row right to mark it kept, and long-press a person for their dossier.
+- **Settings tabs** (Look, Tracking, Story, Backup & data), a **first-time tour** offer, a **picture of a card** saved as PNG, and **print the journal or the character sheet** (or save it as PDF from the print dialog).
+- Seasons on the strip, a cheer at round numbers, and **world pills**: the bell for Mushoku, the loop and the Witch's scent for Re:Zero, class points for COTE, slots for D&D, loyalty for Overlord. Themed loading and empty states, and right-to-left layout.
+
+**Left out on purpose:** ambient sound (it needs audio files), pop-out windows (Lumiverse may not allow them; the mini bar covers it), a real pin map (no card gives place coordinates; Places lately and the illustrated tiles instead), a reply-by-reply timeline scrubber (you compare two replies on request), a PDF library (the print dialog saves PDF), and a power comparison with canon characters (the payload has no lorebook ranks to compare with).
+
+**Tracking fix found on the way**
+- **The Chronicle no longer logs a reporter sentence as a learned spell.** "Learned a spell — Lord Boreas wants Marcus as steady company…" came from the tracker's learned slot. It now logs only what the Spellbook accepts, so "Flash Slash" is logged as a technique.
+
+**Performance:** a full render of the All view on the smoke payload goes from about 24 ms (1.3.0) to about 31–38 ms. On Marcus's real chat it goes from 84 ms to about 100 ms, measured in the same browser in alternating runs. That is the new cards; the day/night tint is painted in the background and adds no layers.
+
 ## 1.3.0 (in development, branch `release/1.3.0`, built on 1.2.0)
 
 **A game-style Gear card** (display only: tracking, stored data and token use are unchanged)
