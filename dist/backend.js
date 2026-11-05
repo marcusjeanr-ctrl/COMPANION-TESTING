@@ -14174,6 +14174,16 @@ function gearReadUncached(chat, st, cfg) {
         if (it.idx > after) continue;
         if (ed.state) { if (it.state !== ed.state || !relSameWords(it.inside || '', ed.inside || '')) it.history.push({ state: ed.state, where: ed.where || null, inside: ed.inside || null, at: null, msgId: null, you: true }); it.state = ed.state; it.where = ed.where || null; it.inside = ed.state === 'in container' ? ed.inside || null : null; it.mine = true; }
     }
+    // "seated in the slide-bracer", "sheathed in the baldric": inside another thing you own, so it shows under it
+    for (const it of items.values()) {
+        if (it.inside || !/^(?:on body|worn|in hand|sheathed)$/.test(it.state || '') || !it.where) continue;
+        const holder = /^\s*(?:(?:seated|sheathed|slotted|tucked|held|kept|carried|resting|riding)\s+)?(?:in|inside|into|within)?\s*(?:the\s+|my\s+|his\s+|her\s+)?([^,;]+?)\s*(?:,|;|$)/i.exec(it.where);
+        const box = holder ? find(gearBare(holder[1])) : null;
+        if (box && box !== it && box.state && !['gone', 'in container'].includes(box.state) && !box.inside) {
+            if (it.state !== 'sheathed') it.state = 'in container';
+            it.inside = box.name;
+        }
+    }
     // a bag renamed by the HUD after something went into it: point at its current name
     for (const it of items.values()) if (it.inside) { const box = find(it.inside); if (box && box !== it) it.inside = box.name; }
     return { items: [...items.values()], now, lastId };
