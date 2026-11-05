@@ -1488,6 +1488,85 @@ button.rpgc-chip.intel:hover { border-color: var(--lumiverse-accent, #7aa2f7); }
 .rpgc .rpgc-holding{border-radius:var(--u-radius-s)}
 .rpgc .rpgc-holding.new{box-shadow:0 0 0 1px color-mix(in srgb,var(--u-accent) 45%,transparent),0 8px 20px -14px var(--u-glow)}
 
+/* ═════════════ 1.4.0 — the deck ═════════════
+   Skins only retune the tokens every card reads, so tracking views, looks and wiki themes keep working;
+   a chosen wiki theme (Settings → Theme) switches the skin off. */
+.rpgc{--u-read:inherit;--u-fs-xs:10.5px;--u-fs-s:11.5px;--u-fs-m:12.5px;--u-fs-l:14px;--u-fs-xl:17px}
+.rpgc.skin-mushoku{--lumiverse-accent:#d9a15a;--u-accent:#d9a15a;--u-accent-fg:#1d1208;--u-accent-2:#c46b3a;--u-text:#efe3cf;--u-muted:#b9a68a;
+  --rpgc-card-bg:color-mix(in srgb,#2a1f15 82%,transparent);--u-surface:color-mix(in srgb,#2a1f15 82%,transparent);--u-glow:#d9a15a66;
+  --u-display:'Iowan Old Style','Palatino Linotype',Palatino,'Book Antiqua',Georgia,serif;--u-read:'Iowan Old Style','Palatino Linotype',Georgia,serif;--rpgc-gold:#d9a15a;
+  background:radial-gradient(120% 60% at 50% 0,#3a2a1a,transparent 70%),linear-gradient(#17110b,#100c08)}
+.rpgc.skin-rezero{--lumiverse-accent:#b48cff;--u-accent:#b48cff;--u-accent-fg:#160b26;--u-accent-2:#e2c36b;--u-text:#ece8f7;--u-muted:#a9a1c4;
+  --rpgc-card-bg:color-mix(in srgb,#1b1428 85%,transparent);--u-surface:color-mix(in srgb,#1b1428 85%,transparent);--u-glow:#b48cff66;--rpgc-gold:#e2c36b;
+  --u-display:'Cinzel','Trajan Pro','Iowan Old Style',Georgia,serif;
+  background:radial-gradient(110% 60% at 50% 0,#2b1d48,transparent 70%),radial-gradient(80% 50% at 100% 100%,#3a2a0e55,transparent 70%),linear-gradient(#0f0b18,#0a0810)}
+.rpgc.skin-cote{--lumiverse-accent:#ff5c93;--u-accent:#ff5c93;--u-accent-fg:#26050f;--u-accent-2:#5cc8ff;--u-text:#e8eef7;--u-muted:#9fb0c6;
+  --rpgc-card-bg:color-mix(in srgb,#18202d 88%,transparent);--u-surface:color-mix(in srgb,#18202d 88%,transparent);--u-glow:#ff5c9366;--u-radius:12px;--u-radius-s:8px;
+  --u-display:'Segoe UI Semibold','Segoe UI',system-ui,sans-serif;
+  background:radial-gradient(120% 50% at 50% 0,#1d3350,transparent 70%),linear-gradient(#0e141d,#0a0f16)}
+.rpgc.skin-overlord{--lumiverse-accent:#e0485a;--u-accent:#e0485a;--u-accent-fg:#1c0306;--u-accent-2:#b8a06a;--u-text:#ece7e2;--u-muted:#ad9f97;
+  --rpgc-card-bg:color-mix(in srgb,#1a1416 88%,transparent);--u-surface:color-mix(in srgb,#1a1416 88%,transparent);--u-glow:#e0485a66;--rpgc-gold:#b8a06a;
+  --u-display:'Cinzel','Trajan Pro',Georgia,serif;
+  background:radial-gradient(120% 60% at 50% 0,#3a0d14,transparent 70%),linear-gradient(#0d0a0b,#070506)}
+.rpgc.skin-dnd{--lumiverse-accent:#e0563f;--u-accent:#e0563f;--u-accent-fg:#1d0703;--u-accent-2:#d9b26a;--u-text:#f0e4d0;--u-muted:#bfa98a;
+  --rpgc-card-bg:color-mix(in srgb,#2a1c14 85%,transparent);--u-surface:color-mix(in srgb,#2a1c14 85%,transparent);--u-glow:#e0563f66;--rpgc-gold:#d9b26a;
+  --u-display:'Bookman Old Style','Iowan Old Style',Georgia,serif;background:linear-gradient(#1a120d,#110b08)}
+.rpgc[class*=" skin-"] .rpgc-body,.rpgc[class*=" skin-"] p,.rpgc[class*=" skin-"] li{font-family:var(--u-read)}
+.rpgc[class*=" skin-"] .rpgc-sec-title{font-family:var(--u-display);letter-spacing:.03em}
+/* one type scale */
+.rpgc .rpgc-note{font-size:var(--u-fs-s)}
+.rpgc h4{font-size:var(--u-fs-xs)}
+/* day and night: a faint tint over the panel, from the HUD's own clock */
+.rpgc[class*=" tod-"]{position:relative}
+.rpgc[class*=" tod-"]::before{content:"";position:absolute;inset:0;pointer-events:none;z-index:0;transition:background 1.2s ease}
+.rpgc.tod-dawn::before{background:linear-gradient(180deg,#ff9d6a14,transparent 40%)}
+.rpgc.tod-day::before{background:linear-gradient(180deg,#fff3c80c,transparent 35%)}
+.rpgc.tod-dusk::before{background:linear-gradient(180deg,#ff6a3d18,#7a3dff08 45%,transparent 70%)}
+.rpgc.tod-night::before{background:linear-gradient(180deg,#2a3c8a22,transparent 50%)}
+.rpgc[class*=" tod-"]>*{position:relative;z-index:1}
+/* high contrast and a colour-blind-safe status palette */
+.rpgc.contrast-high{--u-text:#fff;--u-muted:#d6d6d6;--u-line:#ffffff45;--u-line-2:#ffffff70;--u-surface:#000;--rpgc-card-bg:#000;background:#000}
+.rpgc.contrast-high .rpgc-chip,.rpgc.contrast-high .rpgc-btn{border-color:#ffffffa0}
+.rpgc.palette-cb{--u-ok:#3fa9f5;--u-warn:#f5c33f;--u-bad:#e86f00}
+.rpgc.motion-reduced *,.rpgc.motion-reduced *::before,.rpgc.motion-reduced *::after{animation:none!important;transition:none!important}
+/* the HUD strip */
+.rpgc .rpgc-hudstrip{position:relative;overflow:hidden;padding:9px 11px;border-radius:var(--u-radius);border:1px solid var(--u-line);
+  background:radial-gradient(120% 100% at 0 0,color-mix(in srgb,var(--u-accent) 16%,transparent),transparent 65%),var(--u-surface);box-shadow:var(--u-shadow)}
+.rpgc .rpgc-hudstrip .top{display:flex;align-items:center;gap:10px}
+.rpgc .rpgc-hudstrip .tx{display:flex;flex-direction:column;min-width:0;gap:1px}
+.rpgc .rpgc-hudstrip .tm{font:700 var(--u-fs-xl)/1.05 var(--u-display);letter-spacing:.02em}
+.rpgc .rpgc-hudstrip .tm .pd{font:600 var(--u-fs-xs)/1 system-ui,sans-serif;margin-left:6px;padding:2px 7px;border-radius:999px;background:var(--u-raise);color:var(--u-muted);vertical-align:middle;letter-spacing:.06em;text-transform:uppercase}
+.rpgc .rpgc-hudstrip .dt{font-size:var(--u-fs-s);color:var(--u-muted)}
+.rpgc .rpgc-hudstrip .pl{font:inherit;font-size:var(--u-fs-s);text-align:left;padding:0;border:0;background:none;color:var(--u-text);cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+.rpgc .rpgc-hudstrip .pl:hover{color:var(--u-accent)}
+.rpgc .rpgc-skydial{flex:none;width:64px;height:34px}
+.rpgc .rpgc-skydial .arc{fill:none;stroke:var(--u-line-2);stroke-width:1.2;stroke-dasharray:2 3}
+.rpgc .rpgc-skydial .hz{stroke:var(--u-line-2);stroke-width:1}
+.rpgc .rpgc-skydial .sun{fill:#ffd36a}.rpgc .rpgc-skydial .glow{fill:#ffd36a33}
+.rpgc .rpgc-skydial .moon{fill:#dfe6ff}.rpgc .rpgc-skydial .moon-cut{fill:var(--u-surface,#111)}
+.rpgc .rpgc-skydial .star{fill:#fff;opacity:.7}
+.rpgc.tod-dawn .rpgc-skydial .sun{fill:#ffab6a}.rpgc.tod-dusk .rpgc-skydial .sun{fill:#ff7a4a}
+.rpgc .rpgc-hudstrip .pills{display:flex;flex-wrap:wrap;gap:5px;margin-top:8px}
+.rpgc .rpgc-hudstrip.compact{padding:7px 10px}.rpgc .rpgc-hudstrip.compact .pills{margin-top:0}
+.rpgc .rpgc-hpill{display:inline-flex;align-items:center;gap:5px;font:inherit;font-size:var(--u-fs-s);padding:3px 9px;border-radius:999px;border:1px solid var(--u-line);background:var(--u-raise);color:var(--u-text)}
+.rpgc button.rpgc-hpill{cursor:pointer}.rpgc button.rpgc-hpill:hover{border-color:var(--u-accent)}
+.rpgc .rpgc-hpill.on{border-color:color-mix(in srgb,var(--u-accent) 60%,transparent);box-shadow:0 0 12px -5px var(--u-glow)}
+.rpgc .rpgc-hpill.warn{border-color:color-mix(in srgb,var(--u-warn) 55%,transparent)}.rpgc .rpgc-hpill.bad{border-color:var(--u-bad);color:var(--u-bad)}
+/* the world event countdown */
+.rpgc .rpgc-countdown{display:grid;grid-template-columns:auto 1fr auto;grid-template-areas:"ic nm when" "tr tr tr";align-items:center;column-gap:6px;row-gap:4px;margin-top:8px;font-size:var(--u-fs-s)}
+.rpgc .rpgc-countdown .ic{grid-area:ic}.rpgc .rpgc-countdown .nm{grid-area:nm;font-weight:650;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rpgc .rpgc-countdown .when{grid-area:when;color:var(--u-muted);white-space:nowrap}
+.rpgc .rpgc-countdown .track{grid-area:tr;height:4px;border-radius:2px;background:var(--u-raise);overflow:hidden}
+.rpgc .rpgc-countdown .track i{display:block;height:100%;border-radius:2px;background:linear-gradient(90deg,var(--u-warn),var(--u-bad))}
+.rpgc .rpgc-countdown.far .track i{background:linear-gradient(90deg,var(--u-accent),var(--u-warn))}
+.rpgc .rpgc-countdown.hot .nm{color:var(--u-bad)}.rpgc .rpgc-countdown.hot .track i{animation:rpgc-pulse 2s ease-in-out infinite}
+/* since the last reply */
+.rpgc .rpgc-ribbon{display:flex;flex-wrap:wrap;align-items:center;gap:5px;padding:6px 8px;border-radius:var(--u-radius-s);border:1px dashed color-mix(in srgb,var(--u-accent) 40%,var(--u-line));background:color-mix(in srgb,var(--u-accent) 6%,transparent)}
+.rpgc .rpgc-ribbon .k{font-size:9.5px;font-weight:750;letter-spacing:.1em;text-transform:uppercase;color:var(--u-accent);margin-right:2px}
+.rpgc .rpgc-rib{font:inherit;font-size:var(--u-fs-s);padding:2px 8px;border-radius:999px;border:1px solid var(--u-line);background:var(--u-surface);color:var(--u-text);cursor:pointer;animation:rpgc-in .3s ease-out both}
+.rpgc .rpgc-rib:hover{border-color:var(--u-accent)}
+.rpgc .rpgc-rib:nth-child(3){animation-delay:.04s}.rpgc .rpgc-rib:nth-child(4){animation-delay:.08s}.rpgc .rpgc-rib:nth-child(5){animation-delay:.12s}
+
 `;
 
 // The guide, embedded from GUIDE.md so it ships inside the extension (tools/embed_guide.py refreshes it).
@@ -2605,7 +2684,8 @@ export function setup(ctx) {
     function render(fromBackend = false) {
         if (!panelVisible) { hiddenRender = true; return; }
         applyLang();
-        root.className = 'rpgc' + themeClass() + ' look-' + currentLook() + (S()?.compactMobile ? ' rpgc-compact-mobile' : '');
+        root.className = 'rpgc' + themeClass() + ' look-' + currentLook() + (S()?.compactMobile ? ' rpgc-compact-mobile' : '') + deckClass();
+        { const st = deckStyle(); if (root.getAttribute('style') !== st) { if (st) root.setAttribute('style', st); else root.removeAttribute('style'); } }
         if (encModal) encModal.root.className = 'rpgc rpgc-enc' + themeClass();
         const active = document.activeElement;
         if (fromBackend && active && root.contains(active) && (active.isContentEditable || /INPUT|TEXTAREA|SELECT/.test(active.tagName))) {
@@ -4844,6 +4924,177 @@ export function setup(ctx) {
         try { link.click(); } finally { link.remove(); URL.revokeObjectURL(url); }
     }
 
+    // ═════════════ 1.4.0: the deck — skins, the HUD strip, the ribbon, and the rest of the 1.4.0 look ═════════════
+    // Display only. Everything here reads the payload the panel already has: no tracker fields, no model calls.
+    const SKIN_WORLDS = { mushoku: 'mushoku', rezero: 'rezero', cote: 'cote', overlord: 'overlord', dnd: 'dnd' };
+    function currentSkin() {
+        const s = S() || {};
+        if (s.uiSkin === 'off' || (s.uiTheme && s.uiTheme !== 'host')) return null;   // a chosen wiki theme wins
+        if (s.uiSkin && s.uiSkin !== 'auto') return s.uiSkin;
+        const id = String(state.world?.id || '');
+        return SKIN_WORLDS[id] || (dndOn && dndOn() ? 'dnd' : null);
+    }
+    function hudMinutes() {
+        const t = String(state.hms?.hud?.time || state.world?.time || '');
+        const m = t.match(/(\d{1,2}):(\d{2})/);
+        if (m) return (+m[1] % 24) * 60 + +m[2];
+        const p = String(state.world?.period || t).toLowerCase();
+        return /dawn|sunrise/.test(p) ? 360 : /morning/.test(p) ? 540 : /noon|midday/.test(p) ? 720 : /afternoon/.test(p) ? 900 : /dusk|evening|sunset/.test(p) ? 1110 : /night|midnight/.test(p) ? 1380 : null;
+    }
+    function todOf(min) { return min === null ? null : min < 300 ? 'night' : min < 450 ? 'dawn' : min < 1050 ? 'day' : min < 1230 ? 'dusk' : 'night'; }
+    function deckClass() {
+        const s = S() || {};
+        const skin = currentSkin(), tod = s.uiDayNight === false ? null : todOf(hudMinutes());
+        return (skin ? ' skin-' + skin : '') + (tod ? ' tod-' + tod : '') + (s.uiContrast === 'high' ? ' contrast-high' : '') + (s.uiPalette === 'cb' ? ' palette-cb' : '') +
+            (s.uiMotion === 'reduced' ? ' motion-reduced' : '') + (s.uiSplit === true ? ' split-view' : '') + (state.miniBar ? ' mini-bar' : '') +
+            (s.uiPreset ? ' preset-' + s.uiPreset : '') + (s.uiAccent ? ' accent-custom' : '');
+    }
+    function deckStyle() {
+        const s = S() || {};
+        const css = [];
+        if (s.uiAccent && /^#[0-9a-f]{6}$/i.test(s.uiAccent)) css.push(`--u-accent:${s.uiAccent}`, `--lumiverse-accent:${s.uiAccent}`);
+        if (s.uiFont && /^[\w '",-]{2,80}$/.test(s.uiFont)) css.push(`--u-read:${s.uiFont}`);
+        if (s.uiDisplayFont && /^[\w '",-]{2,80}$/.test(s.uiDisplayFont)) css.push(`--u-display:${s.uiDisplayFont}`);
+        return css.join(';');
+    }
+    // the sky: a small arc with the sun (or the moon) where the HUD's clock puts it
+    function skyDial(min) {
+        const NS = 'http://www.w3.org/2000/svg';
+        const svg = document.createElementNS(NS, 'svg'); svg.setAttribute('viewBox', '0 0 64 34'); svg.setAttribute('class', 'rpgc-skydial');
+        const tod = todOf(min) || 'day';
+        svg.setAttribute('role', 'img'); svg.setAttribute('aria-label', tod);
+        const el = (n, a) => { const e = document.createElementNS(NS, n); for (const [k, v] of Object.entries(a)) e.setAttribute(k, String(v)); svg.appendChild(e); return e; };
+        el('path', { d: 'M4 30 A28 28 0 0 1 60 30', class: 'arc' });
+        el('line', { x1: 2, y1: 30, x2: 62, y2: 30, class: 'hz' });
+        const day = min !== null && min >= 360 && min < 1140;
+        // sun from 06:00 to 19:00, the moon the rest of the night
+        const f = min === null ? 0.5 : day ? (min - 360) / 780 : ((min - 1140 + 1440) % 1440) / 660;
+        const a = Math.PI * (1 - Math.max(0, Math.min(1, f)));
+        const x = 32 + 28 * Math.cos(a), y = 30 - 28 * Math.sin(a);
+        if (day) { el('circle', { cx: x, cy: y, r: 6, class: 'glow' }); el('circle', { cx: x, cy: y, r: 3.6, class: 'sun' }); }
+        else { el('circle', { cx: x, cy: y, r: 3.6, class: 'moon' }); el('circle', { cx: x + 1.6, cy: y - 1.2, r: 3, class: 'moon-cut' });
+            for (const [sx, sy] of [[12, 10], [50, 8], [42, 18], [20, 20]]) el('circle', { cx: sx, cy: sy, r: 0.7, class: 'star' }); }
+        return svg;
+    }
+    function hudLineValue(re) {
+        const l = (state.hms?.hud?.lines || []).find(x => !x.block && re.test(String((x.fields && x.fields[0] && x.fields[0].label) || x.key || '')));
+        if (!l) return null;
+        return { line: l, value: String((l.fields && l.fields[0] && l.fields[0].value) || l.text || '').trim(), fields: l.fields || [] };
+    }
+    // "The Mana Calamity — in 9 months (K417)": how near it is, as a bar that reddens as it comes
+    function worldCountdown() {
+        const w = hudLineValue(/world event|calamity|countdown|doomsday|deadline/i);
+        if (!w) return null;
+        const v = w.value.replace(/^[\s:]+/, '');
+        const m = v.match(/^(.*?)\s*[—–-]\s*in\s+(?:about\s+|~)?(\d+|a|an|one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve)\s+(day|week|month|year)s?\b(.*)$/i);
+        if (!m) return null;
+        const NUM = { a: 1, an: 1, one: 1, two: 2, three: 3, four: 4, five: 5, six: 6, seven: 7, eight: 8, nine: 9, ten: 10, eleven: 11, twelve: 12 };
+        const n = /^\d+$/.test(m[2]) ? +m[2] : NUM[m[2].toLowerCase()] || 1;
+        const months = m[3].toLowerCase() === 'day' ? n / 30 : m[3].toLowerCase() === 'week' ? n / 4.3 : m[3].toLowerCase() === 'year' ? n * 12 : n;
+        const near = Math.max(0, Math.min(1, 1 - months / 24));
+        const tone = months <= 1 ? 'hot' : months <= 3 ? 'warm' : months <= 9 ? 'mid' : 'far';
+        const bar = h('div', { class: 'rpgc-countdown ' + tone, role: 'meter', 'aria-valuemin': '0', 'aria-valuemax': '24', 'aria-valuenow': String(Math.round(24 - months)), 'aria-label': `${m[1]}: in ${m[2]} ${m[3]}${n === 1 ? '' : 's'}` },
+            h('span', { class: 'ic', 'aria-hidden': 'true' }, '⚠️'), h('span', { class: 'nm' }, m[1].replace(/^⚠️\s*/, '')),
+            h('span', { class: 'when' }, `${m[2]} ${m[3]}${n === 1 ? '' : 's'}${(m[4] || '').trim() ? ' ' + m[4].trim() : ''}`),
+            h('span', { class: 'track' }, h('i', { style: `width:${Math.round(near * 100)}%` })));
+        return bar;
+    }
+    // since the last reply: the HUD lines that moved, and what each card marked new
+    function sinceRibbon() {
+        const hms = state.hms || {};
+        if (S()?.uiRibbon === false) return null;
+        const chips = [];
+        const changed = new Set(Array.isArray(hms.hudChanged) ? hms.hudChanged : []);
+        const was = isObj(hms.hudWas) ? hms.hudWas : {};
+        for (const l of (hms.hud?.lines || [])) {
+            if (l.block || !changed.has(l.key)) continue;
+            const lab = String((l.fields && l.fields[0] && l.fields[0].label) || l.key || '');
+            let ic = '•', text = lab, go = ['scene', 'world'];
+            if (l.kind === 'location') { ic = '📍'; const old = String(was[l.key] || '').split(/\s*→\s*/).pop(); const now = (l.segments || []).slice(-1)[0] || ''; text = old && now ? `${old} → ${now}` : now || T('moved'); go = ['journey', 'atlas']; }
+            else if (/calendar|date|time|day/i.test(lab)) { ic = '🕰️'; const tm = String(hms.hud?.time || ''); const ot = String(was[l.key] || '').match(/(\d{1,2}:\d{2})/); text = ot && tm ? `${ot[1]} → ${tm.replace(/\s*\(.*\)/, '')}` : tm || lab; }
+            else if (/equipment|gear|inventory/i.test(lab)) { ic = '🎒'; text = T('Equipment'); go = ['you', 'gear']; }
+            else if (/present/i.test(lab)) { ic = '👥'; text = T('Who is here'); go = ['people', 'people']; }
+            else if (/training/i.test(lab)) { ic = '🎓'; text = T('Training'); go = ['you', 'training']; }
+            else if (/mana|reserve|touki|aura|hp|health|stamina/i.test(lab)) { ic = '✨'; text = lab; go = ['you', 'magic']; }
+            else if (/bond|standing|renown/i.test(lab)) { ic = '💞'; go = ['people', 'people']; }
+            else if (/path|quest|arc|objective/i.test(lab)) { ic = '🎯'; go = ['journey', 'quests']; }
+            else if (/world event|calamity/i.test(lab)) { ic = '⚠️'; }
+            chips.push({ ic, text, go });
+        }
+        const count = (list, ic, label, go) => { const n = (list || []).filter(x => x && x.isNew).length; if (n) chips.push({ ic, text: TT(label, n), go }); };
+        count(hms.agenda?.items, '📅', '{0} on the Agenda', ['journey', 'agenda']);
+        count(hms.money?.ledger, '🪙', '{0} in the ledger', ['you', 'money']);
+        count(hms.factions?.items, '⚜️', '{0} faction change', ['people', 'factions']);
+        count(hms.holdings?.items, '🏠', '{0} holding', ['you', 'holdings']);
+        const gearNew = (hms.gear?.items || []).filter(g => g.changedNow).length;
+        if (gearNew) chips.push({ ic: '🎒', text: TT('{0} gear moved', gearNew), go: ['you', 'gear'] });
+        if (!chips.length) return null;
+        const seen = new Set();
+        const list = chips.filter(c => { const k = c.ic + c.text; if (seen.has(k)) return false; seen.add(k); return true; }).slice(0, 8);
+        return h('div', { class: 'rpgc-ribbon', role: 'status', 'aria-label': T('Since the last reply') },
+            h('span', { class: 'k' }, T('Since last reply')),
+            list.map(c => h('button', { class: 'rpgc-rib', type: 'button', onclick: () => goTo(c.go[0], c.go[1]) }, h('span', { 'aria-hidden': 'true' }, c.ic), ' ', c.text)));
+    }
+    function hudStrip(compact = false) {
+        const hms = state.hms || {};
+        if (S()?.uiHudStrip === false || !hms.hud) return null;
+        const min = hudMinutes();
+        const date = hudLineValue(/calendar|date|^day\b/i);
+        const dateText = date ? date.value.split(/\s*\|\s*/)[0].replace(/^[\s:]+/, '') : null;
+        const loc = (hms.hud.location || []).map(x => typeof x === 'string' ? x : x.text || '').filter(Boolean);
+        const w = state.world || {};
+        const pills = [];
+        const pill = (ic, k, v, cls = '', go = null) => pills.push(h(go ? 'button' : 'span', { class: 'rpgc-hpill ' + cls, type: go ? 'button' : null, title: k, onclick: go ? () => goTo(go[0], go[1]) : null },
+            h('span', { class: 'ic', 'aria-hidden': 'true' }, ic), h('span', { class: 'v' }, v)));
+        if (w.mana) pill('💧', T('Mana'), [w.mana, w.reserve].filter(Boolean).join(' · '), /low|empty|drained|depleted/i.test(String(w.reserve || '')) ? 'bad' : '', ['you', 'magic']);
+        if (w.touki) pill('🔥', T('Touki'), String(w.touki), /active|mastered/i.test(String(w.touki)) ? 'on' : '', ['you', 'techniques']);
+        for (const v of (hms.systems?.vitals || []).slice(0, 3)) if (v && v.label) pill(/hp|health/i.test(v.label) ? '❤️' : '⚡', v.label, v.max ? `${v.cur}/${v.max}` : String(v.cur ?? v.value ?? ''), v.level === 'critical' ? 'bad' : v.level === 'low' ? 'warn' : '', ['you', 'body']);
+        const conds = (hms.systems?.conditions || []).length + (hms.systems?.wounds || []).length;
+        if (conds) pill('🩹', T('Conditions'), String(conds), 'warn', ['you', 'body']);
+        const wx = typeof currentWeather === 'function' ? currentWeather() : null;
+        const WX = { snow: '❄️', rain: '🌧️', storm: '⛈️', blizzard: '🌨️', mist: '🌫️', wind: '🍃', sunny: '☀️', cloudy: '☁️' };
+        if (wx && WX[wx.type]) pill(WX[wx.type], T('Weather'), T(wx.type));
+        // in the Scene the Now card already carries the sky, the time and the place: the strip keeps only the gauges
+        if (compact) return pills.length || worldCountdown() ? h('div', { class: 'rpgc-hudstrip compact', role: 'region', 'aria-label': T('At a glance') },
+            pills.length ? h('div', { class: 'pills' }, pills) : null, worldCountdown()) : null;
+        const period = (String(hms.hud.time || '').match(/\((.*)\)/) || [])[1] || state.world?.period || '';
+        return h('div', { class: 'rpgc-hudstrip', role: 'region', 'aria-label': T('At a glance') },
+            h('div', { class: 'top' }, skyDial(min),
+                h('div', { class: 'tx' },
+                    h('b', { class: 'tm' }, String(hms.hud.time || '').replace(/\s*\(.*\)/, '') || '—', period ? h('span', { class: 'pd' }, period) : null),
+                    dateText ? h('span', { class: 'dt' }, dateText) : null,
+                    loc.length ? h('button', { class: 'pl', type: 'button', title: loc.join(' › '), onclick: () => goTo('journey', 'atlas') }, '📍 ', loc.slice(-2).join(' › ')) : null)),
+            pills.length ? h('div', { class: 'pills' }, pills) : null,
+            worldCountdown());
+    }
+
+    // 1.4.0 appearance settings: each one display only, remembered with your other settings
+    const DECK_PRESETS = { full: { label: 'Full RPG', data: { uiHudStrip: true, uiRibbon: true, uiDayNight: true, uiDensity: 'comfortable', uiFocusBar: true } },
+        minimal: { label: 'Minimal', data: { uiHudStrip: false, uiRibbon: false, uiDayNight: false, uiDensity: 'compact', uiFocusBar: false, uiLook: 'minimal' } },
+        reader: { label: 'Reader', data: { uiHudStrip: true, uiRibbon: false, uiDayNight: true, uiDensity: 'comfortable', uiTextSize: 'large', uiFocusBar: false } } };
+    function deckSettingsRows() {
+        const s = S();
+        const set = (k, v) => { s[k] = v; saveSettings(false); render(); };
+        const sel = (label, key, opts, def) => { const x = h('select', { 'aria-label': T(label), onchange: e => set(key, e.target.value) }, opts.map(([v, l]) => h('option', { value: v }, T(l)))); x.value = s[key] ?? def; return h('div', { class: 'rpgc-row' }, h('span', { class: 'lbl' }, T(label)), x); };
+        const tog = (label, key, note) => { const cb = h('input', { type: 'checkbox', 'aria-label': T(label) }); cb.checked = s[key] !== false; cb.addEventListener('change', () => set(key, cb.checked)); return h('label', { class: 'rpgc-row' }, cb, h('span', null, T(label)), note ? h('span', { class: 'rpgc-note' }, ' ' + T(note)) : null); };
+        const accent = h('input', { type: 'color', 'aria-label': T('Accent colour'), value: /^#[0-9a-f]{6}$/i.test(s.uiAccent || '') ? s.uiAccent : '#d9a15a', onchange: e => set('uiAccent', e.target.value) });
+        const font = h('select', { 'aria-label': T('Reading font'), onchange: e => set('uiFont', e.target.value || null) },
+            [['', 'The skin\u2019s own'], ['system-ui, sans-serif', 'Clean (system)'], ["'Iowan Old Style', Georgia, serif", 'Book (serif)'], ["'Atkinson Hyperlegible', Verdana, sans-serif", 'Very legible'], ["ui-monospace, 'Courier New', monospace", 'Typewriter']].map(([v, l]) => h('option', { value: v }, T(l))));
+        font.value = s.uiFont || '';
+        return [
+            h('h4', { class: 'rpgc-subhead' }, T('1.4.0 look')),
+            h('div', { class: 'rpgc-row rpgc-presets' }, h('span', { class: 'lbl' }, T('Layout')), Object.entries(DECK_PRESETS).map(([id, p]) => h('button', { class: 'rpgc-btn' + (s.uiPreset === id ? ' primary' : ''), onclick: () => { Object.assign(s, p.data, { uiPreset: id }); saveSettings(false); render(); } }, T(p.label)))),
+            sel('World skin', 'uiSkin', [['auto', 'Auto (by world)'], ['mushoku', 'Mushoku: parchment and ink'], ['rezero', 'Re:Zero: violet and witch gold'], ['cote', 'COTE: school tablet'], ['overlord', 'Overlord: obsidian and crimson'], ['dnd', 'D&D: tavern'], ['off', 'Off']], 'auto'),
+            h('div', { class: 'rpgc-row' }, h('span', { class: 'lbl' }, T('Accent colour')), accent, s.uiAccent ? h('button', { class: 'rpgc-mini', title: T('Back to the skin\u2019s colour'), onclick: () => set('uiAccent', null) }, '\u21BA') : null),
+            h('div', { class: 'rpgc-row' }, h('span', { class: 'lbl' }, T('Reading font')), font),
+            sel('Contrast', 'uiContrast', [['normal', 'Normal'], ['high', 'High contrast']], 'normal'),
+            sel('Status colours', 'uiPalette', [['normal', 'Green, amber, red'], ['cb', 'Colour-blind safe (blue, yellow, orange)']], 'normal'),
+            sel('Motion', 'uiMotion', [['full', 'Full'], ['reduced', 'Reduced']], 'full'),
+            tog('Day and night tint', 'uiDayNight', 'follows the HUD clock'),
+            tog('At-a-glance strip', 'uiHudStrip', 'time, place, mana and the world event'),
+            tog('Since last reply ribbon', 'uiRibbon')];
+    }
+
     function renderHmsTrackers() {
         const s = S();
         const snapshots = renderTrackerSnapshots();
@@ -4881,6 +5132,7 @@ export function setup(ctx) {
         if (order) built.sort((a, b) => order.indexOf(a.dataset?.openKey) - order.indexOf(b.dataset?.openKey));
         if (!built.length) built.push(h('p', { class: 'rpgc-note rpgc-empty-view' }, T('Nothing here yet. Cards appear as the story reports them.')));
         const head = out.splice(2); // tools, notices and story actions sit above the view, inside the main column
+        { const rib = view === 'scene' || view === 'all' ? sinceRibbon() : null; if (rib) head.unshift(rib); const strip = hudStrip(view === 'scene' || view === 'all'); if (strip) head.unshift(strip); }
         out.push(h('div', { class: 'rpgc-shell' }, viewBar(view), h('div', { class: 'rpgc-main' }, ...head, h('div', { class: 'rpgc-view rpgc-view-' + view }, ...built))));
         return out;
     }
@@ -7071,6 +7323,7 @@ export function setup(ctx) {
             h('div', { class: 'rpgc-row' }, h('span', { class: 'lbl' }, T('Look')), (() => { const x = h('select', { 'aria-label': T('Look'), onchange: (e) => { s.uiLook = e.target.value; saveSettings(false); render(); } }, LOOKS.map(([v, l]) => h('option', { value: v }, T(l)))); x.value = s.uiLook || 'auto'; return x; })(),
                 h('span', { class: 'rpgc-note' }, ' ' + TT('now: {0}', T(currentLook())))),
             h('div', { class: 'rpgc-row' }, h('span', { class: 'lbl' }, 'Theme'), themeSel),
+            ...deckSettingsRows(),
             h('div', { class: 'rpgc-row' }, h('span', { class: 'lbl' }, 'Density'), (() => { const x = h('select', { 'aria-label': 'Panel density', onchange: (e) => { s.uiDensity = e.target.value; saveSettings(false); render(); } }, h('option', { value: 'comfortable' }, 'Comfortable'), h('option', { value: 'compact' }, 'Compact')); x.value = s.uiDensity || 'comfortable'; return x; })()),
             h('div', { class: 'rpgc-row' }, h('span', { class: 'lbl' }, 'Text size'), (() => { const x = h('select', { 'aria-label': 'Text size', onchange: (e) => { s.uiTextSize = e.target.value; saveSettings(false); render(); } }, h('option', { value: 'small' }, 'Small'), h('option', { value: 'normal' }, 'Normal'), h('option', { value: 'large' }, 'Large')); x.value = s.uiTextSize || 'normal'; return x; })()));
     }
