@@ -4321,6 +4321,7 @@ function statesPanelHtml(state, hud, msgId, cfg = chatDisplayCfg(), colours = nu
     const rc = relCfg();
     const uid = 'rs' + (hashStr(msgId || '') % 1000000).toString(36);
     const tabs = [];
+    let hereN = null;
     const lockedColour = (name) => { const hex = colours && colours[lockKey(String(name || '').replace(/\s+/g, ' '))]; return hex ? ` style="${dialogueColourCss(hex, 'var(--rh-fg)')}"` : ''; };
     let simH = { minds: '', scene: '', plot: '' };
     try { simH = simStatesHtml(d, lockedColour); } catch { /* an older reply's block */ }
@@ -4360,16 +4361,28 @@ function statesPanelHtml(state, hud, msgId, cfg = chatDisplayCfg(), colours = nu
     }
     // People
     {
-        const ppl = (Array.isArray(d.characters) ? d.characters : []).filter(c => c && c.name);
-        const items = ppl.map(c => {
+        const all = (Array.isArray(d.characters) ? d.characters : []).filter(c => c && c.name);
+        // 1.4.0: the HUD's Present line decides who is here (a Six-Sided HUD with no Present line: alone); others are nearby
+        let ppl = all, near = [];
+        const pres = hud ? hmsPresentPeople(hud).map(p => lockKey(p.name)) : [];
+        const sixHud = !!(hud && Array.isArray(hud.lines) && hud.lines.some(l => /^Armored Dragon Calendar:/i.test(String(l.text || ''))));
+        if (hud && (pres.length || sixHud)) {
+            const first = k => String(k).split(' ')[0];
+            const on = n => { const k = lockKey(plainValue(n)); return pres.some(x => x === k || (first(x) && first(x) === first(k))); };
+            ppl = all.filter(c => on(c.name)); near = all.filter(c => !on(c.name));
+        }
+        const card = c => {
             const det = isPlainObject(c.details) ? Object.entries(c.details).filter(([, v]) => plainValue(v).trim()).map(([k, v]) => `<span class="rs-sub"><b>${escapeHtml(k.charAt(0).toUpperCase() + k.slice(1))}:</b> ${escapeHtml(plainValue(v))}</span>`).join('') : '';
             const th = plainValue(c.thoughts).trim();
             return `<span class="rs-who"><span class="rs-name"${lockedColour(c.name)}>${escapeHtml(plainValue(c.emoji) ? plainValue(c.emoji) + ' ' : '')}${escapeHtml(plainValue(c.name))}</span>${det}${th ? `<span class="rs-th">💭 ${escapeHtml(th)}</span>` : ''}</span>`;
-        });
+        };
+        const items = ppl.map(card);
+        if (near.length) items.push(`<span class="rs-who"><span class="rs-sub"><b>${ppl.length ? 'Nearby, not with you' : 'Alone. Nearby, not with you'}:</b></span></span>`, ...near.map(card));
         const here = new Set(ppl.map(c => lockKey(plainValue(c.name))));
         const away = (Array.isArray(d.party) ? d.party : []).filter(p => p && p.name && !here.has(lockKey(p.name))).map(p => p.name);
         if (away.length) items.push(`<span class="rs-who"><span class="rs-sub"><b>Elsewhere:</b> ${escapeHtml(away.join(', '))}</span></span>`);
         if (items.length) tabs.push({ id: 'people', label: `👥 People ${ppl.length || ''}`.trim(), html: items.join('') });
+        hereN = ppl.length;
     }
     // Minds (FrankenSIM): what moved inside them in this reply
     if (simH.minds) tabs.push({ id: 'minds', label: `🧠 Minds ${(d.minds || []).length}`, html: simH.minds });
@@ -4417,7 +4430,7 @@ function statesPanelHtml(state, hud, msgId, cfg = chatDisplayCfg(), colours = nu
     const first = Math.max(0, tabs.findIndex(t => t.id === (fightMap ? 'map' : cfg.statesTab)));
     const sel = tabs.map((t, i) => `#${uid}-${t.id}:checked~.rs-tabs label[for="${uid}-${t.id}"]{background:var(--rh-acc);border-color:var(--rh-acc);color:var(--rh-band-fg)}#${uid}-${t.id}:checked~.rs-p-${t.id}{display:block}`).join('');
     const world = hud ? worldOf(worldLines(hud)) : null;
-    const counts = [tabs.find(t => t.id === 'people') ? `${(d.characters || []).length} here` : null, tabs.find(t => t.id === 'bonds') ? `${(d.relations || []).length} bonds` : null].filter(Boolean).join(' · ');
+    const counts = [tabs.find(t => t.id === 'people') ? `${hereN ?? (d.characters || []).length} here` : null, tabs.find(t => t.id === 'bonds') ? `${(d.relations || []).length} bonds` : null].filter(Boolean).join(' · ');
     let html = `<style>${STATES_CSS}${tabs.some(t => t.id === 'map') ? MAP_CSS + STATES_MAP_CSS : ''}${sel}</style><div class="rs not-island-prose" style="${hudCardVars(world, cfg)}" role="group" aria-label="Internal states"><details${cfg.statesOpen ? ' open' : ''}><summary><span>Internal states</span>${counts ? `<span class="ct">${escapeHtml(counts)}</span>` : ''}</summary>`;
     html += tabs.map((t, i) => `<input type="radio" name="${uid}" id="${uid}-${t.id}"${i === first ? ' checked' : ''}>`).join('');
     html += `<div class="rs-tabs">${tabs.map(t => `<label for="${uid}-${t.id}">${escapeHtml(t.label)}</label>`).join('')}</div>`;
@@ -19587,15 +19600,16 @@ async function hmsWorldMoves(chatId) {
 /** The people on a HUD's Present line: "Seraphina Veyrath (42, b. K374)", "Ferren (58, b. ~K358)", "Aurelia (8)". */
 /** 1.4.0: who is in the scene follows the HUD's Present line. The side panel sometimes lists people only heard or passing
  * (boots in the hall, a voice from the kitchen) as in the scene. In a chat whose HUD keeps a Present line, the scene
- * holds the people on it, plus anyone who speaks in this reply ([D:Name]); with no Present line, the player is alone
- * unless someone speaks. Display of "here" only: what the story told the Companion about each person is kept. */
+ * holds the people on it, plus anyone who speaks in this reply ([D:Name]); with no Present line, the player is alone. Display of "here" only: what the story told the Companion about each person is kept. */
 function sceneCharacters(chars, chat, target) {
     if (!Array.isArray(chars) || !chars.length || !target) return chars;
     const hud = messageHud(target);
     if (!hud) return chars;
     if (!hmsTimeline(chat).slice(-12).some(e => hmsPresentPeople(e.hud).length)) return chars;   // this card does not keep a Present line
     const present = hmsPresentPeople(hud).map(p => lockKey(p.name));
-    const speaks = [...stripThink(textOf(target.content)).matchAll(/\[D:([^\]]+)\]/g)].map(m => lockKey(m[1].trim()));
+    // with no Present line the HUD says the player is alone; a voice through a door does not change that. With one,
+    // someone who speaks in this reply is a name the narrator forgot to list.
+    const speaks = present.length ? [...stripThink(textOf(target.content)).matchAll(/\[D:([^\]]+)\]/g)].map(m => lockKey(m[1].trim())) : [];
     const first = k => String(k).split(' ')[0];
     const on = (n, list) => { const k = lockKey(n); return list.some(x => x === k || (first(x) && first(x) === first(k))); };
     return chars.filter(c => c && c.name && (on(c.name, present) || on(c.name, speaks)));
