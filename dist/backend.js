@@ -10557,7 +10557,7 @@ const MT_ARCS = [[1, 407, 'Infancy & Toddler'], [2, 414, 'Fittoa Region Tutor'],
     [9, 423, 'The Newlyweds & Sisters'], [10, 424, 'Teleportation Labyrinth'], [11, 425, 'Everyday Life & Roxy'], [12, 426, 'Summoning Magic & Perugius'],
     [13, 427, 'Turning Point 4 & the Diary'], [14, 427, 'Asura Kingdom Succession'], [15, 428, 'Subordinates & Mercenary'], [16, 429, 'Shirone Defense & Pax'],
     [17, 429, 'Zanoba & the Automaton'], [18, 430, 'Millis Kingdom Faction War'], [19, 430, 'King Dragon Realm'], [20, 430, 'Biheiril Kingdom & Heaven'],
-    [21, 431, 'The Final Battle & Geese\u2019s Trap'], [22, 431, 'Conclusion & the Future']];
+    [21, 431, 'The Final Battle & Geese\u2019s Trap'], [22, 431, 'Conclusion & the Future']];   // later arcs (Arc 23) come from the card's own lorebook
 const MT_ARC_SMALL = new Set(['and', 'the', 'of', 'to', 'a', 'in', 'on', 'at', 'for']);
 function mtArcTitle(t) {
     return String(t).toLowerCase().split(/\s+/).map((w, i) => (i && MT_ARC_SMALL.has(w) ? w : w.replace(/^(\p{L})/u, c => c.toUpperCase()))).join(' ').replace(/'S\b/g, '\u2019s').replace(/\s+arc$/i, '');
@@ -10587,7 +10587,8 @@ function mtArcList(chatId) {
     const out = new Map();
     for (const [no, year, title] of MT_ARCS) out.set(no, { no, year, title });
     for (const e of mtReferenceEntries(chatId)) {
-        const m = String(e.content || '').match(/^\s*\[WORLD STATE\s*[\u2014\u2013-]\s*ARC\s+(\d{1,2})\s*:\s*([^\]\n]+?)\s*(?:[\u2014\u2013-]\s*canon[^\]]*)?\]/i);
+        const m = String(e.content || '').match(/^\s*\[WORLD STATE\s*[\u2014\u2013-]\s*ARC\s+(\d{1,2})\s*:\s*([^\]\n]+?)\s*(?:[\u2014\u2013-]\s*canon[^\]]*)?\]/i)
+            || String(e.content || '').match(/^\s*\[ARC\s+(\d{1,2})\s*:\s*([^\]\n]+?)\s*[\u2014\u2013-]\s*SYNOPSIS\b[^\]]*\]/i);
         if (!m) continue;
         const y = String(e.content).slice(0, 2000).match(/\bK\.?\s?(\d{3,4})\b/);
         const no = Number(m[1]);
@@ -10623,12 +10624,15 @@ function mtSaga(chatId, year, arcLine, date = null) {
     const next = unscheduled || (am && !cur) ? null : cur ? arcs.find(e => e.no > cur.no && (e.year > year || e.year === year && (!month || (e.month || 1) > month))) || null
         : arcs.find(e => e.year > year || e.year === year && (!month || (e.month || 1) >= month)) || null;
     const part = am ? am[2] || am[3] || null : unscheduled ? null : reference?.part || null;
+    const curNo = explicit ? Number(am[1]) : cur?.no || null;
+    const np = curNo && month && !unscheduled ? schedule.find(e => e.no === curNo && e.part && e.year * 12 + e.month - 1 > mark && (!part || Number(e.part) > Number(part))) || null : null;
     return { year, month, day: date?.day || null, monthName: date?.monthName || null,
         personalArc: participation === 'personal' || (explicit && !cur) ? text : null, participation, canonMode: null,
         from: Math.min(arcs[0].year, year), to: Math.max(arcs[arcs.length - 1].year, year), arcs, current: explicit ? Number(am[1]) : cur?.no || null,
         part, partName: am?.[4]?.trim() || null,
         next: next ? { no: next.no, title: next.title, year: next.year, inYears: next.year - year,
-            ...(month && next.month ? { inMonths: next.year * 12 + next.month - 1 - mark } : {}) } : null };
+            ...(month && next.month ? { inMonths: next.year * 12 + next.month - 1 - mark } : {}) } : null,
+        ...(np ? { nextPart: { no: np.no, part: np.part, title: np.title.replace(/\s*\([^)]*\)\s*$/, ''), year: np.year, month: np.month, inMonths: np.year * 12 + np.month - 1 - mark } } : {}) };
 }
 
 function worldMushoku(chatId, lines, st, chat = null) {

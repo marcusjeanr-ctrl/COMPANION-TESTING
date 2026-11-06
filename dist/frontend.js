@@ -10150,7 +10150,9 @@ html,body{background:${panelBg}!important;}`;
         const bar = h('div', { class: 'rpgc-arc0 rpgc-saga', role: 'img', 'aria-label': TT('Year K.{0}', S.year) },
             ...S.arcs.map(a => h('span', { class: 'mark' + (a.no === S.current ? ' cur' : ''), style: `left:${at(a.year)}%`, title: TT('Arc {0}', a.no) + ` \u00B7 K.${a.year}: ${a.title}` })),
             h('i', { style: `left:${at(S.year)}%` }));
-        const where = S.personalArc && /^Sandbox\s*[—–-]/i.test(S.personalArc) ? 'No scheduled canon progression' : S.next ? (S.next.inYears > 1 ? TT('{0} years to Arc {1}', S.next.inYears, S.next.no) : S.next.inYears === 1 ? TT('1 year to Arc {0}', S.next.no) : TT('Arc {0} begins this year', S.next.no)) : T('the last arc');
+        const where = S.personalArc && /^Sandbox\s*[—–-]/i.test(S.personalArc) ? 'No scheduled canon progression'
+            : S.nextPart && (!S.next || (S.next.inMonths ?? S.next.inYears * 12) > S.nextPart.inMonths) ? (S.nextPart.inMonths >= 12 ? TT('{0} to Arc {1}.{2}: {3}', `${Math.floor(S.nextPart.inMonths / 12)}y ${S.nextPart.inMonths % 12}m`, S.nextPart.no, S.nextPart.part, S.nextPart.title) : S.nextPart.inMonths > 0 ? TT('{0} months to Arc {1}.{2}: {3}', S.nextPart.inMonths, S.nextPart.no, S.nextPart.part, S.nextPart.title) : TT('Arc {0}.{1} begins this month: {2}', S.nextPart.no, S.nextPart.part, S.nextPart.title))
+            : S.next ? (S.next.inYears > 1 ? TT('{0} years to Arc {1}', S.next.inYears, S.next.no) : S.next.inYears === 1 ? TT('1 year to Arc {0}', S.next.no) : TT('Arc {0} begins this year', S.next.no)) : T('the last arc');
         const head = S.personalArc ? S.personalArc : cur && S.participation === 'explicit' ? TT('Arc {0}', cur.no) + (S.part ? (/^\d+$/.test(S.part) ? '.' : '-') + S.part : '') + ': ' + (S.partName || cur.title) : TT('Year K.{0}', S.year);
         const near = S.arcs.filter(a => S.current === null || (a.no >= S.current - 2 && a.no <= S.current + 4));
         // 1.4.0 spoiler guard: arcs more than one ahead of where the story stands stay blurred until you tap
