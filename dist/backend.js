@@ -13648,6 +13648,9 @@ function hmsRelationsPanel(chat, st, cfg, classic = false) {
     const indexed = continuityReadIndex(chat), msgs = indexed.relations;
     const latest = relReadings(chat).at(-1), lastId = latest?.id || null;
     const lastData = latest ? getSwipeData(latest, true) : null;
+    // 1.4.0: the scene by the HUD's Present line (plus anyone speaking), not every name the side panel listed
+    let sceneNow = null;
+    try { if (latest && lastData && Array.isArray(lastData.characters)) sceneNow = sceneCharacters(lastData.characters, chat.slice(0, chat.indexOf(latest) + 1 || chat.length), latest); } catch { sceneNow = null; }
     const familyPresence = new Map((Array.isArray(lastData?.family) ? lastData.family : []).filter(r => r?.name && r.known).map(r => [lockKey(r.name), r.known === 'seen']));
     const people = new Map();
     for (const m of msgs) {
@@ -13680,7 +13683,7 @@ function hmsRelationsPanel(chat, st, cfg, classic = false) {
             key: p.key, name: p.name, standing: cur.standing, rank, max: rc.ladder.length - 1, neutral: rc.neutral,
             tone: rank === null ? 'unknown' : rank < rc.neutral ? 'neg' : rank === rc.neutral ? 'neutral' : rank === rc.ladder.length - 1 ? 'top' : 'pos',
             bond: cur.bond || null, minor: !!cur.minor, pinned: pins[p.key] || null, mood: cur.mood || null,
-            why: cur.why, present: cur.msgId === lastId && (lastData?.characters?.length ? !!ch : (familyPresence.get(p.key) ?? true)), seen: rs.length,
+            why: cur.why, present: cur.msgId === lastId && (lastData?.characters?.length ? !!ch && (!sceneNow || sceneNow.includes(ch)) : (familyPresence.get(p.key) ?? true)), seen: rs.length,
             metAgo: p.firstAt !== null && now !== null ? Math.max(0, now - p.firstAt) : null,
             lastSeen: cur.at !== null && now !== null ? Math.max(0, now - cur.at) : null,
             party: !!partyMatch(roster, p.name),
@@ -16854,8 +16857,13 @@ function simFold(chat, st, opt = {}) {
     const latest = rep.live.length ? rep.live[rep.live.length - 1] : null;
     const present = new Set();
     if (latest) {
-        for (const r of latest.d.minds || []) { const k = keyOf(r.name); if (k && k !== SIM_YOU) present.add(k); }
-        for (const c of latest.d.characters || []) { const k = c && c.name ? keyOf(c.name) : null; if (k && k !== SIM_YOU) present.add(k); }
+        // 1.4.0: present means in the scene by the HUD's Present line (or speaking), not only reported in passing
+        let inScene = null;
+        try { const names = [...(latest.d.minds || []), ...(latest.d.characters || [])].map(x => x && x.name).filter(Boolean);
+            const kept = sceneCharacters(names.map(name => ({ name })), chat, latest.msg); inScene = new Set(kept.map(x => lockKey(x.name))); } catch { inScene = null; }
+        const ok = n => !inScene || inScene.has(lockKey(n));
+        for (const r of latest.d.minds || []) { const k = keyOf(r.name); if (k && k !== SIM_YOU && ok(r.name)) present.add(k); }
+        for (const c of latest.d.characters || []) { const k = c && c.name ? keyOf(c.name) : null; if (k && k !== SIM_YOU && ok(c.name)) present.add(k); }
     }
     const lastAll = rep.all.length ? rep.all[rep.all.length - 1] : null;
     const chekhov = simChekhovFold(rep, lastAll ? lastAll.clock : null, [...present]);

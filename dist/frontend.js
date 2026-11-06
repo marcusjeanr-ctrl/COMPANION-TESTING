@@ -6389,7 +6389,7 @@ export function setup(ctx) {
     // 1.4.0: four views; the All tab is gone, and a Pinned list under them opens one chosen card on its own
     const VIEWS = [['scene', '🎬', 'Scene'], ['you', '🧍', 'You'], ['people', '👥', 'People'], ['journey', '🧭', 'Journey']];
     const VIEW_KEY = 'rpgc-view';
-    const PIN_KEY = 'rpgc-pins', PIN_MAX = 8;
+    const PIN_KEY = 'rpgc-pins', PIN_MAX = 16;
     function pinsGet() { try { const a = JSON.parse(localStorage.getItem(PIN_KEY) || '[]'); return Array.isArray(a) ? a.filter(p => p && typeof p.key === 'string' && p.key).slice(0, PIN_MAX) : []; } catch { return []; } }
     function pinsSet(a) { try { localStorage.setItem(PIN_KEY, JSON.stringify(a.slice(0, PIN_MAX))); } catch { /* convenience only */ } }
     function pinToggle(key, label, icon) {
