@@ -10634,6 +10634,78 @@ function mtTraining(lines) {
     }
     return out.slice(0, 12);
 }
+/** 1.4.0: the Training card's plan. One group per thing you train (a Training-line track and/or the spells and techniques
+ * you study in it), each study with the story days you worked on it, the last time, and the teacher the story named.
+ * Sessions are shown only where a total exists: the HUD's own count, or, on a Six-Sided HUD, the card's rule for a
+ * rank step the Training line does not list yet (a day = 1 session, 1.5 with a teacher). Nothing is invented. */
+function hmsTrainingPlan(chat, st, tl, magic, techniques, relations) {
+    const last = tl.length ? tl[tl.length - 1] : null;
+    if (!last) return null;
+    const linesOf = e => e.hud.lines.filter(l => !l.block).map(l => String(l.text || ''));
+    const tracks = mtTraining(linesOf(last));
+    const prevTracks = tl.length > 1 ? mtTraining(linesOf(tl[tl.length - 2])) : [];
+    const six = linesOf(last).some(t => /^Armored Dragon Calendar:/i.test(t));
+    const studies = [...((magic && magic.list && magic.list.studying) || []).map(x => ({ ...x, domain: 'magic' })), ...((techniques && techniques.studying) || []).map(x => ({ ...x, domain: 'martial' }))];
+    if (!tracks.length && !studies.length) return null;
+    const people = Array.isArray(relations && relations.people) ? relations.people : [];
+    const TEACH = /\b(?:teacher|tutor|instructor|master|mentor|sword king|sword saint|sword god|trainer|drill|trains)\b/i;
+    const teachers = new Set(people.filter(p => TEACH.test(`${p.bond || ''} ${p.role || ''} ${p.standing || ''}`)).map(p => p.name));
+    const esc = x => String(x).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const when = hudWhenMap(chat);
+    const seen = new Map();
+    for (const t of tl) {
+        const d = getSwipeData(t.msg) || {};
+        const list = isPlainObject(d.survival) && Array.isArray(d.survival.study) ? d.survival.study : [];
+        if (!list.length) continue;
+        const present = (Array.isArray(d.characters) ? d.characters : []).map(c => c && c.name).filter(Boolean);
+        const day = Number.isFinite(t.clock) ? Math.floor(t.clock / 1440) : null;
+        for (const r of list) {
+            const name = String((r && (r.spell || r.name)) || '').trim();
+            if (!name) continue;
+            const k = spellKey(name);
+            const e = seen.get(k) || { days: new Set(), teach: new Set(), at: null, when: null, teacher: null };
+            const note = String(r.note || '');
+            // the teacher: a person the note names; else the one known teacher present that reply
+            let teacher = [...new Set([...present, ...people.map(p => p.name)])].find(n => n && new RegExp(`(^|[^\\p{L}])${esc(String(n).split(/\s+/)[0])}([^\\p{L}]|$)`, 'u').test(note)) || null;
+            if (!teacher) { const here = present.filter(n => teachers.has(n)); if (here.length === 1) teacher = here[0]; }
+            if (day !== null) { e.days.add(day); if (teacher) e.teach.add(day); }
+            if (teacher) e.teacher = teacher;
+            e.at = t.clock; e.when = String((when.get(t.msg.id) || {}).when || '').trim() || null;
+            seen.set(k, e);
+        }
+    }
+    const norm = x => String(x || '').toLowerCase().replace(/\b(?:style|styles|magic|school|arts?|techniques?)\b/g, ' ').replace(/[^\p{L}\p{N}]+/gu, ' ').trim();
+    const groups = new Map();
+    const groupFor = (key, name, domain) => { let g = groups.get(key); if (!g) { g = { key, name, domain, track: null, studies: [], at: null, fresh: false }; groups.set(key, g); } return g; };
+    for (const t of tracks) {
+        const g = groupFor(norm(t.skill), t.skill, /\b(?:touki|sword|style|blade|aura)\b/i.test(t.skill) && !/\bmagic\b/i.test(t.skill) ? 'martial' : 'magic');
+        const before = prevTracks.find(p => p.skill === t.skill);
+        g.track = { ...t, left: Math.max(0, t.needed - t.done), fromHud: true, moved: !!(before && t.done > before.done) };
+        if (g.track.moved) g.fresh = true;
+    }
+    const nowAt = last.clock;
+    const learned = [];
+    for (const sItem of studies) {
+        const e = seen.get(spellKey(sItem.name)) || null;
+        const row = { name: sItem.name, school: sItem.school || null, rank: sItem.rank || null, note: sItem.note || null, progress: sItem.progress ?? null,
+            days: e ? e.days.size : 0, last: e ? e.when : null, teacher: e ? e.teacher : null, sessions: null, quiet: false, fresh: false };
+        if (sItem.done) { learned.push({ name: row.name, school: row.school, last: row.last }); continue; }
+        // a rank step the Training line does not list: the card's rule counts it (Six-Sided HUDs only)
+        const step = six ? /^(.+?)\s+(?:toward|towards|to|→)\s+(intermediate|advanced|saint|king)\b/i.exec(sItem.name) : null;
+        if (step && e) { const needed = MT_SESSIONS[step[2].toLowerCase()]; let done = 0; for (const d of e.days) done += e.teach.has(d) ? 1.5 : 1; row.sessions = { done: Math.min(needed, done), needed, left: Math.max(0, needed - done), counted: true }; }
+        if (e && Number.isFinite(e.at) && Number.isFinite(nowAt)) { row.quiet = nowAt - e.at > 14 * 1440; row.fresh = e.at === nowAt; }
+        // its group: a track whose skill it names, else its school or style, else Other
+        const n = norm(sItem.name);
+        const tg = [...groups.values()].find(g => g.track && g.key && (` ${n} `.includes(` ${g.key} `) || norm(row.school) === g.key));
+        const g = tg || (row.school ? groupFor(norm(row.school), row.school, sItem.domain) : groupFor(sItem.domain === 'magic' ? 'other magic' : 'other combat', sItem.domain === 'magic' ? 'Other magic' : 'Other combat', sItem.domain));
+        g.studies.push(row);
+        if (row.fresh) g.fresh = true;
+        if (e && Number.isFinite(e.at) && (g.at === null || e.at > g.at)) g.at = e.at;
+    }
+    const out = [...groups.values()].filter(g => g.track || g.studies.length).map(g => ({ ...g, quiet: !g.track && g.studies.length > 0 && g.studies.every(x => x.quiet) }));
+    out.sort((a, b) => (a.quiet - b.quiet) || (b.fresh - a.fresh) || (!!b.track - !!a.track) || ((b.at ?? -1) - (a.at ?? -1)) || a.name.localeCompare(b.name));
+    return { groups: out, learned: learned.slice(0, 12), six };
+}
 /** 1.4.0: a study item that is only a Training track ("Sword God Style toward Saint" while the HUD trains Sword God → Saint)
  * belongs to the Training card, which shows its sessions; Studying keeps the rest. Only while the Training line lists it. */
 function trainingTracksNow(chat) {
@@ -11986,7 +12058,9 @@ function hmsPanelStateRead(chatId, chat, st) {
             try { birthdays = hmsBirthdays(chat, st, userNameCache.get(chatId) || null); } catch (e) { logW(`[RPG Companion HMS] Birthdays failed: ${e?.message || e}`); }
             let todo = [];
             try { todo = hmsTodo(chat, { agenda, gear, systems, relations, family, birthdays }); } catch (e) { logW(`[RPG Companion HMS] Things to do failed: ${e?.message || e}`); }
-            return { systems, party, relations, family, gear, agenda, holdings, money, factions, secrets, comms, you, magic, techniques, map, minds, buildings, checks, todo };
+            let trainingPlan = null;
+            try { trainingPlan = hmsTrainingPlan(chat, st, hmsTimeline(chat), magic, techniques, relations); } catch (e) { logW(`[RPG Companion HMS] Training plan failed: ${e?.message || e}`); }
+            return { systems, party, relations, family, gear, agenda, holdings, money, factions, secrets, comms, you, magic, techniques, map, minds, buildings, checks, todo, trainingPlan };
         })()
     };
 }

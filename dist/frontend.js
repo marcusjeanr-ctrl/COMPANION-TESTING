@@ -1927,6 +1927,35 @@ button.rpgc-chip.intel:hover { border-color: var(--lumiverse-accent, #7aa2f7); }
 .rpgc .rpgc-addfold>summary::-webkit-details-marker{display:none}
 .rpgc .rpgc-addfold>summary:hover{color:var(--u-text);border-color:color-mix(in srgb,var(--u-accent) 45%,transparent)}
 .rpgc .rpgc-addfold[open]>summary{color:var(--u-accent);border-style:solid;margin-bottom:8px}
+/* 1.4.0 Training: a line per discipline, tap to open */
+.rpgc .rpgc-tgroups{display:flex;flex-direction:column;gap:6px}
+.rpgc .rpgc-tgroup{border:1px solid color-mix(in srgb,var(--u-line) 80%,transparent);border-radius:var(--u-radius-s,9px);background:var(--u-raise)}
+.rpgc .rpgc-tgroup>summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:8px;padding:8px 10px;font-size:12.5px}
+.rpgc .rpgc-tgroup>summary::-webkit-details-marker,.rpgc .rpgc-tstudy>summary::-webkit-details-marker,.rpgc .rpgc-tfoot>summary::-webkit-details-marker{display:none}
+.rpgc .rpgc-tgroup>summary .ic{flex:none;font-size:15px}
+.rpgc .rpgc-tgroup>summary .nm{flex:0 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rpgc .rpgc-tgroup>summary .to{color:var(--u-muted);font-size:11.5px;white-space:nowrap}
+.rpgc .rpgc-tgroup>summary .rpgc-tbar{flex:1 1 60px}
+.rpgc .rpgc-tgroup>summary .left{margin-left:auto;font-size:11.5px;font-variant-numeric:tabular-nums;color:var(--u-muted);white-space:nowrap}
+.rpgc .rpgc-tgroup[open]>summary{border-bottom:1px solid color-mix(in srgb,var(--u-line) 55%,transparent)}
+.rpgc .rpgc-tgroup>:not(summary){margin:8px 10px}
+.rpgc .rpgc-tgroup.fresh>summary .nm::after{content:'';display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--u-accent);margin-left:6px;vertical-align:middle}
+.rpgc .rpgc-tgroup.quiet,.rpgc .rpgc-tstudy.quiet{opacity:.6}
+.rpgc .rpgc-tbar{display:inline-block;height:5px;min-width:40px;border-radius:999px;background:color-mix(in srgb,var(--u-text) 10%,transparent);overflow:hidden;vertical-align:middle}
+.rpgc .rpgc-tbar>i{display:block;height:100%;border-radius:inherit;background:var(--u-accent)}
+.rpgc .rpgc-tstudies{display:flex;flex-direction:column;gap:4px}
+.rpgc .rpgc-tstudy>summary{list-style:none;cursor:pointer;display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 8px;padding:6px 8px;border-radius:8px;font-size:12px}
+.rpgc .rpgc-tstudy>summary:hover{background:color-mix(in srgb,var(--u-text) 4%,transparent)}
+.rpgc .rpgc-tstudy>summary .meta{color:var(--u-muted);font-size:11.5px}
+.rpgc .rpgc-tstudy>summary .ses{margin-left:auto;font-size:11px;color:var(--u-muted);white-space:nowrap}
+.rpgc .rpgc-tstudy>summary .ses .rpgc-tbar{width:48px}
+.rpgc .rpgc-tstudy[open]>summary{background:color-mix(in srgb,var(--u-text) 4%,transparent)}
+.rpgc .rpgc-tstudy>:not(summary){margin:4px 8px 6px}
+.rpgc .rpgc-tfoot{margin-top:8px}
+.rpgc .rpgc-tfoot>summary{list-style:none;cursor:pointer;display:flex;gap:6px;align-items:center;font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--u-muted)}
+.rpgc .rpgc-tfoot>summary .n{font-weight:600}
+.rpgc .rpgc-tlearned{margin:6px 0 0;padding-left:18px;font-size:12px}
+.rpgc .rpgc-ttools{justify-content:flex-end;margin-top:6px}
 `;
 
 // The guide, embedded from GUIDE.md so it ships inside the extension (tools/embed_guide.py refreshes it).
@@ -10107,7 +10136,52 @@ html,body{background:${panelBg}!important;}`;
         const shown = TRAIN_LADDER.slice(0, Math.min(TRAIN_LADDER.length, i + 2));
         return h('div', { class: 'rpgc-ladder', role: 'img', 'aria-label': TT('{0}: toward {1}', t.skill, t.next) }, shown.map((r, k) => h('span', { class: 'rung' + (k < i ? ' held' : k === i ? ' next' : ' later') + (k === i - 1 ? ' cur' : '') }, T(r))));
     }
+    // 1.4.0: Training as one calm card. A line per thing you train (its HUD track and what you study in it); tap to open.
+    const TRAIN_ICON = n => /water|ice|frost/i.test(n) ? '💧' : /fire|flame/i.test(n) ? '🔥' : /earth|stone|rock/i.test(n) ? '⛰️' : /wind|air|storm/i.test(n) ? '🌬️' : /heal/i.test(n) ? '💚' : /touki|aura/i.test(n) ? '🔆' : /sword|blade|style|god|king/i.test(n) ? '⚔️' : '✨';
+    function trainMiniBar(done, needed) { const f = Math.max(0, Math.min(1, done / Math.max(1, needed))); return h('span', { class: 'rpgc-tbar', 'aria-hidden': 'true' }, h('i', { style: `width:${Math.round(f * 100)}%` })); }
     function renderTraining() {
+        const plan = state.hms && state.hms.trainingPlan;
+        if (!plan || !Array.isArray(plan.groups) || !plan.groups.length) return renderTrainingClassic();
+        const study = (sp, on) => send({ type: 'spell_study', chatId: state.chatId, name: sp.name, school: sp.school || null, rank: sp.rank || null, on });
+        const known = (sp, on) => send({ type: 'spell_known', chatId: state.chatId, name: sp.name, on });
+        const fold = (key, cls, sum, body, openDefault = false) => { const d = h('details', { class: cls }, h('summary', null, ...sum), ...body);
+            d.open = state.open[key] !== undefined ? state.open[key] === true : openDefault; d.dataset.openKey = key; d.addEventListener('toggle', () => { state.open[key] = d.open; }); return d; };
+        const first = n => String(n || '').split(/\s+/)[0];
+        const studyRow = sp => fold('train-s-' + sp.name.toLowerCase(), 'rpgc-tstudy' + (sp.quiet ? ' quiet' : '') + (sp.fresh ? ' fresh' : ''), [
+                h('b', { class: 'nm' }, sp.name),
+                h('span', { class: 'meta' }, [sp.days ? TT(sp.days === 1 ? '{0} day' : '{0} days', sp.days) : T('not yet practised'), sp.teacher ? TT('with {0}', first(sp.teacher)) : null].filter(Boolean).join(' · ')),
+                sp.sessions ? h('span', { class: 'ses', title: T('Counted by the Companion from the card\u2019s rule (a day of practice is 1 session, 1.5 with a teacher) until the HUD lists it') }, trainMiniBar(sp.sessions.done, sp.sessions.needed), ` ${TT('{0} left', sp.sessions.left)} ⓘ`) : sp.progress !== null && sp.progress !== undefined ? h('span', { class: 'ses' }, trainMiniBar(sp.progress, 100), ` ${sp.progress}%`) : null],
+            [sp.note ? h('p', { class: 'rpgc-note' }, sp.note) : null,
+             h('div', { class: 'rpgc-row' }, sp.last ? h('span', { class: 'rpgc-note' }, TT('Last: {0}', sp.last)) : null, h('span', { style: 'flex:1' }),
+                h('button', { class: 'rpgc-mini', title: T('Mark it learned'), 'aria-label': TT('Mark {0} learned', sp.name), onclick: e => { e.stopPropagation(); known(sp, true); } }, '\u2713'),
+                h('button', { class: 'rpgc-mini', title: T('Stop studying'), 'aria-label': TT('Stop studying {0}', sp.name), onclick: e => { e.stopPropagation(); study(sp, false); } }, '\u2715'))]);
+        const quietAll = [];
+        const groups = [];
+        for (const g of plan.groups) {
+            const live = g.studies.filter(x => !x.quiet), quiet = g.studies.filter(x => x.quiet);
+            quietAll.push(...quiet);
+            if (!g.track && !live.length) continue;
+            const t = g.track;
+            const sum = [h('span', { class: 'ic', 'aria-hidden': 'true' }, TRAIN_ICON(g.name)), h('b', { class: 'nm' }, g.name),
+                t ? h('span', { class: 'to' }, '\u2192 ' + t.next) : null, t ? trainMiniBar(t.done, t.needed) : null,
+                h('span', { class: 'left' }, t ? (t.left ? TT('{0} left', t.left) : T('ready')) : TT(live.length === 1 ? '{0} studying' : '{0} studying', live.length))];
+            const body = [t ? trainLadder(t) : null, t && !t.left ? h('p', { class: 'rpgc-note' }, T('Sessions done: the rank still needs its proof in the story.')) : null,
+                live.length ? h('div', { class: 'rpgc-tstudies' }, live.map(studyRow)) : null];
+            groups.push(fold('train-g-' + g.key, 'rpgc-tgroup' + (g.fresh ? ' fresh' : '') + (g.quiet ? ' quiet' : ''), sum, body, !!g.fresh));
+        }
+        const foot = [];
+        if ((plan.learned || []).length) foot.push(fold('train-learned', 'rpgc-tfoot', ['\u2713 ' + T('Learned recently'), h('span', { class: 'n' }, String(plan.learned.length))],
+            [h('ul', { class: 'rpgc-tlearned' }, plan.learned.map(x => h('li', null, h('b', null, x.name), x.last ? h('span', { class: 'rpgc-note' }, ' · ' + x.last) : null)))]));
+        if (quietAll.length) foot.push(fold('train-quiet', 'rpgc-tfoot', [T('Not practised lately'), h('span', { class: 'n' }, String(quietAll.length))], [h('div', { class: 'rpgc-tstudies' }, quietAll.map(studyRow))]));
+        const heatOn = state.open['train-heat'] === true;
+        const heat = heatOn ? trainingHeat() : null;
+        const tracksN = plan.groups.filter(g => g.track).length, studyN = plan.groups.reduce((a, g) => a + g.studies.filter(x => !x.quiet).length, 0);
+        return section('training', T('Training'), state.open, [tracksN ? TT(tracksN === 1 ? '{0} track' : '{0} tracks', tracksN) : null, studyN ? TT('{0} studying', studyN) : null].filter(Boolean).join(' · ') || null,
+            h('div', { class: 'rpgc-tgroups' }, groups), ...foot,
+            h('div', { class: 'rpgc-row rpgc-ttools' }, h('button', { class: 'rpgc-mini' + (heatOn ? ' on' : ''), title: T('Training by day'), 'aria-pressed': heatOn ? 'true' : 'false', onclick: () => { state.open['train-heat'] = !heatOn; render(); } }, '📅')),
+            heat);
+    }
+    function renderTrainingClassic() {
         const list = state.world && Array.isArray(state.world.training) ? state.world.training : [];
         if (!list.length) return null;
         const ready = list.filter(t => t.done >= t.needed).length;
@@ -10149,7 +10223,7 @@ html,body{background:${panelBg}!important;}`;
         else out.push(h('p', { class: 'rpgc-note' }, tech ? 'The HUD shows no sword style ranks, so nothing is judged in or out of reach: mark what you learn and what you study.' : 'The HUD shows no magic ranks, so nothing is judged in or out of reach: mark what you learn and what you study.'));
         for (const n of L.news || []) out.push(h('p', { class: 'rpgc-spell-news' }, '\u2B06 ', raw(`${n.school}: ${rankLabel(n.from || '?')} \u2192 ${rankLabel(n.to || '?')}`),
             n.opened.length ? [' \u2014 ', h('span', null, 'now within reach:'), ' ', raw(n.opened.join(', '))] : null));
-        if (L.studying.length) {
+        if (L.studying.length && !(state.hms && state.hms.trainingPlan)) {
             out.push(h('div', { class: 'rpgc-spell-study' }, h('h4', null, 'Studying'), L.studying.map(sp => h('div', { class: 'rpgc-spell-row study' + (sp.done ? ' done' : '') },
                 h('div', { class: 'head' }, h('b', null, raw(sp.name)), sp.school || sp.rank ? h('span', { class: 'rpgc-note' }, raw(' ' + [sp.school, rankLabel(sp.rank)].filter(Boolean).join(' \u00B7 '))) : null,
                     sp.done ? h('span', { class: 'rpgc-chip rpgc-spell-st known' }, SW('spell', 'Learned')) : sp.progress !== null ? h('span', { class: 'rpgc-note' }, ` ${sp.progress}%`) : null,
