@@ -1551,6 +1551,13 @@ button.rpgc-chip.intel:hover { border-color: var(--lumiverse-accent, #7aa2f7); }
 .rpgc.skin-dnd{--lumiverse-accent:#e0563f;--u-accent:#e0563f;--u-accent-fg:#1d0703;--u-accent-2:#d9b26a;--u-text:#f0e4d0;--u-muted:#bfa98a;
   --rpgc-card-bg:color-mix(in srgb,#2a1c14 85%,transparent);--u-surface:color-mix(in srgb,#2a1c14 85%,transparent);--u-glow:#e0563f66;--rpgc-gold:#d9b26a;
   --u-display:'Bookman Old Style','Iowan Old Style',Georgia,serif;background:var(--u-tod),linear-gradient(#1a120d,#110b08)}
+.rpgc.skin-cyberpunk{--lumiverse-accent:#f3e600;--u-accent:#f3e600;--u-accent-fg:#141100;--u-accent-2:#02d7f2;--u-text:#e6f6f8;--u-muted:#8fb3b9;
+  --rpgc-card-bg:color-mix(in srgb,#0d1418 90%,transparent);--u-surface:color-mix(in srgb,#0d1418 90%,transparent);--u-glow:#02d7f255;--u-radius:6px;--u-radius-s:4px;--rpgc-gold:#f3e600;
+  --u-display:'Rajdhani','Orbitron','Bahnschrift','Segoe UI Semibold',system-ui,sans-serif;
+  background:var(--u-tod),radial-gradient(120% 50% at 0 0,#ff003c22,transparent 60%),radial-gradient(90% 50% at 100% 100%,#02d7f222,transparent 70%),linear-gradient(#0a0e11,#06090b)}
+.rpgc.skin-cyberpunk .rpgc-sec{border-color:color-mix(in srgb,#02d7f2 28%,transparent)}
+.rpgc.skin-cyberpunk .rpgc-sec[open]>summary{border-bottom-color:color-mix(in srgb,#f3e600 35%,transparent)}
+.rpgc.skin-cyberpunk .rpgc-sec-title{text-transform:uppercase;letter-spacing:.12em}
 .rpgc.skinned .rpgc-body,.rpgc.skinned p,.rpgc.skinned li{font-family:var(--u-read)}
 .rpgc.skinned .rpgc-sec-title{font-family:var(--u-display);letter-spacing:.03em}
 /* one type scale */
@@ -5340,7 +5347,7 @@ export function setup(ctx) {
 
     // ═════════════ 1.4.0: the deck — skins, the HUD strip, the ribbon, and the rest of the 1.4.0 look ═════════════
     // Display only. Everything here reads the payload the panel already has: no tracker fields, no model calls.
-    const SKIN_WORLDS = { mushoku: 'mushoku', rezero: 'rezero', cote: 'cote', overlord: 'overlord', dnd: 'dnd' };
+    const SKIN_WORLDS = { mushoku: 'mushoku', rezero: 'rezero', cote: 'cote', overlord: 'overlord', dnd: 'dnd', cyberpunk: 'cyberpunk' };
     function currentSkin() {
         const s = S() || {};
         if (s.uiSkin === 'off' || (s.uiTheme && s.uiTheme !== 'host')) return null;   // a chosen wiki theme wins
@@ -5398,7 +5405,7 @@ export function setup(ctx) {
     }
     // "The Mana Calamity — in 9 months (K417)": how near it is, as a bar that reddens as it comes
     function worldCountdown() {
-        const w = hudLineValue(/world event|calamity|countdown|doomsday|deadline/i);
+        const w = hudLineValue(/world event|calamity|countdown|doomsday|deadline/i) || (state.world && state.world.id === 'cyberpunk' ? hudLineValue(/next canon event|next turning point/i) : null);
         if (!w) return null;
         const v = w.value.replace(/^[\s:]+/, '');
         const m = v.match(/^(.*?)\s*[—–-]\s*in\s+(?:about\s+|~)?(\d+|a|an|one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve)\s+(day|week|month|year)s?\b(.*)$/i);
@@ -5501,7 +5508,7 @@ export function setup(ctx) {
         return [
             h('h4', { class: 'rpgc-subhead' }, T('1.4.0 look')),
             h('div', { class: 'rpgc-row rpgc-presets' }, h('span', { class: 'lbl' }, T('Layout')), Object.entries(DECK_PRESETS).map(([id, p]) => h('button', { class: 'rpgc-btn' + (s.uiPreset === id ? ' primary' : ''), onclick: () => { Object.assign(s, p.data, { uiPreset: id }); saveSettings(false); render(); } }, T(p.label)))),
-            sel('World skin', 'uiSkin', [['auto', 'Auto (by world)'], ['mushoku', 'Mushoku: parchment and ink'], ['rezero', 'Re:Zero: violet and witch gold'], ['cote', 'COTE: school tablet'], ['overlord', 'Overlord: obsidian and crimson'], ['dnd', 'D&D: tavern'], ['off', 'Off']], 'auto'),
+            sel('World skin', 'uiSkin', [['auto', 'Auto (by world)'], ['mushoku', 'Mushoku: parchment and ink'], ['rezero', 'Re:Zero: violet and witch gold'], ['cote', 'COTE: school tablet'], ['overlord', 'Overlord: obsidian and crimson'], ['cyberpunk', 'Cyberpunk: neon and chrome'], ['dnd', 'D&D: tavern'], ['off', 'Off']], 'auto'),
             h('div', { class: 'rpgc-row' }, h('span', { class: 'lbl' }, T('Accent colour')), accent, s.uiAccent ? h('button', { class: 'rpgc-mini', title: T('Back to the skin\u2019s colour'), onclick: () => set('uiAccent', null) }, '\u21BA') : null),
             h('div', { class: 'rpgc-row' }, h('span', { class: 'lbl' }, T('Reading font')), font),
             sel('Contrast', 'uiContrast', [['normal', 'Normal'], ['high', 'High contrast']], 'normal'),
@@ -6067,6 +6074,10 @@ export function setup(ctx) {
         if (slots) add('💎', T('Slots'), slots.value.slice(0, 40), 'slots');
         const loyal = hudLineValue(/loyalty/i);
         if (loyal) add('🛡️', T('Loyalty'), loyal.value.slice(0, 30), '');
+        if (id === 'cyberpunk') { const w = state.world || {};
+            if (w.humanity !== null && w.humanity !== undefined) add('🧠', T('Humanity'), `${w.humanity} \u00B7 ${w.psyche || ''}`, w.humanity < 30 ? 'hot' : '');
+            if (w.heat && w.heat.level) add('🚨', T('Heat'), `${w.heat.level}/5${w.heat.who ? ' ' + w.heat.who : ''}`, w.heat.level >= 4 ? 'hot' : '');
+            if (w.eddies !== null && w.eddies !== undefined) add('💶', T('Eddies'), fmtNum(w.eddies), ''); }
     }
     // settings as an options menu: a few tabs over the search
     const SET_TABS = [['all', 'All'], ['look', 'Look'], ['track', 'Tracking'], ['story', 'Story'], ['data', 'Backup & data']];
@@ -8345,6 +8356,22 @@ export function setup(ctx) {
                 relations: { enabled: true, layout: 'cards' },
                 comms: { enabled: false },
                 survival: { enabled: false } } } });
+    // 1.4.0: Cyberpunk: Living World (the HMS Cyberpunk card)
+    WORLD_STYLES.push({ id: 'w-cyberpunk', name: 'Cyberpunk \u2014 Night City', hms: true,
+        desc: 'HMS always on, in neon. The world card shows your eddies and wealth band, Humanity and Psyche (it drops as chrome goes in), Street Cred and Reputation, Heat and who is hunting you, every implant (new chrome marked), your Net Level and deck, your faction and rank, a passenger engram and how far it has overwritten you, your three key bonds, and the changes you have made to canon with their checkpoints. Eddies are your money; Humanity, Heat and eddies sit on the status strip; the next canon event counts down. Holocalls as the phone. Gigs as quests. Crews in the party.',
+        data: { ...HMS_ON, uiTheme: 'host', uiSkin: 'auto', showDiceDisplay: false, enableDynamicWeather: true, worldCard: true, chapters: { enabled: true, arcs: true }, dnd: { enabled: false },
+            encounterSettings: { enabled: true, style: 'engine', fateDice: false, companionsMayRefuse: true },
+            hmsSystems: {
+                vitals: { enabled: true, pools: 'Humanity', healthPools: '', invertedMeters: 'Overwrite, Heat', lowPct: 30, criticalPct: 15, showDeltas: true },
+                body: { wounds: true, conditions: true, rawWarnHours: 72, conditionFields: '' },
+                abilities: { enabled: true, attributes: '', vocabulary: 'Roles: Role, Lifepath\nSkills: Skills\nPerks: Perks' },
+                quests: { enabled: true, labels: 'Quests, Quest, Objectives, Gigs, Gig, Jobs, Contracts', journal: true },
+                carriers: 'Arc, Game Mode, Identity, Faction, Bonds, Changes, Cyberware, Netrunning, Passenger',
+                selfClearing: 'Condition, Heat, Next Canon Event, Next Turning Point, Canon Begins, Checkpoint, Canon changed',
+                party: { enabled: true, trackMask: true, trackBond: true, trackNeeds: true, trackPhase: true, alertLevel: 3, risingTurns: 3 },
+                relations: { enabled: true, layout: 'cards' },
+                comms: { enabled: true, kind: 'phone', device: 'Holo', deviceWords: 'holo, holocall, holophone, agent, phone, message, text', balanceLabels: 'Eddies, Eurodollars, Balance, Credits, Money' },
+                survival: { enabled: false } } } });
     const BUILTIN_STYLES = [
         { id: 'hms', name: 'HMS Narrative', desc: 'The default. HMS always on; your engine decides immersive fights; party and relationships tracked; the world card and chapters on; no survival clock.',
             data: { ...HMS_ON, 'positions.mode': 'off', 'worldCard': true, 'chapters.enabled': true, 'encounterSettings.style': 'engine', 'encounterSettings.fateDice': false, 'encounterSettings.companionsMayRefuse': true, 'hmsSystems.relations.enabled': true, 'hmsSystems.party.enabled': true, 'hmsSystems.survival.enabled': false, 'uiTheme': 'host', 'showDiceDisplay': true } },
@@ -8854,6 +8881,32 @@ export function setup(ctx) {
             for (const d of w.divergences) out.push(wRow('Divergence', raw(d)));
             for (const c of w.changes) out.push(wRow('Change', raw(c)));
             if (w.thread) out.push(h('p', { class: 'rpgc-note' }, '\u2753 ', raw(w.thread)));
+        } else if (w.id === 'cyberpunk') {
+            const signed = n => (n > 0 ? '+' : '\u2212') + fmtNum(Math.abs(n));
+            const chip = (txt, cls) => h('span', { class: 'rpgc-chip' + (cls ? ' ' + cls : '') }, txt);
+            out.push(h('div', { class: 'rpgc-wgrid' },
+                w.eddies !== null ? h('div', { class: 'rpgc-wstat' }, h('b', null, `\u20AC$ ${fmtNum(w.eddies)}`), h('span', null, w.eddiesBand || T('eddies')), w.eddiesDelta ? h('i', { class: 'd ' + (w.eddiesDelta > 0 ? 'up' : 'down') }, signed(w.eddiesDelta)) : null) : null,
+                w.cred !== null ? h('div', { class: 'rpgc-wstat' }, h('b', null, String(w.cred)), h('span', null, w.reputation || T('street cred')), w.credDelta ? h('i', { class: 'd ' + (w.credDelta > 0 ? 'up' : 'down') }, signed(w.credDelta)) : null) : null,
+                w.net ? h('div', { class: 'rpgc-wstat' }, h('b', null, String(w.net.level)), h('span', null, T('net level'))) : null));
+            if (w.humanity !== null) { const pct = Math.round(w.humanity / Math.max(1, w.humanityMax || 100) * 100);
+                out.push(h('div', { class: 'rpgc-wrow' }, h('span', { class: 'lbl' }, T('Humanity')), levelBar(pct, pct < 30 ? 'critical' : pct < 70 ? 'low' : 'ok'), h('span', { class: 'val' }, `${w.humanity}/${w.humanityMax || 100} \u00B7 ${w.psyche || ''}${w.humanityDelta ? ' (' + signed(w.humanityDelta) + ')' : ''}`))); }
+            if (w.heat && w.heat.level) out.push(h('div', { class: 'rpgc-wrow' }, h('span', { class: 'lbl' }, T('Heat')), ladderBar(w.heat.level - 1, 5), h('span', { class: 'val' }, `${w.heat.level}/5${w.heat.who ? ' \u00B7 ' + w.heat.who : ''}${w.heat.level >= 5 ? ' \u00B7 MaxTac' : ''}`)));
+            if (w.heat && w.heat.hunted.length) out.push(wRow(T('Hunted by'), ...w.heat.hunted.map(x => chip(x, 'hot'))));
+            if (w.identity) out.push(wRow(w.identity.name || T('You'), w.identity.role ? h('b', null, w.identity.role) : null, w.identity.lifepath ? chip(w.identity.lifepath) : null, w.identity.age !== null ? chip(`${w.identity.age}${w.identity.born ? ' \u00B7 b. ' + w.identity.born : ''}`) : null));
+            if (w.arc) out.push(wRow(T('Arc'), w.arc.code ? chip(w.arc.code) : null, h('span', null, w.arc.title)));
+            if (w.faction) out.push(wRow(T('Faction'), h('b', null, w.faction.name), w.faction.rank ? chip(w.faction.rank) : null));
+            if (w.passenger) out.push(h('div', { class: 'rpgc-wrow' }, h('span', { class: 'lbl' }, T('Passenger')), levelBar(w.passenger.pct, w.passenger.pct >= 60 ? 'critical' : w.passenger.pct >= 25 ? 'low' : 'ok'), h('span', { class: 'val' }, `${w.passenger.name} \u00B7 ${w.passenger.pct}% \u00B7 ${w.passenger.stage}${w.passenger.delta ? ' (' + signed(w.passenger.delta) + ')' : ''}`)));
+            if (w.cyberware.length) out.push(h('div', { class: 'rpgc-set' }, h('h4', null, `${T('Cyberware')} \u00B7 ${w.cyberware.length}`),
+                h('div', { class: 'rpgc-chiprow' }, ...w.cyberware.map(c => h('span', { class: 'rpgc-chip' + (c.isNew ? ' new' : ''), title: c.lore || '' }, c.isNew ? '\u2728 ' + c.name : c.name))),
+                w.net && w.net.deck ? h('p', { class: 'rpgc-note' }, `${T('Deck')}: ${w.net.deck}`) : null));
+            else if (w.net && w.net.deck) out.push(wRow(T('Deck'), w.net.deck));
+            if (w.bonds.length) out.push(wRow(T('Bonds'), ...w.bonds.map(b => chip(b.stage ? `${b.name} \u00B7 ${b.stage}` : b.name, b.rank >= 0 && b.rank <= 2 ? 'hot' : b.rank >= 5 ? 'ok' : ''))));
+            if (w.next) out.push(h('p', { class: 'rpgc-note' }, '\u23F3 ', h('b', null, w.next.event), ` \u2014 ${w.next.inText}${w.next.when ? ' (' + w.next.when + ')' : ''}`));
+            if (w.changes.length || w.checkpoints.length || w.changed.length) out.push(h('div', { class: 'rpgc-set' }, h('h4', null, T('Changes to canon')),
+                ...w.changes.map(c => h('div', { class: 'rpgc-wrow' }, h('span', { class: 'lbl' }, c.text), c.goal ? ladderBar(Math.max(0, c.done - 1), c.goal) : null, h('span', { class: 'val' }, c.goal ? `${c.done}/${c.goal}` : ''))),
+                ...w.checkpoints.map(c => h('p', { class: 'rpgc-note' }, '\u26A0\uFE0F ', h('b', null, c.what), ` \u2014 by ${c.by}${c.inText ? ', in ' + c.inText : ''}`)),
+                ...w.changed.map(c => h('p', { class: 'rpgc-note' }, '\u274C ', c))));
+            if (w.mode && w.mode.canon) out.push(h('p', { class: 'rpgc-note' }, `${T('Canon')}: ${w.mode.canon}${w.mode.guide ? ' \u00B7 ' + T('Guide') + ': ' + w.mode.guide : ''}`));
         } else if (w.id === 'skyrim') {
             out.push(h('div', { class: 'rpgc-wgrid' },
                 w.level !== null ? h('div', { class: 'rpgc-wstat' }, h('b', null, String(w.level)), h('span', null, 'level')) : null,
@@ -8879,6 +8932,7 @@ export function setup(ctx) {
             : w.id === 'undertale' ? (w.lv !== null ? `LV ${w.lv}` : null)
             : w.id === 'darksouls' ? (w.souls !== null ? `${fmtNum(w.souls)} souls` : null)
             : w.id === 'skyrim' ? (w.level !== null ? `Level ${w.level}` : null)
+            : w.id === 'cyberpunk' ? (w.heat && w.heat.level ? `Heat ${w.heat.level}` : w.eddies !== null ? `\u20AC$ ${fmtNum(w.eddies)}` : null)
             : w.id === 'bg3' ? (w.act ? `${w.act}${w.code ? ' \u00B7 ' + w.code : ''}` : w.level !== null ? `Level ${w.level}` : null)
             : (w.year !== null ? `K. ${w.year}` : null);
         return section('worldcard', w.label, state.open, badge, ...out);

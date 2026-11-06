@@ -15,7 +15,7 @@ const ctx = {
 };
 ctx.globalThis = ctx;
 vm.createContext(ctx);
-vm.runInContext(source.slice(0, startup) + '\nglobalThis.__t = { chronicleBuild, agendaRead, readingSource, getSwipeData, rewriteReplyText: typeof rewriteReplyText === \'function\' ? rewriteReplyText : null, setChatApi: (fn) => { chatApi.updateMessage = fn; }, factionFromHud, chronBondReworded: typeof chronBondReworded === \'function\' ? chronBondReworded : () => false, chronWhen, parseHud, techStanding: typeof techStanding === \'function\' ? techStanding : () => new Map(), questDetailsLatest, relGuard, relCfg, martialAbilityItems, techListPanel, posMovedNow, keepRoomReading, posRoomKey, setState: (st) => { getChatState = async () => st; saveChatState = async () => {}; }, setPool: p => { loreCatalogPool = () => p; }, spellStoryFold, moneyHudBalance: typeof moneyHudBalance === \'function\' ? moneyHudBalance : commsBalance, commsCfg, messageHud, moneyRead, hintEchoScrub: typeof hintEchoScrub === \'function\' ? hintEchoScrub : (o => o), studyIsTrainingTrack: typeof studyIsTrainingTrack === \'function\' ? studyIsTrainingTrack : () => false, trainingTracksNow: typeof trainingTracksNow === \'function\' ? trainingTracksNow : () => [] };', ctx);
+vm.runInContext(source.slice(0, startup) + '\nglobalThis.__t = { chronicleBuild, agendaRead, readingSource, getSwipeData, rewriteReplyText: typeof rewriteReplyText === \'function\' ? rewriteReplyText : null, setChatApi: (fn) => { chatApi.updateMessage = fn; }, factionFromHud, chronBondReworded: typeof chronBondReworded === \'function\' ? chronBondReworded : () => false, chronWhen, parseHud, techStanding: typeof techStanding === \'function\' ? techStanding : () => new Map(), questDetailsLatest, relGuard, relCfg, martialAbilityItems, techListPanel, posMovedNow, keepRoomReading, posRoomKey, setState: (st) => { getChatState = async () => st; saveChatState = async () => {}; }, setPool: p => { loreCatalogPool = () => p; }, spellStoryFold, moneyHudBalance: typeof moneyHudBalance === \'function\' ? moneyHudBalance : commsBalance, commsCfg, messageHud, moneyRead, hintEchoScrub: typeof hintEchoScrub === \'function\' ? hintEchoScrub : (o => o), studyIsTrainingTrack: typeof studyIsTrainingTrack === \'function\' ? studyIsTrainingTrack : () => false, trainingTracksNow: typeof trainingTracksNow === \'function\' ? trainingTracksNow : () => [], worldOf, worldCyberpunk: typeof worldCyberpunk === \'function\' ? worldCyberpunk : null, moneyHudBalance, commsCfg, parseHud, worldLines };', ctx);
 const t = ctx.__t;
 
 let n = 0;
@@ -46,6 +46,35 @@ check('a study item that is only a Training track is left to the Training card',
     assert.equal(tracks.length, 2, 'both tracks read from the full HUD');
     for (const n of ['Sword God Style toward Saint', 'Water Magic toward Saint']) assert.equal(t.studyIsTrainingTrack(n, tracks), true, n);
     for (const n of ['Sword God stance', 'Sword God Style under Aurelius\'s drill', 'Earth Magic toward Advanced', 'Water Ball']) assert.equal(t.studyIsTrainingTrack(n, tracks), false, n);
+});
+check('a Cyberpunk: Living World HUD is read as Cyberpunk, every module included', () => {
+    const hud = (eddies, hum, heat, extra = '') => ['### WORLD STATE ###', 'Date: November 3, 2077 | 22:40 (Night)', '◆ Night City → Watson → Kabuki → Misty\'s Esoterica',
+        'Identity: Vex | Role: Netrunner | Lifepath: Streetkid | Age: 24 (born 2053)', 'Arc 3-B: Konpeki Plaza Heist', 'Game Mode: Canon: Canon | Guide: Off',
+        `Eddies: ${eddies} (Streetrat)`, `Humanity: ${hum}/100 | Psyche: Shifting`, 'Street Cred: 16 | Reputation: Rising Star',
+        `Cyberware: Kiroshi Optics, Cyberdeck Port${extra}`, 'Netrunning: Net Level 4 | Deck: Militech Paraline Mk.2', 'Faction: Valentinos (Initiate)',
+        `Heat: ${heat} (NCPD) · Tyger Claws: Hunted`, 'Passenger: Johnny Silverhand | Overwrite: 31% | Stage: Bleed', 'Bonds: Jackie Welles (Choom), Misty Olszewski (Wary)',
+        'Changes: Saved Jackie (1/3)', '  ⚠️ Checkpoint: Jackie reaches Vik by December 2077 (Arc 3-B) — in 28 days', '⏳ Next Canon Event: Konpeki Plaza heist — in 2 days (November 2077)', '***', '', 'Rain.'].join('\n');
+    const same = (x, y) => assert.equal(JSON.stringify(x), JSON.stringify(y));   // the reader runs in its own realm
+    const now = t.worldLines(t.parseHud(hud('2,100', 72, 3, ', Mantis Blades'))), before = t.worldLines(t.parseHud(hud('2,350', 78, 2)));
+    assert.equal(t.worldOf(now), 'cyberpunk');
+    assert.ok(t.worldCyberpunk, 'the reader exists');
+    const w = t.worldCyberpunk(null, now, before);
+    assert.equal(w.eddies, 2100); assert.equal(w.eddiesDelta, -250); assert.equal(w.humanity, 72); assert.equal(w.humanityDelta, -6); assert.equal(w.psyche, 'Shifting');
+    assert.equal(w.cred, 16); assert.equal(w.reputation, 'Rising Star');
+    same(w.identity, { name: 'Vex', role: 'Netrunner', lifepath: 'Streetkid', age: 24, born: 2053 });
+    same(w.arc, { code: '3-B', title: 'Konpeki Plaza Heist' });
+    same(w.cyberware.map(c => [c.name, c.isNew]), [['Kiroshi Optics', false], ['Cyberdeck Port', false], ['Mantis Blades', true]]);
+    same(w.net, { level: 4, deck: 'Militech Paraline Mk.2' }); same(w.faction, { name: 'Valentinos', rank: 'Initiate' });
+    assert.equal(w.heat.level, 3); assert.equal(w.heat.who, 'NCPD'); same(w.heat.hunted, ['Tyger Claws']); assert.equal(w.heat.prev, 2);
+    assert.equal(w.passenger.pct, 31); assert.equal(w.passenger.stage, 'Bleed');
+    same(w.bonds.map(b => [b.name, b.stage]), [['Jackie Welles', 'Choom'], ['Misty Olszewski', 'Wary']]);
+    same(w.changes[0], { text: 'Saved Jackie', done: 1, goal: 3 }); assert.equal(w.checkpoints[0].what, 'Jackie reaches Vik');
+    assert.equal(w.next.event, 'Konpeki Plaza heist'); assert.equal(w.next.inText, '2 days');
+    // eddies are the purse
+    const bal = t.moneyHudBalance(t.parseHud(hud('2,100', 72, 3)), t.commsCfg());
+    assert.ok(bal && /2,100/.test(bal.value), 'eddies read as the balance');
+    // a Dark Souls HUD with a Humanity line stays Dark Souls
+    assert.notEqual(t.worldOf(['Souls: 1,204', 'Humanity: 3', 'Estus: 5/5', 'Bonfire: Firelink Shrine']), 'cyberpunk');
 });
 check('quest objective follows a new stage under the same Quest ID', () => {
     const chat = [user('go'), reply(quest('Win the mentor\'s approval at the training hall', 80)), user('next'),

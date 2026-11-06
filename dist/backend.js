@@ -269,7 +269,7 @@ const HMS_SYS_DEFAULTS = {
         kind: 'phone',        // phone | mirror | spell | radio — what it can do and how it is worded
         device: '',           // set by hand, or read from the HUD
         deviceWords: 'phone, smartphone, cellphone, mobile, conversation mirror, communicator, radio, walkie-talkie, pager, tablet, Message',
-        balanceLabels: 'Private Points, Balance, Bank, Funds, Wallet, Gold, Money, Credits, Coins'
+        balanceLabels: 'Private Points, Balance, Bank, Funds, Wallet, Gold, Money, Credits, Coins, Eddies, Eurodollars'
     },
     party: {
         enabled: true,
@@ -9830,6 +9830,7 @@ const WORLD_COVERS = {
     undertale: ['SOUL', 'ROUTE', 'KILLS', 'WEAPON', 'ARMOR'],
     darksouls: ['COVENANT', 'HUMANITY', 'FORM', 'HOLLOWING', 'WEAPON'],
     skyrim: ['SHOUTS', 'SHOUT', 'SKILLS', 'STANDING STONE', 'FACTIONS', 'AFFLICTION', 'RACE', 'PERKS', 'PERK'],
+    cyberpunk: ['CYBERWARE', 'NETRUNNING', 'PASSENGER', 'HEAT', 'STREET CRED', 'HUMANITY', 'IDENTITY', 'FACTION', 'BONDS', 'CHANGES', 'GAME MODE'],
     bg3: ['TADPOLE', 'POWERS', 'CALL', 'RESOURCES', 'PACT', 'URGE', 'ROMANCE', 'CAMP', 'COUNTDOWN', 'NEXT CANON EVENT', 'STATS']
 };
 
@@ -9918,6 +9919,70 @@ function worldSkyrim(chatId, lines) {
         shouts, skills, bounties, factions,
         gold: gold ? worldNum(gold[1]) : null, carry: carry ? { cur: worldNum(carry[1]), max: worldNum(carry[2]) } : null,
         afflictions: aff
+    };
+}
+
+// ── Cyberpunk: Living World (the HMS Cyberpunk card): its core slots and every module it defines ──
+// Formats from the card itself: Eddies [N] ([band]); Humanity [N]/100 | Psyche [stage]; Street Cred [N] | Reputation
+// [tier]; Identity | Role | Lifepath | Age (born); Arc N-L: Title; Game Mode; and the modules Cyberware, Netrunning,
+// Faction, Heat, Passenger, Bonds, Changes (with Checkpoint and Canon changed) and the Canon Clock.
+const CP_PSYCHE = [[85, 'Stable'], [70, 'Shifting'], [30, 'Fraying'], [0, 'Cyberpsycho']];
+const CP_CRED = [[45, 'Night City Legend'], [30, 'Big Name'], [15, 'Rising Star'], [1, 'Small Time'], [0, 'Unknown']];
+const CP_PASSENGER = [[90, 'Overwrite'], [60, 'Merge'], [25, 'Bleed'], [0, 'Echo']];
+const CP_BOND = ['Hostile', 'Wary', 'Rival', 'Acquaintance', 'Choom', 'Trusted', 'Family', 'Partner'];
+function worldCyberpunk(chatId, lines, prevLines) {
+    const f = re => worldFind(lines, re), pf = re => (prevLines ? worldFind(prevLines, re) : null);
+    const band = (n, table) => { for (const [lo, name] of table) if (n >= lo) return name; return table[table.length - 1][1]; };
+    const delta = (cur, prev) => (cur !== null && prev !== null && cur !== prev ? cur - prev : null);
+    const ed = f(/^Eddies:\s*([\d,]+)\s*(?:\(([^)]+)\))?/i), edP = pf(/^Eddies:\s*([\d,]+)/i);
+    const hum = f(/^Humanity:\s*(\d{1,3})\s*\/\s*(\d{1,3})(?:\s*\|\s*Psyche:\s*([^|]+))?/i), humP = pf(/^Humanity:\s*(\d{1,3})/i);
+    const cred = f(/^Street Cred:\s*([\d,]+)(?:\s*\|\s*Reputation:\s*([^|]+))?/i), credP = pf(/^Street Cred:\s*([\d,]+)/i);
+    const idL = f(/^Identity:\s*(.+)$/i);
+    let identity = null;
+    if (idL) {
+        const parts = idL[1].split(/\s*\|\s*/), kv = {};
+        for (const x of parts.slice(1)) { const m = x.match(/^([A-Za-z ]+):\s*(.+)$/); if (m) kv[m[1].trim().toLowerCase()] = m[2].trim(); }
+        const age = kv.age ? kv.age.match(/^(\d{1,3})\s*(?:\(born\s*(\d{4})\))?/i) : null;
+        identity = { name: parts[0].trim(), role: kv.role || null, lifepath: kv.lifepath || null, age: age ? Number(age[1]) : null, born: age && age[2] ? Number(age[2]) : null };
+    }
+    const arcL = f(/^Arc\s+(\d+)-([A-Z]):\s*(.+)$/) || f(/^Arc:\s*(Sandbox.*)$/i);
+    const modeL = f(/^Game Mode:\s*(.+)$/i);
+    const mode = modeL ? { canon: (modeL[1].match(/Canon:\s*([^|]+)/i) || [])[1]?.trim() || null, guide: (modeL[1].match(/Guide:\s*([^|]+)/i) || [])[1]?.trim() || null } : null;
+    const cwL = f(/^Cyberware:\s*(.+)$/i), cwP = pf(/^Cyberware:\s*(.+)$/i);
+    const split = v => String(v || '').split(/\s*,\s*(?![^()]*\))/).map(x => x.trim()).filter(Boolean);
+    const cyberware = cwL ? split(cwL[1]) : [];
+    const cwBefore = new Set((cwP ? split(cwP[1]) : []).map(x => x.toLowerCase()));
+    const netL = f(/^Netrunning:\s*Net Level\s*(\d+)(?:\s*\|\s*Deck:\s*(.+))?$/i);
+    const facL = f(/^Faction:\s*(.+?)\s*(?:\(([^)]+)\))?\s*$/i);
+    const heatL = f(/^Heat:\s*(.+)$/i);
+    let heat = null;
+    if (heatL) {
+        const parts = heatL[1].split(/\s*[·|]\s*/);
+        const lv = parts[0].match(/^([0-5])\s*(?:\(([^)]+)\))?/);
+        const hunted = parts.map(x => x.match(/^(.+?):\s*Hunted\b/i)).filter(Boolean).map(m => m[1].trim());
+        heat = { level: lv ? Number(lv[1]) : null, who: lv && lv[2] ? lv[2].trim() : null, hunted, prev: (pf(/^Heat:\s*([0-5])/i) || [])[1] ? Number(pf(/^Heat:\s*([0-5])/i)[1]) : 0 };
+    }
+    const passL = f(/^Passenger:\s*([^|]+?)\s*\|\s*Overwrite:\s*(\d{1,3})\s*%(?:\s*\|\s*Stage:\s*([^|]+))?/i), passP = pf(/^Passenger:[^|]*\|\s*Overwrite:\s*(\d{1,3})/i);
+    const bondsL = f(/^Bonds:\s*(.+)$/i);
+    const bonds = bondsL ? split(bondsL[1]).map(x => { const m = x.match(/^(.+?)\s*\(([^)]+)\)$/); return m ? { name: m[1].trim(), stage: m[2].trim(), rank: CP_BOND.findIndex(b => b.toLowerCase() === m[2].trim().toLowerCase()) } : { name: x, stage: null, rank: -1 }; }) : [];
+    const chL = f(/^Changes?:\s*(.+)$/i);
+    const changes = chL ? split(chL[1]).map(x => { const m = x.match(/^(.+?)\s*\((\d+)\s*\/\s*(\d+)\)$/); return m ? { text: m[1].trim(), done: Number(m[2]), goal: Number(m[3]) } : { text: x, done: null, goal: null }; }) : [];
+    const checkpoints = worldAll(lines, /^(?:⚠️\s*)?Checkpoint:\s*(.+?)\s+by\s+(.+?)(?:\s+\(([^)]+)\))?\s*(?:[—–-]\s*in\s+(.+))?$/i).map(m => ({ what: m[1].trim(), by: m[2].trim(), arc: m[3] ? m[3].trim() : null, inText: m[4] ? m[4].trim() : null }));
+    const changed = worldAll(lines, /^(?:❌\s*)?Canon changed:\s*(.+)$/i).map(m => m[1].trim());
+    const nextL = f(/^(?:⏳|⚠️)?\s*(Next Canon Event|Next Turning Point|Canon Begins):\s*(.+?)\s*[—–-]\s*in\s+([^()]+?)\s*(?:\(([^)]+)\))?\s*$/i);
+    const n = v => (v ? worldNum(v) : null);
+    const eddies = ed ? n(ed[1]) : null, humanity = hum ? Number(hum[1]) : null, credN = cred ? n(cred[1]) : null, ow = passL ? Number(passL[2]) : null;
+    return {
+        eddies, eddiesBand: ed && ed[2] ? ed[2].trim() : null, eddiesDelta: delta(eddies, edP ? n(edP[1]) : null),
+        humanity, humanityMax: hum ? Number(hum[2]) : null, psyche: hum && hum[3] ? hum[3].trim() : humanity !== null ? band(humanity, CP_PSYCHE) : null, humanityDelta: delta(humanity, humP ? Number(humP[1]) : null),
+        cred: credN, reputation: cred && cred[2] ? cred[2].trim() : credN !== null ? band(credN, CP_CRED) : null, credDelta: delta(credN, credP ? n(credP[1]) : null),
+        identity, arc: arcL ? (arcL.length > 3 && arcL[3] ? { code: `${arcL[1]}-${arcL[2]}`, title: arcL[3].trim() } : { code: null, title: arcL[1].trim() }) : null, mode,
+        cyberware: cyberware.map(x => ({ name: x, isNew: cwP ? !cwBefore.has(x.toLowerCase()) : false, lore: worldLore(chatId, x.replace(/\s*\(.*\)$/, '')) })),
+        net: netL ? { level: Number(netL[1]), deck: netL[2] ? netL[2].trim() : null } : null,
+        faction: facL ? { name: facL[1].trim(), rank: facL[2] ? facL[2].trim() : null } : null,
+        heat, passenger: passL ? { name: passL[1].trim(), pct: ow, stage: passL[3] ? passL[3].trim() : band(ow, CP_PASSENGER), delta: delta(ow, passP ? Number(passP[1]) : null) } : null,
+        bonds, changes, checkpoints, changed,
+        next: nextL ? { label: nextL[1], event: nextL[2].trim(), inText: nextL[3].trim(), when: nextL[4] ? nextL[4].trim() : null } : null
     };
 }
 
@@ -10066,7 +10131,7 @@ const WORLD_STANDARD_ISSUE = {
         note: 'Standard issue. The bot assumes every student carries these and puts one on the HUD only when something happens to it (confiscated, cracked, torn).' }
 };
 function worldStandardIssue(hud) { try { return hud ? WORLD_STANDARD_ISSUE[worldOf(worldLines(hud))] || null : null; } catch { return null; } }
-const WORLD_LABEL = { rezero: 'Re:Zero', overlord: 'Overlord', cote: 'Classroom of the Elite', mushoku: 'Mushoku Tensei', undertale: 'Undertale', darksouls: 'Dark Souls', skyrim: 'Skyrim', bg3: 'Baldur\u2019s Gate 3' };
+const WORLD_LABEL = { rezero: 'Re:Zero', overlord: 'Overlord', cote: 'Classroom of the Elite', mushoku: 'Mushoku Tensei', undertale: 'Undertale', darksouls: 'Dark Souls', skyrim: 'Skyrim', bg3: 'Baldur\u2019s Gate 3', cyberpunk: 'Cyberpunk' };
 const RZ_RANKS = ['Lesser', 'Quasi', 'Full', 'Great', 'Sovereign'];
 const MT_MARTIAL = ['Beginner', 'Intermediate', 'Advanced', 'Saint', 'King', 'Emperor', 'God'];
 const MT_MAGIC = ['Elementary', 'Intermediate', 'Advanced', 'Saint', 'King', 'Emperor', 'God'];
@@ -10087,6 +10152,7 @@ function worldOf(lines) {
         undertale: 2 * /^(LV|LOVE):\s*\d+/m.test(t) + /^SOUL:/m.test(t) + /^Route:/m.test(t) + 2 * /\bThe Underground\b|Snowdin|Waterfall|Hotland|New Home|Mt\.? Ebott/i.test(t),
         darksouls: 2 * /(^|\|\s*)Souls:\s*[\d,]+/m.test(t) + /Estus/i.test(t) + /^(Bonfire|Last Bonfire):/m.test(t) + /Humanity:|Hollowing|\bEmbered\b/i.test(t) + 2 * /Lordran|Lothric|Drangleic|Firelink|Age of Fire|Kiln of the First Flame/i.test(t),
         bg3: 2 * /Fa(?:er|e)r[u\u00FB]n/i.test(t) + 2 * /\b14\d\d DR\b/.test(t) + /^Tadpole:/m.test(t) + /^Arc:\s*(?:Act\s+[IVX]+|Sandbox)/m.test(t) + /^Party:.*[\u2014\u2013-]\s*(?:Despise|Low|Neutral|Medium|High|Exceptional)\b/m.test(t),
+        cyberpunk: 2 * /^Eddies:\s*[\d,]+/m.test(t) + 2 * /^Street Cred:\s*\d+/m.test(t) + /^Humanity:\s*\d{1,3}\s*\/\s*100\s*\|\s*Psyche:/m.test(t) + /^(?:Cyberware|Netrunning|Passenger|Heat):/m.test(t) + /Night City|Arasaka|Militech|\bNCPD\b|^Identity:.*\bLifepath:/m.test(t),
         skyrim: 2 * /\bMagicka\b/i.test(t) + /Dragon Souls:/i.test(t) + /^Shouts?:/m.test(t) + /Standing Stone/i.test(t) + 2 * /\bSkyrim\b|Tamriel|Whiterun|Solitude|Windhelm|Riften|Markarth/i.test(t)
     };
     let best = null, top = 1;
@@ -10787,6 +10853,7 @@ function worldPanel(chatId, chat, st) {
     else if (id === 'darksouls') Object.assign(out, worldDarkSouls(chatId, lines));
     else if (id === 'skyrim') Object.assign(out, worldSkyrim(chatId, lines));
     else if (id === 'bg3') Object.assign(out, worldBg3(chatId, lines));
+    else if (id === 'cyberpunk') Object.assign(out, worldCyberpunk(chatId, lines, prevLines));
     // A D&D character sheet some Re:Zero modes print: the D&D card reads it instead of your own numbers.
     // A HUD that prints a class and level (BG3) gives one too: level, saves, skills and any Stats line.
     const sheet = worldFind(lines, /^\[D&D CHARACTER SHEET\]$/i) ? worldDndSheet(lines) : hudDndSheetGeneric(lines);
