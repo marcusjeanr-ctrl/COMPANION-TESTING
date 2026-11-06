@@ -46,6 +46,8 @@
 
 **No blink on click:** a click or a toggle redraws the panel, and every card used to replay its fade-in and rise each time. Entrance animations now play only when you change view or a new reply lands; an ordinary redraw runs none.
 
+**Arrival letters aren't late:** an Agenda item that waits on arriving ("when he reaches Roa") no longer turns overdue because the report pinned the arrival time to it. Once you are there, a letter counts down to the next open post or courier ("in 3d 15h, with the post"); anything else shows as due today. On the way, it has no set time. This also stops the narrator's prompt being told the letter is late. The arrival wording is remembered when a later reply rewords it ("from Roa").
+
 **On the road is not there yet:** a location like "Fittoa road, en route to Roa" no longer counts as being in Roa. The Agenda's "you're here" chip and the check that holds "when he reaches Roa" items until you arrive now read only where you are, not where you are headed (en route to, on the way to, heading for, bound for, the road to…).
 
 **Gear follows your luggage:** the Companion's gear rules now say that your things moved by someone else are still yours and their new place is reported: servants carrying your bags down, luggage lashed onto the courier's wagon, a bag handed to a porter. "The bags" is reported as each bag Gear already lists, never a new "bags" item. Before, those moves were skipped because only your own actions counted, so the bags stayed "beside the bedroom door" after they were loaded. Prompt wording only; no extra calls.

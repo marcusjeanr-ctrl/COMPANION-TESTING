@@ -14844,7 +14844,7 @@ function agendaNarratedMove(row, items, source, messageId) {
 const PLACE_HEADING_RE = /[,;–—-]?\s*\b(?:en route|on (?:the|his|her|their|our|your|my) way|headed|heading|bound|travell?ing|riding|walking|marching|sailing|driving|journeying)\s+(?:on\s+)?(?:to|for|toward|towards)\b[^→›>|]*/gi;
 const PLACE_ROAD_TO_RE = /\b(road|way|path|route|trail|highway|track)\s+(?:to|toward|towards)\s+[^→›>|,;]*/gi;
 function placeNow(text) { return String(text || '').replace(PLACE_HEADING_RE, ' ').replace(PLACE_ROAD_TO_RE, '$1'); }
-const AGENDA_ARRIVAL_RE = /\b(?:when|after|once|upon|on|until)\s+(?:(?:he|she|they|you|i|we|marcus)\s+)?(?:first\s+)?(?:reach(?:es)?|arriv(?:e|es|al)|gets?\s+to|settles?\s+in|is\s+settled|lands?\s+in)\b/i;
+const AGENDA_ARRIVAL_RE = /\b(?:when|after|once|upon|on|until)\s+(?:(?:he|she|they|you|i|we|marcus)\s+)?(?:first\s+)?(?:reach(?:es)?|arriv(?:e|es|ed|al)|gets?\s+to|settles?\s+in|is\s+settled|lands?\s+in)\b/i;
 const AGENDA_FIRST_LETTER_RE = /\bfirst\s+(?:\w+\s+){0,2}?(?:letters?|note)\b/i;
 function agendaIsLetter(r) {
     return r?.kind === 'letter' || /\b(?:letters?|write|writes|written|note to)\b/i.test(String(r?.what || ''));
@@ -14977,6 +14977,9 @@ function agendaRead(chat, st) {
                 if (it.when && it.when !== r.when) it.reschedules.push({ when: it.when, where: it.where, with: it.with, dueAt: it.dueAt, msgId: m.id });
             }
             if (scenePlace) it.scenePlace = scenePlace;
+            // 1.4.0: once any report said it waits on arriving ("when he reaches Roa"), later rewordings ("from Roa") keep that
+            if (AGENDA_ARRIVAL_RE.test(String(r.when || '')) || AGENDA_ARRIVAL_RE.test(String(r.due || ''))) it.waitsArrival = true;
+            if (r.moved || moved) it.waitsArrival = AGENDA_ARRIVAL_RE.test(String(r.when || '')) || AGENDA_ARRIVAL_RE.test(String(r.due || ''));
             it.what = r.what; // The first key remains stable; show the latest confirmed description.
             // A later wording with no day of its own ("spring courier runs" after "in two months") keeps the day
             // already known, unless the story moved the appointment.
@@ -15036,6 +15039,7 @@ function hmsAgendaPanel(chat, st, cfg, forDisplay = false) {
         const ongoing = routine || ['open', 'in_progress'].includes(it.state) && (dueIn === null || /^\s*(?:for\s+)?(?:the\s+next\s+)?(?:\d+|one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|a few)\s+(?:days?|weeks?|months?|years?)\s*[,;]/i.test(String(it.when || ''))) && /^\s*(?:for\s+)?(?:the\s+next\s+)?(?:\d+|one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|a few)\s+(?:days?|weeks?|months?|years?)\s*(?:$|[,;])|\b(?:daily|every (?:day|morning|evening|night|week)|each (?:day|morning|evening|night)|until (?:the )?(?:departure|seedwake|spring)|ongoing)\b/i.test(String(it.when || ''));
         const status = ongoing ? 'ongoing' : it.state !== 'open' ? it.state : dueIn === null ? 'unset' : dueIn < -60 ? 'overdue' : dueIn <= 180 ? 'soon' : 'upcoming';
         const row = { key: it.key, what: it.what, with: it.with, where: it.where, when: it.when, dueIn, kind: it.kind, state: it.state, status, from: it.from, mine: !!it.mine, isNew: it.changedIn === lastId && !!lastId };
+        if (it.waitsArrival) Object.defineProperty(row, '_arrival', { value: true, enumerable: false });
         // Days until a commitment whose day the story named but not its hour ("in two days"), counted from today's HUD date.
         if (dueIn === null && it.dayNamed && Number.isFinite(it.scheduleDay) && now !== null) row.dayIn = it.scheduleDay - Math.floor(now / 1440);
         // UI-only source reference. Never resolve a time or add this field to model hints.
@@ -15047,6 +15051,24 @@ function hmsAgendaPanel(chat, st, cfg, forDisplay = false) {
         }
         return row;
     });
+    // 1.4.0: "when he reaches Roa" waits on arriving, not on a clock. A time the report pinned to it (often the
+    // arrival itself) never makes it late: once you are there it is due today, and a letter that rides with an
+    // open post or courier counts down to that post instead. Display and the due-now hint only; the stored row is untouched.
+    try {
+        const hm = latestHudMessage(chat), hl = hm ? parseHud(textOf(hm.content))?.location : null;
+        const here = trackingWords(placeNow(Array.isArray(hl) ? hl.join(' ') : hl || ''));
+        const post = out.filter(r => r.state === 'open' && Number.isFinite(r.dueIn) && r.dueIn > 0 && /\b(?:post|courier|mail|letters?\s+(?:go|leave|ride))\b/i.test(`${r.what} ${r.when || ''}`))
+            .sort((a, b) => a.dueIn - b.dueIn)[0] || null;
+        for (const r of out) {
+            if (r.state !== 'open' || r === post || !(r._arrival || AGENDA_ARRIVAL_RE.test(String(r.when || '')))) continue;
+            const there = [...trackingWords(r.where || '')];
+            const arrived = there.length > 0 && there.some(w => here.has(w));
+            const letter = r.kind === 'letter' || /\b(?:letter|write|writes|send)\b/i.test(r.what || '');
+            if (arrived && letter && post) { r.dueIn = post.dueIn; r.by = post.what; }
+            else { r.dueIn = null; if (arrived) r.dayIn = 0; }
+            r.status = r.dueIn === null ? (arrived ? 'today' : 'unset') : r.dueIn < -60 ? 'overdue' : r.dueIn <= 180 ? 'soon' : 'upcoming';
+        }
+    } catch { /* display help only */ }
     const rank = { in_progress: -1, overdue: 0, soon: 1, today: 1.5, upcoming: 2, ongoing: 2.5, unset: 3, kept: 4, missed: 5, cancelled: 6 };
     out.sort((a, b) => (rank[a.status] - rank[b.status]) || ((a.dueIn ?? 1e12) - (b.dueIn ?? 1e12)));
     return { items: out.slice(0, 60), ask: ac.ask, tell: ac.tell, clock: now !== null };

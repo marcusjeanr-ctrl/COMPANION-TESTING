@@ -7186,6 +7186,8 @@ export function setup(ctx) {
         const timing=x.agendaTiming || agendaDisplayTiming(x,state.hms?.systems?.clock,state.hms?.hud);
         if (timing.dayOnly && Number.isFinite(timing.dayIn)) { const d=timing.dayIn; return d===0?T('today'):d===1?T('tomorrow'):d>1?TT('in {0} days',d):TT('{0} days late',-d); }
         if (timing.dayOnly) return x.when || x.displayDueDate || x.due;
+        // 1.4.0: an arrival letter counts down to the post it rides with
+        if (x.by && Number.isFinite(timing.delta) && timing.delta > 0) return TT('in {0}, with the post', fmtSpan(timing.delta));
         if(playOn('appointmentCountdown')){const text=countdownText(x);if(text)return text;}
         if (timing.delta === null) return x.when || 'no set time';
         if (timing.delta < -60) return TT('{0} late', fmtSpan(-timing.delta));
