@@ -46,6 +46,8 @@
 
 **No blink on click:** a click or a toggle redraws the panel, and every card used to replay its fade-in and rise each time. Entrance animations now play only when you change view or a new reply lands; an ordinary redraw runs none.
 
+**Gear follows your luggage:** the Companion's gear rules now say that your things moved by someone else are still yours and their new place is reported: servants carrying your bags down, luggage lashed onto the courier's wagon, a bag handed to a porter. "The bags" is reported as each bag Gear already lists, never a new "bags" item. Before, those moves were skipped because only your own actions counted, so the bags stayed "beside the bedroom door" after they were loaded. Prompt wording only; no extra calls.
+
 **No Character sheet card:** everything on it (name, house, mana, reserve, touki, sword and magic ranks) is already on the You, World and Magic cards. Printing the character sheet (Tools → Print the sheet, or the search palette) still works.
 
 **Gear is one list, and quieter:** the By where / By kind / On you tabs are merged into one list, grouped by where things are and sorted by kind inside each group. The top is one row: where chips with counts (👕 3 worn, 🎒 3 on you, 📥 6 packed, 📍 3 left behind) that jump to those items, a kind menu (Weapons, Clothing, Letters… with counts) that shows only that kind, and 🧍 for the paper doll. Hands show only when you hold something. The Move menu on every row is gone (tap a card for its quick moves); "on the HUD" is a small dot and "just now" is the row's glow. Luggage and things left behind start folded, with the place and count in the header. Nested bags use lighter lines. Letters are their own kind. A find box appears once you carry 20 or more things.
