@@ -5522,26 +5522,6 @@ export function setup(ctx) {
     function rankPips(step, cls = '') {
         return h('span', { class: 'rpgc-rpips ' + cls, 'aria-hidden': 'true' }, RANK_LADDER.map((_, i) => h('i', { class: i <= step ? 'on' : '' })));
     }
-    function renderSheet() {
-        const w = state.world || {}, y = youOf ? youOf() : null;
-        if (S()?.uiSheet === false || (!w.race && !w.magic && !w.martial)) return null;
-        const name = state.userName || T('You');
-        const tile = (ic, k, v, cls = '') => v ? h('div', { class: 'rpgc-st-tile ' + cls }, h('span', { class: 'ic', 'aria-hidden': 'true' }, ic), h('span', { class: 'k' }, T(k)), h('b', null, String(v))) : null;
-        const ranks = [...(w.martial || []).map(m => ({ ...m, kind: 'sword' })), ...(w.magic || []).map(m => ({ ...m, kind: 'magic' }))];
-        const body = [
-            h('div', { class: 'rpgc-sheet-id' }, ringed(avatarImg(name) || monogram(name), { bond: 'family', tone: 'top' }),
-                h('div', { class: 'tx' }, h('b', { class: 'nm' }, name),
-                    h('span', { class: 'sub' }, [w.race, w.age ? TT('{0} years', w.age) : null, w.origin].filter(Boolean).join(' · ')),
-                    w.standing?.text ? h('span', { class: 'rpgc-chip standing top' }, w.standing.rank || w.standing.kind || w.standing.text) : null,
-                    w.standing?.house ? h('span', { class: 'sub' }, [w.standing.house, w.standing.birth].filter(Boolean).join(' · ')) : null),
-                y?.mood ? h('span', { class: 'rpgc-chip mood' }, y.mood) : null),
-            h('div', { class: 'rpgc-st-grid' }, tile('💧', 'Mana', w.mana, 'mana'), tile('🔋', 'Reserve', w.reserve), tile('🔥', 'Touki', w.touki, 'touki')),
-            ranks.length ? h('div', { class: 'rpgc-st-ranks' }, ranks.map(r => h('div', { class: 'rpgc-st-rank ' + r.kind, 'data-school': r.kind === 'magic' ? schoolKey(r.name) : null },
-                h('span', { class: 'ic', 'aria-hidden': 'true' }, r.kind === 'sword' ? '⚔️' : '✨'), h('b', null, r.name), h('span', { class: 'rk' }, r.rank || '?'), rankPips(Number.isFinite(r.step) ? r.step : rankStep(r.rank))))) : null,
-            // 1.4.0: training (Training card), languages and casting (World card) are not repeated here
-        ];
-        return section('sheet', T('Character sheet'), state.open, w.standing?.rank || null, h('div', { class: 'rpgc-sheet' }, body));
-    }
     // the paper doll: where each thing sits on you, from its tracked state and place
     const DOLL_SLOTS = [['hands', '✋', 'Hands'], ['head', '🧢', 'Head'], ['shoulders', '🧥', 'Shoulders & back'], ['body', '👕', 'Body'],
         ['arms', '🧤', 'Arms & wrists'], ['belt', '🪢', 'Belt & hips'], ['feet', '🥾', 'Feet'], ['bags', '🎒', 'Bags'], ['set', '📍', 'Set down']];
@@ -6017,7 +5997,7 @@ export function setup(ctx) {
         const cards = [
             ['scene', renderRecap], ['scene', renderNow], ['scene', renderTodo], ['scene', renderLooseEnds], ['scene', renderWorldState], ['scene', renderWorldCard], ['scene', renderMap], ['journey', renderAtlas], ['journey', renderAgenda],
             ['journey', () => h('div', { class: 'rpgc-row rpgc-journey-top', 'data-open-key': 'recap-btn' }, h('button', { class: 'rpgc-btn', onclick: () => { state.recap = { since: null }; goTo('scene'); } }, '📜 ' + T('Previously…')))],
-            ['you', renderSheet], ['you', renderYou], ['you', renderGear], ['you', renderHoldings], ['you', renderMoney], ['you', renderDnd],
+            ['you', renderYou], ['you', renderGear], ['you', renderHoldings], ['you', renderMoney], ['you', renderDnd],
             ['people', renderPeopleAll], ['people', renderRelationshipWeb], ['people', renderFamily], ['people', renderFactions], ['people', renderSecrets], ['people', renderPhone],
             ['you', renderBody], ['you', renderInjuries], ['you', renderMind], ['you', renderSurvival], ['you', renderMagic], ['you', renderTechniques], ['you', renderAbilities], ['you', renderTraining],
             ['journey', () => s.showQuests ? renderHmsQuests() : null], ['journey', renderChronicle], ['journey', renderStorySoFar], ['journey', renderMilestones], ['journey', renderChapter]];

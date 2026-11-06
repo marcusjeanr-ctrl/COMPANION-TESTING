@@ -46,9 +46,11 @@
 
 **No blink on click:** a click or a toggle redraws the panel, and every card used to replay its fade-in and rise each time. Entrance animations now play only when you change view or a new reply lands; an ordinary redraw runs none.
 
+**No Character sheet card:** everything on it (name, house, mana, reserve, touki, sword and magic ranks) is already on the You, World and Magic cards. Print the character sheet (Settings → Tools, or the command palette) still works.
+
 **Gear is one list:** the By where / By kind / On you tabs are merged. Gear is grouped by where it is, sorted by kind inside each group, and every row knows its kind. Kind chips at the top (⚔️ 1, 📜 4…) show only that kind; All brings everything back. Tap the hands row to show or hide the paper doll.
 
-**Less repetition:** Scene no longer shows the Here row or the Since-last-reply box (both still in All). The Open threads card is gone (Quests, Agenda and Loose ends already hold it). What's next keeps its ideas button and only the lists nothing else shows (things to get back, people not seen in a while, birthdays). Training progress shows only in the Training card, not in World State or the Character sheet; the sheet also drops languages and casting (World card). The Story so far keeps the arc, the arc ring and the totals; its moments and promises lists are in the Chronicle and the Agenda.
+**Less repetition:** Scene no longer shows the Here row or the Since-last-reply box (both still in All). The Open threads card is gone (Quests, Agenda and Loose ends already hold it). What's next keeps its ideas button and only the lists nothing else shows (things to get back, people not seen in a while, birthdays). Training progress shows only in the Training card, not in World State. The Story so far keeps the arc, the arc ring and the totals; its moments and promises lists are in the Chronicle and the Agenda.
 
 **Tracking fix found on the way**
 - **The Chronicle no longer logs a reporter sentence as a learned spell.** "Learned a spell — Lord Boreas wants Marcus as steady company…" came from the tracker's learned slot. It now logs only what the Spellbook accepts, so "Flash Slash" is logged as a technique.
