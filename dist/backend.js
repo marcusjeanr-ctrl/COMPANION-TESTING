@@ -838,7 +838,44 @@ function normalizeCharacters(value) {
     return null;
 }
 
+// ─────────── 1.4.0: the echo guard ───────────
+// Each turn the Companion shows its model what it already knows (Agenda, gear, people, standings…), so it can say what
+// changed. A model sometimes hands the panel's own wording back: a countdown ("in 3d 14h", "2h late"), an age ("3d ago",
+// "just now", "Last seen · 3 months ago"), a label ("on the HUD", "set by you", "status unknown"). Read as a story fact,
+// that re-dates or rewrites what the story said. Every report the Companion reads goes through here first: a value
+// that is only our wording is dropped (as if not reported, so what is known stays); "… (story: X)" keeps X.
+const ECHO_SPAN = String.raw`(?:\d+\s*(?:d|h|m|min|mins)\b\s*)+`;
+const ECHO_FULL_RE = new RegExp(String.raw`^\s*(?:` + [
+    String.raw`(?:due\s+)?in\s+${ECHO_SPAN}(?:,\s*with the post)?`,      // our countdowns
+    String.raw`${ECHO_SPAN}(?:late|overdue|ago)`,                           // our lateness and ages
+    String.raw`(?:passed\s+)?${ECHO_SPAN}ago`,
+    String.raw`due now(?: or soon)?`, 'just now', 'late', 'overdue', 'no set time', 'status unknown',
+    String.raw`(?:🕰️\s*)?last seen\s*·.*`,                                   // our "Last seen · 3 months ago"
+    'on the HUD', 'set by you', 'added by you',
+].join('|') + String.raw`)\s*[.;]?\s*$`, 'iu');
+const ECHO_STORY_RE = /^.*\(story:\s*([^)]+)\)\s*$/i;
+const ECHO_TAIL_RE = /\s*(?:[·—–-]\s*)?(?:on the HUD|set by you|added by you|just now)\s*$/i;
+function hintEchoValue(v) {
+    if (typeof v !== 'string') return v;
+    const st = ECHO_STORY_RE.exec(v);
+    if (st) return st[1].trim();
+    if (ECHO_FULL_RE.test(v)) return null;
+    const t = v.replace(ECHO_TAIL_RE, '');
+    return t === v ? v : (t.trim() || null);
+}
+function hintEchoScrub(obj, depth = 0) {
+    if (!obj || typeof obj !== 'object' || depth > 8) return obj;
+    if (Array.isArray(obj)) { for (let i = 0; i < obj.length; i++) { const x = obj[i]; if (typeof x === 'string') { const y = hintEchoValue(x); if (y !== x) obj[i] = y; } else hintEchoScrub(x, depth + 1); } return obj; }
+    for (const k of Object.keys(obj)) {
+        const x = obj[k];
+        // names and keys are identity, never display wording: leave them exactly as sent
+        if (typeof x === 'string') { if (/^(?:key|name|item|what|id|title|text|content|quote|line|summary|story|narrative|description|desc|note)$/i.test(k)) continue; const y = hintEchoValue(x); if (y !== x) obj[k] = y; }
+        else hintEchoScrub(x, depth + 1);
+    }
+    return obj;
+}
 function classifyPayload(parsed, result) {
+    hintEchoScrub(arguments[0]);
     const p = unwrapTrackerEnvelope(parsed);
     if (!p || typeof p !== 'object') return false;
     let hit = false;
@@ -2137,6 +2174,23 @@ function survivalFlagReading(msg, data, boundSource = null) {
     return value;
 }
 
+// a reading saved before the echo guard existed is checked once, the first time it is read (in memory only)
+// (a reply found clean is remembered by id and swipe, so a fresh copy of the chat is not walked again; new readings
+// are checked when they are parsed, so a reading written later is never skipped unchecked)
+const echoCheckedSet = new WeakSet(), echoCleanKeys = new Set();
+function echoChecked(data, msg) {
+    if (!data || echoCheckedSet.has(data)) return data;
+    echoCheckedSet.add(data);
+    const key = msg && msg.id ? `${msg.id}:${msg.swipe_id ?? 0}` : null;
+    if (key && echoCleanKeys.has(key)) return data;
+    let changed = false;
+    const walk = (o, d) => { if (!o || typeof o !== 'object' || d > 8) return; for (const k of Object.keys(o)) { const x = o[k];
+        if (typeof x === 'string') { if (!Array.isArray(o) && /^(?:key|name|item|what|id|title|text|content|quote|line|summary|story|narrative|description|desc|note)$/i.test(k)) continue; const y = hintEchoValue(x); if (y !== x) { o[k] = y; changed = true; } }
+        else walk(x, d + 1); } };
+    walk(data, 0);
+    if (key && !changed) { if (echoCleanKeys.size > 20000) echoCleanKeys.clear(); echoCleanKeys.add(key); }
+    return data;
+}
 function getSwipeData(msg, allowSnapshot = false) {
     const continuation = msg?._rpgcPurpose === 'continue';
     if (!trackingMessageVisible(msg) || (continuation && !allowSnapshot)) return null;
@@ -2148,11 +2202,11 @@ function getSwipeData(msg, allowSnapshot = false) {
     const data = live?.swipes?.[key], source = live?.sources?.[key];
     // Most reads use live metadata. Avoid allocating fallback candidates on that path,
     // and fingerprint only signed records; unsigned legacy reports stay readable.
-    if (isPlainObject(data) && (!continuation || source) && (!source || source === messageSource(msg))) return data;
+    if (isPlainObject(data) && (!continuation || source) && (!source || source === messageSource(msg))) return echoChecked(data, msg);
     const candidates = [msg?.extra?.spindle_metadata?.[META_KEY], msg?.metadata?.spindle_metadata?.[META_KEY]];
     for (const mine of candidates) {
         const fallback = mine?.swipes?.[key], bound = mine?.sources?.[key];
-        if (isPlainObject(fallback) && (!continuation || bound) && (!bound || bound === messageSource(msg))) return fallback;
+        if (isPlainObject(fallback) && (!continuation || bound) && (!bound || bound === messageSource(msg))) return echoChecked(fallback, msg);
     }
     return null;
 }
@@ -10982,6 +11036,7 @@ function parseCompanion(text, roster = [], relSt = null, immSt = null) {
         if (p.characters || p.relations || p.party || p.contacts) obj = { characters: p.characters, relations: p.relations, party: p.party, contacts: p.contacts };
     }
     if (!obj) return res;
+    hintEchoScrub(obj);
     const chars = normalizeCharacters(obj.characters || obj.presentCharacters || (Array.isArray(obj) ? obj : null));
     if (chars) { res.characters = chars; res.found = true; }
     if (obj.weather && typeof obj.weather === 'string') { res.weather = obj.weather.trim().slice(0, 40); res.found = true; }
@@ -11405,7 +11460,7 @@ function botSidePanel(text) {
     if (!/"side_panel"\s*:/.test(src)) return null;
     for (const o of scanJsonObjects(src)) {
         if (!/^\{\s*"side_panel"\s*:/.test(o.text)) continue;
-        const obj = repairJSON(o.text);
+        const obj = hintEchoScrub(repairJSON(o.text));
         const sp = obj && isPlainObject(obj.side_panel) ? obj.side_panel : null;
         if (!sp) continue;
         // the fence around it goes too, with the blank lines it leaves

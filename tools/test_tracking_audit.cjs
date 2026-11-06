@@ -15,7 +15,7 @@ const ctx = {
 };
 ctx.globalThis = ctx;
 vm.createContext(ctx);
-vm.runInContext(source.slice(0, startup) + '\nglobalThis.__t = { chronicleBuild, agendaRead, readingSource, getSwipeData, rewriteReplyText: typeof rewriteReplyText === \'function\' ? rewriteReplyText : null, setChatApi: (fn) => { chatApi.updateMessage = fn; }, factionFromHud, chronBondReworded: typeof chronBondReworded === \'function\' ? chronBondReworded : () => false, chronWhen, parseHud, techStanding: typeof techStanding === \'function\' ? techStanding : () => new Map(), questDetailsLatest, relGuard, relCfg, martialAbilityItems, techListPanel, posMovedNow, keepRoomReading, posRoomKey, setState: (st) => { getChatState = async () => st; saveChatState = async () => {}; }, setPool: p => { loreCatalogPool = () => p; }, spellStoryFold, moneyHudBalance: typeof moneyHudBalance === \'function\' ? moneyHudBalance : commsBalance, commsCfg, messageHud, moneyRead };', ctx);
+vm.runInContext(source.slice(0, startup) + '\nglobalThis.__t = { chronicleBuild, agendaRead, readingSource, getSwipeData, rewriteReplyText: typeof rewriteReplyText === \'function\' ? rewriteReplyText : null, setChatApi: (fn) => { chatApi.updateMessage = fn; }, factionFromHud, chronBondReworded: typeof chronBondReworded === \'function\' ? chronBondReworded : () => false, chronWhen, parseHud, techStanding: typeof techStanding === \'function\' ? techStanding : () => new Map(), questDetailsLatest, relGuard, relCfg, martialAbilityItems, techListPanel, posMovedNow, keepRoomReading, posRoomKey, setState: (st) => { getChatState = async () => st; saveChatState = async () => {}; }, setPool: p => { loreCatalogPool = () => p; }, spellStoryFold, moneyHudBalance: typeof moneyHudBalance === \'function\' ? moneyHudBalance : commsBalance, commsCfg, messageHud, moneyRead, hintEchoScrub: typeof hintEchoScrub === \'function\' ? hintEchoScrub : (o => o) };', ctx);
 const t = ctx.__t;
 
 let n = 0;
@@ -30,6 +30,15 @@ const results = [], failed = [];
 const check = (name, fn) => { try { fn(); results.push(name); } catch (e) { failed.push(`${name}: ${e.message.split('\n')[0]}`); } };
 
 // 1. Same Quest ID, a new (shorter) objective: the objective follows the story and progress starts over.
+check('the echo guard drops the panel\'s own wording and keeps the story\'s', () => {
+    const o = t.hintEchoScrub({ side_panel: { agenda: [{ key: 'post', what: 'Post south', when: 'in 3d 14h', due: 'due in 21h 52m (story: Day 5, first bell)' }, { key: 'b', what: 'Meet Bram', when: 'in two days' }],
+        quests: [{ name: 'Road', deadline: 'in 3h 40m' }], gear: [{ name: 'purse', state: 'on body', where: 'belt, right hip · on the HUD' }], family: [{ name: 'Bram', status: 'status unknown' }, { name: 'Cassian', status: 'away at the muster yard' }] } });
+    const sp = o.side_panel;
+    assert.equal(sp.agenda[0].when, null); assert.equal(sp.agenda[0].due, 'Day 5, first bell'); assert.equal(sp.agenda[1].when, 'in two days');
+    assert.equal(sp.quests[0].deadline, null); assert.equal(sp.gear[0].where, 'belt, right hip'); assert.equal(sp.gear[0].state, 'on body');
+    assert.equal(sp.family[0].status, null); assert.equal(sp.family[1].status, 'away at the muster yard');
+    assert.equal(sp.agenda[0].what, 'Post south', 'names and keys are never touched');
+});
 check('quest objective follows a new stage under the same Quest ID', () => {
     const chat = [user('go'), reply(quest('Win the mentor\'s approval at the training hall', 80)), user('next'),
         reply(quest('Pack for the road', 20)), user('next'), reply(quest('Pack for the road', 0))];
