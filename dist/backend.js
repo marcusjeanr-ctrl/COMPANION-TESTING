@@ -17971,6 +17971,10 @@ function spellResolver(chatId) {
         if (cache.techKeys.has(key)) return 'martial';
         // Unknown magical names remain usable; only explicit physical descriptions are rerouted.
         if (/\b(?:spell|magic|magical|casting)\b/i.test(name)) return 'magic';
+        // 1.4.0: a sword style or footwork is martial ("Sword God footing", "North God style", "Water God kata"), and so is
+        // anything with a sword in it that names no element ("sword drills"; an "Ice Sword" spell is in the index above)
+        if (/\b(?:sword|water|north)[- ]god\b/i.test(name) || /\b(?:footing|footwork|stances?|swordsmanship|kata)\b/i.test(name)) return 'martial';
+        if (/\b(?:sword|swords|blade)\b/i.test(name) && !/\b(?:water|earth|fire|wind|ice|stone|rock|lightning|frost|flame|mana)\b/i.test(name)) return 'martial';
         // Body and gear handling the story names in plain words ("Bracer wand flick", "Break-fall", "Quick draw") is
         // physical skill, not a spell, unless an element says otherwise.
         if (!/\b(?:water|earth|fire|wind|ice|stone|rock|healing|lightning|frost|flame|mana)\b/i.test(name)
@@ -18291,7 +18295,7 @@ function spellListPanel(chatId, chat, st, sys) {
     const isKnown = (k) => known.has(k) || knownKeys.some(x => spellSame(x, k));
     const techKeys = techKeySet(chatId);
     const classify = spellResolver(chatId);
-    const study = spellStudyActive(chat, st, fold, chatId, known).filter(s => !techKeys.has(spellKey(s.name)) && (s.from !== 'story' || classify.domain(s.name) !== 'martial'));
+    const study = spellStudyActive(chat, st, fold, chatId, known).filter(s => !techKeys.has(spellKey(s.name)) && classify.domain(s.name) !== 'martial');
     const studyKeys = new Set(study.map(s => spellKey(s.name)));
     const ladderOf = (r) => SPELL_LADDER[r.ladder] || SPELL_LADDER.mt;
     const needs = (r) => (r.ladder === 'rz' ? `Needs ${SPELL_LADDER.rz[r.step]} tier (Gate ${['F', 'D', 'C', 'B', 'S'][r.step]} or better)` : `Needs ${ladderOf(r)[r.step]}`);
@@ -18425,7 +18429,7 @@ function spellStudyReminder(chatId, chat, st, userName) {
     if (!fold.progress.size && !(Array.isArray(st.spellStudy) && st.spellStudy.length)) return null;
     const known = spellKnown(chat, st, fold, chatId, true);
     const classify = spellResolver(chatId);
-    const study = spellStudyActive(chat, st, fold, chatId, known).filter(s => s.from !== 'story' || classify.domain(s.name) !== 'martial');
+    const study = spellStudyActive(chat, st, fold, chatId, known).filter(s => classify.domain(s.name) !== 'martial');
     if (!study.length) return null;
     const kk = [...known.keys()];
     const cat = spellCatalog(chatId);
@@ -18637,7 +18641,8 @@ function techListPanel(chatId, chat, st, sys) {
     const fold = resolved.fold; st = resolved.st;
     const known = spellKnown(chat, st, fold, chatId, true);
     const catKeys = new Set(cat.map(r => r.key));
-    const study = spellStudyActive(chat, st, fold, chatId, known).filter(s => catKeys.has(spellKey(s.name)));
+    const classifyT = spellResolver(chatId);
+    const study = spellStudyActive(chat, st, fold, chatId, known).filter(s => catKeys.has(spellKey(s.name)) || classifyT.domain(s.name) === 'martial');
     const studyKeys = new Set(study.map(s => spellKey(s.name)));
     const has = (name) => stand.get(techStyleKey(name)) || null;
     const items = cat.map(r => {
