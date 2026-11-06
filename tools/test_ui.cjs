@@ -120,7 +120,10 @@ const fails = []; const check = (ok, what) => { if (!ok) fails.push(what); };
             check(f.ropeVisible && !f.coinVisible, 'gear: containers do not open and close independently');
             await q.evaluate(d => window.__recv(d), gearPayload); await q.waitForTimeout(40); f = await facts();
             check(!f.coinVisible && f.ropeVisible, 'gear: a closed container does not stay closed after a refresh');
-            await q.selectOption('select[aria-label="Move rope"]', 's:dropped');
+            // 1.4.0: no Move menu on the row; the card's quick moves send the same move
+            await q.evaluate(() => { const li = [...document.querySelectorAll('li.rpgc-gear-item')].find(l => l.querySelector(':scope > .name')?.textContent === 'rope'); li.querySelector(':scope > .name').click(); });
+            await q.click('button[aria-label="Drop: rope"]');
+            await q.evaluate(() => { const li = [...document.querySelectorAll('li.rpgc-gear-item')].find(l => l.querySelector(':scope > .name')?.textContent === 'rope'); li.querySelector(':scope > .name').click(); });
             const moved = await q.evaluate(() => (window.__sent || []).filter(m => m.type === 'gear').at(-1));
             check(moved && moved.op === 'set' && moved.name === 'rope' && moved.state === 'dropped', 'gear: Move no longer sends the move');
             // 1.3.0: tap a card for quick moves; a button sends the same move as the menu, and nested cards open alone
@@ -131,19 +134,19 @@ const fails = []; const check = (ok, what) => { if (!ok) fails.push(what); };
             await q.click('button[aria-label="Hold: cloak"]');
             const held = await q.evaluate(() => (window.__sent || []).filter(m => m.type === 'gear').at(-1));
             check(held && held.op === 'set' && held.name === 'cloak' && held.state === 'in hand', 'gear: a quick move does not send the move');
-            check(await q.evaluate(() => !!document.querySelector('.rpgc-gear-loadout .rpgc-gl-hand')), 'gear: the loadout bar is missing');
+            check(await q.evaluate(() => !!document.querySelector('.rpgc-gear-bar') && document.querySelectorAll('.rpgc-gear-bar button.rpgc-gv').length >= 2), 'gear: the where bar is missing');
             // 1.4.0 one list: every item drawn once and tagged with its kind; a kind chip shows only that kind, All brings the rest back
             const all = await q.evaluate(() => [...document.querySelectorAll('li.rpgc-gear-item')].map(l => ({ n: l.querySelector(':scope > .name')?.textContent, k: l.dataset.kind })));
             check(all.length === new Set(all.map(x => x.n)).size && all.every(x => x.k), 'gear: the list does not show each item once with its kind');
-            const chips = await q.evaluate(() => document.querySelectorAll('.rpgc-gear-kinds button.rpgc-gv').length);
-            check(chips >= 3, 'gear: the kind chips are missing');
+            const kinds = await q.evaluate(() => [...document.querySelectorAll('select.rpgc-gear-kindsel option')].map(o => o.value));
+            check(kinds.length >= 3 && kinds[0] === '', 'gear: the kind menu is missing');
             const visible = () => q.evaluate(() => [...document.querySelectorAll('li.rpgc-gear-item')].filter(l => l.getClientRects().length > 0).length);
             const before = await visible();
-            await q.click('.rpgc-gear-kinds button.rpgc-gv:nth-child(2)');
+            await q.selectOption('select.rpgc-gear-kindsel', kinds[1]);
             const shown = await q.evaluate(() => [...document.querySelectorAll('li.rpgc-gear-item')].filter(l => l.getClientRects().length > 0).map(l => l.dataset.kind));
-            const picked = await q.evaluate(() => document.querySelector('.rpgc-gear-kinds button.rpgc-gv.on')?.title || '');
-            check(shown.length > 0 && shown.length < all.length && picked, `gear: a kind chip does not filter the list (${shown.length}/${all.length})`);
-            await q.click('.rpgc-gear-kinds button.rpgc-gv:has-text("All")');
+            const picked = await q.evaluate(() => document.querySelector('select.rpgc-gear-kindsel')?.value || '');
+            check(shown.length > 0 && shown.length < all.length && picked, `gear: the kind menu does not filter the list (${shown.length}/${all.length})`);
+            await q.selectOption('select.rpgc-gear-kindsel', '');
             const back = await visible();
             check(back === before, `gear: All does not bring every item back (${back}/${before})`);
             if (shots) await q.screenshot({ path: path.join(shots, 'gear-containers.png'), fullPage: true });

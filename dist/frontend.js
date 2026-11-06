@@ -1130,8 +1130,28 @@ button.rpgc-chip.intel:hover { border-color: var(--lumiverse-accent, #7aa2f7); }
 .rpgc .rpgc-gl-hands{cursor:pointer;border-radius:var(--u-radius,10px)}
 .rpgc .rpgc-gl-hands.on{box-shadow:0 0 0 1px var(--u-accent)}
 .rpgc .rpgc-gl-hands:focus-visible{outline:2px solid var(--u-accent);outline-offset:2px}
-.rpgc .rpgc-gear-kinds .rpgc-gv{padding-inline:10px}
-.rpgc li.rpgc-gear-item[hidden],.rpgc .rpgc-gear-group[hidden]{display:none!important}
+.rpgc li.rpgc-gear-item[hidden],.rpgc .rpgc-gear-group[hidden],.rpgc .rpgc-gear-find[hidden]{display:none!important}
+.rpgc .rpgc-gear-holding{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:2px 0 8px}
+.rpgc .rpgc-gear-holding .k{font-size:11.5px;font-weight:700;color:var(--u-accent)}
+.rpgc .rpgc-gear-bar{display:flex;flex-wrap:wrap;gap:5px;align-items:center;margin:0 0 8px}
+.rpgc .rpgc-gear-bar .rpgc-gv{background:var(--u-raise);border:1px solid var(--u-line);padding:4px 9px;color:var(--u-text)}
+.rpgc .rpgc-gear-bar .sp{flex:1 1 0}
+.rpgc .rpgc-gear-bar .rpgc-gv .lbl{font-weight:500;color:var(--u-muted)}
+.rpgc .rpgc-gear-bar .rpgc-gv.on .lbl{color:inherit}
+@container rpgc (max-width:380px){.rpgc .rpgc-gear-bar .rpgc-gv .lbl{display:none}}
+.rpgc .rpgc-gear-kindsel{font-size:12px;padding:4px 8px;border-radius:999px;background:var(--u-raise);color:var(--u-text);border:1px solid var(--u-line);max-width:170px}
+.rpgc .rpgc-gear-kindsel.on{border-color:var(--u-accent);color:var(--u-accent)}
+.rpgc .rpgc-gear-find{width:100%;margin:6px 0 2px;padding:6px 10px;border-radius:999px;border:1px solid var(--u-line);background:var(--u-raise);color:var(--u-text);font-size:12.5px}
+.rpgc .rpgc-gi-hud{display:inline-block;width:6px;height:6px;border-radius:50%;margin-left:6px;vertical-align:middle;background:var(--u-accent);opacity:.7}
+.rpgc li.rpgc-gear-item.flash{box-shadow:0 0 0 2px var(--u-accent)}
+.rpgc details.rpgc-gear-group.fold>summary{cursor:pointer;list-style:none;display:flex;gap:4px;align-items:baseline;font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--u-muted);padding:4px 0}
+.rpgc details.rpgc-gear-group.fold>summary::-webkit-details-marker{display:none}
+.rpgc details.rpgc-gear-group.fold>summary::before{content:'▸';transition:transform .15s}
+.rpgc details.rpgc-gear-group.fold[open]>summary::before{transform:rotate(90deg)}
+.rpgc details.rpgc-gear-group.fold>summary .meta{text-transform:none;letter-spacing:0;font-weight:500}
+.rpgc details.rpgc-gear-group.fold>summary .n{margin-left:auto;font-weight:600}
+.rpgc .rpgc-gear-inside .rpgc-gear-inside{border-left-width:1px;margin-left:8px;padding-left:9px}
+.rpgc .rpgc-gear-inside li.rpgc-gear-item{background:transparent;border-color:color-mix(in srgb,var(--u-line) 60%,transparent)}
 .rpgc .rpgc-gl-hand{flex:1 1 0;min-width:0;display:flex;align-items:center;gap:7px;padding:7px 9px;border-radius:var(--u-radius-s);border:1px dashed var(--u-line-2);color:var(--u-muted);font-size:12px}
 .rpgc .rpgc-gl-hand.full{border-style:solid;border-color:color-mix(in srgb,var(--u-accent) 55%,transparent);background:color-mix(in srgb,var(--u-accent) 12%,transparent);color:var(--u-text);font-weight:600;box-shadow:0 0 0 1px color-mix(in srgb,var(--u-accent) 15%,transparent) inset}
 .rpgc .rpgc-gl-hand .ic{font-size:16px;line-height:1}.rpgc .rpgc-gl-hand .tx{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -7334,22 +7354,6 @@ export function setup(ctx) {
     const GEAR_LABEL = { 'in hand': 'in hand', worn: 'worn', sheathed: 'sheathed', 'on body': 'on you', 'in container': 'in a container', stowed: 'left somewhere', dropped: 'dropped' };
     function gearOf() { return (state.hms && state.hms.gear) || (state.extras && state.extras.gear) || null; }
     function gearAgo(x) { return x === null || x === undefined ? null : x < 1 || !fmtSpan(x) ? T('just now') : TT('{0} ago', fmtSpan(x)); }
-    function gearMove(g, it) {
-        const sel = h('select', { class: 'rpgc-gear-move', 'aria-label': `Move ${it.name}`, title: 'Change how you carry it' },
-            h('option', { value: '' }, 'Move…'),
-            ...['in hand', 'worn', 'sheathed', 'on body', 'stowed', 'dropped'].filter(s => s !== it.state).map(s => h('option', { value: 's:' + s }, GEAR_LABEL[s])),
-            ...g.containers.filter(cn => cn.toLowerCase() !== it.name.toLowerCase() && !(it.state === 'in container' && it.inside === cn)).map(cn => h('option', { value: 'c:' + cn }, `into ${cn}`)),
-            h('option', { value: 'gone' }, 'gone (used, given, lost)'));
-        sel.addEventListener('change', () => {
-            const v = sel.value;
-            if (!v) return;
-            if (v === 'gone') return send({ type: 'gear', chatId: state.chatId, op: 'remove', key: it.key, name: it.name });
-            if (v.startsWith('c:')) return send({ type: 'gear', chatId: state.chatId, op: 'set', key: it.key, name: it.name, state: 'in container', inside: v.slice(2) });
-            const s = v.slice(2);
-            send({ type: 'gear', chatId: state.chatId, op: 'set', key: it.key, name: it.name, state: s });
-        });
-        return sel;
-    }
     // 1.3.0: each thing gets a picture from its name (display only; nothing is stored or sent).
     const GEAR_ICONS = [
         [/\b(sword|blade|sabre|saber|katana|rapier|longsword|shortsword|scimitar)\b/i, '⚔️'], [/\b(dagger|knife|dirk|stiletto)\b/i, '🗡️'],
@@ -7371,12 +7375,13 @@ export function setup(ctx) {
         ['clothing', '🧥', 'Clothing & armour', /\b(cloak|coat|jacket|robe|cape|mantle|tunic|shirt|dress|scarf|hood|hat|cap|gloves?|boots?|shoes?|sandals?|belt|baldric|harness|bandolier|bracer|vambrace|gauntlets?|armou?r|mail|cuirass|breastplate|helm|helmet|shield|buckler|outfit|clothes|trousers|breeches|cowl|sash)\b/i],
         ['bags', '🎒', 'Bags & luggage', /\b(bags?|backpacks?|packs?|satchels?|sacks?|pouch(?:es)?|luggage|trunks?|chests?|cases?|box(?:es)?|wrap|wrapping|oilcloth|bundle|parcel|saddlebags?)\b/i],
         ['money', '👛', 'Money & valuables', /\b(purse|coins?|wallet|money|silver|gold|copper|ring|necklace|pendant|locket|brooch|jewel|gem|crystal|keepsake|heirloom|charm)\b/i],
+        ['letters', '✉️', 'Letters', /\b(letters?|envelopes?|missives?|correspondence|invitation)\b/i],
         ['papers', '📜', 'Books & papers', /\b(books?|tome|primer|journal|diary|notebook|letter|scroll|paper|map|note|parchment|document|contract|slate|tablet|chalk|ink|quill|pen|wax|seal)\b/i],
         ['food', '🍞', 'Food & drink', /\b(food|bread|cheese|ration|cake|apple|meat|jerky|cider|wine|ale|beer|tea|water ?skin|flask|bottle|canteen|potion|vial|elixir|tonic)\b/i],
         ['tools', '🔧', 'Tools & supplies', /\b(nail|horseshoe|tool|kit|whetstone|flint|rope|cord|twine|torch|lantern|lamp|candle|key|lockpick|needle|thread|blanket|bedroll|tent|spoon|knife-sharpener|oil)\b/i]
     ];
     // the most telling word wins: a "travel bundle of paper sheets" is papers, a "belt pouch" is a bag, a "spell book" is magic
-    const GEAR_KIND_PRIORITY = ['weapons', 'magic', 'money', 'papers', 'food', 'tools', 'bags', 'clothing'];
+    const GEAR_KIND_PRIORITY = ['weapons', 'magic', 'money', 'letters', 'papers', 'food', 'tools', 'bags', 'clothing'];
     function gearKind(it) {
         const kinds = GEAR_KIND_PRIORITY.map(id => GEAR_KINDS.find(k => k[0] === id));
         for (const k of kinds) if (k[3].test(it.name || '')) return k;
@@ -7384,6 +7389,13 @@ export function setup(ctx) {
         return ['other', '✦', 'Other', null];
     }
     // a state chip goes at the start of the place line, so a long name never runs into it
+    // a group you rarely need (luggage, things left behind) starts folded; open or closed is remembered
+    function gearFold(key, cls, head, body) {
+        const d = h('details', { class: cls + ' fold' }, h('summary', null, ...head), body);
+        d.open = state.open[key] === true; d.dataset.openKey = key;
+        d.addEventListener('toggle', () => { state.open[key] = d.open; });
+        return d;
+    }
     function gearTagRow(row, tag) {
         let meta = row.querySelector(':scope > .meta');
         if (!meta) { meta = h('span', { class: 'meta' }); const nm = row.querySelector(':scope > .name'); if (nm) nm.after(meta); else row.appendChild(meta); }
@@ -7404,14 +7416,14 @@ export function setup(ctx) {
             hist.length > 1 ? h('div', { class: 'rpgc-gi-hist' }, h('span', { class: 'k' }, T('Story')), ' ', hist.join(' → ')) : null);
     }
     function gearRow(g, it) {
-        const meta = [it.where, it.onHud ? T('on the HUD') : it.from === 'you' ? T('added by you') : null, it.mine ? T('set by you') : null, it.changedNow ? T('just now') : null].filter(Boolean).join(' · ');
+        const meta = [it.where, !it.onHud && it.from === 'you' ? T('added by you') : null, it.mine ? T('set by you') : null].filter(Boolean).join(' · ');
         const hist = (it.history || []).length > 1 ? it.history.map(x => `${x.state === 'in container' ? TT('in {0}', x.inside || T('a container')) : T(GEAR_LABEL[x.state] || x.state)}${x.where ? ` (${x.where})` : ''}${x.you ? ' — ' + T('set by you') : gearAgo(x.ago) ? ` — ${gearAgo(x.ago)}` : ''}`).join(' → ') : null;
         const tray = gearTray(g, it);
         const li = h('li', { class: 'rpgc-gear-item' + (it.changedNow ? ' now' : '') + (it.onHud ? ' hud' : ''), title: hist || null, 'data-state': it.state || 'unknown', 'data-kind': gearKind(it)[0] },
             h('span', { class: 'rpgc-gi-icon', 'aria-hidden': 'true' }, gearIcon(it.name)),
-            h('span', { class: 'name' }, it.name),
+            h('span', { class: 'name' }, it.name, it.onHud ? h('span', { class: 'rpgc-gi-hud', title: T('On the HUD'), 'aria-label': T('On the HUD') }) : null),
             meta || it.note ? h('span', { class: 'meta' }, it.note ? h('i', { class: 'rpgc-gi-note' }, it.note) : null, it.note && meta ? ' · ' : null, meta || null) : null,
-            gearMove(g, it), tray);
+            tray);
         // tap the card (not a button or a nested card) for quick moves and its story
         li.addEventListener('click', e => {
             if (e.target.closest('button,select,input,a') || e.target.closest('li.rpgc-gear-item') !== li) return;
@@ -7431,25 +7443,33 @@ export function setup(ctx) {
         const out = [];
         // 1.3.0 loadout bar: your hands first, then how much is on you, packed, and left behind
         const handsNow = g.items.filter(it => it.state === 'in hand');
-        const slot = it => h('div', { class: 'rpgc-gl-hand' + (it ? ' full' : '') }, h('span', { class: 'ic', 'aria-hidden': 'true' }, it ? gearIcon(it.name) : '✋'), h('span', { class: 'tx' }, it ? it.name : T('Empty hand')));
         const countOf = f => g.items.filter(f).length;
-        const stat = (icon, n, label) => h('span', { class: 'rpgc-gl-stat' + (n ? '' : ' zero'), title: T(label) }, h('span', { 'aria-hidden': 'true' }, icon), ' ', String(n), h('span', { class: 'lbl' }, ' ' + T(label)));
-        if (g.items.length) out.push(h('div', { class: 'rpgc-gear-loadout' },
-            h('div', { class: 'rpgc-gl-hands' + (state.open['gear-doll'] === true ? ' on' : ''), role: 'button', tabindex: '0', 'aria-pressed': state.open['gear-doll'] === true ? 'true' : 'false', title: T('Show where each thing sits on you'),
-                onclick: () => { state.open['gear-doll'] = !(state.open['gear-doll'] === true); render(); }, onkeydown: e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); state.open['gear-doll'] = !(state.open['gear-doll'] === true); render(); } } }, slot(handsNow[0] || null), slot(handsNow[1] || null), handsNow.length > 2 ? h('span', { class: 'rpgc-gl-more' }, `+${handsNow.length - 2}`) : null),
-            h('div', { class: 'rpgc-gl-stats' },
-                stat('👕', countOf(it => it.state === 'worn' || it.state === 'sheathed'), 'worn'),
-                stat('🎒', countOf(it => it.state === 'on body'), 'carried'),
-                stat('📥', countOf(it => it.state === 'in container'), 'packed'),
-                stat('📍', countOf(it => it.state === 'stowed' || it.state === 'dropped'), 'left behind'))));
-        // kind chips: tap one to show only that kind, tap again (or All) for everything; remembered
-        const kindsHere = GEAR_KINDS.concat([['other', '\u2022', 'Other']]).map(k => [k, g.items.filter(it => gearKind(it)[0] === k[0]).length]).filter(x => x[1]);
+        if (handsNow.length) out.push(h('div', { class: 'rpgc-gear-holding' }, h('span', { class: 'k' }, '✋ ' + T('Holding')),
+            ...handsNow.map(it => h('span', { class: 'rpgc-gn-chip' }, h('span', { 'aria-hidden': 'true' }, gearIcon(it.name)), ' ' + it.name))));
+        // where chips: how many, and a tap jumps to them (opening a folded group on the way)
+        const jump = sts => () => {
+            const sec = document.querySelector('.rpgc [data-open-key="gear"]') || document;
+            const li = [...sec.querySelectorAll('li.rpgc-gear-item')].find(l => sts.includes(l.dataset.state) && !l.hidden);
+            if (!li) return;
+            for (let d = li.parentElement; d && d !== sec; d = d.parentElement) { if (d.tagName === 'DETAILS') d.open = true; if (d.hasAttribute && d.hasAttribute('hidden') && d.classList.contains('rpgc-gear-inside')) d.removeAttribute('hidden'); }
+            li.scrollIntoView({ block: 'center', behavior: 'smooth' }); li.classList.add('flash'); setTimeout(() => li.classList.remove('flash'), 1200);
+        };
+        const where = (icon, sts, label) => { const n = countOf(it => sts.includes(it.state)); return n ? h('button', { type: 'button', class: 'rpgc-gv', title: TT('Go to {0}', T(label)), onclick: jump(sts) }, h('span', { 'aria-hidden': 'true' }, icon), ' ', String(n), h('span', { class: 'lbl' }, ' ' + T(label))) : null; };
+        const kindsHere = GEAR_KINDS.concat([['other', '•', 'Other']]).map(k => [k, g.items.filter(it => gearKind(it)[0] === k[0]).length]).filter(x => x[1]);
         let kf = state.open['gear-kind-filter'] || null;
         if (kf && !kindsHere.some(([k]) => k[0] === kf)) kf = null;
-        if (kindsHere.length > 1) out.push(h('div', { class: 'rpgc-gear-viewsw rpgc-gear-kinds', role: 'group', 'aria-label': T('Show one kind') },
-            h('button', { type: 'button', class: 'rpgc-gv' + (kf ? '' : ' on'), 'aria-pressed': kf ? 'false' : 'true', onclick: () => { state.open['gear-kind-filter'] = null; render(); } }, T('All')),
-            ...kindsHere.map(([k, n]) => h('button', { type: 'button', class: 'rpgc-gv' + (kf === k[0] ? ' on' : ''), 'aria-pressed': kf === k[0] ? 'true' : 'false', title: T(k[2]),
-                onclick: () => { state.open['gear-kind-filter'] = kf === k[0] ? null : k[0]; render(); } }, h('span', { 'aria-hidden': 'true' }, k[1]), ' ', String(n)))));
+        const kindSel = kindsHere.length > 1 ? h('select', { class: 'rpgc-gear-kindsel' + (kf ? ' on' : ''), 'aria-label': T('Show one kind'),
+            onchange: e => { state.open['gear-kind-filter'] = e.target.value || null; render(); } },
+            h('option', { value: '' }, `🗂️ ${T('All kinds')}`),
+            ...kindsHere.map(([k, n]) => h('option', { value: k[0], selected: kf === k[0] ? '' : null }, `${k[1]} ${T(String(k[2]).split(' & ')[0])} (${n})`))) : null;
+        const dollOn = state.open['gear-doll'] === true;
+        if (g.items.length) out.push(h('div', { class: 'rpgc-gear-bar', role: 'group', 'aria-label': T('Gear') },
+            where('👕', ['worn', 'sheathed'], 'worn'), where('🎒', ['on body', 'in hand'], 'on you'), where('📥', ['in container'], 'packed'), where('📍', ['stowed', 'dropped'], 'left behind'),
+            h('span', { class: 'sp' }), kindSel,
+            h('button', { type: 'button', class: 'rpgc-gv' + (dollOn ? ' on' : ''), 'aria-pressed': dollOn ? 'true' : 'false', title: T('Show where each thing sits on you'), 'aria-label': T('Show where each thing sits on you'),
+                onclick: () => { state.open['gear-doll'] = !dollOn; render(); } }, '🧍')));
+        const findIn = g.items.length >= 20 ? h('input', { type: 'search', class: 'rpgc-gear-find', placeholder: T('Find an item'), 'aria-label': T('Find an item'), value: state.gearFind || '' }) : null;
+        if (findIn) out.push(findIn);
         if (g.items.length && state.open['gear-doll'] === true) out.push(paperDoll(g));
         { const lb = g.items.length ? loadBar(g) : null; if (lb) out.push(lb); }
         const now = g.items.filter(it => it.changedNow);
@@ -7525,7 +7545,7 @@ export function setup(ctx) {
                 const lug = g.items.filter(it => isLug(it) && !used.has(it.key) && !nestedUnderRow(it));
                 if (lug.length) {
                     const place = (lug.find(it => it.where) || {}).where || null;
-                    out.push(h('div', { class: 'rpgc-gear-group luggage' }, h('h4', null, '🧳 ' + T('Luggage'), place ? h('span', { class: 'meta' }, ' · ' + place) : null), h('ul', null, lug.map(rowFor))));
+                    out.push(gearFold('gear-g-luggage', 'rpgc-gear-group luggage', ['🧳 ' + T('Luggage'), place ? h('span', { class: 'meta' }, ' · ' + place) : null, h('span', { class: 'n' }, String(lug.length))], h('ul', null, lug.map(rowFor))));
                 }
             }
             if (st === 'in container') {
@@ -7550,19 +7570,30 @@ export function setup(ctx) {
             }
             const list = g.items.filter(it => (st === null ? !it.state : it.state === st) && !used.has(it.key) && !nestedUnderRow(it) && !isLug(it));
             if (!list.length) continue;
-            out.push(h('div', { class: 'rpgc-gear-group' + (st === 'in hand' ? ' hands' : '') }, h('h4', null, title), h('ul', null, list.map(rowFor))));
+            if (st === 'stowed' || st === 'dropped') { const place = (list.find(it => it.where) || {}).where || null;
+                out.push(gearFold('gear-g-' + st, 'rpgc-gear-group', [title, place && list.every(it => it.where === place) ? h('span', { class: 'meta' }, ' · ' + place) : null, h('span', { class: 'n' }, String(list.length))], h('ul', null, list.map(rowFor)))); }
+            else out.push(h('div', { class: 'rpgc-gear-group' + (st === 'in hand' ? ' hands' : '') }, h('h4', null, title), h('ul', null, list.map(rowFor))));
         }
         // safety net: anything not drawn yet (an unknown state, or a bag whose own row was never drawn) still shows
         const rest = g.items.filter(it => !used.has(it.key));
         if (rest.length) { rest.forEach(it => used.add(it.key)); out.push(h('div', { class: 'rpgc-gear-group' }, h('h4', null, '❔ ' + T('Other')), h('ul', null, rest.map(it => gearRow(g, it))))); }
         }
-        // the kind filter: a row stays when it (or something inside it) is that kind; a group with nothing left hides
-        if (kf) for (const el of out.slice(whereFrom)) {
-            if (!el || !el.querySelectorAll) continue;
-            const rows = [...el.querySelectorAll('li.rpgc-gear-item')];
-            for (const li of rows.reverse()) { const keep = li.dataset.kind === kf || li.querySelector(`li.rpgc-gear-item[data-kind="${kf}"]:not([hidden])`); if (!keep) li.hidden = true; }
-            if (!rows.some(li => !li.hidden)) el.hidden = true;
-        }
+        // the kind filter and the find box: a row stays when it (or something inside it) fits; a group with nothing left hides
+        const listEls = out.slice(whereFrom).filter(el => el && el.querySelectorAll);
+        const applyFilter = () => {
+            const q = String(state.gearFind || '').trim().toLowerCase();
+            for (const el of listEls) {
+                const rows = [...el.querySelectorAll('li.rpgc-gear-item')];
+                for (const li of rows) li.hidden = false;
+                el.hidden = false;
+                if (!kf && !q) continue;
+                const fits = li => (!kf || li.dataset.kind === kf) && (!q || (li.querySelector(':scope > .name')?.textContent || '').toLowerCase().includes(q));
+                for (const li of rows.reverse()) if (!fits(li) && !li.querySelector('li.rpgc-gear-item:not([hidden])')) li.hidden = true;
+                if (!rows.some(li => !li.hidden)) el.hidden = true;
+            }
+        };
+        applyFilter();
+        if (findIn) findIn.addEventListener('input', () => { state.gearFind = findIn.value; applyFilter(); });
         if (!g.items.length) out.push(h('p', { class: 'rpgc-note' }, g.ask
             ? 'Write what you do with your things — “I sheathe my sword”, “I sling the pack on my back”, “the letter goes in my coat pocket” — and it shows up here after the reply. What the HUD lists under Equipment or Items shows up too.'
             : 'Asking the story about your gear is off (Settings → HMS systems → Gear). The HUD’s Equipment and Items lines still show here, and you can add things by hand.'));
