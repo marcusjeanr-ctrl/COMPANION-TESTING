@@ -2689,8 +2689,10 @@ async function pushStateNow(chatId, snapshot = null) {
     try {
         const chat = snapshot || await chatApi.getMessages(chatId);
         if (await healRecent(chatId, chat)) chat.splice(0, chat.length, ...(await chatApi.getMessages(chatId)));
-        const { data } = await collectCommitted(chatId, chat, null);
+        const { data: data0 } = await collectCommitted(chatId, chat, null);
         const target = lastAssistant(chat);
+        let data = data0;
+        try { const sc = withReadPass(chat, () => sceneCharacters(data0 && data0.characters, chat, target)); if (data0 && sc !== data0.characters) data = { ...data0, characters: sc }; } catch (e) { logW(`[RPG Companion HMS] Scene check failed: ${e?.message || e}`); }
         const cs = await getChatState(chatId);
         refreshThoughtsCache(chatId, chat);
         const userName = await getUserName(chatId);
@@ -19575,6 +19577,21 @@ async function hmsWorldMoves(chatId) {
 // ── Checks, birthdays and short story reminders (all read from what the panels already know) ──
 
 /** The people on a HUD's Present line: "Seraphina Veyrath (42, b. K374)", "Ferren (58, b. ~K358)", "Aurelia (8)". */
+/** 1.4.0: who is in the scene follows the HUD's Present line. The side panel sometimes lists people only heard or passing
+ * (boots in the hall, a voice from the kitchen) as in the scene. In a chat whose HUD keeps a Present line, the scene
+ * holds the people on it, plus anyone who speaks in this reply ([D:Name]); with no Present line, the player is alone
+ * unless someone speaks. Display of "here" only: what the story told the Companion about each person is kept. */
+function sceneCharacters(chars, chat, target) {
+    if (!Array.isArray(chars) || !chars.length || !target) return chars;
+    const hud = messageHud(target);
+    if (!hud) return chars;
+    if (!hmsTimeline(chat).slice(-12).some(e => hmsPresentPeople(e.hud).length)) return chars;   // this card does not keep a Present line
+    const present = hmsPresentPeople(hud).map(p => lockKey(p.name));
+    const speaks = [...stripThink(textOf(target.content)).matchAll(/\[D:([^\]]+)\]/g)].map(m => lockKey(m[1].trim()));
+    const first = k => String(k).split(' ')[0];
+    const on = (n, list) => { const k = lockKey(n); return list.some(x => x === k || (first(x) && first(x) === first(k))); };
+    return chars.filter(c => c && c.name && (on(c.name, present) || on(c.name, speaks)));
+}
 function hmsPresentPeople(hud) {
     if (!hud) return [];
     const line = hud.lines.map(l => hudSemanticText(String(l.text || ''))).find(t => /^\s*Present:/i.test(t));
