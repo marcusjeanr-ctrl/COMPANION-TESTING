@@ -14735,7 +14735,7 @@ function agendaReportedState(row, data, at, dueAt, previous = 'open', source = n
     // Waiting on an arrival ("when he reaches Roa") while the HUD is somewhere else: not under way yet, whatever was
     // reported before (a deal struck at home about the first letter from Roa is not that letter being written).
     if (['open', 'in_progress'].includes(row.state) && row.scenePlace && row.where && AGENDA_ARRIVAL_RE.test(String(row.when || row.due || ''))) {
-        const here = trackingWords(row.scenePlace), there = [...trackingWords(row.where)];
+        const here = trackingWords(placeNow(row.scenePlace)), there = [...trackingWords(row.where)];
         if (there.length && !there.some(w => here.has(w))) return 'open';
     }
     // Repeated pending reports are not evidence that the same occurrence restarted.
@@ -14840,6 +14840,10 @@ function agendaNarratedMove(row, items, source, messageId) {
     });
 }
 
+// where you ARE, not where you are going: "Fittoa road, en route to Roa" is the road, not Roa
+const PLACE_HEADING_RE = /[,;–—-]?\s*\b(?:en route|on (?:the|his|her|their|our|your|my) way|headed|heading|bound|travell?ing|riding|walking|marching|sailing|driving|journeying)\s+(?:on\s+)?(?:to|for|toward|towards)\b[^→›>|]*/gi;
+const PLACE_ROAD_TO_RE = /\b(road|way|path|route|trail|highway|track)\s+(?:to|toward|towards)\s+[^→›>|,;]*/gi;
+function placeNow(text) { return String(text || '').replace(PLACE_HEADING_RE, ' ').replace(PLACE_ROAD_TO_RE, '$1'); }
 const AGENDA_ARRIVAL_RE = /\b(?:when|after|once|upon|on|until)\s+(?:(?:he|she|they|you|i|we|marcus)\s+)?(?:first\s+)?(?:reach(?:es)?|arriv(?:e|es|al)|gets?\s+to|settles?\s+in|is\s+settled|lands?\s+in)\b/i;
 const AGENDA_FIRST_LETTER_RE = /\bfirst\s+(?:\w+\s+){0,2}?(?:letters?|note)\b/i;
 function agendaIsLetter(r) {

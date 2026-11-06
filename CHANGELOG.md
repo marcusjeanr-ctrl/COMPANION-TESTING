@@ -46,6 +46,8 @@
 
 **No blink on click:** a click or a toggle redraws the panel, and every card used to replay its fade-in and rise each time. Entrance animations now play only when you change view or a new reply lands; an ordinary redraw runs none.
 
+**On the road is not there yet:** a location like "Fittoa road, en route to Roa" no longer counts as being in Roa. The Agenda's "you're here" chip and the check that holds "when he reaches Roa" items until you arrive now read only where you are, not where you are headed (en route to, on the way to, heading for, bound for, the road to…).
+
 **Gear follows your luggage:** the Companion's gear rules now say that your things moved by someone else are still yours and their new place is reported: servants carrying your bags down, luggage lashed onto the courier's wagon, a bag handed to a porter. "The bags" is reported as each bag Gear already lists, never a new "bags" item. Before, those moves were skipped because only your own actions counted, so the bags stayed "beside the bedroom door" after they were loaded. Prompt wording only; no extra calls.
 
 **No Character sheet card:** everything on it (name, house, mana, reserve, touki, sword and magic ranks) is already on the You, World and Magic cards. Printing the character sheet (Tools → Print the sheet, or the search palette) still works.

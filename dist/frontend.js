@@ -7194,6 +7194,10 @@ export function setup(ctx) {
     }
     // 3.5.0: where an appointment takes place, but only when that place is established: you are there now
     // (the HUD), the Chronicle has you there before, or the location book (Atlas) has it. Otherwise nothing.
+    // where you ARE, not where you are going: "Fittoa road, en route to Roa" is the road, not Roa
+    const PLACE_HEADING_RE = /[,;–—-]?\s*\b(?:en route|on (?:the|his|her|their|our|your|my) way|headed|heading|bound|travell?ing|riding|walking|marching|sailing|driving|journeying)\s+(?:on\s+)?(?:to|for|toward|towards)\b[^→›>|]*/gi;
+    const PLACE_ROAD_TO_RE = /\b(road|way|path|route|trail|highway|track)\s+(?:to|toward|towards)\s+[^→›>|,;]*/gi;
+    function placeNow(text) { return String(text || '').replace(PLACE_HEADING_RE, ' ').replace(PLACE_ROAD_TO_RE, '$1'); }
     function placeWords(text) {
         const people = new Set([...(state.hms?.relations?.people || []), ...(state.hms?.family?.members || []), ...(state.data?.characters || [])]
             .flatMap(p => playNameKey(p.name || '').split(' ')).filter(w => w.length > 2));
@@ -7203,7 +7207,7 @@ export function setup(ctx) {
         const W = placeWords(x.where);
         if (!W.length) return null;
         const has = set => W.every(w => set.has(w));
-        const here = new Set((state.hms?.hud?.location || []).flatMap(l => placeWords(typeof l === 'string' ? l : l.text || '')));
+        const here = new Set((state.hms?.hud?.location || []).flatMap(l => placeWords(placeNow(typeof l === 'string' ? l : l.text || ''))));
         if (has(here)) return { here: true };
         const atlas = state.atlasIndex ? [...state.atlasIndex.values()].find(n => n.name && has(new Set(placeWords(n.name)))) : null;
         const D = state.chronData && state.chronData.chatId === state.chatId ? state.chronData : null;
