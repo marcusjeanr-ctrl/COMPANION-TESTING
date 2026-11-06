@@ -12087,6 +12087,7 @@ function hmsPanelStateRead(chatId, chat, st) {
         trainingDays: (() => { try { return hmsTrainingDays(chat); } catch { return null; } })(),
         questNotes: st.questNotes || [],
         questPairs: isPlainObject(st.questPairs) ? st.questPairs : {},
+        agendaPairs: isPlainObject(st.agendaPairs) ? st.agendaPairs : {},
         todoIdeas: isPlainObject(st.todoIdeas) ? { ...st.todoIdeas, stale: !!st.todoIdeas.at && st.todoIdeas.at !== (hmsTimeline(chat).at(-1)?.msg.id || null) } : null,
         atlas: (() => { try { return atlasHereInfo(chatId, hud, chat); } catch (e) { logW(`[RPG Companion HMS] Atlas read failed: ${e?.message || e}`); return null; } })(),
         arcCheck: (() => { try { return arcCheck(chatId, hud); } catch { return null; } })(),
@@ -12158,6 +12159,7 @@ function hmsPanelStateRead(chatId, chat, st) {
                     };
                     systems.quests = questUnique(systems.quests.map(attach).filter(Boolean));
                     for (const d of det) if (!systems.quests.some(q => questMatch(q, d))) { const when = whenOf(d); systems.quests.push({ ...d, state: d.state || null, cls: d.cls || 'active', fromStory: true, dueIn: when !== null && now !== null ? when - now : null }); }
+                    systems.quests = pairMergeQuests(systems.quests, st.questPairs);
                     const focus = st.questFocus || null;
                     const focused = focus ? systems.quests.filter(q => questKey(q.key) === questKey(focus) ||
                         [q.name, ...(Array.isArray(q.questAliases) ? q.questAliases : [])].some(name => questKey(name) === questKey(focus))) : [];
@@ -15162,12 +15164,16 @@ function agendaRead(chat, st) {
         if (!matches.length && row) {
             // A short title that is the head of an open item's longer one, with the same people
             // ("Training schedule" / "Training schedule: dawn to ninth bell with Seraphina …"): the same item.
-            const head = t => agendaTextKey(String(t || '').split(/\s*[:—–]\s*/)[0]);
+            // 1.4.0: also before ";" ("Post pouch leaves Day 5; anything for home by dusk"), and before "," when the
+            // same person or the same place is named on both ("Dawn drill with Ghislaine, first bell, every day").
+            const head = (t, comma) => agendaTextKey(String(t || '').split(comma ? /\s*[:—–;,]\s*/ : /\s*[:—–;]\s*/)[0]);
             const same = items.filter(x => ['open', 'in_progress'].includes(x.state) && (() => {
                 const A = agendaTextKey(x.what), B = agendaTextKey(row.what);
                 if (A === B) return false;
                 const [sh, lo] = A.length < B.length ? [A, B] : [B, A];
-                return sh.split(' ').length >= 2 && (head(lo === A ? x.what : row.what) === sh) && (!row.with || !x.with || agendaPeopleSame(row.with, x.with));
+                const longText = lo === A ? x.what : row.what;
+                const anchored = !!(row.with && x.with && agendaPeopleSame(row.with, x.with)) || !!(row.where && x.where && lockKey(row.where) === lockKey(x.where));
+                return sh.split(' ').length >= 2 && (head(longText) === sh || anchored && head(longText, true) === sh) && (!row.with || !x.with || agendaPeopleSame(row.with, x.with));
             })());
             if (same.length === 1) return same[0];
         }
@@ -15289,7 +15295,44 @@ function agendaRead(chat, st) {
         if (it.removed) continue;
         it.state = ed.state; it.mine = true;
     }
-    return { items: items.filter(x => !x.removed), now, lastId };
+    return { items: pairMergeAgenda(items.filter(x => !x.removed), st && st.agendaPairs), now, lastId };
+}
+// 1.4.0: "Merge" on two look-alike rows. Both stay in the story's record; the tracker counts them as one from then on:
+// the first one keeps its name, the one the story touched last gives the time and state, and the other's name is kept as "also".
+function pairKeyOf(a, b) { return [lockKey(a), lockKey(b)].sort().join(' || '); }
+function pairMergeAgenda(items, pairs) {
+    if (!isPlainObject(pairs) || !items.length) return items;
+    const out = items.slice();
+    for (const [pk, v] of Object.entries(pairs)) {
+        if (v !== 'same') continue;
+        const [ka, kb] = pk.split(' || ');
+        const A = out.find(x => lockKey(x.key) === ka || lockKey(x.what) === ka), B = out.find(x => x !== A && (lockKey(x.key) === kb || lockKey(x.what) === kb));
+        const a = A && B ? (out.indexOf(A) < out.indexOf(B) ? A : B) : null, b = a === A ? B : A;
+        if (!a || !b) continue;
+        const keep = { ...a, also: [...(a.also || []), b.what, ...(b.also || [])].slice(0, 6), alsoKeys: [...(a.alsoKeys || []), b.key, ...(b.alsoKeys || [])].slice(0, 6) };
+        if ((b.idx ?? -1) > (a.idx ?? -1)) for (const k of ['when', 'dueAt', 'scheduleDay', 'dayNamed', 'clockOnly', 'clockMinute', 'state', 'idx', 'changedIn', 'waitsArrival']) if (b[k] !== undefined) keep[k] = b[k];
+        for (const k of ['with', 'where', 'kind']) if (!keep[k] && b[k]) keep[k] = b[k];
+        out[out.indexOf(a)] = keep; out.splice(out.indexOf(b), 1);
+    }
+    return out;
+}
+function pairMergeQuests(quests, pairs) {
+    if (!isPlainObject(pairs) || !Array.isArray(quests) || quests.length < 2) return quests;
+    const out = quests.slice();
+    const id = q => [q.key, q.name, ...(Array.isArray(q.questAliases) ? q.questAliases : [])].filter(Boolean).map(lockKey);
+    for (const [pk, v] of Object.entries(pairs)) {
+        if (v !== 'same') continue;
+        const [ka, kb] = pk.split(' || ');
+        const A = out.find(q => id(q).includes(ka)), B = out.find(q => q !== A && id(q).includes(kb));
+        if (!A || !B) continue;
+        const a = out.indexOf(A) < out.indexOf(B) ? A : B, b = a === A ? B : A;
+        const keep = { ...a, questAliases: [...new Set([...(a.questAliases || []), b.name, ...(b.questAliases || [])])].slice(-40),
+            alsoTracked: [...(a.alsoTracked || []), { name: b.name, key: b.key || b.name, objective: b.objective || null }, ...(b.alsoTracked || [])].slice(0, 6) };
+        for (const k of ['objective', 'giver', 'where', 'reward', 'deadline', 'dueIn', 'category']) if ((keep[k] === null || keep[k] === undefined || keep[k] === '') && b[k] != null) keep[k] = b[k];
+        if (Number.isFinite(b.progress) && !(Number(keep.progress) >= b.progress)) keep.progress = b.progress;
+        out[out.indexOf(a)] = keep; out.splice(out.indexOf(b), 1);
+    }
+    return out;
 }
 
 function hmsAgendaPanel(chat, st, cfg, forDisplay = false) {
@@ -15303,6 +15346,7 @@ function hmsAgendaPanel(chat, st, cfg, forDisplay = false) {
         const ongoing = routine || ['open', 'in_progress'].includes(it.state) && (dueIn === null || /^\s*(?:for\s+)?(?:the\s+next\s+)?(?:\d+|one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|a few)\s+(?:days?|weeks?|months?|years?)\s*[,;]/i.test(String(it.when || ''))) && /^\s*(?:for\s+)?(?:the\s+next\s+)?(?:\d+|one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|a few)\s+(?:days?|weeks?|months?|years?)\s*(?:$|[,;])|\b(?:daily|every (?:day|morning|evening|night|week)|each (?:day|morning|evening|night)|until (?:the )?(?:departure|seedwake|spring)|ongoing)\b/i.test(String(it.when || ''));
         const status = ongoing ? 'ongoing' : it.state !== 'open' ? it.state : dueIn === null ? 'unset' : dueIn < -60 ? 'overdue' : dueIn <= 180 ? 'soon' : 'upcoming';
         const row = { key: it.key, what: it.what, with: it.with, where: it.where, when: it.when, dueIn, kind: it.kind, state: it.state, status, from: it.from, mine: !!it.mine, isNew: it.changedIn === lastId && !!lastId };
+        if (it.also && it.also.length) { row.also = it.also; row.alsoKeys = it.alsoKeys; }
         if (it.waitsArrival) Object.defineProperty(row, '_arrival', { value: true, enumerable: false });
         // Days until a commitment whose day the story named but not its hour ("in two days"), counted from today's HUD date.
         if (dueIn === null && it.dayNamed && Number.isFinite(it.scheduleDay) && now !== null) row.dayIn = it.scheduleDay - Math.floor(now / 1440);
@@ -19027,7 +19071,8 @@ function questChallengeMatch(a, b) {
 function questIdentityContext(chat) {
     const entries = [];
     let chars = 2;
-    for (const q of questDetailsLatest(chat).filter(q => (q.cls || 'active') === 'active').slice(-8)) {
+    const cs = chatStateCache.get(chatIdOf(chat));
+    for (const q of pairMergeQuests(questDetailsLatest(chat), cs && cs.questPairs).filter(q => (q.cls || 'active') === 'active').slice(-8)) {
         if (typeof q.key !== 'string' || q.key.length > 160) continue;
         const entry = JSON.stringify({id:q.key, name:q.name, objective:q.objective, giver:q.giver, reward:q.reward});
         if (chars + entry.length + (entries.length ? 1 : 0) > 1800) continue;
@@ -20981,12 +21026,13 @@ spindle.onFrontendMessage(async (payload, userId) => {
                 // Display only: tracking keeps both rows exactly as the story reports them.
                 if (!payload.chatId || typeof payload.a !== 'string' || typeof payload.b !== 'string') return;
                 const st = await getChatState(payload.chatId);
-                const pair = [lockKey(payload.a), lockKey(payload.b)].sort().join(' || ');
-                const pairs = isPlainObject(st.questPairs) ? { ...st.questPairs } : {};
+                const field = payload.kind === 'agenda' ? 'agendaPairs' : 'questPairs';
+                const pair = pairKeyOf(payload.a, payload.b);
+                const pairs = isPlainObject(st[field]) ? { ...st[field] } : {};
                 if (payload.verdict === 'same' || payload.verdict === 'different') pairs[pair] = payload.verdict; else delete pairs[pair];
                 const keys = Object.keys(pairs);
                 for (const k of keys.slice(0, Math.max(0, keys.length - 60))) delete pairs[k];
-                st.questPairs = pairs;
+                st[field] = pairs;
                 await saveChatState(payload.chatId, st);
                 await pushState(payload.chatId);
                 break;

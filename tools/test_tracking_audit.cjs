@@ -15,7 +15,7 @@ const ctx = {
 };
 ctx.globalThis = ctx;
 vm.createContext(ctx);
-vm.runInContext(source.slice(0, startup) + '\nglobalThis.__t = { chronicleBuild, agendaRead, readingSource, getSwipeData, rewriteReplyText: typeof rewriteReplyText === \'function\' ? rewriteReplyText : null, setChatApi: (fn) => { chatApi.updateMessage = fn; }, factionFromHud, chronBondReworded: typeof chronBondReworded === \'function\' ? chronBondReworded : () => false, chronWhen, parseHud, techStanding: typeof techStanding === \'function\' ? techStanding : () => new Map(), questDetailsLatest, relGuard, relCfg, martialAbilityItems, techListPanel, posMovedNow, keepRoomReading, posRoomKey, setState: (st) => { getChatState = async () => st; saveChatState = async () => {}; }, setPool: p => { loreCatalogPool = () => p; }, spellStoryFold, moneyHudBalance: typeof moneyHudBalance === \'function\' ? moneyHudBalance : commsBalance, commsCfg, messageHud, moneyRead, hintEchoScrub: typeof hintEchoScrub === \'function\' ? hintEchoScrub : (o => o), studyIsTrainingTrack: typeof studyIsTrainingTrack === \'function\' ? studyIsTrainingTrack : () => false, trainingTracksNow: typeof trainingTracksNow === \'function\' ? trainingTracksNow : () => [], worldOf, worldCyberpunk: typeof worldCyberpunk === \'function\' ? worldCyberpunk : null, moneyHudBalance, commsCfg, parseHud, worldLines };', ctx);
+vm.runInContext(source.slice(0, startup) + '\nglobalThis.__t = { chronicleBuild, agendaRead, pairMergeQuests: typeof pairMergeQuests === \'function\' ? pairMergeQuests : null, readingSource, getSwipeData, rewriteReplyText: typeof rewriteReplyText === \'function\' ? rewriteReplyText : null, setChatApi: (fn) => { chatApi.updateMessage = fn; }, factionFromHud, chronBondReworded: typeof chronBondReworded === \'function\' ? chronBondReworded : () => false, chronWhen, parseHud, techStanding: typeof techStanding === \'function\' ? techStanding : () => new Map(), questDetailsLatest, relGuard, relCfg, martialAbilityItems, techListPanel, posMovedNow, keepRoomReading, posRoomKey, setState: (st) => { getChatState = async () => st; saveChatState = async () => {}; }, setPool: p => { loreCatalogPool = () => p; }, spellStoryFold, moneyHudBalance: typeof moneyHudBalance === \'function\' ? moneyHudBalance : commsBalance, commsCfg, messageHud, moneyRead, hintEchoScrub: typeof hintEchoScrub === \'function\' ? hintEchoScrub : (o => o), studyIsTrainingTrack: typeof studyIsTrainingTrack === \'function\' ? studyIsTrainingTrack : () => false, trainingTracksNow: typeof trainingTracksNow === \'function\' ? trainingTracksNow : () => [], worldOf, worldCyberpunk: typeof worldCyberpunk === \'function\' ? worldCyberpunk : null, moneyHudBalance, commsCfg, parseHud, worldLines };', ctx);
 const t = ctx.__t;
 
 let n = 0;
@@ -271,6 +271,24 @@ check('the first letter to one person is one agenda item', () => {
     assert.equal(items.length, 1); assert.equal(items[0].what, 'First letter home goes to Tess');
     const two = [user('Deal.'), scene('Old Hall, study', '[D:Tess]"Your first letter from Riverton comes to me."[/D] [D:Kai]"And write to me after, Marcus."[/D]', { agenda: [letter('Write the first letter from Riverton to Tess', 'Tess Vale'), letter('Write a second letter to Kai', 'Kai Vale')] })];
     assert.equal(t.agendaRead(two, {}).items.length, 2, 'another person\'s letter stays its own');
+});
+check('a short agenda title before ";" or "," is the same item (1.4.0)', () => {
+    const row = (what, wh, when) => ({ key: what.toLowerCase(), what, with: wh, where: 'Old Hall yard', when, kind: 'meeting', state: 'open' });
+    const chat = [user('Fine.'), scene('Old Hall, yard', '[D:Tess]"Dawn drill, first bell, every day."[/D]', { agenda: [row('Dawn drill with Tess, first bell, every day', 'Tess Vale', 'dawn, first bell'), row('Post leaves Day 5, first bell; letters by dusk the day before', 'Courier', 'Day 5, first bell')] }),
+        user('I nod.'), scene('Old Hall, yard', 'Supper waits.', { agenda: [row('Dawn drill with Tess', 'Tess Vale', 'dawn, first bell'), row('Post leaves Day 5, first bell', 'Courier', 'Day 5, first bell')] })];
+    assert.equal(t.agendaRead(chat, {}).items.length, 2);
+});
+check('Merge on two look-alike rows makes them one, and can be split again (1.4.0)', () => {
+    const row = (what, wh) => ({ key: what.toLowerCase(), what, with: wh, where: 'Old Hall', when: 'after supper', kind: 'meeting', state: 'open' });
+    const chat = [user('Fine.'), scene('Old Hall, hall', 'Talk later.', { agenda: [row('Talk with Kai on the bench', 'Kai'), row('Bench talk with Kai', 'Kai')] })];
+    assert.equal(t.agendaRead(chat, {}).items.length, 2, 'two different titles stay two until you merge them');
+    const merged = t.agendaRead(chat, { agendaPairs: { ['bench talk with kai || talk with kai on the bench']: 'same' } }).items;
+    assert.equal(merged.length, 1); assert.deepEqual([...merged[0].also], ['Bench talk with Kai']);
+    assert.ok(t.pairMergeQuests, 'quest merge exists');
+    const qs = [{ key: 'roa-study', name: 'Study under the Sword King', objective: 'Train at dawn', category: 'main' }, { key: 'sword-king-training', name: 'Sword King training', objective: null, progress: 40, category: 'personal' }];
+    const one = t.pairMergeQuests(qs, { ['roa-study || sword-king-training']: 'same' });
+    assert.equal(one.length, 1); assert.equal(one[0].name, 'Study under the Sword King'); assert.equal(one[0].progress, 40);
+    assert.equal(t.pairMergeQuests(qs, { ['roa-study || sword-king-training']: 'different' }).length, 2);
 });
 check('a letter waiting on the arrival is not in progress at home', () => {
     const chat = [user('Deal.'), scene('Old Hall, study', '[D:Tess]"Your first letter from Riverton comes to me."[/D]', { agenda: [letter('Write the first letter from Riverton to Tess', 'Tess Vale', 'in_progress')] }),

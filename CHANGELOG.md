@@ -10,6 +10,12 @@
 - Settings → Backup shows which card the linked chat came from.
 - **Play style follows the card.** The style you apply (or save) is remembered for that card, and for its world, and comes back when you open a chat on that card. Switching from Cyberpunk back to Mushoku no longer leaves Cyberpunk's style on.
 
+**Duplicates on the Agenda and Quests**
+- **Fewer duplicates on their own.** An agenda title that is the start of a longer one is the same item when they're cut by ";" ("Post pouch leaves Day 5; letters by dusk"), or by "," when they name the same person or place ("Dawn drill with Ghislaine, first bell, every day").
+- **One "Possible duplicates" box** on the Agenda and on Quests, with **Merge** and **Keep both** for each look-alike pair. It replaces the old quest hint and its OOC line.
+- **Merge is real now.** The two rows count as one in the tracker, not only on the card. The first name stays, the latest time and state win, and the Companion is shown the one name, so it stops reporting both. A merged row says what it was merged with and can be split again.
+- Quests no longer count as look-alikes just because their objectives mention each other: their names must share a word, or their objectives must be close. A different category (main / personal) no longer hides a real duplicate.
+
 **Look and feel**
 - **World skins**, picked by card: Mushoku parchment and ink, Re:Zero violet and witch gold, COTE school tablet, Overlord obsidian and crimson, D&D tavern. You can choose one yourself or turn them off. A wiki theme you chose in Settings still wins.
 - **One type scale**, a display font for titles and a reading font for text, plus a **day and night tint** that follows the HUD clock.
