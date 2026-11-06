@@ -6401,8 +6401,20 @@ export function setup(ctx) {
     const VIEWS = [['scene', '🎬', 'Scene'], ['you', '🧍', 'You'], ['people', '👥', 'People'], ['journey', '🧭', 'Journey']];
     const VIEW_KEY = 'rpgc-view';
     const PIN_KEY = 'rpgc-pins', PIN_MAX = 16;
-    function pinsGet() { try { const a = JSON.parse(localStorage.getItem(PIN_KEY) || '[]'); return Array.isArray(a) ? a.filter(p => p && typeof p.key === 'string' && p.key).slice(0, PIN_MAX) : []; } catch { return []; } }
-    function pinsSet(a) { try { localStorage.setItem(PIN_KEY, JSON.stringify(a.slice(0, PIN_MAX))); } catch { /* convenience only */ } }
+    // pins are kept per character card: Mushoku's pins never show on Cyberpunk
+    function pinStoreKey() { return PIN_KEY + ':' + (state.characterId ? 'char:' + state.characterId : 'world:' + String(state.world?.id || 'none')); }
+    const pinClean = a => (Array.isArray(a) ? a.filter(p => p && typeof p.key === 'string' && p.key).slice(0, PIN_MAX) : []);
+    function pinsGet() {
+        try {
+            const own = localStorage.getItem(pinStoreKey());
+            if (own !== null) return pinClean(JSON.parse(own));
+            // pins saved before they were per card were all made on Mushoku: they move to the Mushoku card, once
+            const legacy = localStorage.getItem(PIN_KEY);
+            if (legacy !== null && state.world?.id === 'mushoku') { localStorage.setItem(pinStoreKey(), legacy); localStorage.removeItem(PIN_KEY); return pinClean(JSON.parse(legacy)); }
+            return [];
+        } catch { return []; }
+    }
+    function pinsSet(a) { try { localStorage.setItem(pinStoreKey(), JSON.stringify(a.slice(0, PIN_MAX))); } catch { /* convenience only */ } }
     function pinToggle(key, label, icon) {
         const a = pinsGet(), i = a.findIndex(p => p.key === key);
         if (i >= 0) { a.splice(i, 1); if (state.viewTab === 'pin:' + key) state.viewTab = 'scene'; }
