@@ -10636,6 +10636,10 @@ function mtTraining(lines) {
 }
 /** 1.4.0: a study item that is only a Training track ("Sword God Style toward Saint" while the HUD trains Sword God → Saint)
  * belongs to the Training card, which shows its sessions; Studying keeps the rest. Only while the Training line lists it. */
+function trainingTracksNow(chat) {
+    try { const hm = latestHudMessage(chat); const hud = hm ? parseHud(textOf(hm.content)) : null;
+        return mtTraining((hud && Array.isArray(hud.lines) ? hud.lines : []).map(l => typeof l === 'string' ? l : l && l.text || '')); } catch { return []; }
+}
 function studyIsTrainingTrack(name, tracks) {
     if (!tracks || !tracks.length) return false;
     const norm = x => ` ${String(x || '').toLowerCase().replace(/\b(?:style|styles|magic|school|arts?)\b/g, ' ').replace(/[^\p{L}\p{N}]+/gu, ' ').replace(/\s+/g, ' ').trim()} `;
@@ -18304,7 +18308,7 @@ function spellListPanel(chatId, chat, st, sys) {
     const isKnown = (k) => known.has(k) || knownKeys.some(x => spellSame(x, k));
     const techKeys = techKeySet(chatId);
     const classify = spellResolver(chatId);
-    const tracks = mtTraining(sys && sys._lines ? sys._lines : []);
+    const tracks = trainingTracksNow(chat);
     const study = spellStudyActive(chat, st, fold, chatId, known).filter(s => !techKeys.has(spellKey(s.name)) && classify.domain(s.name) !== 'martial' && !studyIsTrainingTrack(s.name, tracks));
     const studyKeys = new Set(study.map(s => spellKey(s.name)));
     const ladderOf = (r) => SPELL_LADDER[r.ladder] || SPELL_LADDER.mt;
@@ -18652,7 +18656,7 @@ function techListPanel(chatId, chat, st, sys) {
     const known = spellKnown(chat, st, fold, chatId, true);
     const catKeys = new Set(cat.map(r => r.key));
     const classifyT = spellResolver(chatId);
-    const tracksT = mtTraining(sys && sys._lines ? sys._lines : []);
+    const tracksT = trainingTracksNow(chat);
     const study = spellStudyActive(chat, st, fold, chatId, known).filter(s => (catKeys.has(spellKey(s.name)) || classifyT.domain(s.name) === 'martial') && !studyIsTrainingTrack(s.name, tracksT));
     const studyKeys = new Set(study.map(s => spellKey(s.name)));
     const has = (name) => stand.get(techStyleKey(name)) || null;

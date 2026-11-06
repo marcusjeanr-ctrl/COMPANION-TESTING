@@ -15,7 +15,7 @@ const ctx = {
 };
 ctx.globalThis = ctx;
 vm.createContext(ctx);
-vm.runInContext(source.slice(0, startup) + '\nglobalThis.__t = { chronicleBuild, agendaRead, readingSource, getSwipeData, rewriteReplyText: typeof rewriteReplyText === \'function\' ? rewriteReplyText : null, setChatApi: (fn) => { chatApi.updateMessage = fn; }, factionFromHud, chronBondReworded: typeof chronBondReworded === \'function\' ? chronBondReworded : () => false, chronWhen, parseHud, techStanding: typeof techStanding === \'function\' ? techStanding : () => new Map(), questDetailsLatest, relGuard, relCfg, martialAbilityItems, techListPanel, posMovedNow, keepRoomReading, posRoomKey, setState: (st) => { getChatState = async () => st; saveChatState = async () => {}; }, setPool: p => { loreCatalogPool = () => p; }, spellStoryFold, moneyHudBalance: typeof moneyHudBalance === \'function\' ? moneyHudBalance : commsBalance, commsCfg, messageHud, moneyRead, hintEchoScrub: typeof hintEchoScrub === \'function\' ? hintEchoScrub : (o => o) };', ctx);
+vm.runInContext(source.slice(0, startup) + '\nglobalThis.__t = { chronicleBuild, agendaRead, readingSource, getSwipeData, rewriteReplyText: typeof rewriteReplyText === \'function\' ? rewriteReplyText : null, setChatApi: (fn) => { chatApi.updateMessage = fn; }, factionFromHud, chronBondReworded: typeof chronBondReworded === \'function\' ? chronBondReworded : () => false, chronWhen, parseHud, techStanding: typeof techStanding === \'function\' ? techStanding : () => new Map(), questDetailsLatest, relGuard, relCfg, martialAbilityItems, techListPanel, posMovedNow, keepRoomReading, posRoomKey, setState: (st) => { getChatState = async () => st; saveChatState = async () => {}; }, setPool: p => { loreCatalogPool = () => p; }, spellStoryFold, moneyHudBalance: typeof moneyHudBalance === \'function\' ? moneyHudBalance : commsBalance, commsCfg, messageHud, moneyRead, hintEchoScrub: typeof hintEchoScrub === \'function\' ? hintEchoScrub : (o => o), studyIsTrainingTrack: typeof studyIsTrainingTrack === \'function\' ? studyIsTrainingTrack : () => false, trainingTracksNow: typeof trainingTracksNow === \'function\' ? trainingTracksNow : () => [] };', ctx);
 const t = ctx.__t;
 
 let n = 0;
@@ -38,6 +38,14 @@ check('the echo guard drops the panel\'s own wording and keeps the story\'s', ()
     assert.equal(sp.quests[0].deadline, null); assert.equal(sp.gear[0].where, 'belt, right hip'); assert.equal(sp.gear[0].state, 'on body');
     assert.equal(sp.family[0].status, null); assert.equal(sp.family[1].status, 'away at the muster yard');
     assert.equal(sp.agenda[0].what, 'Post south', 'names and keys are never touched');
+});
+check('a study item that is only a Training track is left to the Training card', () => {
+    // the Training line sits on the full HUD, not among the skill lines the cards are handed
+    const chat = [{ id: 'a1', role: 'assistant', swipe_id: 0, content: '### WORLD STATE ###\nArmored Dragon Calendar: K416, Month 4, Day 1 | Time: 16:08 (Afternoon)\n◆ Roa → Boreas manor training yard\nSword Style: Sword God (Advanced)\nTraining: Sword God → Saint (54/60 sessions) · Water Magic → Saint (54/60 sessions)\n***\n\nThe yard.' }];
+    const tracks = t.trainingTracksNow(chat);
+    assert.equal(tracks.length, 2, 'both tracks read from the full HUD');
+    for (const n of ['Sword God Style toward Saint', 'Water Magic toward Saint']) assert.equal(t.studyIsTrainingTrack(n, tracks), true, n);
+    for (const n of ['Sword God stance', 'Sword God Style under Aurelius\'s drill', 'Earth Magic toward Advanced', 'Water Ball']) assert.equal(t.studyIsTrainingTrack(n, tracks), false, n);
 });
 check('quest objective follows a new stage under the same Quest ID', () => {
     const chat = [user('go'), reply(quest('Win the mentor\'s approval at the training hall', 80)), user('next'),
