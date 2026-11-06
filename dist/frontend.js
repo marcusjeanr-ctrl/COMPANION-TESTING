@@ -1874,6 +1874,59 @@ button.rpgc-chip.intel:hover { border-color: var(--lumiverse-accent, #7aa2f7); }
 .rpgc.rpgc-still .rpgc-rankup .stamp,.rpgc.rpgc-still .rpgc-person.flipped,.rpgc.rpgc-still .rpgc-tour,.rpgc.rpgc-still .rpgc-recap,.rpgc.rpgc-still .rpgc-rollline::before{animation:none!important}
 .rpgc.rpgc-still .rpgc-sec{transition:none}
 
+
+/* ───────── 1.4.0 polish: one calm rhythm (a field journal, not a dashboard) ───────── */
+/* spacing: one scale, cards breathe evenly */
+.rpgc .rpgc-main{display:flex;flex-direction:column;gap:10px}
+.rpgc .rpgc-view{display:flex;flex-direction:column;gap:10px}
+@container rpgc (min-width:720px){.rpgc .rpgc-view{display:grid;gap:12px}}
+/* cards: a thin line, no heavy drop shadow, one quiet rule under an open header */
+.rpgc .rpgc-sec{border:1px solid color-mix(in srgb,var(--u-line) 85%,transparent);box-shadow:0 1px 0 color-mix(in srgb,#000 22%,transparent);border-radius:var(--u-radius,12px)}
+.rpgc .rpgc-sec>summary{min-height:44px;padding:8px 12px;gap:10px}
+.rpgc .rpgc-sec[open]>summary{border-bottom:1px solid color-mix(in srgb,var(--u-line) 55%,transparent);border-bottom-left-radius:0;border-bottom-right-radius:0}
+.rpgc .rpgc-sec>.rpgc-body{padding:12px 14px 14px}
+.rpgc .rpgc-sec-title{letter-spacing:.04em}
+.rpgc .rpgc-sig{width:26px;height:26px;font-size:14px;border-radius:8px;background:color-mix(in srgb,var(--u-accent) 10%,transparent);box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--u-accent) 22%,transparent)}
+.rpgc .rpgc-sec[open]>summary .rpgc-sig{transform:none}
+.rpgc .rpgc-sum-extra{margin-left:auto;font-size:var(--u-fs-s,11.5px);font-variant-numeric:tabular-nums}
+/* the explanations: smaller and quieter, so the story's own lines lead */
+.rpgc .rpgc-note{font-size:11.5px;line-height:1.5;color:var(--u-muted);margin:6px 0}
+.rpgc .rpgc-body>.rpgc-note:last-child{margin-bottom:0}
+/* small section labels inside a card: one style everywhere */
+.rpgc .rpgc-body h4{font-size:10.5px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--u-muted);margin:14px 0 6px}
+.rpgc .rpgc-body>h4:first-child,.rpgc .rpgc-body>*:first-child h4:first-child{margin-top:0}
+/* one-line notices (a save to link, a preset, the tour): never a wall of text */
+.rpgc .rpgc-notice{display:flex;align-items:center;gap:10px;padding:7px 8px 7px 12px;border-radius:var(--u-radius-s,9px);background:var(--u-raise);border:1px solid color-mix(in srgb,var(--u-accent) 28%,var(--u-line));font-size:12px;line-height:1.35}
+.rpgc .rpgc-notice .ic{flex:none;font-size:14px}
+.rpgc .rpgc-notice .tx{flex:1 1 auto;min-width:0;color:var(--u-text)}
+.rpgc .rpgc-notice .rpgc-btn.sm,.rpgc .rpgc-btn.sm{padding:4px 10px;font-size:11.5px;min-height:0}
+.rpgc .rpgc-tour-offer{border-style:solid}
+/* story actions: one compact row */
+.rpgc .rpgc-story{display:flex;gap:6px;flex-wrap:wrap}
+.rpgc .rpgc-story .rpgc-btn{flex:1 1 auto;padding:7px 12px;font-size:12px;border-radius:999px}
+/* Tools: at the end of Scene, out of the way until wanted */
+.rpgc .rpgc-view>.rpgc-tools{opacity:.8;border:1px dashed color-mix(in srgb,var(--u-line) 80%,transparent);border-radius:var(--u-radius-s,9px);padding:6px 10px;font-size:12px}
+.rpgc .rpgc-view>.rpgc-tools[open]{opacity:1}
+.rpgc .rpgc-view>.rpgc-tools>summary{cursor:pointer;color:var(--u-muted);list-style:none}
+.rpgc .rpgc-view>.rpgc-tools>summary::-webkit-details-marker{display:none}
+/* chips: one size */
+.rpgc .rpgc-chip{font-size:11px;line-height:1.3;padding:2px 8px}
+/* the sticky bar: no live blur (costly while scrolling), a solid calm backdrop instead */
+.rpgc .rpgc-views{backdrop-filter:none;-webkit-backdrop-filter:none;background:color-mix(in srgb,var(--u-text) 4%,var(--lumiverse-bg,#0e1016) 96%);box-shadow:0 8px 18px -16px #000}
+/* scrolling: cards far off-screen are laid out only when they come near */
+.rpgc .rpgc-view>details.rpgc-sec{content-visibility:auto;contain-intrinsic-size:auto 420px}
+.rpgc.rpgc-printing .rpgc-view>details.rpgc-sec{content-visibility:visible}
+/* calm motion */
+.rpgc .rpgc-sec>summary{transition:background-color .15s}
+.rpgc .rpgc-sec>summary:hover{background-color:color-mix(in srgb,var(--u-text) 3%,transparent)}
+@media (prefers-reduced-motion:reduce){.rpgc .rpgc-sec>summary{transition:none}}
+
+/* folded forms: one small line until you need them */
+.rpgc .rpgc-addfold{margin-top:10px}
+.rpgc .rpgc-addfold>summary{display:inline-flex;align-items:center;gap:6px;cursor:pointer;list-style:none;font-size:11.5px;color:var(--u-muted);padding:3px 10px;border-radius:999px;border:1px dashed color-mix(in srgb,var(--u-line) 90%,transparent)}
+.rpgc .rpgc-addfold>summary::-webkit-details-marker{display:none}
+.rpgc .rpgc-addfold>summary:hover{color:var(--u-text);border-color:color-mix(in srgb,var(--u-accent) 45%,transparent)}
+.rpgc .rpgc-addfold[open]>summary{color:var(--u-accent);border-style:solid;margin-bottom:8px}
 `;
 
 // The guide, embedded from GUIDE.md so it ships inside the extension (tools/embed_guide.py refreshes it).
@@ -3204,8 +3257,8 @@ export function setup(ctx) {
             return out;
         }
         const ng = renderNewGame();
-        const cn = renderCarryNotice();
-        if (hmsOn()) { const r = renderHmsTrackers(); if (ng) r.splice(1, 0, ng); if (cn) r.splice(1, 0, cn); const oo = renderOoc(); if (oo) r.push(oo); return r; }
+        const cn = ['scene', 'all'].includes(currentView()) ? renderCarryNotice() : null;
+        if (hmsOn()) { state.carryNoticeEl = cn; const r = renderHmsTrackers(); if (ng) r.splice(1, 0, ng); const oo = renderOoc(); if (oo) r.push(oo); return r; }
         if (ng) out.push(ng);
         const d = state.data;
         if (!d.userStats && !d.infoBox && !(d.characters && d.characters.length)) {
@@ -5105,11 +5158,10 @@ export function setup(ctx) {
         const seen = Array.isArray(sp.hintSeen) ? sp.hintSeen : [];
         if (!preset || sp.active === pid || seen.includes(pid)) return null;
         const mark = (active) => { s.stylePresets = { ...sp, presets: sp.presets || {}, ...(active ? { active } : {}), hintSeen: [...seen, pid] }; };
-        return h('div', { class: 'rpgc-status info rpgc-hint', role: 'note' },
-            h('p', { class: 'rpgc-note' }, `This chat is ${w.label}. Its world preset sets the panel up for this bot in one click: the right cards, carrier lines, fights and theme. You can change everything after.`),
-            h('div', { class: 'rpgc-row' },
-                h('button', { class: 'rpgc-btn primary', onclick: () => { mark(pid); applyStyle(preset.data); } }, `Use the ${w.label} preset`),
-                h('button', { class: 'rpgc-btn', onclick: () => { mark(null); saveSettings(false); render(); } }, 'No thanks')));
+        return h('div', { class: 'rpgc-notice', role: 'note', title: T('The right cards, carrier lines, fights and theme for this bot, in one click. You can change everything after.') },
+            h('span', { class: 'ic', 'aria-hidden': 'true' }, '✨'), h('span', { class: 'tx' }, TT('{0} preset available', w.label)),
+            h('button', { class: 'rpgc-btn primary sm', onclick: () => { mark(pid); applyStyle(preset.data); } }, T('Use it')),
+            h('button', { class: 'rpgc-mini', 'aria-label': T('No thanks'), title: T('No thanks'), onclick: () => { mark(null); saveSettings(false); render(); } }, '✕'));
     }
 
     // 3.5.0: the relationship web. You at the centre; everyone the story tracks around you, closest first.
@@ -5889,8 +5941,8 @@ export function setup(ctx) {
     function tourOffer() {
         if (!state.tourOffer || state.tour != null) return null;
         const no = () => { try { localStorage.setItem('rpgc-tour-done', '1'); } catch { /* */ } state.tourOffer = false; render(); };
-        return h('div', { class: 'rpgc-tour-offer' }, h('span', null, '\uD83E\uDDED ', T('New in 1.4.0: take a 5-step tour?')),
-            h('button', { class: 'rpgc-btn primary', onclick: () => { state.tourOffer = false; state.tour = 0; render(); } }, T('Show me')), h('button', { class: 'rpgc-mini', 'aria-label': T('No thanks'), onclick: no }, '\u2715'));
+        return h('div', { class: 'rpgc-notice rpgc-tour-offer' }, h('span', { class: 'ic', 'aria-hidden': 'true' }, '\uD83E\uDDED'), h('span', { class: 'tx' }, T('New in 1.4.0: take a 5-step tour?')),
+            h('button', { class: 'rpgc-btn primary sm', onclick: () => { state.tourOffer = false; state.tour = 0; render(); } }, T('Show me')), h('button', { class: 'rpgc-mini', 'aria-label': T('No thanks'), onclick: no }, '\u2715'));
     }
     // a card as a picture: the card and the panel's own styles drawn into an image (no library, nothing sent anywhere)
     async function snapshot(el, name) {
@@ -5997,6 +6049,13 @@ export function setup(ctx) {
         return 'track';
     }
 
+    // 1.4.0: forms you seldom use (add a promise, add an injury, edit a person) wait folded under one small line
+    function addFold(key, label, ...kids) {
+        const d = h('details', { class: 'rpgc-addfold' }, h('summary', null, label), ...kids);
+        d.open = state.open[key] === true; d.dataset.openKey = key;
+        d.addEventListener('toggle', () => { state.open[key] = d.open; });
+        return d;
+    }
     function renderHmsTrackers() {
         const s = S();
         const snapshots = renderTrackerSnapshots();
@@ -6017,8 +6076,10 @@ export function setup(ctx) {
                 foldAllRow(), snapshots)];
         const warnings = state.hms?.consistency || [];
         if (warnings.length) out.push(h('details', {class:'rpgc-consistency'}, h('summary', null, T('Consistency warnings') + ' (' + warnings.length + ')'), storyCheckCards(warnings.map(consistencyCheck))));
-        const hint = worldHint();
-        if (hint) out.push(hint);
+        const onScene = view === 'scene' || view === 'all';
+        const toolsEl = out.splice(2, 1)[0];
+        // notices (a save to link, a preset, the tour) wait under the Now card, so the scene comes first
+        const notices = onScene ? [state.carryNoticeEl, worldHint()].filter(Boolean) : [];
         const story = view === 'scene' || view === 'all' ? hmsStoryRow() : null;
         if (story) out.push(story);
         const immEl = renderImmersive();
@@ -6073,7 +6134,9 @@ export function setup(ctx) {
                   h('button', { class: 'rpgc-mini', title: T('Back to the default order'), onclick: e => { e.preventDefault(); try { localStorage.removeItem('rpgc-order:' + view); } catch { /* */ } render(); } }, '↺'))); }); }
         if (!built.length) built.push(h('p', { class: 'rpgc-note rpgc-empty-view' }, T('Nothing here yet. Cards appear as the story reports them.')));
         const head = out.splice(2); // tools, notices and story actions sit above the view, inside the main column
-        { const to = tourOffer(); if (to) head.unshift(to); }
+        { const to = onScene ? tourOffer() : null; if (to) notices.push(to); }
+        if (notices.length) { const at = built.findIndex(el => el.classList && el.classList.contains('rpgc-now')); built.splice(at >= 0 ? at + 1 : 0, 0, ...notices); }
+        if (toolsEl && !pinKey) built.push(toolsEl);   // at the end of every view: Arrange works per view
         { const ru = rankUps(); if (ru) head.unshift(ru); const ch = cheer(); if (ch) head.unshift(ch); const fb = focusBar(); if (fb) head.unshift(fb); }
         { if (view === 'people' && (partyOf()?.members || []).length) head.unshift(h('div', { class: 'rpgc-partytabs', role: 'tablist', 'aria-label': T('Party') },
               h('span', { class: 'k' }, '\uD83D\uDEE1\uFE0F ', T('Party')),
@@ -6183,7 +6246,7 @@ export function setup(ctx) {
         if (ideas && ideas.items.length) {
             out.push(h('ul', { class: 'rpgc-todo ideas' }, ideas.items.map(x => h('li', null, h('b', null, x.do), x.why ? h('span', { class: 'rpgc-note' }, ` \u00B7 ${x.why}`) : null))));
             out.push(h('p', { class: 'rpgc-note' }, ideas.stale ? T('These ideas are from before the last reply; ask again for fresh ones.') : T('Only you see these. Pick one and write it as your own action.')));
-        } else if (!busy) out.push(h('p', { class: 'rpgc-note' }, T('Ideas come from the Companion’s own model, one call when you press the button. The story never sees them.')));
+        } else if (!busy && out[0] && out[0].querySelector) { const b = out[0].querySelector('button'); if (b) b.title = T('Ideas come from the Companion’s own model, one call when you press the button. The story never sees them.'); }
         if (list.length) {
             // grouped and folded: open once you want the detail; it starts open only while there are no ideas yet
             const GROUPS = [['collect', '🎒 ' + T('Things to get back')], ['people', '👤 ' + T('Not seen in a while')], ['birthday', '🎂 ' + T('Birthdays')]];
@@ -7366,7 +7429,7 @@ export function setup(ctx) {
         const withIn = h('input', { type: 'text', placeholder: 'with whom', 'aria-label': 'With whom', maxlength: '60', style: 'flex:1;min-width:0' });
         const add = () => { const w = whatIn.value.trim(); if (!w) return; send({ type: 'agenda', chatId: state.chatId, op: 'add', what: w, when: whenIn.value.trim(), with: withIn.value.trim() }); whatIn.value = ''; whenIn.value = ''; withIn.value = ''; };
         for (const x of [whatIn, whenIn, withIn]) x.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); add(); } });
-        out.push(h('div', { class: 'rpgc-add', style: 'flex-wrap:wrap' }, whatIn, whenIn, withIn, h('button', { class: 'rpgc-btn', onclick: add }, 'Add')));
+        out.push(addFold('agenda-add', '＋ ' + T('Add a promise or appointment'), h('div', { class: 'rpgc-add', style: 'flex-wrap:wrap' }, whatIn, whenIn, withIn, h('button', { class: 'rpgc-btn', onclick: add }, 'Add'))));
         const active = rows.filter(x => x.state === 'in_progress').length;
         const late = rows.filter(x => x.status === 'overdue').length, soon = rows.filter(x => x.status === 'soon').length;
         const summary = [active ? TT('{0} in progress', active) : null, late ? T(`${late} late`) : null, soon ? T(`${soon} soon`) : null].filter(Boolean).join(' · ');
@@ -8458,9 +8521,8 @@ export function setup(ctx) {
         const sev = h('select', { 'aria-label': 'How bad' }, ...['minor', 'moderate', 'severe', 'critical'].map(k => h('option', { value: k }, k)));
         const add = () => { if (!what.value.trim()) return; send({ type: 'injury', chatId: state.chatId, op: 'add', where: where.value, what: what.value, kind: kind.value, severity: sev.value }); where.value = ''; what.value = ''; };
         what.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); add(); } });
-        out.push(h('div', { class: 'rpgc-add' }, where, what, kind, sev, h('button', { class: 'rpgc-btn', onclick: add }, 'Add')));
-        out.push(h('p', { class: 'rpgc-note' }, 'How wounds work here: raw until tended, treated is not healed, each kind and severity heals in its own time, a break left unset 3\u20134 days heals crooked for good, and a healed wound may leave a scar. ',
-            iv.tell ? 'The story is told these with every message.' : 'Only you see these \u2014 switch on \u201CTell the story about them\u201D under HMS systems \u2192 Injuries to send them.'));
+        out.push(addFold('injury-add', '＋ ' + T('Add an injury'), h('div', { class: 'rpgc-add' }, where, what, kind, sev, h('button', { class: 'rpgc-btn', onclick: add }, 'Add')), h('p', { class: 'rpgc-note' }, 'How wounds work here: raw until tended, treated is not healed, each kind and severity heals in its own time, a break left unset 3\u20134 days heals crooked for good, and a healed wound may leave a scar. ',
+            iv.tell ? 'The story is told these with every message.' : 'Only you see these \u2014 switch on \u201CTell the story about them\u201D under HMS systems \u2192 Injuries to send them.')));
         const worst = iv.list.some(x => x.status === 'raw' && (x.severity === 'critical' || x.warn)) ? 'raw' : iv.list.length ? String(iv.list.filter(x => x.status !== 'scar').length || iv.list.length) : null;
         return section('injuries', 'Injuries', state.open, worst, ...out);
     }
@@ -8908,7 +8970,8 @@ export function setup(ctx) {
                 x.rel.dead && x.rel.diedFrom === 'story' ? h('span', { class: 'rpgc-note' }, T('The story reported this death.')) : null,
                 h('button', { class: 'rpgc-btn', onclick: (e) => { e.stopPropagation(); send({ type: 'person_dead', chatId: state.chatId, key: x.rel.key, dead: !x.rel.dead, storySaysDead: x.rel.diedFrom === 'story' }); } },
                 x.rel.dead ? T('Not dead after all') : '🕯️ ' + T('Mark as passed away'))) : null;
-            const cardOf = x => { const card0 = personMerged(x); const bs = bornSet(x); if (bs) card0.appendChild(bs); const dm = deadMark(x); if (dm) card0.appendChild(dm);
+            const cardOf = x => { const card0 = personMerged(x); const bs = bornSet(x), dm = deadMark(x);
+                if (bs || dm) card0.appendChild(addFold('person-edit-' + (x.rel?.key || x.name), '✎ ' + T('Edit'), bs, dm));
                 const card = here(x) || f === 'here' ? card0 : foldPerson(card0, x);
                 // found by name, role, bond, standing or place ("maid", "Roa", "sister")
                 const r = x.rel || {}, d = r.details || {};
@@ -9068,7 +9131,9 @@ export function setup(ctx) {
         const best = (c.choices || []).filter(x => x.match).slice(0, 1);
         if (best.length) body.push(carryChoices(best), h('p', { class: 'rpgc-note' }, 'Not this one? Settings → Backup lists your other chats.'));
         else if (c.choices && c.choices.length) body.push(carryChoices(c.choices.slice(0, 4)));
-        else body.push(h('p', { class: 'rpgc-note' }, 'No earlier chat found yet. Open the chat you saved from once (with this version of the Companion), then come back here.'));
+        else return h('div', { class: 'rpgc-notice', role: 'note' }, h('span', { class: 'ic', 'aria-hidden': 'true' }, '📜'),
+            h('span', { class: 'tx' }, T('This chat starts from a save. No earlier chat found yet: open the chat you saved from once, then come back.')),
+            h('button', { class: 'rpgc-mini', 'aria-label': T('Not now'), title: T('Not now'), onclick: () => send({ type: 'carry_dismiss', chatId: state.chatId }) }, '✕'));
         body.push(h('div', { class: 'rpgc-row' }, h('button', { class: 'rpgc-btn', onclick: () => send({ type: 'carry_dismiss', chatId: state.chatId }) }, 'Not now')));
         return section('carry', 'Continue from your saved chat', state.open, null, ...body);
     }
