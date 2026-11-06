@@ -1127,6 +1127,11 @@ button.rpgc-chip.intel:hover { border-color: var(--lumiverse-accent, #7aa2f7); }
 /* ═════ 1.3.0 Gear: loadout bar, item cards, quick moves ═════ */
 .rpgc .rpgc-gear-loadout{display:flex;flex-wrap:wrap;gap:8px;align-items:stretch;margin:2px 0 8px}
 .rpgc .rpgc-gl-hands{display:flex;gap:6px;flex:1 1 220px;min-width:0}
+.rpgc .rpgc-gl-hands{cursor:pointer;border-radius:var(--u-radius,10px)}
+.rpgc .rpgc-gl-hands.on{box-shadow:0 0 0 1px var(--u-accent)}
+.rpgc .rpgc-gl-hands:focus-visible{outline:2px solid var(--u-accent);outline-offset:2px}
+.rpgc .rpgc-gear-kinds .rpgc-gv{padding-inline:10px}
+.rpgc li.rpgc-gear-item[hidden],.rpgc .rpgc-gear-group[hidden]{display:none!important}
 .rpgc .rpgc-gl-hand{flex:1 1 0;min-width:0;display:flex;align-items:center;gap:7px;padding:7px 9px;border-radius:var(--u-radius-s);border:1px dashed var(--u-line-2);color:var(--u-muted);font-size:12px}
 .rpgc .rpgc-gl-hand.full{border-style:solid;border-color:color-mix(in srgb,var(--u-accent) 55%,transparent);background:color-mix(in srgb,var(--u-accent) 12%,transparent);color:var(--u-text);font-weight:600;box-shadow:0 0 0 1px color-mix(in srgb,var(--u-accent) 15%,transparent) inset}
 .rpgc .rpgc-gl-hand .ic{font-size:16px;line-height:1}.rpgc .rpgc-gl-hand .tx{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -7422,7 +7427,7 @@ export function setup(ctx) {
         const meta = [it.where, it.onHud ? T('on the HUD') : it.from === 'you' ? T('added by you') : null, it.mine ? T('set by you') : null, it.changedNow ? T('just now') : null].filter(Boolean).join(' · ');
         const hist = (it.history || []).length > 1 ? it.history.map(x => `${x.state === 'in container' ? TT('in {0}', x.inside || T('a container')) : T(GEAR_LABEL[x.state] || x.state)}${x.where ? ` (${x.where})` : ''}${x.you ? ' — ' + T('set by you') : gearAgo(x.ago) ? ` — ${gearAgo(x.ago)}` : ''}`).join(' → ') : null;
         const tray = gearTray(g, it);
-        const li = h('li', { class: 'rpgc-gear-item' + (it.changedNow ? ' now' : '') + (it.onHud ? ' hud' : ''), title: hist || null, 'data-state': it.state || 'unknown' },
+        const li = h('li', { class: 'rpgc-gear-item' + (it.changedNow ? ' now' : '') + (it.onHud ? ' hud' : ''), title: hist || null, 'data-state': it.state || 'unknown', 'data-kind': gearKind(it)[0] },
             h('span', { class: 'rpgc-gi-icon', 'aria-hidden': 'true' }, gearIcon(it.name)),
             h('span', { class: 'name' }, it.name),
             meta || it.note ? h('span', { class: 'meta' }, it.note ? h('i', { class: 'rpgc-gi-note' }, it.note) : null, it.note && meta ? ' · ' : null, meta || null) : null,
@@ -7436,27 +7441,11 @@ export function setup(ctx) {
         });
         return li;
     }
-    function renderGearKinds(g) {
-        const groups = new Map();
-        for (const it of g.items) { const k = gearKind(it); if (!groups.has(k[0])) groups.set(k[0], { k, items: [] }); groups.get(k[0]).items.push(it); }
-        const order = [...GEAR_KINDS.map(k => k[0]), 'other'];
-        return order.filter(id => groups.has(id)).map(id => {
-            const { k, items } = groups.get(id), key = 'gear-kind-' + id;
-            const det = h('details', { class: 'rpgc-gear-kind', 'data-kind': id }, h('summary', null, h('span', { class: 'ic', 'aria-hidden': 'true' }, k[1]), h('b', null, T(k[2])), h('span', { class: 'n' }, String(items.length))),
-                h('ul', null, items.map(it => {
-                    const row = gearRow(g, it);
-                    const g0 = GEAR_GROUPS.find(([st]) => st === it.state);
-                    const label = it.state === 'in container' ? `📥 ${TT('in {0}', it.inside || T('a container'))}` : `${g0 ? String(g0[1]).split(' ')[0] : '❔'} ${T(GEAR_LABEL[it.state] || 'not sure how')}`;
-                    gearTagRow(row, h('span', { class: 'rpgc-chip rpgc-gear-state' }, label));
-                    return row;
-                })));
-            det.open = state.open[key] !== false;
-            det.dataset.openKey = key; det.addEventListener('toggle', () => { state.open[key] = det.open; });
-            return det;
-        });
-    }
     function renderGear() {
-        const g = gearOf();
+        // 1.4.0: one list. Grouped by where; inside each group, sorted by kind; kind chips filter it
+        const gRaw = gearOf();
+        const kindIdx = it => { const id = gearKind(it)[0], i = GEAR_KINDS.findIndex(k => k[0] === id); return i < 0 ? GEAR_KINDS.length : i; };
+        const g = gRaw ? { ...gRaw, items: gRaw.items.map((it, i) => [it, kindIdx(it), i]).sort((a, b) => a[1] - b[1] || a[2] - b[2]).map(x => x[0]) } : null;
         const c = (sysCfg().gear) || {};
         if (!g || c.enabled === false) return null;
         const out = [];
@@ -7466,24 +7455,27 @@ export function setup(ctx) {
         const countOf = f => g.items.filter(f).length;
         const stat = (icon, n, label) => h('span', { class: 'rpgc-gl-stat' + (n ? '' : ' zero'), title: T(label) }, h('span', { 'aria-hidden': 'true' }, icon), ' ', String(n), h('span', { class: 'lbl' }, ' ' + T(label)));
         if (g.items.length) out.push(h('div', { class: 'rpgc-gear-loadout' },
-            h('div', { class: 'rpgc-gl-hands' }, slot(handsNow[0] || null), slot(handsNow[1] || null), handsNow.length > 2 ? h('span', { class: 'rpgc-gl-more' }, `+${handsNow.length - 2}`) : null),
+            h('div', { class: 'rpgc-gl-hands' + (state.open['gear-doll'] === true ? ' on' : ''), role: 'button', tabindex: '0', 'aria-pressed': state.open['gear-doll'] === true ? 'true' : 'false', title: T('Show where each thing sits on you'),
+                onclick: () => { state.open['gear-doll'] = !(state.open['gear-doll'] === true); render(); }, onkeydown: e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); state.open['gear-doll'] = !(state.open['gear-doll'] === true); render(); } } }, slot(handsNow[0] || null), slot(handsNow[1] || null), handsNow.length > 2 ? h('span', { class: 'rpgc-gl-more' }, `+${handsNow.length - 2}`) : null),
             h('div', { class: 'rpgc-gl-stats' },
                 stat('👕', countOf(it => it.state === 'worn' || it.state === 'sheathed'), 'worn'),
                 stat('🎒', countOf(it => it.state === 'on body'), 'carried'),
                 stat('📥', countOf(it => it.state === 'in container'), 'packed'),
                 stat('📍', countOf(it => it.state === 'stowed' || it.state === 'dropped'), 'left behind'))));
-        // By where (hands, worn, on you, luggage) or By kind (weapons, clothing, magic…): one switch, remembered
-        const byKind = state.open['gear-view-kind'] === true;
-        if (g.items.length) out.push(h('div', { class: 'rpgc-gear-viewsw', role: 'group', 'aria-label': T('Sort gear') },
-            h('button', { type: 'button', class: 'rpgc-gv' + (byKind ? '' : ' on'), 'aria-pressed': byKind ? 'false' : 'true', onclick: () => { state.open['gear-view-kind'] = false; render(); } }, '📍 ' + T('By where')),
-            h('button', { type: 'button', class: 'rpgc-gv' + (byKind ? ' on' : ''), 'aria-pressed': byKind ? 'true' : 'false', onclick: () => { state.open['gear-view-kind'] = true; render(); } }, '🗂️ ' + T('By kind')),
-            h('button', { type: 'button', class: 'rpgc-gv' + (state.open['gear-doll'] === true ? ' on' : ''), 'aria-pressed': state.open['gear-doll'] === true ? 'true' : 'false', title: T('Show where each thing sits on you'), onclick: () => { state.open['gear-doll'] = !(state.open['gear-doll'] === true); render(); } }, '🧍 ' + T('On you'))));
+        // kind chips: tap one to show only that kind, tap again (or All) for everything; remembered
+        const kindsHere = GEAR_KINDS.concat([['other', '\u2022', 'Other']]).map(k => [k, g.items.filter(it => gearKind(it)[0] === k[0]).length]).filter(x => x[1]);
+        let kf = state.open['gear-kind-filter'] || null;
+        if (kf && !kindsHere.some(([k]) => k[0] === kf)) kf = null;
+        if (kindsHere.length > 1) out.push(h('div', { class: 'rpgc-gear-viewsw rpgc-gear-kinds', role: 'group', 'aria-label': T('Show one kind') },
+            h('button', { type: 'button', class: 'rpgc-gv' + (kf ? '' : ' on'), 'aria-pressed': kf ? 'false' : 'true', onclick: () => { state.open['gear-kind-filter'] = null; render(); } }, T('All')),
+            ...kindsHere.map(([k, n]) => h('button', { type: 'button', class: 'rpgc-gv' + (kf === k[0] ? ' on' : ''), 'aria-pressed': kf === k[0] ? 'true' : 'false', title: T(k[2]),
+                onclick: () => { state.open['gear-kind-filter'] = kf === k[0] ? null : k[0]; render(); } }, h('span', { 'aria-hidden': 'true' }, k[1]), ' ', String(n)))));
         if (g.items.length && state.open['gear-doll'] === true) out.push(paperDoll(g));
         { const lb = g.items.length ? loadBar(g) : null; if (lb) out.push(lb); }
         const now = g.items.filter(it => it.changedNow);
         if (now.length) out.push(h('div', { class: 'rpgc-gear-now' }, h('span', { class: 'k' }, '✨ ' + T('This turn')), ...now.map(it => h('span', { class: 'rpgc-gn-chip' }, h('span', { 'aria-hidden': 'true' }, gearIcon(it.name)), ` ${it.name} → ${it.state === 'in container' ? TT('in {0}', it.inside || T('a container')) : T(GEAR_LABEL[it.state] || 'carried')}`))));
-        if (byKind) out.push(...renderGearKinds(g));
-        else {
+        const whereFrom = out.length;
+        {
         // 3.6.0: a container's contents sit under the container's own row, wherever that row is (worn, on you,
         // dropped, left somewhere, or inside another bag). Display only: the tracked "inside" name decides, with the
         // same exact-name rule as before; nothing is inferred. A container with no row of its own, or a loop of
@@ -7583,6 +7575,13 @@ export function setup(ctx) {
         // safety net: anything not drawn yet (an unknown state, or a bag whose own row was never drawn) still shows
         const rest = g.items.filter(it => !used.has(it.key));
         if (rest.length) { rest.forEach(it => used.add(it.key)); out.push(h('div', { class: 'rpgc-gear-group' }, h('h4', null, '❔ ' + T('Other')), h('ul', null, rest.map(it => gearRow(g, it))))); }
+        }
+        // the kind filter: a row stays when it (or something inside it) is that kind; a group with nothing left hides
+        if (kf) for (const el of out.slice(whereFrom)) {
+            if (!el || !el.querySelectorAll) continue;
+            const rows = [...el.querySelectorAll('li.rpgc-gear-item')];
+            for (const li of rows.reverse()) { const keep = li.dataset.kind === kf || li.querySelector(`li.rpgc-gear-item[data-kind="${kf}"]:not([hidden])`); if (!keep) li.hidden = true; }
+            if (!rows.some(li => !li.hidden)) el.hidden = true;
         }
         if (!g.items.length) out.push(h('p', { class: 'rpgc-note' }, g.ask
             ? 'Write what you do with your things — “I sheathe my sword”, “I sling the pack on my back”, “the letter goes in my coat pocket” — and it shows up here after the reply. What the HUD lists under Equipment or Items shows up too.'

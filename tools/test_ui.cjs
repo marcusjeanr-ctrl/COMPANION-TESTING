@@ -132,11 +132,20 @@ const fails = []; const check = (ok, what) => { if (!ok) fails.push(what); };
             const held = await q.evaluate(() => (window.__sent || []).filter(m => m.type === 'gear').at(-1));
             check(held && held.op === 'set' && held.name === 'cloak' && held.state === 'in hand', 'gear: a quick move does not send the move');
             check(await q.evaluate(() => !!document.querySelector('.rpgc-gear-loadout .rpgc-gl-hand')), 'gear: the loadout bar is missing');
-            // By kind: every item still drawn exactly once, in kind groups; then back to By where
-            await q.click('button.rpgc-gv:has-text("By kind")');
-            const kinds = await q.evaluate(() => ({ groups: document.querySelectorAll('details.rpgc-gear-kind').length, rows: [...document.querySelectorAll('details.rpgc-gear-kind li.rpgc-gear-item > .name')].map(n => n.textContent) }));
-            check(kinds.groups >= 2 && kinds.rows.length === new Set(kinds.rows).size && kinds.rows.length === items.length, `gear: By kind does not show each item once (${kinds.rows.length}/${items.length})`);
-            await q.click('button.rpgc-gv:has-text("By where")');
+            // 1.4.0 one list: every item drawn once and tagged with its kind; a kind chip shows only that kind, All brings the rest back
+            const all = await q.evaluate(() => [...document.querySelectorAll('li.rpgc-gear-item')].map(l => ({ n: l.querySelector(':scope > .name')?.textContent, k: l.dataset.kind })));
+            check(all.length === new Set(all.map(x => x.n)).size && all.every(x => x.k), 'gear: the list does not show each item once with its kind');
+            const chips = await q.evaluate(() => document.querySelectorAll('.rpgc-gear-kinds button.rpgc-gv').length);
+            check(chips >= 3, 'gear: the kind chips are missing');
+            const visible = () => q.evaluate(() => [...document.querySelectorAll('li.rpgc-gear-item')].filter(l => l.getClientRects().length > 0).length);
+            const before = await visible();
+            await q.click('.rpgc-gear-kinds button.rpgc-gv:nth-child(2)');
+            const shown = await q.evaluate(() => [...document.querySelectorAll('li.rpgc-gear-item')].filter(l => l.getClientRects().length > 0).map(l => l.dataset.kind));
+            const picked = await q.evaluate(() => document.querySelector('.rpgc-gear-kinds button.rpgc-gv.on')?.title || '');
+            check(shown.length > 0 && shown.length < all.length && picked, `gear: a kind chip does not filter the list (${shown.length}/${all.length})`);
+            await q.click('.rpgc-gear-kinds button.rpgc-gv:has-text("All")');
+            const back = await visible();
+            check(back === before, `gear: All does not bring every item back (${back}/${before})`);
             if (shots) await q.screenshot({ path: path.join(shots, 'gear-containers.png'), fullPage: true });
         } catch (e) { fails.push('gear check stopped: ' + String(e.message).split('\n')[0]); }
         await q.close();
