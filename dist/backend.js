@@ -10634,6 +10634,15 @@ function mtTraining(lines) {
     }
     return out.slice(0, 12);
 }
+/** 1.4.0: a study item that is only a Training track ("Sword God Style toward Saint" while the HUD trains Sword God → Saint)
+ * belongs to the Training card, which shows its sessions; Studying keeps the rest. Only while the Training line lists it. */
+function studyIsTrainingTrack(name, tracks) {
+    if (!tracks || !tracks.length) return false;
+    const norm = x => ` ${String(x || '').toLowerCase().replace(/\b(?:style|styles|magic|school|arts?)\b/g, ' ').replace(/[^\p{L}\p{N}]+/gu, ' ').replace(/\s+/g, ' ').trim()} `;
+    const n = norm(name);
+    if (!/ (?:toward|towards|to|for) /.test(n)) return false;
+    return tracks.some(t => { const sk = norm(t.skill), nx = norm(t.next); return sk.trim() && nx.trim() && n.includes(sk) && n.includes(nx); });
+}
 /** "Noble — Upper Noble, House Veyrath (Asura), Younger Child" / "Commoner — Farmer" / "Slave — owner". */
 function mtStanding(text) {
     const t = String(text || '').trim();
@@ -18295,7 +18304,8 @@ function spellListPanel(chatId, chat, st, sys) {
     const isKnown = (k) => known.has(k) || knownKeys.some(x => spellSame(x, k));
     const techKeys = techKeySet(chatId);
     const classify = spellResolver(chatId);
-    const study = spellStudyActive(chat, st, fold, chatId, known).filter(s => !techKeys.has(spellKey(s.name)) && classify.domain(s.name) !== 'martial');
+    const tracks = mtTraining(sys && sys._lines ? sys._lines : []);
+    const study = spellStudyActive(chat, st, fold, chatId, known).filter(s => !techKeys.has(spellKey(s.name)) && classify.domain(s.name) !== 'martial' && !studyIsTrainingTrack(s.name, tracks));
     const studyKeys = new Set(study.map(s => spellKey(s.name)));
     const ladderOf = (r) => SPELL_LADDER[r.ladder] || SPELL_LADDER.mt;
     const needs = (r) => (r.ladder === 'rz' ? `Needs ${SPELL_LADDER.rz[r.step]} tier (Gate ${['F', 'D', 'C', 'B', 'S'][r.step]} or better)` : `Needs ${ladderOf(r)[r.step]}`);
@@ -18642,7 +18652,8 @@ function techListPanel(chatId, chat, st, sys) {
     const known = spellKnown(chat, st, fold, chatId, true);
     const catKeys = new Set(cat.map(r => r.key));
     const classifyT = spellResolver(chatId);
-    const study = spellStudyActive(chat, st, fold, chatId, known).filter(s => catKeys.has(spellKey(s.name)) || classifyT.domain(s.name) === 'martial');
+    const tracksT = mtTraining(sys && sys._lines ? sys._lines : []);
+    const study = spellStudyActive(chat, st, fold, chatId, known).filter(s => (catKeys.has(spellKey(s.name)) || classifyT.domain(s.name) === 'martial') && !studyIsTrainingTrack(s.name, tracksT));
     const studyKeys = new Set(study.map(s => spellKey(s.name)));
     const has = (name) => stand.get(techStyleKey(name)) || null;
     const items = cat.map(r => {
