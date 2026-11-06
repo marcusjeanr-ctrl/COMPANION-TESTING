@@ -14844,6 +14844,8 @@ function agendaNarratedMove(row, items, source, messageId) {
 const PLACE_HEADING_RE = /[,;–—-]?\s*\b(?:en route|on (?:the|his|her|their|our|your|my) way|headed|heading|bound|travell?ing|riding|walking|marching|sailing|driving|journeying)\s+(?:on\s+)?(?:to|for|toward|towards)\b[^→›>|]*/gi;
 const PLACE_ROAD_TO_RE = /\b(road|way|path|route|trail|highway|track)\s+(?:to|toward|towards)\s+[^→›>|,;]*/gi;
 function placeNow(text) { return String(text || '').replace(PLACE_HEADING_RE, ' ').replace(PLACE_ROAD_TO_RE, '$1'); }
+// The panel's own countdown wording, as hinted to the reporter: never a time the story gave.
+const AGENDA_ECHO_RE = /^\s*(?:(?:due\s+)?in\s+(?:\d+\s*[dhm]\s*)+(?:,\s*with the post)?|(?:\d+\s*[dhm]\s*)+(?:late|overdue)|due now(?: or soon)?|late|overdue)\s*$/i;
 const AGENDA_ARRIVAL_RE = /\b(?:when|after|once|upon|on|until)\s+(?:(?:he|she|they|you|i|we|marcus)\s+)?(?:first\s+)?(?:reach(?:es)?|arriv(?:e|es|ed|al)|gets?\s+to|settles?\s+in|is\s+settled|lands?\s+in)\b/i;
 const AGENDA_FIRST_LETTER_RE = /\bfirst\s+(?:\w+\s+){0,2}?(?:letters?|note)\b/i;
 function agendaIsLetter(r) {
@@ -14921,8 +14923,12 @@ function agendaRead(chat, st) {
         let continuityLines = null;
         const source = stripThink(textOf(m.content)).replace(COMPANION_RE, '');
         const maySeparate = /\b(?:another|second|separate|additional|new)\b/i.test(source.slice(0,24000));
-        for (const r of Array.isArray(d.agenda) ? d.agenda : []) {
-            if (!r || typeof r.key !== 'string' || typeof r.what !== 'string') continue;
+        for (const r0 of Array.isArray(d.agenda) ? d.agenda : []) {
+            if (!r0 || typeof r0.key !== 'string' || typeof r0.what !== 'string') continue;
+            // 1.4.0: the reporter sometimes hands back the panel's own countdown ("in 3d 14h", "2h late", "now") as the
+            // time. That is our echo, not the story's: it would re-date the item from this reply. Keep the time already known.
+            const r = AGENDA_ECHO_RE.test(String(r0.when || '')) || AGENDA_ECHO_RE.test(String(r0.due || ''))
+                ? { ...r0, when: AGENDA_ECHO_RE.test(String(r0.when || '')) ? null : r0.when, due: AGENDA_ECHO_RE.test(String(r0.due || '')) ? null : r0.due } : r0;
             const clockOnly = agendaBareClock(r.when || r.due) && (!r.due || agendaBareClock(r.due));
             let dueAt = r.when || r.due ? agendaWhen(r.due, r.when, at, e && e.hud, source) : null;
             // A past outcome's bare clock belongs to the observed day, unlike a
@@ -15085,7 +15091,7 @@ function agendaRequest(chat, st, userName, cfg) {
     if (ac.tell && chat && st) {
         let open = [];
         try { open = hmsAgendaPanel(chat, st).items.filter(x => x.state === 'open' || x.state === 'in_progress'); } catch { open = []; }
-        if (open.length) rules += `\nAgenda now — ${open.slice(0, 8).map(x => `${x.what}${x.with ? ` (with ${x.with})` : ''}${x.where ? ` at ${x.where}` : ''}: ${x.state === 'in_progress' ? 'in progress' : x.dueIn === null ? (Number.isFinite(x.dayIn) ? agendaDayText(x.dayIn) : (x.when || 'no set time')) : x.dueIn < -60 ? `${hmsSpan(-x.dueIn)} overdue` : x.dueIn <= 0 ? 'due now' : `due in ${hmsSpan(x.dueIn)}`}`).join('; ')}.`;
+        if (open.length) rules += `\nAgenda now — ${open.slice(0, 8).map(x => `${x.what}${x.with ? ` (with ${x.with})` : ''}${x.where ? ` at ${x.where}` : ''}: ${x.state === 'in_progress' ? 'in progress' : x.dueIn === null ? (Number.isFinite(x.dayIn) ? agendaDayText(x.dayIn) : (x.when || 'no set time')) : x.dueIn < -60 ? `${hmsSpan(-x.dueIn)} overdue` : x.dueIn <= 0 ? 'due now' : `due in ${hmsSpan(x.dueIn)}`}${x.when && x.dueIn !== null ? ` (story: ${x.when})` : ''}`).join('; ')}. In "when", always use the story's own words ("Day 5, first bell"), never a countdown like "in 3d 14h".`;
     }
     return { json, rules };
 }
