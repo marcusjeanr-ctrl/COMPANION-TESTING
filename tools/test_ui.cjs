@@ -26,7 +26,7 @@ const fails = []; const check = (ok, what) => { if (!ok) fails.push(what); };
     const browser = await chromium.launch();
     const tmp = path.join(os.tmpdir(), `rpgc-ui-${process.pid}.html`); // one file per run, so two runs never share a page
     const open = async (width, look, view, frontFile = process.env.FRONTEND || path.join(root, 'dist', 'frontend.js')) => {
-        fs.writeFileSync(tmp, page(frontFile, width, `localStorage.setItem('rpgc-view','${view}');`));
+        fs.writeFileSync(tmp, page(frontFile, width, `localStorage.setItem('rpgc-view-v2','1');localStorage.setItem('rpgc-view','${view}');`));
         const p = await browser.newPage({ viewport: { width: width + 40, height: 900 } });
         p.setDefaultTimeout(3000); // a missing control fails fast instead of waiting 30 s
         p.on('pageerror', e => fails.push(`${look}/${view}@${width}: script error ${e.message}`));
@@ -46,7 +46,7 @@ const fails = []; const check = (ok, what) => { if (!ok) fails.push(what); };
         const tag = `${look}/${view}@${width}`;
         check(r.look.includes('look-' + look), `${tag}: look class missing (${r.look})`);
         check(r.cards > 0, `${tag}: the view rendered no cards`);
-        check(r.tab === view, `${tag}: tab ${r.tab} selected`);
+        check(view === "all" ? r.tab === undefined : r.tab === view, `${tag}: tab ${r.tab} selected`); // 1.4.0: All has no tab of its own
         check(r.overflow <= 1 && !r.wide.length, `${tag}: horizontal overflow ${r.overflow}px ${r.wide.join(', ')}`);
         if (shots) await p.screenshot({ path: path.join(shots, `${look}-${view}-${width}.png`), fullPage: true });
         await p.close();
@@ -60,6 +60,22 @@ const fails = []; const check = (ok, what) => { if (!ok) fails.push(what); };
     check(await p.evaluate(() => document.querySelector('.rpgc-viewtab[aria-selected=true]')?.dataset.view) === 'journey', 'ArrowRight does not move to the next view');
     check(await p.evaluate(() => document.activeElement?.dataset?.view) === 'journey', 'focus does not follow the arrow key');
     await p.click('.rpgc-viewtab[data-view=scene]');
+    // 1.4.0 pins: four tabs, no All; a card's 📌 adds it under Pinned, the pin opens that card alone, unpinning removes it
+    check(await p.evaluate(() => document.querySelectorAll('.rpgc-views > .rpgc-viewtab').length === 4 && !document.querySelector('.rpgc-viewtab[data-view=all]')), 'pins: the bar is not the four views without All');
+    {
+        const first = await p.evaluate(() => { const b = document.querySelector('.rpgc-view details.rpgc-sec > summary .rpgc-cardpin'); if (!b) return null; const k = b.closest('details').dataset.openKey; b.click(); return k; });
+        await p.waitForTimeout(30);
+        check(first && await p.evaluate(k => !!document.querySelector(`.rpgc-pins .rpgc-pin[data-view="pin:${k}"]`), first), 'pins: a card 📌 does not add it to Pinned');
+        await p.click(`.rpgc-pins .rpgc-pin[data-view="pin:${first}"]`); await p.waitForTimeout(30);
+        const solo = await p.evaluate(() => [...document.querySelectorAll('.rpgc-view > *')].map(e => e.dataset.openKey || e.className));
+        check(solo.length === 1 && solo[0] === first, `pins: a pin does not show its card alone (${solo.join(',')})`);
+        await p.click('.rpgc-pins .rpgc-pin.add'); await p.waitForTimeout(30);
+        check(await p.evaluate(() => document.querySelectorAll('.rpgc-pinpick .rpgc-pinopt').length >= 3), 'pins: the picker does not list the cards');
+        await p.click('.rpgc-pins .rpgc-pin.add'); await p.waitForTimeout(20);
+        await p.click(`.rpgc-view details[data-open-key="${first}"] > summary .rpgc-cardpin`); await p.waitForTimeout(30);
+        check(await p.evaluate(k => !document.querySelector(`.rpgc-pins .rpgc-pin[data-view="pin:${k}"]`) && document.querySelector('.rpgc-viewtab.on')?.dataset.view === 'scene', first), 'pins: unpinning does not remove the pin and go back to Scene');
+        await p.click('.rpgc-viewtab[data-view=scene]');
+    }
     const nowLink = await p.$('.rpgc-now-rows > div.go');
     if (nowLink) { await nowLink.click(); await p.waitForTimeout(30); check(await p.evaluate(() => document.querySelector('.rpgc-viewtab[aria-selected=true]')?.dataset.view) !== 'scene', 'a Now card link does not open its card'); await p.click('.rpgc-viewtab[data-view=scene]'); }
     await p.keyboard.press('Control+k'); await p.waitForTimeout(30);
@@ -160,7 +176,7 @@ const fails = []; const check = (ok, what) => { if (!ok) fails.push(what); };
         qp.hms.systems = { ...(qp.hms.systems || {}), quests: [qq('road', 'The Long Road', 'Travel north to the capital and begin training with the blade master', 'main'),
             qq('blade', 'Study under the Blade Master', 'Begin training with the blade master in the capital', 'main'), qq('guild', 'Guild papers', 'Register at the guild', 'side')],
             objectives: [], journal: [], abilities: (qp.hms.systems || {}).abilities || [] };
-        fs.writeFileSync(tmp, page(process.env.FRONTEND || path.join(root, 'dist', 'frontend.js'), 420, `localStorage.setItem('rpgc-view','all');`));
+        fs.writeFileSync(tmp, page(process.env.FRONTEND || path.join(root, 'dist', 'frontend.js'), 420, `localStorage.setItem('rpgc-view-v2','1');localStorage.setItem('rpgc-view','all');`));
         const q = await browser.newPage({ viewport: { width: 460, height: 900 } }); q.setDefaultTimeout(3000);
         q.on('pageerror', e => fails.push('quests: script error ' + e.message));
         await q.goto('file://' + tmp);

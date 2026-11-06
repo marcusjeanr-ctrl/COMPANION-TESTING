@@ -46,6 +46,8 @@
 
 **No blink on click:** a click or a toggle redraws the panel, and every card used to replay its fade-in and rise each time. Entrance animations now play only when you change view or a new reply lands; an ordinary redraw runs none.
 
+**Pinned panels instead of All:** the bar keeps Scene, You, People and Journey; the All tab is gone. Under them, **📌 Pinned** holds the cards you choose (up to 8): tap the 📌 on any card's header, or **＋ Pin a panel** for a list of every card. A pin opens that one card on its own, open and full height. Tap the 📌 again to unpin. Pins are remembered in this browser. A panel that was saved on All opens on Scene once.
+
 **Arrival letters aren't late:** an Agenda item that waits on arriving ("when he reaches Roa") no longer turns overdue because the report pinned the arrival time to it. Once you are there, a letter counts down to the next open post or courier ("in 3d 15h, with the post"); anything else shows as due today. On the way, it has no set time. This also stops the narrator's prompt being told the letter is late. The arrival wording is remembered when a later reply rewords it ("from Roa").
 
 **On the road is not there yet:** a location like "Fittoa road, en route to Roa" no longer counts as being in Roa. The Agenda's "you're here" chip and the check that holds "when he reaches Roa" items until you arrive now read only where you are, not where you are headed (en route to, on the way to, heading for, bound for, the road to…).
