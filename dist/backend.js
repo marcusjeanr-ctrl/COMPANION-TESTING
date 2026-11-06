@@ -2876,6 +2876,22 @@ function carryHudKey(text) {
     const time = ((dateLine.match(/\bTime:\s*(\d{1,2}:\d{2})/i) || [])[1]) || '';
     return { date, place, time };
 }
+// Which card and which story a chat is: the character's name on its replies, the world its HUD belongs to,
+// and the card id the panel last saw it under. Shown on the carry-over list so chats from an older card stay findable.
+const carryCardOf = new Map();   // chatId → characterId, from the panel
+function carryMeta(chat) {
+    const names = new Map();
+    for (const m of chat) {
+        if (!m || m._rpgcCarried || m.role !== 'assistant' || typeof m.name !== 'string') continue;
+        const n = m.name.trim().slice(0, 60);
+        if (n) names.set(n, (names.get(n) || 0) + 1);
+    }
+    const card = [...names].sort((a, b) => b[1] - a[1])[0]?.[0] || '';
+    let world = null;
+    const last = latestHudMessage(chat.filter(m => m && !m._rpgcCarried));
+    if (last) { try { const hud = parseHud(textOf(last.content)); world = hud ? worldOf(worldLines(hud)) : null; } catch { world = null; } }
+    return { card, world: world || null };
+}
 function carryLastHud(msgs) {
     for (let i = msgs.length - 1; i >= 0; i--) {
         const m = msgs[i];
@@ -2917,10 +2933,12 @@ async function carryIndexNote(chatId, chat, cs) {
     const lastId = (own[own.length - 1] || chat[chat.length - 1]).id;
     const idx = await carryIndexLoad();
     const old = idx.find(x => x.chatId === chatId);
-    if (old && old.lastId === lastId && old.count === chat.length && old.time !== undefined) return;
+    const characterId = carryCardOf.get(chatId) || (old && old.characterId) || null;
+    if (old && old.lastId === lastId && old.count === chat.length && old.time !== undefined && old.card !== undefined && old.characterId === characterId) return;
     const { date, place, time } = carryLastHud(chat);
     if (!date && !place) return;
-    const row = { chatId, count: chat.length, lastId, date, place, time, at: Date.now(), carried: cs && cs.carry ? cs.carry.from : null };
+    const { card, world } = carryMeta(chat);
+    const row = { chatId, count: chat.length, lastId, date, place, time, at: Date.now(), carried: cs && cs.carry ? cs.carry.from : null, card, world, characterId };
     carryIndex = [row, ...idx.filter(x => x.chatId !== chatId)].slice(0, 30);
     const snapshot = carryIndex.slice();
     carryIndexSaving = (carryIndexSaving || Promise.resolve()).catch(() => {}).then(() => spindle.storage.setJson(CARRY_INDEX_FILE, snapshot)).catch(e => logW(`[RPG Companion HMS] Could not save the chat list for carry-over: ${e?.message || e}`));
@@ -2963,15 +2981,23 @@ async function carryPanel(chatId, chat, cs) {
     // the same hour too: a save at 21:10 is not the chat that went on to 21:55 the same night
     const exact = x => sameDay(x) && !!resume.time && x.time === resume.time;
     const anyExact = rows.some(exact);
+    // This chat's own card and story, so the list can say which chats are from this card, an older one, or another story.
+    const here = carryMeta(chat);
+    const hereCard = carryCardOf.get(chatId) || null;
     const choices = rows.map(x => ({
         chatId: x.chatId, date: x.date, place: x.place, count: x.count, at: x.at,
+        card: x.card || '', world: x.world || null, worldLabel: x.world ? WORLD_LABEL[x.world] || null : null,
+        sameCard: !!(hereCard && x.characterId && x.characterId === hereCard),
+        sameStory: !!(here.world && x.world === here.world) || !!(here.card && x.card && same(here.card, x.card)),
+        characterId: x.characterId || null,
         rank: exact(x) ? 2 : sameDay(x) && (!anyExact && (!resume.time || !x.time)) ? 1 : 0
-    })).sort((a, b) => (b.rank - a.rank) || (b.at - a.at)).slice(0, 8);
+    })).sort((a, b) => (b.rank - a.rank) || (b.sameStory - a.sameStory) || (b.at - a.at)).slice(0, 12);
     // One chat is the match: the best one. The rest stay under Settings → Backup.
     choices.forEach((c, i) => { c.match = i === 0 && c.rank > 0; delete c.rank; });
     return {
-        linked: link ? { from: link.from, date: link.date || '', place: link.place || '', count: link.count || 0, at: link.at, missing: !!(mem && mem.missing) } : null,
-        continued: !!resume, dismissed: !!cs.carryDismissed, choices
+        linked: link ? { from: link.from, date: link.date || '', place: link.place || '', count: link.count || 0, at: link.at, missing: !!(mem && mem.missing), card: link.card || '', worldLabel: link.world ? WORLD_LABEL[link.world] || null : null } : null,
+        continued: !!resume, dismissed: !!cs.carryDismissed, choices,
+        here: { card: here.card, worldLabel: here.world ? WORLD_LABEL[here.world] || null : null }
     };
 }
 async function carryLink(chatId, from) {
@@ -2990,6 +3016,7 @@ async function carryLink(chatId, from) {
     if (!cut.length) { setStatus(chatId, 'error', 'The earlier chat has no replies to carry over.'); return false; }
     const at = Date.now();
     const { date, place } = carryLastHud(cut);
+    const fromMeta = carryMeta(cut);
     try { await spindle.storage.setJson(carryPath(chatId), { v: 1, from, at, messages: cut.map(carryStrip) }); }
     catch (e) { setStatus(chatId, 'error', `Could not save the carried history: ${e?.message || e}`); return false; }
     const st = await getChatState(chatId);
@@ -3000,7 +3027,7 @@ async function carryLink(chatId, from) {
         if (CARRY_SKIP.has(k) || carryEmpty(v) || !carryEmpty(st[k])) continue;
         st[k] = clone(v); copied.push(k);
     }
-    st.carry = { from, at, count: cut.length, upTo: cut[cut.length - 1].id, date, place, copied };
+    st.carry = { from, at, count: cut.length, upTo: cut[cut.length - 1].id, date, place, copied, card: fromMeta.card, world: fromMeta.world };
     delete st.carryDismissed;
     carryMem.delete(chatId);
     await saveChatState(chatId, st);
@@ -20721,6 +20748,7 @@ spindle.onFrontendMessage(async (payload, userId) => {
                 if (payload.chatId && payload.chatId !== SANDBOX_ID) lastRealChatId = payload.chatId;
                 if (payload.refreshName) userNameCache.delete(payload.chatId);
                 if (payload.characterId) await autoApplyPreset(payload.characterId);
+                if (payload.chatId && payload.characterId) carryCardOf.set(payload.chatId, String(payload.characterId));
                 await pushState(payload.chatId || null);
                 break;
 

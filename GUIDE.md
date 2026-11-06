@@ -167,6 +167,8 @@ The card puts the bot's Continuer line first, as the bot asks.
 
 **The panel's history comes along too.** The Companion keeps each chat's history separately, so a new chat that resumes from a save (Mushoku_Save, then Mushoku_Continue_Handler) starts with only what its HUD shows. After the first reply, the panel shows **Continue from your saved chat** with the earlier chat it matched (same date and place). Press **Carry over**: People, the Spellbook, gear, money, quests, secrets, ages and the Chronicle continue from the old chat. The old chat is read, never changed, and a copy is kept, so you can delete it later. Open the old chat once first if it isn't offered. **Settings → Backup** shows the link and has **Undo carry-over**.
 
+**Moving to a new card.** Carry-over works across cards, so a new version of a card (or a different card that tells the same story) can pick up your old chat. Open the old chat once, start the new card with your save, and press **Carry over**. **Settings → Backup** lists your chats grouped by story, each with its card name, last date, place and length, and marks which ones are from *this card* and which are from *another card of the same story*. Your pins come along to the new card the first time, if it has none yet.
+
 ### After the first reply
 
 - The bot builds the HUD on turn 1. From then on it carries it in every reply.

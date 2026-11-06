@@ -4,6 +4,11 @@
 
 **The deck: a new look for the whole panel.** Everything below is display only. The Companion reads what it already has; there are no new tracker fields, no extra model calls and no change to what the story is sent.
 
+**Carry-over across cards**
+- A new version of a card picks up a chat from the old one. The carry-over list now names each chat's **card**, groups chats **by story** (Mushoku Tensei, Cyberpunk, …) and tags them *this card* or *other card · same story*. Chats of this story come first.
+- Your pins follow you to the new card the first time you carry over, when that card has none yet.
+- Settings → Backup shows which card the linked chat came from.
+
 **Look and feel**
 - **World skins**, picked by card: Mushoku parchment and ink, Re:Zero violet and witch gold, COTE school tablet, Overlord obsidian and crimson, D&D tavern. You can choose one yourself or turn them off. A wiki theme you chose in Settings still wins.
 - **One type scale**, a display font for titles and a reading font for text, plus a **day and night tint** that follows the HUD clock.

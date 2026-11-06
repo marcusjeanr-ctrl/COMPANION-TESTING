@@ -37,6 +37,7 @@ globalThis.__C = (user) => { let last = null;
     update: async (id, mid) => chatApi.updateMessage(id, mid, { content: 'x' }),
     swipe: async (id, mid, data) => { const m = (await chatApi.getMessages(id)).find(x => x.id === mid); return setSwipeData(id, m, data); },
     status: id => chatStatus.get(id) || null,
+    card: (id, c) => { if (typeof carryCardOf !== 'undefined') carryCardOf.set(id, c); },
     burst: async id => { let n = 0; const was = toFrontend; toFrontend = p => { if (p && p.type === 'state') { n++; last = p; } };
       await Promise.all([pushState(id), pushState(id), pushState(id), pushState(id)]); toFrontend = was; return n; } }; };`, ctx);
 
@@ -163,6 +164,25 @@ const check = async (name, fn) => { try { await fn(); results.push(name); } catc
     });
     await check('an ordinary chat is unchanged and offered nothing at the top', async () => {
         const st = await api.push('A'); assert.equal(st.carry.continued, false); assert.equal(st.carry.linked, null);
+    });
+
+    await check('a new version of the card picks up the old card\'s chat, labelled by card and story (1.4.0)', async () => {
+        const named = (m, nm) => m.role === 'assistant' ? { ...m, name: nm } : m;
+        chats.set('OLD', A.map(m => named(m, 'Mushoku Tensei v1')));
+        chats.set('NEW', B.map(m => named(m, 'Mushoku Tensei v2')));
+        api.card('OLD', 'card-v1'); api.card('NEW', 'card-v2');
+        await api.push('OLD');
+        const st = await api.push('NEW');
+        const c = st.carry.choices.find(x => x.chatId === 'OLD');
+        assert.ok(c, 'the old card\'s chat is offered');
+        assert.equal(c.card, 'Mushoku Tensei v1');
+        assert.equal(c.worldLabel, 'Mushoku Tensei');
+        assert.equal(c.sameCard, false); assert.equal(c.sameStory, true);
+        assert.equal(st.carry.here.worldLabel, 'Mushoku Tensei');
+        assert.ok(await api.link('NEW', 'OLD'));
+        const after = await api.push('NEW');
+        assert.equal(after.carry.linked.card, 'Mushoku Tensei v1');
+        assert.ok((await api.messages('NEW')).some(m => m.carried));
     });
 
     await check('a burst of pushes builds the panel at most twice (1.4.0)', async () => {
