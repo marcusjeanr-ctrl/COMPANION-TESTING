@@ -10812,7 +10812,7 @@ function hmsTrainingPlan(chat, st, tl, magic, techniques, relations) {
     const nowAt = last.clock;
     const learned = [];
     for (const sItem of studies) {
-        const e = seen.get(spellKey(sItem.name)) || null;
+        const e = seen.get(spellKey(sItem.name)) || (sItem.from ? seen.get(spellKey(sItem.from)) : null) || null;
         const row = { name: sItem.name, school: sItem.school || null, rank: sItem.rank || null, note: sItem.note || null, progress: sItem.progress ?? null,
             days: e ? e.days.size : 0, last: e ? e.when : null, teacher: e ? e.teacher : null, sessions: null, quiet: false, fresh: false };
         if (sItem.done) { learned.push({ name: row.name, school: row.school, last: row.last }); continue; }
@@ -10834,7 +10834,11 @@ function hmsTrainingPlan(chat, st, tl, magic, techniques, relations) {
         const chatId = chatIdOf(chat);
         const have = new Set([...groups.values()].flatMap(g => g.studies.map(x => spellKey(x.name))));
         const FIRM = /^(?:known|reliable|mastered)$/i;
-        for (const it of chatId ? martialAbilityItems(chatId, chat, st) : []) {
+        const catT = chatId ? techCatalog(chatId) : [];
+        for (const it0 of chatId ? martialAbilityItems(chatId, chat, st) : []) {
+            const ref = techCatalogMatch(catT, it0.name);
+            if (!ref) continue;   // a drill, not a technique of the lorebook
+            const it = { ...it0, name: ref.name };
             if (FIRM.test(it.state || '') || have.has(spellKey(it.name))) continue;
             have.add(spellKey(it.name));
             const row = { name: it.name, school: null, rank: null, note: null, progress: it.progress ?? null, days: 0, last: null, teacher: null, sessions: null, quiet: false, fresh: false, practice: it.state || 'Practicing' };
@@ -11689,7 +11693,7 @@ function buildCompanionInstructionRead(committed, userName, locks, st = null, ch
     if (abilitiesSeen) s += '\nStudy requires practice begun now, not assigned/future lessons, demonstrations or failed combat alone. Never invent percentages. Omit empty study/learning.';
     // 1.4.0: the names already on file, so the same practice keeps one name ("Sword God footing" stays that, not
     // "off-line entry footwork" one reply and "footwork off-line step" the next). A different technique still gets its own.
-    if (abilitiesSeen && chat) { try { const names = practiceNamesOnFile(chat, st); if (names.length) s += `\nPractice names on file — ${names.join('; ')}. In study and you.abilities, reuse one of these exact names for the same practice, even when the drill is described differently; a new name only for a genuinely different technique or spell.`; } catch { /* hint only */ } }
+    if (abilitiesSeen && chat) { try { const tl = techniquesOnFile(chat); if (tl) s += `\nTechniques of ${userName}'s styles in the lorebook — ${tl}. A martial entry in study or you.abilities is one of these, by this exact name, and only when the story shows that technique itself being taught, practised or used. Drills, footwork, stance work and sparring that are none of them are not study or ability entries: they count only toward the Training sessions the HUD keeps.`; } catch { /* hint only */ } }
     if (yc.on) s += `\nA time skip, montage or "over the month" summary in this reply is part of this turn: report what it shows ${userName} practicing, attempting or learning the same way as a scene (an attempt stays an attempt; a spell is learned only when the story says so). Its healed wounds and new gear count too, and so do sleep, meals and drinks in its ordinary days.`;
     if (wantQuests) s += '\nQuest progress is for the whole quest, not the current step. Do not lower it unless the quest restarted.';
     if (wantQuests) s += '\n"quests": accepted goals only. Reuse a Known quest ID for the same assignment despite new titles, progress or stages; null for a genuinely separate assignment. Names are labels, not IDs. Progress requires a measured percentage, else null. Report ended scene-level goals even when omitted from the HUD; use closed if the scene ended without a confirmed success/failure. Preserve broader quests and future commitments. No rewards from completion alone.';
@@ -18780,6 +18784,25 @@ function martialAbilityItems(chatId, chat, st) {
     }).slice(-40);
 }
 
+function techniquesOnFile(chat) {
+    const chatId = chatIdOf(chat) || reqChatNow || null;
+    if (!chatId) return '';
+    const cat = techCatalog(chatId);
+    if (!cat.length) return '';
+    const hm = latestHudMessage(chat);
+    const hud = hm ? parseHud(textOf(hm.content)) : null;
+    const stand = techStanding(hud && Array.isArray(hud.lines) ? hud.lines.map(l => l.text) : []);
+    if (!stand.size) return '';
+    const by = new Map();
+    for (const r of cat) {
+        const sch = stand.get(techStyleKey(r.style));
+        if (!sch || r.kind === 'unique') continue;
+        if (r.step !== null && sch.step !== null && r.step > sch.step + 1) continue;   // up to one rank ahead
+        if (!by.has(r.style)) by.set(r.style, []);
+        by.get(r.style).push(r.name);
+    }
+    return [...by].map(([style, names]) => `${style}: ${names.slice(0, 12).join(', ')}`).join('; ');
+}
 function practiceNamesOnFile(chat, st) {
     const chatId = chatIdOf(chat) || reqChatNow || null;
     if (!chatId) return [];
@@ -18971,6 +18994,16 @@ function techCatalog(chatId) {
     while (techCatalogCache.size > LORE_POOL_MAX_CHATS) techCatalogCache.delete(techCatalogCache.keys().next().value);
     return list;
 }
+// 1.4.0: a martial study counts only when it is one of the lorebook's techniques, like a spell. The story's own wording
+// is matched loosely to the catalog name ("Sword God footing" / "Sword God Style footwork" → Sword God Footwork);
+// drills, footwork and sparring that are no technique of the lorebook are training sessions, not studies.
+function techCatalogMatch(cat, name) {
+    if (!Array.isArray(cat) || !cat.length || !name) return null;
+    const byKey = new Map(cat.map(r => [r.key, r]));
+    const tries = [String(name), String(name).replace(/\bfooting\b/gi, 'footwork').replace(/\bstances?\b/gi, 'stance'), String(name).replace(/\bstyle\b/gi, ' ').replace(/\bfooting\b/gi, 'footwork')];
+    for (const t of tries) { const r = byKey.get(spellKey(t.replace(/\s+/g, ' ').trim())); if (r) return r; }
+    return null;
+}
 function techKeySet(chatId) {
     try { return new Set(techCatalog(chatId).map(r => r.key)); } catch { return new Set(); }
 }
@@ -19011,7 +19044,15 @@ function techListPanel(chatId, chat, st, sys) {
     const catKeys = new Set(cat.map(r => r.key));
     const classifyT = spellResolver(chatId);
     const tracksT = trainingTracksNow(chat);
-    const study = spellStudyActive(chat, st, fold, chatId, known).filter(s => (catKeys.has(spellKey(s.name)) || classifyT.domain(s.name) === 'martial') && !studyIsTrainingTrack(s.name, tracksT));
+    const study = [];
+    { const seenT = new Set();
+      for (const s of spellStudyActive(chat, st, fold, chatId, known)) {
+          if (studyIsTrainingTrack(s.name, tracksT)) continue;
+          const r = techCatalogMatch(cat, s.name);
+          if (!r) continue;   // a drill the lorebook does not name: it counts toward Training sessions, not as a study
+          if (seenT.has(r.key)) continue; seenT.add(r.key);
+          study.push({ ...s, name: r.name, _from: s.name });
+      } }
     const studyKeys = new Set(study.map(s => spellKey(s.name)));
     const has = (name) => stand.get(techStyleKey(name)) || null;
     const items = cat.map(r => {
@@ -19057,10 +19098,10 @@ function techListPanel(chatId, chat, st, sys) {
     const studying = study.map(s => {
         const k = spellKey(s.name);
         const row = items.find(x => x.key === k);
-        const pr = fold.progress.get(k);
+        const pr = fold.progress.get(k) || (s._from ? fold.progress.get(spellKey(s._from)) : null);
         return { name: s.name, school: row ? row.school : null, rank: row ? row.rank : null, done: !spellOngoingPractice(fold, known, spellKey(s.name)) && !!(row && ['known', 'mastered'].includes(row.status)),
             progress: spellPercent(pr),
-            note: pr ? pr.note : null, why: row ? row.why : null };
+            note: pr ? pr.note : null, why: row ? row.why : null, ...(s._from && s._from !== s.name ? { from: s._from } : {}) };
     });
     return { kind: 'tech', total: cat.length, mine: [...stand.values()], schools, studying, news };
 }

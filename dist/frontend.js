@@ -6895,12 +6895,21 @@ export function setup(ctx) {
         const trainOn = !!(state.hms && state.hms.trainingPlan && Array.isArray(state.hms.trainingPlan.groups) && state.hms.trainingPlan.groups.length);
         const IN_TRAINING = /^(?:attempted|practi[cs]ing|training|reported maneuver|reported assessment|learning reported)$/i;
         let movedN = 0;
+        // 1.4.0: like spells, a martial move counts when it is one of the lorebook's techniques; moves the story
+        // names in its own words wait in a small fold instead of crowding the card
+        const techNames = new Map();
+        for (const sc of (state.hms?.techniques?.schools || [])) for (const t of (sc.spells || [])) techNames.set(String(t.name).toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim(), t.name);
+        const techOf = n => { const v = [n, String(n).replace(/\bfooting\b/gi, 'footwork'), String(n).replace(/\bstyle\b/gi, ' ').replace(/\bfooting\b/gi, 'footwork')];
+            for (const x of v) { const k = String(x).toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim(); if (techNames.has(k)) return techNames.get(k); } return null; };
+        const storyMoves = [];
         const groups = sys.abilities.map(g => ({ ...g, items: g.items.filter(it => {
             if (it.src && covers.has(String(it.src).toUpperCase())) return false;
-            if (trainOn && !it.src && IN_TRAINING.test(String(it.state || '').trim())) { movedN++; return false; }
+            // still in training: a lorebook technique is on the Training card; a drill counts toward its sessions only
+            if (trainOn && !it.src && IN_TRAINING.test(String(it.state || '').trim())) { if (!techNames.size || techOf(it.name)) movedN++; return false; }
+            if (techNames.size && !it.src && /martial|combat|sword|fight/i.test(g.category) && !techOf(it.name)) { storyMoves.push(it); return false; }
             return true;
-        }) })).filter(g => g.items.length);
-        if (!groups.length && !(sys.attributes || []).length && !movedN) return null;
+        }).map(it => { const t = !it.src && techNames.size ? techOf(it.name) : null; return t && t !== it.name ? { ...it, name: t } : it; }) })).filter(g => g.items.length);
+        if (!groups.length && !(sys.attributes || []).length && !movedN && !storyMoves.length) return null;
         // The reporter words the same practice a new way each reply ("Sword God Style footwork", "Sword God Style
         // under Aurelius's drill"). Display only: those fold under the style's own row; a named move stays its own.
         const PRACTICE_RE = /^(?:(?:basic|basics|footwork|drills?|practice|training|forms?|stance(?: work)?|recovery|conditioning|sparring|lessons?|sessions?|exercises?|fundamentals|refinement|timing|toward\s+\w+)\b|(?:under|with|from)\b.*\b(?:drills?|training|lessons?|instruction|teaching|eye)\b|(?:drills?|training|practice) (?:under|with)\b)/i;
@@ -6966,7 +6975,10 @@ export function setup(ctx) {
                 h('h4', null, g.title.replace(/^\[/, '')),
                 h('div', { class: 'rpgc-attrs' }, g.items.map(it => h('span', { class: 'rpgc-attr' }, h('b', null, it.name), h('span', null, it.value))))));
         }
-        if (movedN) out.push(h('p', { class: 'rpgc-note rpgc-abil-moved' }, TT(movedN === 1 ? '{0} move still in training: see Training.' : '{0} moves still in training: see Training.', movedN), ' ',
+        if (storyMoves.length) out.push(h('details', { class: 'rpgc-abil-notes' }, h('summary', null, TT('Other moves from the story ({0})', storyMoves.length)),
+            h('p', { class: 'rpgc-note' }, T('Named in the story\u2019s own words, not techniques of the lorebook.')),
+            h('div', { class: 'rpgc-chips' }, storyMoves.map(it => abilChip(it, null)))));
+        if (movedN) out.push(h('p', { class: 'rpgc-note rpgc-abil-moved' }, T('Techniques still in training are on the Training card.'), ' ',
             h('button', { class: 'rpgc-mini', title: T('Open Training'), onclick: () => goTo(currentView(), 'training') }, '\u2192')));
         const n = groups.reduce((a, g) => a + foldGroup(g.items).kept.length, 0);
         return section('abilities', 'Abilities', state.open, n ? String(n) : null, ...out);
