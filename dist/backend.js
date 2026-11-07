@@ -7713,6 +7713,23 @@ function isHudSwap(prevHud, curHud) {
 }
 
 /** Lines present in the previous HUD that the new HUD no longer has. */
+const STALE_REVERT_RE = /^(?:condition|injur(?:y|ies)|training|equipment|memory|goals?|active paths?)$/i;
+function staleRevertLines(prevHud, curHud, olderHuds) {
+    if (!prevHud || !curHud || !Array.isArray(olderHuds)) return [];
+    const label = l => String(l.key || '').replace(/^[^a-z]+/i, '').trim();
+    const out = [];
+    for (const l of curHud.lines) {
+        if (l.block || !STALE_REVERT_RE.test(label(l))) continue;
+        const p = prevHud.lines.find(x => x.key === l.key);
+        if (!p || hudLinesEqual(p.text, l.text)) continue;
+        // the new text must be an exact copy of an older HUD's line that the last HUD had already moved on from
+        const isPrev = h => h === prevHud || (h.lines.length === prevHud.lines.length && h.lines.every((x, i) => hudLinesEqual(x.text, prevHud.lines[i].text)));
+        const isCur = h => h === curHud || (h.lines.length === curHud.lines.length && h.lines.every((x, i) => hudLinesEqual(x.text, curHud.lines[i].text)));
+        const olderOnly = olderHuds.filter(h => !isPrev(h) && !isCur(h));   // the reply being read may already be in the chat
+        if (olderOnly.some(h => h.lines.some(x => x.key === l.key && hudLinesEqual(x.text, l.text)))) out.push({ key: l.key, text: p.text });
+    }
+    return out;
+}
 function diffHud(prevHud, curHud) {
     if (!prevHud || !curHud) return [];
     // Rows inside an inline block (─── fenced) are not lines: they take no slot and move
@@ -11624,7 +11641,7 @@ function buildCompanionInstructionRead(committed, userName, locks, st = null, ch
         const yf = [];
         if (wantSurvival) yf.push('"slept": false, "ate": false, "drank": false, "rested": false', `"mind": "${HMS_MIND_SCALE.join('|')}"`);
         if (yc.on) { yf.push(wantSurvival ? '"mood": "1-3 words", "sanity": 0..100' : '"mood": "1-3 words", "stress": "L", "sanity": 0..100'); if (askXp) yf.push('"xp": 0, "xpWhy": "or null"'); yf.push('"got": [], "lost": []'); }
-        if (magicSeen) yf.push('"spells": ["one individual magical spell name per entry, only spells this reply or the player message just before it names; no physical/Touki maneuvers; never list spells from memory; no grouped lists, school/style ranks, casting methods, NPC, hypothetical or failed-only mentions"]');
+        if (magicSeen) yf.push('"spells": ["one individual magical spell name per entry, only spells the player character casts or learns in this reply or the player message just before it (not a spell someone else casts on them, or that they ask someone else to cast); no physical/Touki maneuvers; never list spells from memory; no grouped lists, school/style ranks, casting methods, NPC, hypothetical or failed-only mentions"]');
         if (abilitiesSeen) yf.push('"abilities": [{"name":"individual ability", "owner":"you", "state":"known|practiced|attempted|reliable|mastered|forgotten", "historical":false, "evidence":"short exact quote from this reply, <=160 chars"}]');
         const studying = magicSeen ? spellStudyActive(chat, st).map(x => x.name).slice(0, 8) : [];
         if (abilitiesSeen || studying.length) yf.push(`"learned": ["explicitly earned player learning this turn under the card rules; practice success alone is not learning; not historical knowledge"], "study": [{"spell": "${abilitiesSeen ? 'ability deliberately practiced/taught now' : `one of: ${studying.join(', ')}`}", "progress": "explicit measured percentage or null", "note": "practice evidence or null; when the story states what is left, end with it in the story's words (e.g. \\"4 more study sessions or practical casts left\\")"}]`);
@@ -11797,6 +11814,23 @@ async function hmsProcessContent(chatId, content, prevHud, generationType, commi
                 if (r.changed) { out = r.content; hud = r.hud || hud; guard.upkeep = notes; }
             }
         } catch (e) { logW(`[RPG Companion HMS] HUD upkeep skipped: ${e?.message || e}`); }
+        // 1.4.0: a line that jumps back to an older version word for word (the narrator copying an old HUD after an OOC
+        // exchange: injuries "Treated" in the last HUD, back to the old "Raw" text) keeps the last HUD's line. Only for
+        // lines that carry state forward (Condition, Training, Equipment, Memory, Goals); never Time, Location or Present.
+        try {
+            if (settings.hmsGuard && prevHud && generationType !== 'continue') {
+                let chatNow = [];
+                try { chatNow = await chatApi.getMessages(chatId); } catch { chatNow = []; }
+                const older = [];
+                for (let i = chatNow.length - 1, n = 0; i >= 0 && n < 14; i--) { const h0 = chatNow[i] ? messageHud(chatNow[i]) : null; if (h0) { older.push(h0); n++; } }
+                const reverted = staleRevertLines(prevHud, hud, older);
+                if (reverted.length) {
+                    const byKey = new Map(reverted.map(r => [r.key, r.text]));
+                    const r = rewriteHud(out, items => { let ch = false; for (const it of items) if (byKey.has(it.key) && !hudLinesEqual(it.text, byKey.get(it.key))) { it.text = byKey.get(it.key); ch = true; } return ch; });
+                    if (r.changed) { out = r.content; hud = r.hud || hud; guard.reverted = reverted.map(x => x.key); for (const k of guard.reverted) if (!guard.restored.includes(k)) guard.restored.push(k); }
+                }
+            }
+        } catch (e) { logW(`[RPG Companion HMS] Revert check skipped: ${e?.message || e}`); }
         if (settings.hmsGuard && prevHud) {
             if (isHudSwap(prevHud, hud)) guard.swapped = true;
             else guard.missing = diffHud(prevHud, hud).filter(m => !guard.restored.includes(m.key));
@@ -12172,6 +12206,7 @@ function hmsPanelStateRead(chatId, chat, st) {
         questNotes: st.questNotes || [],
         questPairs: isPlainObject(st.questPairs) ? st.questPairs : {},
         agendaPairs: isPlainObject(st.agendaPairs) ? st.agendaPairs : {},
+        peoplePairs: isPlainObject(st.peoplePairs) ? st.peoplePairs : {},
         todoIdeas: isPlainObject(st.todoIdeas) ? { ...st.todoIdeas, stale: !!st.todoIdeas.at && st.todoIdeas.at !== (hmsTimeline(chat).at(-1)?.msg.id || null) } : null,
         atlas: (() => { try { return atlasHereInfo(chatId, hud, chat); } catch (e) { logW(`[RPG Companion HMS] Atlas read failed: ${e?.message || e}`); return null; } })(),
         arcCheck: (() => { try { return arcCheck(chatId, hud); } catch { return null; } })(),
@@ -13862,6 +13897,19 @@ function hmsRelationsPanel(chat, st, cfg, classic = false) {
             p.name = r.name;
         }
     }
+    // 1.4.0: two entries the player merged ("Sauros Boreas" / "Sauros Boreas Greyrat") are one person from then on:
+    // the readings join in story order under the first one's key, the longer name shows
+    if (isPlainObject(st && st.peoplePairs)) for (const [pk, v] of Object.entries(st.peoplePairs)) {
+        if (v !== 'same') continue;
+        const [ka, kb] = pk.split(' || ');
+        const A = people.get(ka), B = people.get(kb);
+        if (!A || !B) continue;
+        const [keep, drop] = (A.firstAt ?? 0) <= (B.firstAt ?? 0) ? [A, B] : [B, A];
+        keep.readings = [...keep.readings, ...drop.readings].sort((x, y) => (x.at ?? 0) - (y.at ?? 0));
+        if (String(drop.name || '').length > String(keep.name || '').length) keep.name = drop.name;
+        keep.alsoNamed = [...(keep.alsoNamed || []), drop.name];
+        people.delete(drop.key);
+    }
     const roster = partyRoster(st);
     const out = [];
     // where each reply happened: the last step of the HUD's location path ("Veyrath Hall, the study" → "Veyrath Hall")
@@ -13877,7 +13925,7 @@ function hmsRelationsPanel(chat, st, cfg, classic = false) {
         // What the present-characters block says about them right now (outfit, position, agenda…).
         const ch = cur.msgId === lastId && lastData && Array.isArray(lastData.characters) ? lastData.characters.find(x => x && lockKey(x.name || '') === p.key) : null;
         const view = {
-            key: p.key, name: p.name, standing: cur.standing, rank, max: rc.ladder.length - 1, neutral: rc.neutral,
+            key: p.key, name: p.name, ...(p.alsoNamed ? { alsoNamed: p.alsoNamed } : {}), standing: cur.standing, rank, max: rc.ladder.length - 1, neutral: rc.neutral,
             tone: rank === null ? 'unknown' : rank < rc.neutral ? 'neg' : rank === rc.neutral ? 'neutral' : rank === rc.ladder.length - 1 ? 'top' : 'pos',
             bond: cur.bond || null, minor: !!cur.minor, pinned: pins[p.key] || null, mood: cur.mood || null,
             why: cur.why, present: cur.msgId === lastId && (lastData?.characters?.length ? !!ch && (!sceneNow || sceneNow.includes(ch)) : (familyPresence.get(p.key) ?? true)), seen: rs.length,
@@ -14850,7 +14898,7 @@ function agendaDayOfMonth(text) {
 // 3.4.0: does the wording name a calendar day ("in two days", "tomorrow", "Day 14", "K417-04-14")?
 // Only then is the resolved day shown as a countdown; "shortly" or "this evening" never become a date.
 function agendaNamesDay(text) {
-    return agendaDayOfMonth(text) !== null || /\b(?:in\s+(?:\d+|one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|an?|a few)\s+(?:days?|weeks?|months?|years?)|tomorrow|day after tomorrow|next (?:week|month|year)|Day\s*:?\s*\d+|Month\s*\d+)\b|\bK\.?\s*\d{3,4}-\d{1,2}-\d{1,2}\b/i.test(String(text || ''));
+    return agendaDayOfMonth(text) !== null || /\b(?:in\s+(?:\d+|one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|an?|a few)\s+(?:days?|weeks?|months?|years?)|tomorrow|day after tomorrow|tonight|today|this\s+(?:morning|afternoon|evening|night)|later\s+today|next (?:week|month|year)|Day\s*:?\s*\d+|Month\s*\d+)\b|\bK\.?\s*\d{3,4}-\d{1,2}-\d{1,2}\b/i.test(String(text || ''));
 }
 // A wording with no day of its own ("at dawn", "morning") keeps a day named earlier.
 function keepDayOf(text) { return /^(?:at\s+)?(?:dawn|sunrise|morning|noon|midday|afternoon|evening|dusk|sunset|night)$/i.test(String(text || '').trim()); }
@@ -15439,7 +15487,10 @@ function pairMergeQuests(quests, pairs) {
 function hmsAgendaPanel(chat, st, cfg, forDisplay = false) {
     const ac = agendaCfg(cfg);
     if (!ac.on) return null;
-    const { items, now, lastId } = agendaRead(chat, st);
+    const { items: items0, now, lastId } = agendaRead(chat, st);
+    // 1.4.0: a household meal with nobody named ("Midday meal in the hall", with the household) is routine, not an appointment
+    const MEAL_RE = /\b(?:meals?|breakfast|lunch|luncheon|supper|dinner|tea)\b/i, HOUSE_RE = /\b(?:household|family|everyone|staff|servants|house)\b/i;
+    const items = items0.filter(it => !(it.from !== 'you' && ['open', 'in_progress'].includes(it.state) && MEAL_RE.test(String(it.what || '')) && (!it.with || HOUSE_RE.test(String(it.with))) && it.kind !== 'promise'));
     const out = items.map(it => {
         const dueIn = it.dueAt !== null && it.dueAt !== undefined && now !== null ? it.dueAt - now : null;
         // A standing routine ("Training schedule: dawn to ninth bell …", "every morning") runs on; it is never late.
@@ -15496,6 +15547,8 @@ function agendaRequest(chat, st, userName, cfg) {
     const json = `"agenda": [{"what": "what was agreed or set, a few words", "with": "who, or null", "where": "where, or null", "when": "story wording; keep approximate times", "due": "confirmed exact HUD date/time or null", "kind": "${AGENDA_KINDS.join('|')}", "state": "${AGENDA_STATES.join('|')}|moved"}]`;
     let rules = `"agenda": appointments, promises and set times involving ${userName} — only agreed commitments, externally established deadlines or activities actually begun; omit suggestions and unaccepted invitations. Changes are made, started, kept, broken, moved or called off in ${userName}'s own last message or in this reply ("I'll meet you at the river tomorrow", "the exam is on Friday", "be back before dark"). One entry for each that changed, reusing the same "what" for one already listed; [] when nothing changed. "in_progress" once an ongoing activity actually starts; "kept" once it finishes or a one-off appointment is fulfilled, "missed" when its time passed without it, "cancelled" when called off. Use "moved" for an existing commitment's changed schedule/context. Keep vague times vague; never invent a clock.`;
     rules += ` Something of ${userName}'s left with someone to be finished, mended or kept, with a time to get it back, is an "errand" too ("Ash wand back from Ferren", "when" as the story says). Letters ${userName} writes, sends, receives or promises (by courier, by hand) are kind "letter" ("Letter to Valeriana", "Letter from Father"): open until sent or received, then kept. Never add an item that repeats one already open in other words ("Training schedule" and "Aurelius taking the sword training" are one): use the open item's own "what" and update it.`;
+    // 1.4.0: fewer, fuller rows. The agenda was filling with meals, house rules and every part of one lesson.
+    rules += ` Not agenda: meals and household routine, standing rules or instructions ("eat like a guest", "keep it in mind"), advice, and anything begun and finished inside this same reply. One session with the same person at the same time is ONE entry even when it has parts (a bout, a drill and a talk at tomorrow's first bell with ${userName}'s instructor): name the session and list its parts briefly in "what"; never one entry per part. Mark an item "kept" in the reply where it is done ("told Ghislaine what the healer did").`;
     if (ac.tell && chat && st) {
         let open = [];
         try { open = hmsAgendaPanel(chat, st).items.filter(x => x.state === 'open' || x.state === 'in_progress'); } catch { open = []; }
@@ -21215,7 +21268,7 @@ spindle.onFrontendMessage(async (payload, userId) => {
                 // Display only: tracking keeps both rows exactly as the story reports them.
                 if (!payload.chatId || typeof payload.a !== 'string' || typeof payload.b !== 'string') return;
                 const st = await getChatState(payload.chatId);
-                const field = payload.kind === 'agenda' ? 'agendaPairs' : 'questPairs';
+                const field = payload.kind === 'agenda' ? 'agendaPairs' : payload.kind === 'people' ? 'peoplePairs' : 'questPairs';
                 const pair = pairKeyOf(payload.a, payload.b);
                 const pairs = isPlainObject(st[field]) ? { ...st[field] } : {};
                 if (payload.verdict === 'same' || payload.verdict === 'different') pairs[pair] = payload.verdict; else delete pairs[pair];

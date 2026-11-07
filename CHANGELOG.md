@@ -16,6 +16,22 @@
 - **A lighter request in Together mode.** Money, holdings, factions and secrets get a one-line rule when nothing in the last exchange points at them, and the full rule as soon as the story does. The time-skip rule only comes with a skip. The Companion's own call in Separate mode still gets everything.
 - **Agenda now** lists what is happening or due first, and asks about an "in progress" whose time passed long ago (kept, missed, or still going?), so stale items get closed.
 
+**Agenda: less chatter, real grouping**
+- **By person really groups by person now.** Each item used to become its own "Ghislaine Dedoldia" group (the name was compared as a page element, never equal). One group per person, however the story names them ("Madam Ghislaine"); the busiest three open, the rest fold.
+- **One occasion, one row.** Several items with the same person at the same time (tomorrow's first bell with Ghislaine: proof bout, footwork drills, the talk, the trade lesson) show as one session with its parts underneath, in both views.
+- **Fewer rows from the Companion.** It is told: no meals or household routine, no standing rules or "keep it in mind", nothing begun and finished in the same reply, one entry per session with its parts listed, and close an item in the reply where it's done.
+- A household meal with nobody named ("Midday meal in the hall") is routine and no longer shown.
+- "Tonight", "today" and "this evening" name today, so a later "tonight, after supper" no longer stays on an earlier "tomorrow".
+
+**People**
+- **The same person under two names** ("Sauros Boreas" / "Sauros Boreas Greyrat") gets the Possible duplicates box with Merge / Keep both. Merged, their history joins; the card shows the other name with ↩ to split again.
+
+**HUD**
+- **A line copied back from an old HUD** (injuries back to "Raw" after an OOC exchange, when the last HUD said "Treated") keeps the last HUD's line. Only for lines that carry state (Condition, Training, Equipment, Memory, Goals, Active Paths); never Time, Location or Present, and a new wording is always kept.
+
+**Spells**
+- The Companion is told a spell someone casts *on* you (the healer's Healing) is not yours; that is how "Healing" got into the Spellbook.
+
 **Combat techniques, tracked like spells**
 - A martial study now counts only when it is **one of the lorebook's techniques** (Sword God Stance, Sword God Footwork, Flash Slash…), shown by its lorebook name. The story's wording is matched to it ("Sword God footing" → Sword God Footwork). Drills, sparring and footwork exercises that are no technique of the lorebook are not studies: they count toward the HUD's Training sessions only.
 - The Companion is given the technique names of your styles from the lorebook (up to one rank ahead) and told to report a technique only when the story shows that technique itself.

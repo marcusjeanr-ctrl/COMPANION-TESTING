@@ -15,7 +15,7 @@ const ctx = {
 };
 ctx.globalThis = ctx;
 vm.createContext(ctx);
-vm.runInContext(source.slice(0, startup) + '\nglobalThis.__t = { chronicleBuild, agendaRead, mtTraining: typeof mtTraining === \'function\' ? mtTraining : null, continuityNote: typeof continuityNote === \'function\' ? continuityNote : null, compactQuietRules: typeof compactQuietRules === \'function\' ? compactQuietRules : null, dialogueSquare: typeof dialogueSquare === \'function\' ? dialogueSquare : null, pairMergeQuests: typeof pairMergeQuests === \'function\' ? pairMergeQuests : null, readingSource, getSwipeData, rewriteReplyText: typeof rewriteReplyText === \'function\' ? rewriteReplyText : null, setChatApi: (fn) => { chatApi.updateMessage = fn; }, factionFromHud, chronBondReworded: typeof chronBondReworded === \'function\' ? chronBondReworded : () => false, chronWhen, parseHud, techStanding: typeof techStanding === \'function\' ? techStanding : () => new Map(), questDetailsLatest, relGuard, relCfg, martialAbilityItems, techListPanel, posMovedNow, keepRoomReading, posRoomKey, setState: (st) => { getChatState = async () => st; saveChatState = async () => {}; }, setPool: p => { loreCatalogPool = () => p; }, spellStoryFold, moneyHudBalance: typeof moneyHudBalance === \'function\' ? moneyHudBalance : commsBalance, commsCfg, messageHud, moneyRead, hintEchoScrub: typeof hintEchoScrub === \'function\' ? hintEchoScrub : (o => o), studyIsTrainingTrack: typeof studyIsTrainingTrack === \'function\' ? studyIsTrainingTrack : () => false, trainingTracksNow: typeof trainingTracksNow === \'function\' ? trainingTracksNow : () => [], worldOf, worldCyberpunk: typeof worldCyberpunk === \'function\' ? worldCyberpunk : null, moneyHudBalance, commsCfg, parseHud, worldLines };', ctx);
+vm.runInContext(source.slice(0, startup) + '\nglobalThis.__t = { chronicleBuild, agendaRead, staleRevertLines: typeof staleRevertLines === \'function\' ? staleRevertLines : null, parseHud, hmsAgendaPanel, agendaNamesDay, mtTraining: typeof mtTraining === \'function\' ? mtTraining : null, continuityNote: typeof continuityNote === \'function\' ? continuityNote : null, compactQuietRules: typeof compactQuietRules === \'function\' ? compactQuietRules : null, dialogueSquare: typeof dialogueSquare === \'function\' ? dialogueSquare : null, pairMergeQuests: typeof pairMergeQuests === \'function\' ? pairMergeQuests : null, readingSource, getSwipeData, rewriteReplyText: typeof rewriteReplyText === \'function\' ? rewriteReplyText : null, setChatApi: (fn) => { chatApi.updateMessage = fn; }, factionFromHud, chronBondReworded: typeof chronBondReworded === \'function\' ? chronBondReworded : () => false, chronWhen, parseHud, techStanding: typeof techStanding === \'function\' ? techStanding : () => new Map(), questDetailsLatest, relGuard, relCfg, martialAbilityItems, techListPanel, posMovedNow, keepRoomReading, posRoomKey, setState: (st) => { getChatState = async () => st; saveChatState = async () => {}; }, setPool: p => { loreCatalogPool = () => p; }, spellStoryFold, moneyHudBalance: typeof moneyHudBalance === \'function\' ? moneyHudBalance : commsBalance, commsCfg, messageHud, moneyRead, hintEchoScrub: typeof hintEchoScrub === \'function\' ? hintEchoScrub : (o => o), studyIsTrainingTrack: typeof studyIsTrainingTrack === \'function\' ? studyIsTrainingTrack : () => false, trainingTracksNow: typeof trainingTracksNow === \'function\' ? trainingTracksNow : () => [], worldOf, worldCyberpunk: typeof worldCyberpunk === \'function\' ? worldCyberpunk : null, moneyHudBalance, commsCfg, parseHud, worldLines };', ctx);
 const t = ctx.__t;
 
 let n = 0;
@@ -307,6 +307,21 @@ check('quiet sections get their short form in Together mode, the full rule when 
 check('a Training count with a note after it still reads (1.4.0)', () => {
     const tr = t.mtTraining(['Training: Sword God → Saint (60/60 sessions — count met; proof pending) · Water Magic → Saint (54/60 sessions)']);
     assert.equal(tr.length, 2); assert.equal(tr[0].skill, 'Sword God'); assert.equal(tr[0].done, 60); assert.equal(tr[0].note, 'count met; proof pending'); assert.equal(tr[1].done, 54);
+});
+check('a HUD line copied back from an older HUD keeps the last HUD\'s line (1.4.0)', () => {
+    assert.ok(t.staleRevertLines, 'exists');
+    const H = (c, tm) => t.parseHud(`### WORLD STATE ###\nArmored Dragon Calendar: K416, Month 4, Day 2 | Time: ${tm}\nLocation: Roa\nCondition: ${c}\n***\nStory.`);
+    const raw = H('Bruised shoulder — Raw', '12:00'), treated = H('Bruised shoulder — Treated', '12:30'), again = H('Bruised shoulder — Raw', '13:00');
+    assert.equal(JSON.stringify(t.staleRevertLines(treated, again, [treated, raw]).map(x => x.key)), '["condition"]');
+    assert.equal(t.staleRevertLines(raw, treated, [raw]).length, 0, 'a real change is kept');
+    assert.equal(t.staleRevertLines(treated, H('Bruised shoulder — Raw again, reopened', '13:00'), [treated, raw]).length, 0, 'new wording is a new state');
+});
+check('"tonight" names today; a household meal is not an appointment (1.4.0)', () => {
+    assert.ok(t.agendaNamesDay('tonight, after supper') && t.agendaNamesDay('this evening'));
+    const row = (what, wh) => ({ key: what.toLowerCase(), what, with: wh, where: 'east hall', when: 'until the second bell', kind: 'event', state: 'open' });
+    const chat = [user('Fine.'), scene('Old Hall, hall', 'Lunch is laid.', { agenda: [row('Midday meal in the hall', 'Boreas household'), row('Talk with Kai after lunch', 'Kai')] })];
+    const names = t.hmsAgendaPanel(chat, {}, null).items.map(x => x.what);
+    assert.ok(!names.includes('Midday meal in the hall') && names.includes('Talk with Kai after lunch'), names.join(', '));
 });
 check('Merge on two look-alike rows makes them one, and can be split again (1.4.0)', () => {
     const row = (what, wh) => ({ key: what.toLowerCase(), what, with: wh, where: 'Old Hall', when: 'after supper', kind: 'meeting', state: 'open' });

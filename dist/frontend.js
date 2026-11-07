@@ -1978,6 +1978,12 @@ button.rpgc-chip.intel:hover { border-color: var(--lumiverse-accent, #7aa2f7); }
 .rpgc .rpgc-dupbox .eq{color:var(--u-warn);font-weight:800;margin:0 5px}
 .rpgc .rpgc-dupbox .acts{display:flex;gap:6px;flex:none}
 .rpgc .rpgc-dupbox .rpgc-note{margin:4px 0 0;font-size:11px}
+.rpgc .rpgc-agenda-occ{list-style:none;margin:0 0 6px;padding:7px 9px;border-radius:var(--u-radius-s);background:color-mix(in srgb,var(--u-text) 4%,transparent);border:1px solid color-mix(in srgb,var(--u-text) 9%,transparent)}
+.rpgc .rpgc-agenda-occ .occ-head{display:flex;gap:8px;align-items:flex-start}
+.rpgc .rpgc-agenda-occ .occ-head .body{display:flex;flex-direction:column;gap:1px;min-width:0}
+.rpgc .rpgc-agenda-occ .occ-head .due,.rpgc .rpgc-agenda-occ .occ-head .meta{font-size:11.5px;color:var(--u-muted)}
+.rpgc .rpgc-agenda-occ>ul{margin:6px 0 0 14px;padding:0 0 0 8px;border-left:2px solid color-mix(in srgb,var(--u-text) 12%,transparent)}
+.rpgc .rpgc-agenda-occ>ul .rpgc-agenda-item .due{display:none}
 `;
 
 // The guide, embedded from GUIDE.md so it ships inside the extension (tools/embed_guide.py refreshes it).
@@ -6569,7 +6575,7 @@ export function setup(ctx) {
     // (the Companion is shown the one name); Keep both stops asking. Nothing in the story is changed, and a merge can be split again.
     function dupBox(kind, pairs) {
         if (!pairs.length) return null;
-        const nameOf = x => kind === 'agenda' ? x.what : x.name;
+        const nameOf = x => kind === 'agenda' ? x.what : x.name;   // people and quests: name; key below
         const keyOf = x => kind === 'agenda' ? x.key : (x.key || x.name);
         const ask = (a, b, verdict) => send({ type: 'quest_pair', kind, chatId: state.chatId, a: keyOf(a), b: keyOf(b), verdict });
         return h('div', { class: 'rpgc-dupbox', role: 'note' },
@@ -6579,7 +6585,7 @@ export function setup(ctx) {
                 h('div', { class: 'acts' },
                     h('button', { class: 'rpgc-btn primary', title: T('Count them as one from now on'), onclick: () => ask(a, b, 'same') }, T('Merge')),
                     h('button', { class: 'rpgc-btn', title: T('They are different; stop asking'), onclick: () => ask(a, b, 'different') }, T('Keep both'))))),
-            h('p', { class: 'rpgc-note' }, T('Merge keeps the first name and counts both as one from now on; the Companion is shown that one name. You can split them again.')));
+            h('p', { class: 'rpgc-note' }, kind === 'people' ? T('Merge counts them as one person from now on; their history joins. The card shows the other name with a \u21A9 to split them again.') : T('Merge keeps the first name and counts both as one from now on; the Companion is shown that one name. You can split them again.')));
     }
     // "also tracked as" under a merged row, each with a way to split it back out
     function alsoBox(kind, top, list) {
@@ -6587,6 +6593,13 @@ export function setup(ctx) {
         return h('div', { class: 'rpgc-qalso' }, list.map(x => h('div', { class: 'row' },
             h('span', { class: 'k' }, T('Merged with')), h('b', null, x.name), x.objective ? h('span', { class: 'o' }, ' \u2014 ' + x.objective) : null,
             h('button', { class: 'rpgc-mini', title: T('Split them again'), 'aria-label': TT('Split {0} back out', x.name), onclick: () => send({ type: 'quest_pair', kind, chatId: state.chatId, a: top, b: x.key, verdict: null }) }, '\u21A9'))));
+    }
+    function peopleLookalike(a, b) {
+        const W = n => String(n || '').toLowerCase().replace(/\([^)]*\)/g, ' ').split(/[^\p{L}']+/u).filter(w => w.length > 1);
+        const A = W(a.name), B = W(b.name);
+        if (A.length < 2 || B.length < 2) return false;   // a first name alone is not enough ("Sauros" and "Sauros the cook")
+        const [sh, lo] = A.length <= B.length ? [A, B] : [B, A];
+        return sh.every(w => lo.includes(w));
     }
     function agendaLookalike(a, b) {
         if (a.with && b.with && lockKey(a.with) !== lockKey(b.with)) return false;
@@ -7480,6 +7493,36 @@ export function setup(ctx) {
             ? h('button', { class: 'rpgc-chip rpgc-place', type: 'button', title: T('Show it on the Atlas'), onclick: () => { state.atlasFocus = p.atlasId; state.atlasSel = p.atlasId; goTo('journey', 'atlas'); } }, '🗺️ ' + label)
             : h('span', { class: 'rpgc-chip rpgc-place', title: T('The Chronicle has you at this place before') }, '📍 ' + label);
     }
+    // 1.4.0: one occasion, one row. Several items with the same person at the same time (tomorrow's first bell with
+    // Ghislaine: a proof bout, footwork drills, a talk) show as one session with its parts underneath.
+    // one person, however the story names them ("Ghislaine Dedoldia", "Madam Ghislaine"): the first name, titles dropped
+    function agendaPersonKey(name) {
+        const t = String(name || '').replace(/\([^)]*\)/g, ' ').replace(/^\s*(?:madam|madame|lady|lord|sir|master|mistress|dame|healer|instructor|young\s+lady|young\s+master)\s+/i, '').trim().toLowerCase();
+        return t.split(/\s+/)[0] || '';
+    }
+    function agendaOccasionKey(x) {
+        if (x.state !== 'open' && x.state !== 'in_progress') return null;
+        const who = x.with ? agendaPersonKey(x.with) : '';
+        const t = x.agendaTiming && x.agendaTiming.delta != null ? 'd' + Math.round(x.agendaTiming.delta / 30) : x.dueIn != null ? 'd' + Math.round(x.dueIn / 30) : x.when ? 'w' + String(x.when).toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim() : '';
+        return who && t ? who + '|' + t + '|' + x.status : null;
+    }
+    function agendaRows(list, byPerson = false) {
+        const groups = new Map(), order = [];
+        for (const x of list) {
+            const k = agendaOccasionKey(x);
+            if (!k) { order.push([x]); continue; }
+            if (!groups.has(k)) { const g = []; groups.set(k, g); order.push(g); }
+            groups.get(k).push(x);
+        }
+        return order.map(g => {
+            if (g.length === 1) return agendaRow(g[0]);
+            const x0 = g[0];
+            const head = h('div', { class: 'occ-head' }, h('span', { class: 'ico', 'aria-hidden': 'true' }, '\uD83D\uDDD3\uFE0F'),
+                h('span', { class: 'body' }, h('b', null, byPerson ? (x0.when || agendaDue(x0)) : TT('With {0}', String(x0.with))), h('span', { class: 'due' }, byPerson ? agendaDue(x0) : [x0.when ? x0.when + ' \u00B7 ' : '', agendaDue(x0)]),
+                    h('span', { class: 'meta' }, TT('{0} things at once', g.length), x0.where ? ' \u00B7 ' + TT('at {0}', x0.where) : null)));
+            return h('li', { class: 'rpgc-agenda-occ ' + x0.status }, head, h('ul', null, g.map(agendaRow)));
+        });
+    }
     function agendaRow(x) {
         const act = (st, label, title) => h('button', { class: 'rpgc-mini', title, 'aria-label': `${label}: ${x.what}`, onclick: () => send({ type: 'agenda', chatId: state.chatId, op: 'set', key: x.key, state: st }) }, label);
         return h('li', { class: 'rpgc-agenda-item ' + x.status + (x.isNew ? ' new' : '') + (x.kind === 'letter' ? ' letter' : '') + (x.from === 'you' ? ' hand' : ''), 'data-key': x.key },
@@ -7525,18 +7568,22 @@ export function setup(ctx) {
             h('button', { type: 'button', class: 'rpgc-gv' + (byPerson ? ' on' : ''), 'aria-pressed': byPerson ? 'true' : 'false', onclick: () => { state.open['agenda-by-person'] = true; render(); } }, '👥 ' + T('By person'))));
         if (byPerson) {
             const who = new Map();
-            for (const x of live) { const k = x.with ? npcName(x.with) : T('Just you'); if (!who.has(k)) who.set(k, []); who.get(k).push(x); }
+            // 1.4.0: grouped by the person (a string key; the name element made every row its own group)
+            const names = new Map();
+            for (const x of live) { const pk = x.with ? agendaPersonKey(x.with) : ''; const k = pk || T('Just you'); if (!who.has(k)) { who.set(k, []); names.set(k, x.with || T('Just you')); } else if (x.with && String(x.with).length > String(names.get(k)).length) names.set(k, x.with); who.get(k).push(x); }
             for (const [k, xs] of [...who].sort((p, q) => q[1].length - p[1].length)) {
                 const key = 'agenda-who-' + k;
-                const det = h('details', { class: 'rpgc-gear-kind' }, h('summary', null, h('span', { class: 'ic', 'aria-hidden': 'true' }, k === T('Just you') ? '🙋' : '👤'), h('b', null, k), h('span', { class: 'n' }, String(xs.length))), h('ul', { class: 'rpgc-agenda-group' }, xs.map(agendaRow)));
-                det.open = state.open[key] !== false; det.addEventListener('toggle', () => { state.open[key] = det.open; });
+                const det = h('details', { class: 'rpgc-gear-kind' }, h('summary', null, h('span', { class: 'ic', 'aria-hidden': 'true' }, k === T('Just you') ? '🙋' : '👤'), h('b', null, String(names.get(k) || k)), h('span', { class: 'n' }, String(xs.length))), h('ul', { class: 'rpgc-agenda-group' }, agendaRows(xs.slice().sort((p, q) => ((p.agendaTiming?.delta ?? p.dueIn ?? 1e12) - (q.agendaTiming?.delta ?? q.dueIn ?? 1e12))), true)));
+                // the busiest three people start open; the rest fold, so a long list of names stays one line each
+                det.open = state.open[key] === undefined ? [...who.keys()].sort((p, q) => who.get(q).length - who.get(p).length).indexOf(k) < 3 : state.open[key] !== false;
+                det.addEventListener('toggle', () => { state.open[key] = det.open; });
                 out.push(det);
             }
         } else {
         const groups = [['in_progress', '▶ In progress'], ['overdue', '⚠️ Late'], ['soon', '⏰ Soon (next 3 hours)'], ['today', '📌 Today'], ['upcoming', '📅 Coming up'], ['ongoing', '🔁 Ongoing'], ['unset', '❔ No set time']];
         for (const [st, title] of groups) {
             const list = rows.filter(x => x.status === st);
-            if (list.length) out.push(h('div', { class: 'rpgc-agenda-group ' + st }, h('h4', null, title), h('ul', null, list.map(agendaRow))));
+            if (list.length) out.push(h('div', { class: 'rpgc-agenda-group ' + st }, h('h4', null, title), h('ul', null, agendaRows(list))));
         }
         }
         const done = rows.filter(x => x.state !== 'open' && x.state !== 'in_progress');
@@ -9162,8 +9209,17 @@ export function setup(ctx) {
         // people in the scene first, then the party, then everyone else
         list.sort((a, b) => (here(b) - here(a)) || (!!b.member - !!a.member));
         const layout = rc.layout || (r && r.layout) || 'cards';
-        const out = [h('div', { class: 'rpgc-row rpgc-filters', role: 'group', 'aria-label': 'Show' },
-            [['all', 'All'], ['here', 'Here'], ['party', 'Party'], ['foes', 'Against you']].map(([k, l]) => h('button', { class: 'rpgc-btn' + (k === f ? ' primary' : ''), 'aria-pressed': k === f ? 'true' : 'false', onclick: () => { state.peopleFilter = k; render(); } }, l)))];
+        const out = [];
+        // 1.4.0: the same person under two names
+        if (relOn && r && Array.isArray(r.people)) {
+            const verdicts = isObj(state.hms?.peoplePairs) ? state.hms.peoplePairs : {}, pairs = [];
+            const ps = r.people.filter(x => !x.dead);
+            for (let i = 0; i < ps.length; i++) for (let j = i + 1; j < ps.length; j++)
+                if (pairs.length < 4 && !verdicts[questPairKey({ key: ps[i].key }, { key: ps[j].key })] && peopleLookalike(ps[i], ps[j])) pairs.push([ps[i], ps[j]]);
+            const box = dupBox('people', pairs); if (box) out.push(box);
+        }
+        out.push(h('div', { class: 'rpgc-row rpgc-filters', role: 'group', 'aria-label': 'Show' },
+            [['all', 'All'], ['here', 'Here'], ['party', 'Party'], ['foes', 'Against you']].map(([k, l]) => h('button', { class: 'rpgc-btn' + (k === f ? ' primary' : ''), 'aria-pressed': k === f ? 'true' : 'false', onclick: () => { state.peopleFilter = k; render(); } }, l))));
         if (partyOn && !s.hmsCompanion && hmsOn()) out.push(h('p', { class: 'rpgc-note' }, 'Party readings ride on the side-panel block, which is switched off. Turn it on in Settings \u2192 HMS engine.'));
         if (!all.length) out.push(h('p', { class: 'rpgc-note' }, 'Everyone you deal with shows up here: who is in the scene, how they feel about you, and \u2014 for your party \u2014 their mood, needs and the states their card names.'));
         else if (!list.length) out.push(h('p', { class: 'rpgc-note' }, 'Nobody matches.'));
@@ -9313,6 +9369,10 @@ export function setup(ctx) {
         if (x.rel && x.member) card.appendChild(partyCard(x.member, { merged: true, skipConcern: thoughtsShown }));
         if (x.char) card.appendChild(charCard(x.char, x.charIdx, { merged: true }));
         if (x.member && x.member.alerts.some(a => a.sev === 'high')) card.classList.add('high');
+        if (x.rel && Array.isArray(x.rel.alsoNamed) && x.rel.alsoNamed.length) {
+            const box = alsoBox('people', x.rel.key, x.rel.alsoNamed.map(n => ({ name: n, key: String(n).toLowerCase() })));
+            if (box) card.appendChild(box);
+        }
         return card;
     }
 
