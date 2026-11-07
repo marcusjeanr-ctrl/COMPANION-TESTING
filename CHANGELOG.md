@@ -10,6 +10,11 @@
 - Settings → Backup shows which card the linked chat came from.
 - **Play style follows the card.** The style you apply (or save) is remembered for that card, and for its world, and comes back when you open a chat on that card. Switching from Cyberpunk back to Mushoku no longer leaves Cyberpunk's style on.
 
+**Better help for the narrator, any model**
+- **Continuity notes (Separate mode).** The narrator never saw what the Companion tracks. It now gets a short note, about 300 tokens: what you carry, what is kept elsewhere and where, what's coming up, and what is still open past its time. Memory only; the card and the HUD come first. Settings → HUD: *Continuity notes for the narrator*.
+- **A lighter request in Together mode.** Money, holdings, factions and secrets get a one-line rule when nothing in the last exchange points at them, and the full rule as soon as the story does. The time-skip rule only comes with a skip. The Companion's own call in Separate mode still gets everything.
+- **Agenda now** lists what is happening or due first, and asks about an "in progress" whose time passed long ago (kept, missed, or still going?), so stale items get closed.
+
 **Duplicates on the Agenda and Quests**
 - **Fewer duplicates on their own.** An agenda title that is the start of a longer one is the same item when they're cut by ";" ("Post pouch leaves Day 5; letters by dusk"), or by "," when they name the same person or place ("Dawn drill with Ghislaine, first bell, every day").
 - **One "Possible duplicates" box** on the Agenda and on Quests, with **Merge** and **Keep both** for each look-alike pair. It replaces the old quest hint and its OOC line.

@@ -441,6 +441,7 @@ const DEFAULT_SETTINGS = {
     hmsCompanion: true,         // ask for the characters/thoughts block after the prose
     hmsGuard: true,             // flag HUD lines that vanish between replies
     hmsPinReminder: true,       // remind the model of pinned HUD lines
+    narratorNotes: true,        // 1.4.0: Separate mode: a short continuity note (what you hold, what's coming up) for the narrator
     hmsHudMath: true,           // Six-Sided: Training totals, age, countdowns, time and calendar words kept by code
     hmsHudFormat: true,         // Six-Sided: labels, rank words, empty slots, slot order, the player off Present
     hmsLoreBirths: true,        // canon birth years from the lorebook's dossiers for the Present line
@@ -11516,7 +11517,39 @@ function leanPanelForPrompt(chars) {
 
 function buildCompanionInstruction(committed, userName, locks, st = null, chat = null, separate = false, opts = {}) {
     if (chat) chat = trackingBefore(chat, opts.excludeId);
-    return withReadPass(chat, () => buildCompanionInstructionRead(committed, userName, locks, st, chat, separate, opts));
+    const out = withReadPass(chat, () => buildCompanionInstructionRead(committed, userName, locks, st, chat, separate, opts));
+    // the Companion's own call reads everything; the narrator (Together mode, a preset slot) gets the quiet sections short
+    return separate === true ? out : compactQuietRules(out, chat, userName);
+}
+// 1.4.0: in Together mode the narrator carries the whole request next to its card. Sections that nothing in the last
+// exchange points at (no coin, no secret, no guild…) get their one-line form instead of the full rule. The slot stays,
+// so the section is still reported when it happens; the full rule comes back as soon as the story touches it.
+const QUIET_RULES = [
+    ['"money": ', /\b(?:coins?|silver|gold|copper|paid|pays?|paying|price|costs?|buys?|bought|sells?|sold|wages?|fees?|reward|debts?|owes?|owed|loan|tip|bribe|purse|eddies|eurodollars?|\d+\s*(?:gp|sp|cp|eb))\b/i,
+        u => `"money": only when a sum changes hands for ${u} in ${u}'s last message or this reply (paid, earned, owed, repaid); else [].`],
+    ['"holdings": ', /\b(?:deeds?|rent(?:ed|s|ing)?|lease|horses?|mount|pony|ship|boat|inherit\w*|titles?|estate|lands?|property|own(?:s|ed|ing)?|buys?|bought|purchase\w*|shop)\b/i,
+        u => `"holdings": only when ${u} gains, loses or changes something owned that is not carried (a mount, a home, land, a title, a business); else [].`],
+    ['"factions": ', /\b(?:guilds?|order|church|temple|kingdom|clan|gang|factions?|company|army|knights?|council|rank|reputation|standing|cult)\b|\bHouse\s+[A-Z]/i,
+        u => `"factions": only when a group's view of ${u} (a guild, a house, a church, a gang), or ${u}'s rank in it, changes; else [].`],
+    ['"secrets": ', /\b(?:secrets?|confess\w*|reveal\w*|hid(?:e|es|den|ing)|truth|lie[sd]?|lying|found out|find out|discover\w*|knows? about|tell no one|don'?t tell|between us)\b/i,
+        u => `"secrets": only when someone learns one of ${u}'s secrets, or ${u} learns someone else's; else [].`],
+];
+const QUIET_SKIP_RE = /\b(?:time[- ]?skip|skip (?:ahead|forward|to|until)|fast[- ]forward|montage|(?:days?|weeks?|months?|years?)\s+(?:later|pass(?:es)?|go by)|over the (?:next|following|coming)\s+\w+)\b/i;
+function compactQuietRules(text, chat, userName) {
+    if (!text || !Array.isArray(chat) || !chat.length) return text;
+    const users = chat.filter(m => m && m.role === 'user').slice(-2).map(m => textOf(m.content));
+    const replies = chat.filter(m => m && m.role === 'assistant').slice(-2).map(m => { const t = stripThink(textOf(m.content)); const f = findHud(t); return f ? t.slice(f.bodyEnd) : t; });
+    const recent = [...users, ...replies].join('\n');
+    const u = userName || '{{user}}';
+    const lines = String(text).split('\n');
+    const out = [];
+    for (const line of lines) {
+        const q = QUIET_RULES.find(([head]) => line.startsWith(head) && line.length > 200);
+        if (q) { out.push(q[1].test(recent) ? line : q[2](u)); continue; }
+        if (line.startsWith('A time skip, montage') && !QUIET_SKIP_RE.test(users.slice(-1)[0] || '')) continue;
+        out.push(line);
+    }
+    return out.join('\n');
 }
 function buildCompanionInstructionRead(committed, userName, locks, st = null, chat = null, separate = false, opts = {}) {
     // separate: its own call after the reply · 'slot': inside a preset that already sets the reply's shape · else: added to the chat prompt
@@ -15410,7 +15443,10 @@ function agendaRequest(chat, st, userName, cfg) {
     if (ac.tell && chat && st) {
         let open = [];
         try { open = hmsAgendaPanel(chat, st).items.filter(x => x.state === 'open' || x.state === 'in_progress'); } catch { open = []; }
-        if (open.length) rules += `\nAgenda now — ${open.slice(0, 8).map(x => `${x.what}${x.with ? ` (with ${x.with})` : ''}${x.where ? ` at ${x.where}` : ''}: ${x.state === 'in_progress' ? 'in progress' : x.dueIn === null ? (Number.isFinite(x.dayIn) ? agendaDayText(x.dayIn) : (x.when || 'no set time')) : x.dueIn < -60 ? `${hmsSpan(-x.dueIn)} overdue` : x.dueIn <= 0 ? 'due now' : `due in ${hmsSpan(x.dueIn)}`}${x.when && x.dueIn !== null ? ` (story: ${x.when})` : ''}`).join('; ')}. In "when", always use the story's own words ("Day 5, first bell"), never a countdown like "in 3d 14h".`;
+        // 1.4.0: what is happening or due first, then the rest; an "in progress" whose time is long past says so, so it gets closed
+        const rank = x => x.state === 'in_progress' && x.status !== 'overdue' ? -1e9 : x.dueIn ?? (Number.isFinite(x.dayIn) ? x.dayIn * 1440 : 1e9);
+        open = open.map((x, i) => [x, i]).sort((a, b) => (rank(a[0]) - rank(b[0])) || (a[1] - b[1])).map(r => r[0]);
+        if (open.length) rules += `\nAgenda now — ${open.slice(0, 8).map(x => `${x.what}${x.with ? ` (with ${x.with})` : ''}${x.where ? ` at ${x.where}` : ''}: ${x.state === 'in_progress' && x.status === 'overdue' ? `in progress, but its time passed ${x.dueIn !== null ? hmsSpan(-x.dueIn) + ' ago' : 'long ago'}: kept, missed or still going?` : x.state === 'in_progress' ? 'in progress' : x.dueIn === null ? (Number.isFinite(x.dayIn) ? agendaDayText(x.dayIn) : (x.when || 'no set time')) : x.dueIn < -60 ? `${hmsSpan(-x.dueIn)} overdue` : x.dueIn <= 0 ? 'due now' : `due in ${hmsSpan(x.dueIn)}`}${x.when && x.dueIn !== null ? ` (story: ${x.when})` : ''}`).join('; ')}. In "when", always use the story's own words ("Day 5, first bell"), never a countdown like "in 3d 14h".`;
     }
     return { json, rules };
 }
@@ -20447,6 +20483,32 @@ function hmsBirthdays(chat, st, userName = null) {
 }
 
 /** Short reminders for the narrator, only when one applies: what you do not have, what falls due, a time skip. */
+function continuityNote(gear, agenda, dueShown, userName) {
+    const lines = [];
+    if (gear && Array.isArray(gear.items)) {
+        const on = gear.items.filter(x => ['in hand', 'worn', 'sheathed', 'on body'].includes(x.state));
+        const label = x => x.state === 'in hand' ? `${x.name} (in hand)` : x.state === 'sheathed' ? `${x.name} (sheathed)` : x.name;
+        if (on.length) lines.push(`- Carried: ${on.slice(0, 10).map(label).join('; ')}.`);
+        const away = [...gear.items.filter(x => x.state === 'stowed' || x.state === 'dropped'), ...(Array.isArray(gear.elsewhere) ? gear.elsewhere : [])]
+            .filter(x => x.where).slice(0, 6);
+        if (away.length) {
+            const byPlace = new Map();
+            for (const x of away) { const k = String(x.where).slice(0, 60); if (!byPlace.has(k)) byPlace.set(k, []); byPlace.get(k).push(x.name); }
+            lines.push(`- Kept elsewhere: ${[...byPlace].map(([w, n]) => `${n.join(', ')} (${w})`).join('; ')}.`);
+        }
+    }
+    if (agenda && Array.isArray(agenda.items)) {
+        const shown = new Set((dueShown || []).map(x => x.key));
+        const live = agenda.items.filter(x => (x.state === 'open' || x.state === 'in_progress') && !shown.has(x.key));
+        const past = live.filter(x => x.status === 'overdue');
+        const next = live.filter(x => x.status !== 'overdue').sort((a, b) => (a.dueIn ?? 1e9) - (b.dueIn ?? 1e9)).slice(0, 4);
+        const when = x => x.status === 'ongoing' ? 'ongoing' : x.dueIn !== null && x.dueIn !== undefined ? `in ${hmsSpan(x.dueIn)}${x.when ? ` (${x.when})` : ''}` : x.when || 'no set time';
+        if (next.length) lines.push(`- Coming up: ${next.map(x => `${x.what}${x.with ? ` (with ${x.with})` : ''}: ${when(x)}`).join('; ')}.`);
+        if (past.length) lines.push(`- Its time has passed, still open: ${past.slice(0, 3).map(x => x.what).join('; ')} (it may have happened off-page or been missed).`);
+    }
+    if (!lines.length) return '';
+    return `[RPG Companion: continuity]\nWhat the extension has tracked so far, as memory, not a rule: the card and the HUD come first, nothing here has to happen now, and never decide for ${userName}.\n${lines.join('\n')}`;
+}
 function hmsStoryReminders(chat, st, userName) {
     const parts = [], names = [];
     let gear = null, agenda = null;
@@ -20474,6 +20536,11 @@ function hmsStoryReminders(chat, st, userName) {
         if (sync.length) { parts.push(`[RPG Companion: keep the HUD with the story]\n${sync.map(x => `- ${x.tell}`).join('\n')}`); names.push('HUD in step'); }
     } catch { /* optional */ }
     const due = agenda ? agenda.items.filter(x => x.state === 'open' && (x.status === 'overdue' || x.status === 'soon' || (x.dueIn === null && Number.isFinite(x.dayIn) && x.dayIn <= 0))) : [];
+    // 1.4.0: in Separate mode the narrator never sees the Companion's request, so it gets a short note of what is
+    // tracked: what the player holds and wears, what is kept elsewhere, and what is coming up. Memory, not a rule.
+    if (settings.generationMode === 'separate' && settings.narratorNotes !== false) {
+        try { const note = continuityNote(gear, agenda, due, userName); if (note) { parts.push(note); names.push('continuity'); } } catch { /* optional */ }
+    }
     if (due.length) {
         parts.push(`[RPG Companion: due now]\n${due.slice(0, 6).map(x => `- ${x.what}${x.with ? ` (with ${x.with})` : ''}: ${x.status === 'overdue' ? 'late' : 'due now or soon'}${x.when ? ` (${x.when})` : ''}`).join('\n')}\nLet the world keep or miss these as it would; never force a scene, and never decide for ${userName}.`);
         names.push('due now');

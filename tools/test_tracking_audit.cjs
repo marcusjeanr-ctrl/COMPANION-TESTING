@@ -15,7 +15,7 @@ const ctx = {
 };
 ctx.globalThis = ctx;
 vm.createContext(ctx);
-vm.runInContext(source.slice(0, startup) + '\nglobalThis.__t = { chronicleBuild, agendaRead, dialogueSquare: typeof dialogueSquare === \'function\' ? dialogueSquare : null, pairMergeQuests: typeof pairMergeQuests === \'function\' ? pairMergeQuests : null, readingSource, getSwipeData, rewriteReplyText: typeof rewriteReplyText === \'function\' ? rewriteReplyText : null, setChatApi: (fn) => { chatApi.updateMessage = fn; }, factionFromHud, chronBondReworded: typeof chronBondReworded === \'function\' ? chronBondReworded : () => false, chronWhen, parseHud, techStanding: typeof techStanding === \'function\' ? techStanding : () => new Map(), questDetailsLatest, relGuard, relCfg, martialAbilityItems, techListPanel, posMovedNow, keepRoomReading, posRoomKey, setState: (st) => { getChatState = async () => st; saveChatState = async () => {}; }, setPool: p => { loreCatalogPool = () => p; }, spellStoryFold, moneyHudBalance: typeof moneyHudBalance === \'function\' ? moneyHudBalance : commsBalance, commsCfg, messageHud, moneyRead, hintEchoScrub: typeof hintEchoScrub === \'function\' ? hintEchoScrub : (o => o), studyIsTrainingTrack: typeof studyIsTrainingTrack === \'function\' ? studyIsTrainingTrack : () => false, trainingTracksNow: typeof trainingTracksNow === \'function\' ? trainingTracksNow : () => [], worldOf, worldCyberpunk: typeof worldCyberpunk === \'function\' ? worldCyberpunk : null, moneyHudBalance, commsCfg, parseHud, worldLines };', ctx);
+vm.runInContext(source.slice(0, startup) + '\nglobalThis.__t = { chronicleBuild, agendaRead, continuityNote: typeof continuityNote === \'function\' ? continuityNote : null, compactQuietRules: typeof compactQuietRules === \'function\' ? compactQuietRules : null, dialogueSquare: typeof dialogueSquare === \'function\' ? dialogueSquare : null, pairMergeQuests: typeof pairMergeQuests === \'function\' ? pairMergeQuests : null, readingSource, getSwipeData, rewriteReplyText: typeof rewriteReplyText === \'function\' ? rewriteReplyText : null, setChatApi: (fn) => { chatApi.updateMessage = fn; }, factionFromHud, chronBondReworded: typeof chronBondReworded === \'function\' ? chronBondReworded : () => false, chronWhen, parseHud, techStanding: typeof techStanding === \'function\' ? techStanding : () => new Map(), questDetailsLatest, relGuard, relCfg, martialAbilityItems, techListPanel, posMovedNow, keepRoomReading, posRoomKey, setState: (st) => { getChatState = async () => st; saveChatState = async () => {}; }, setPool: p => { loreCatalogPool = () => p; }, spellStoryFold, moneyHudBalance: typeof moneyHudBalance === \'function\' ? moneyHudBalance : commsBalance, commsCfg, messageHud, moneyRead, hintEchoScrub: typeof hintEchoScrub === \'function\' ? hintEchoScrub : (o => o), studyIsTrainingTrack: typeof studyIsTrainingTrack === \'function\' ? studyIsTrainingTrack : () => false, trainingTracksNow: typeof trainingTracksNow === \'function\' ? trainingTracksNow : () => [], worldOf, worldCyberpunk: typeof worldCyberpunk === \'function\' ? worldCyberpunk : null, moneyHudBalance, commsCfg, parseHud, worldLines };', ctx);
 const t = ctx.__t;
 
 let n = 0;
@@ -288,6 +288,21 @@ check('<D:Eris>"…"</D> is read as the dialogue marker (1.4.0)', () => {
     assert.ok(t.dialogueSquare, 'exists');
     assert.equal(t.dialogueSquare('<D:Eris>"Take a stance."</D> She waits. <D:Ghislaine:calm>"Again."</D>'), '[D:Eris]"Take a stance."[/D] She waits. [D:Ghislaine:calm]"Again."[/D]');
     assert.equal(t.dialogueSquare('<div>plain</div>'), '<div>plain</div>');
+});
+check('the narrator\'s continuity note says what is carried, kept and coming up (1.4.0)', () => {
+    assert.ok(t.continuityNote, 'exists');
+    const gear = { items: [{ name: 'road sword', state: 'sheathed' }, { name: 'travel bag', state: 'stowed', where: 'his room' }], elsewhere: [] };
+    const agenda = { items: [{ key: 'a', what: 'Post leaves', state: 'open', status: 'upcoming', dueIn: 120, when: 'Day 5' }, { key: 'b', what: 'Bench talk', state: 'in_progress', status: 'overdue', dueIn: -700 }] };
+    const n = t.continuityNote(gear, agenda, [], 'Tess');
+    assert.match(n, /Carried: road sword \(sheathed\)/); assert.match(n, /travel bag \(his room\)/);
+    assert.match(n, /Coming up: Post leaves: in 2h/); assert.match(n, /time has passed, still open: Bench talk/); assert.match(n, /never decide for Tess/);
+});
+check('quiet sections get their short form in Together mode, the full rule when the story touches them (1.4.0)', () => {
+    const rule = '"money": every sum that changed hands ' + 'x'.repeat(250);
+    const chatA = [user('I nod.'), scene('Old Hall, yard', 'The drill goes on.', {})];
+    assert.match(t.compactQuietRules(rule, chatA, 'Tess'), /^"money": only when a sum changes hands for Tess/);
+    const chatB = [user('I pay him two silver.'), scene('Old Hall, yard', 'He pockets it.', {})];
+    assert.equal(t.compactQuietRules(rule, chatB, 'Tess'), rule);
 });
 check('Merge on two look-alike rows makes them one, and can be split again (1.4.0)', () => {
     const row = (what, wh) => ({ key: what.toLowerCase(), what, with: wh, where: 'Old Hall', when: 'after supper', kind: 'meeting', state: 'open' });
