@@ -1984,6 +1984,7 @@ button.rpgc-chip.intel:hover { border-color: var(--lumiverse-accent, #7aa2f7); }
 .rpgc .rpgc-agenda-occ .occ-head .due,.rpgc .rpgc-agenda-occ .occ-head .meta{font-size:11.5px;color:var(--u-muted)}
 .rpgc .rpgc-agenda-occ>ul{margin:6px 0 0 14px;padding:0 0 0 8px;border-left:2px solid color-mix(in srgb,var(--u-text) 12%,transparent)}
 .rpgc .rpgc-agenda-occ>ul .rpgc-agenda-item .due{display:none}
+.rpgc .rpgc-chiprow .rpgc-chip{white-space:nowrap}
 `;
 
 // The guide, embedded from GUIDE.md so it ships inside the extension (tools/embed_guide.py refreshes it).
@@ -5499,7 +5500,13 @@ export function setup(ctx) {
         worldPills((ic, k, v, cls) => pill(ic, k, v, cls));
         const wx = typeof currentWeather === 'function' ? currentWeather() : null;
         const WX = { snow: '❄️', rain: '🌧️', storm: '⛈️', blizzard: '🌨️', mist: '🌫️', wind: '🍃', sunny: '☀️', cloudy: '☁️' };
-        if (wx && WX[wx.type]) pill(WX[wx.type], T('Weather'), T(wx.type));
+        if (wx && WX[wx.type]) {
+            // 1.4.0: a clear sky after dark is a clear night, not "sunny"
+            const hm = String(hms.hud?.time || '').match(/\b(\d{1,2}):(\d{2})\b/);
+            const dark = hm ? ['night', 'dusk'].includes(todOf(Number(hm[1]) * 60 + Number(hm[2]))) : /night|evening/i.test(String(hms.hud?.time || ''));
+            if (wx.type === 'sunny' && dark) pill('\uD83C\uDF19', T('Weather'), T('clear'));
+            else pill(WX[wx.type], T('Weather'), T(wx.type));
+        }
         // in the Scene the Now card already carries the sky, the time and the place: the strip keeps only the gauges
         const cd = worldCountdown(), hot = cd && cd.classList.contains('hot') ? ' hot' : '';
         if (compact) return pills.length || cd ? h('div', { class: 'rpgc-hudstrip compact' + hot, role: 'region', 'aria-label': T('At a glance') },
@@ -7344,7 +7351,9 @@ export function setup(ctx) {
             out.push(ledger);
         } else out.push(h('p', { class: 'rpgc-note' }, m.ask ? 'Every payment, purchase, wage, bribe, loan and debt shows up here, from your own messages and the story. The HUD’s balance stays the record of what you have.' : 'Asking the story about money is off (Settings → HMS systems → Finances). You can still log entries.'));
         const amt = h('input', { type: 'number', min: '0', step: 'any', placeholder: 'amount', 'aria-label': 'Amount', style: 'width:80px' });
-        const cur = h('input', { type: 'text', placeholder: 'gold', 'aria-label': 'Currency', maxlength: '30', style: 'width:70px' });
+        // the currency the HUD's balance uses (Eddies, gold, crowns), not always "gold"
+        const curName = String((state.hms?.money?.balance?.label) || '').trim() || 'gold';
+        const cur = h('input', { type: 'text', placeholder: curName.toLowerCase(), 'aria-label': 'Currency', maxlength: '30', style: 'width:70px' });
         const kind = h('select', { 'aria-label': 'Kind' }, ...['expense', 'income', 'debt', 'loan', 'repaid'].map(k => h('option', { value: k }, MONEY_LABEL[k])));
         const what = h('input', { type: 'text', placeholder: 'for what / with whom', 'aria-label': 'For what', maxlength: '100', style: 'flex:1;min-width:0' });
         const add = () => { if (!Number(amt.value)) return; send({ type: 'money', chatId: state.chatId, op: 'add', amount: Number(amt.value), currency: cur.value.trim(), kind: kind.value, what: what.value.trim() }); amt.value = ''; what.value = ''; };

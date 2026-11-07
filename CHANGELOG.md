@@ -29,6 +29,14 @@
 **HUD**
 - **A line copied back from an old HUD** (injuries back to "Raw" after an OOC exchange, when the last HUD said "Treated") keeps the last HUD's line. Only for lines that carry state (Condition, Training, Equipment, Memory, Goals, Active Paths); never Time, Location or Present, and a new wording is always kept.
 
+**Cyberpunk check**
+- Gear: something pressed into your hands or left for you (Mamá Oca's holster, the stranger's shard) is not yours until you take or keep it, and nothing goes on your body unless the story shows you put it on; "worn" leather is wear, not clothing. The Companion had the pistol "sheathed at Marcus's hip" while it lay on the bench.
+- Money: a debt of yours the story states for the first time (six grand to Vic) is recorded once as a debt, even though it is old.
+- Agenda: a clock time the story names is kept ("tonight, ten o'clock"), not shortened to "tonight".
+- A clear sky after dark shows 🌙 clear, not ☀️ sunny.
+- The money form's currency hint uses the HUD's own (eddies), not "gold".
+- Cyberware chips no longer break a name across two lines ("Gorilla / Arms").
+
 **Spells**
 - The Companion is told a spell someone casts *on* you (the healer's Healing) is not yours; that is how "Healing" got into the Spellbook.
 
