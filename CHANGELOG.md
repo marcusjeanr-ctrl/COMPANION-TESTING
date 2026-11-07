@@ -8,6 +8,7 @@
 - A new version of a card picks up a chat from the old one. The carry-over list now names each chat's **card**, groups chats **by story** (Mushoku Tensei, Cyberpunk, …) and tags them *this card* or *other card · same story*. Chats of this story come first.
 - Your pins follow you to the new card the first time you carry over, when that card has none yet.
 - Settings → Backup shows which card the linked chat came from.
+- **Settings follow the card.** What you set on a card (the phone, trackers, the look, fights, chat display…) is kept for that card and put back when you open it. A card you haven't set up yet takes the settings of its world (your last Mushoku card for a new Mushoku card). The connection, the mode, the language, your prompts and presets stay the same everywhere.
 - **Play style follows the card.** The style you apply (or save) is remembered for that card, and for its world, and comes back when you open a chat on that card. Switching from Cyberpunk back to Mushoku no longer leaves Cyberpunk's style on.
 
 **Better help for the narrator, any model**

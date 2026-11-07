@@ -173,6 +173,8 @@ The card puts the bot's Continuer line first, as the bot asks.
 
 **Moving to a new card.** Carry-over works across cards, so a new version of a card (or a different card that tells the same story) can pick up your old chat. Open the old chat once, start the new card with your save, and press **Carry over**. **Settings → Backup** lists your chats grouped by story, each with its card name, last date, place and length, and marks which ones are from *this card* and which are from *another card of the same story*. Your pins come along to the new card the first time, if it has none yet.
 
+**Settings per card.** Your settings belong to the card you set them on: turn the phone on in Cyberpunk and it stays off in Mushoku. A new card starts with the settings of the last card from the same world. The connection, the mode, the language, your prompts and presets are shared by all cards.
+
 **Play style per card.** Settings → Play style remembers the style you apply for each card (and each world). Open a Mushoku chat and Mushoku's style comes back; open Cyberpunk and its style comes back. A new version of a card uses the style you last applied in that world until you apply another.
 
 ### After the first reply
