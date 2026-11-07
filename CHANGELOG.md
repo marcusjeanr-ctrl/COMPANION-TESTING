@@ -25,6 +25,7 @@
 - **Training:** a Training count with a note after it, "Sword God → Saint (60/60 sessions — count met; proof pending)", was not read, so Sword God had no track and its studies were split between two groups. Read now, studies back under Sword God.
 - Agenda: something "in progress" but set for hours from now (moved to tomorrow's first bell) shows as upcoming, not as happening now. The Now card and the Scene summary follow the same rule.
 - Gear: "travel bags" next to the two bags it names ("taller travel bag", "second travel bag") in the same place is shown once, as the two bags.
+- Cyberpunk: the Compact HUD style prints Cyberware only on the turn it changes; the world card now keeps the last printed list instead of showing no chrome. Visual and Panel HUDs already read fine.
 - Dialogue written with angle brackets, `<D:Eris>"…"</D>`, now shows coloured like `[D:Eris]` instead of as raw tags. Display only; the message text is unchanged.
 - Gear: a bag reported "inside the room" is in that room. It no longer makes a phantom item called "room" on you, which also stopped the Companion being told you carry a room.
 - Gear: a bag's contents kept somewhere else (the oilcloth wrap in the chest) say "kept at …", so they don't read as on you.

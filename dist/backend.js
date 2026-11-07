@@ -10898,7 +10898,22 @@ function worldPanel(chatId, chat, st) {
     else if (id === 'darksouls') Object.assign(out, worldDarkSouls(chatId, lines));
     else if (id === 'skyrim') Object.assign(out, worldSkyrim(chatId, lines));
     else if (id === 'bg3') Object.assign(out, worldBg3(chatId, lines));
-    else if (id === 'cyberpunk') Object.assign(out, worldCyberpunk(chatId, lines, prevLines));
+    else if (id === 'cyberpunk') {
+        // 1.4.0: the Compact HUD style prints Cyberware only on the turn it changes; the last printed line still holds
+        const CW = /^\s*(?:\S+\s+)?\**Cyberware:/i;
+        let cwLines = lines, cwPrev = prevLines;
+        if (!lines.some(l => CW.test(l))) {
+            let found = null;
+            for (let i = chat.length - 1, n = 0; i >= 0 && n < 60 && !found; i--) {
+                const m = chat[i];
+                if (!m || m.role !== 'assistant' || m === msg.m || !trackingMessageVisible(m)) continue;
+                const h = messageHud(m); if (!h) continue; n++;
+                found = worldLines(h).find(l => CW.test(l)) || null;
+            }
+            if (found) { cwLines = [...lines, found]; if (cwPrev && !cwPrev.some(l => CW.test(l))) cwPrev = [...cwPrev, found]; }
+        }
+        Object.assign(out, worldCyberpunk(chatId, cwLines, cwPrev));
+    }
     // A D&D character sheet some Re:Zero modes print: the D&D card reads it instead of your own numbers.
     // A HUD that prints a class and level (BG3) gives one too: level, saves, skills and any Stats line.
     const sheet = worldFind(lines, /^\[D&D CHARACTER SHEET\]$/i) ? worldDndSheet(lines) : hudDndSheetGeneric(lines);
