@@ -20,6 +20,7 @@
 - A martial study now counts only when it is **one of the lorebook's techniques** (Sword God Stance, Sword God Footwork, Flash Slash…), shown by its lorebook name. The story's wording is matched to it ("Sword God footing" → Sword God Footwork). Drills, sparring and footwork exercises that are no technique of the lorebook are not studies: they count toward the HUD's Training sessions only.
 - The Companion is given the technique names of your styles from the lorebook (up to one rank ahead) and told to report a technique only when the story shows that technique itself.
 - **Abilities** keeps the HUD's ranks and learned lorebook techniques. Moves the story names in its own words ("Hip-driven countercut") wait in a small fold, *Other moves from the story*. Techniques still in training are on the Training card.
+- The Magic list's "Other" school no longer collects sword moves the story only described ("Advancing step into the flank", "Off-line short step and pivot"): an ability the lorebook doesn't list joins it only when its name reads as magic (water, stone, healing, barrier…).
 - A sword move named in plain words (a countercut, a thrust, a feint, an entry) is a technique, not a spell, so it no longer lands in the Spellbook.
 
 **Duplicates on the Agenda and Quests**

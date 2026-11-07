@@ -18691,7 +18691,7 @@ function spellListPanel(chatId, chat, st, sys) {
     // a known spell the lorebook does not have still shows, under its own heading
     const catKeys = cat.map(r => r.key);
     for (const [k, v] of known) if (!techKeys.has(k) && (v.from === 'you' || classify.domain(v.name) !== 'martial') && !catKeys.some(c => spellSame(c, k))) spells.push({ name: v.name, key: k, school: 'Other', rank: null, step: null, status: v.mastered ? 'mastered' : 'known', why: v.from === 'you' ? 'Marked by you' : 'From the story', who: null, effect: null, chant: null, fan: false, progress: null, note: [v.note, 'Not found in loaded spell references'].filter(Boolean).join(' · '), ...(v.evidence ? { evidence: v.evidence } : {}) });
-    for (const [key, evidence] of fold.abilityEvidence || []) if (!known.has(key) && !techKeys.has(key) && classify.domain(evidence.name) !== 'martial' && !catKeys.includes(key))
+    for (const [key, evidence] of fold.abilityEvidence || []) if (!known.has(key) && !techKeys.has(key) && classify.domain(evidence.name) !== 'martial' && !catKeys.includes(key) && SPELL_MAGIC_WORD_RE.test(evidence.name))
         spells.push({ name:evidence.name, key, school:'Other', rank:null, step:null, status:'unranked', why:'No confirmed current knowledge', evidence, effect:null, chant:null, fan:false, progress:null, note:null });
     const bySchool = new Map();
     for (const s of spells) { const k = spellSchoolKey(s.school); if (!bySchool.has(k)) bySchool.set(k, { key: k, name: s.school, spells: [] }); bySchool.get(k).spells.push(s); }
@@ -19004,6 +19004,8 @@ function techCatalogMatch(cat, name) {
     for (const t of tries) { const r = byKey.get(spellKey(t.replace(/\s+/g, ' ').trim())); if (r) return r; }
     return null;
 }
+// 1.4.0: a name that reads as magic ("Water jet", "Stone Shield", "healing touch"), for abilities the lorebook does not list
+const SPELL_MAGIC_WORD_RE = /\b(?:water|fire|flame|earth|stone|rock|wind|air|ice|frost|lightning|thunder|heal(?:ing)?|cure|detox\w*|barrier|ward|summon\w*|spell|magic|mana|cannon|ball|bolt|lance|wall|shield|mist|fog|storm|gravity|light|shadow|curse|blessing)\b/i;
 function techKeySet(chatId) {
     try { return new Set(techCatalog(chatId).map(r => r.key)); } catch { return new Set(); }
 }
