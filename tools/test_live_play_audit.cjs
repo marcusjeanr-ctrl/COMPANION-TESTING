@@ -17,7 +17,7 @@ const ctx = {
 ctx.globalThis = ctx;
 vm.createContext(ctx);
 vm.runInContext(source.slice(0, startup) + `
-globalThis.__t = { gearRead, getSwipeData, mtTraining, hmsTimeline, worldLines,
+globalThis.__t = { gearRead, hmsGearPanel, getSwipeData, mtTraining, hmsTimeline, worldLines,
   hmsHudSync: typeof hmsHudSync === 'function' ? hmsHudSync : () => [], hmsStoryReminders, hmsSurvival, hmsTodo, hmsReadWounds, diffHud, parseHud: typeof parseHud === 'function' ? parseHud : null,
   agendaDayOfMonth: typeof agendaDayOfMonth === 'function' ? agendaDayOfMonth : () => null, hmsAgendaPanel, hudRead: typeof hmsHudRead === 'function' ? hmsHudRead : null,
   hmsTrainingChecks: typeof hmsTrainingChecks === 'function' ? hmsTrainingChecks : () => [],
@@ -59,6 +59,11 @@ check('a bag "inside" a room is in that room; no phantom "room" item (1.4.0)', (
     assert.ok(!g.items.some(x => x.name === 'room'), 'no item called room');
     const bag = g.items.find(x => x.name === 'taller travel bag');
     assert.equal(bag.state, 'stowed'); assert.match(bag.where, /^room/);
+});
+check('"travel bags" next to the two bags it names is not a third bag (1.4.0)', () => {
+    const chat = [user('go'), reply({ gear: [{ name: 'travel bags', state: 'stowed', where: "courier's wagon" }, { name: 'taller travel bag', state: 'stowed', where: "courier's wagon" }, { name: 'second travel bag', state: 'stowed', where: "courier's wagon" }] }, 'The bags ride on the wagon.')];
+    const names = t.hmsGearPanel(chat, {}).items.map(x => x.name);
+    assert.ok(!names.includes('travel bags'), names.join(', ')); assert.ok(names.includes('taller travel bag') && names.includes('second travel bag'));
 });
 check('the story leaving the item still moves it', () => {
     const chat = [user('go'), reply(sheathed, 'You buckle the baldric.'), user('I hang my sword on the rack'),

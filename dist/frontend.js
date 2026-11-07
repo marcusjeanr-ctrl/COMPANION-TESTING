@@ -5283,7 +5283,7 @@ export function setup(ctx) {
         const hud = state.hms.hud;
         const path = (hud.location || []).map(x => typeof x === 'string' ? x : x.text || '').filter(Boolean);
         const ag = (state.hms.agenda?.items || []).map(x => ({ ...x, agendaTiming: agendaDisplayTiming(x, state.hms?.systems?.clock, state.hms?.hud) }));
-        const doing = ag.filter(x => x.state === 'in_progress');
+        const doing = ag.filter(x => x.state === 'in_progress' && (x.status === 'in_progress' || !x.status));
         for (const x of doing.slice(0, 2)) link = ['journey', 'agenda'], row('▶', T('In progress'), h('b', null, x.what), x.with ? h('span', { class: 'rpgc-note' }, ' · ' + x.with) : null);
         const open = ag.filter(x => x.state === 'open');
         const rank = x => x.agendaTiming.delta !== null ? x.agendaTiming.delta : Number.isFinite(x.agendaTiming.dayIn) ? x.agendaTiming.dayIn * 1440 : 1e12;
@@ -5782,7 +5782,7 @@ export function setup(ctx) {
             return h('button', { class: 'rpgc-wk-day' + (i === 0 ? ' today' : '') + (sel === i ? ' sel' : '') + (list.length ? ' has' : ''), type: 'button', 'aria-pressed': sel === i ? 'true' : 'false',
                 onclick: () => { state.agendaDay = sel === i ? null : i; render(); }, title: list.map(x => x.what).join(' · ') || T('Nothing set') },
                 h('span', { class: 'n' }, i === 0 ? T('Today') : i === 1 ? T('Tmrw') : today ? String(((today - 1 + i) % 30) + 1) : '+' + i),
-                h('span', { class: 'dots' }, list.slice(0, 4).map(x => h('i', { class: x.state === 'in_progress' ? 'now' : x.status === 'overdue' ? 'late' : '' })))); });
+                h('span', { class: 'dots' }, list.slice(0, 4).map(x => h('i', { class: x.state === 'in_progress' && x.status === 'in_progress' ? 'now' : x.status === 'overdue' ? 'late' : '' })))); });
         const picked = sel !== null ? (by.get(sel) || []) : null;
         return h('div', { class: 'rpgc-week' }, h('div', { class: 'strip' }, cells),
             picked ? h('ul', { class: 'rpgc-wk-list' }, picked.length ? picked.map(x => h('li', null, (AGENDA_ICON[x.kind] || '•') + ' ', h('b', null, x.what), x.when ? h('span', { class: 'rpgc-note' }, ' · ' + x.when) : null)) : h('li', { class: 'rpgc-note' }, T('Nothing set that day.'))) : null);
@@ -5961,7 +5961,7 @@ export function setup(ctx) {
     function miniBarEl() {
         const hms = state.hms || {};
         const loc = (hms.hud?.location || []).map(x => typeof x === 'string' ? x : x.text || '').filter(Boolean).slice(-1)[0];
-        const next = (hms.agenda?.items || []).find(x => x.state === 'in_progress') || (hms.agenda?.items || []).find(x => x.state === 'open' && x.dueIn != null);
+        const next = (hms.agenda?.items || []).find(x => x.state === 'in_progress' && (x.status === 'in_progress' || !x.status)) || (hms.agenda?.items || []).find(x => x.state === 'open' && x.dueIn != null);
         return h('button', { class: 'rpgc-minibar', type: 'button', title: T('Open the panel'), onclick: () => { state.miniBar = false; render(); } },
             h('b', null, String(hms.hud?.time || '').replace(/\s*\(.*\)/, '') || '—'), loc ? h('span', null, '📍 ', loc) : null,
             next ? h('span', { class: 'nx' }, (AGENDA_ICON[next.kind] || '📅') + ' ' + next.what) : null, h('span', { class: 'open', 'aria-hidden': 'true' }, '▾'));
@@ -7410,8 +7410,9 @@ export function setup(ctx) {
         return value===null?null:value<0?T('overdue')+' '+fmtSpan(-value):value===0?T('now'):TT('in {0}',fmtSpan(value));
     }
     function agendaDue(x) {
-        if (x.state === 'in_progress') return T('In progress');
-        if (x.state !== 'open') return { kept: 'kept', missed: 'missed', cancelled: 'called off' }[x.state] || x.state;
+        if (x.state === 'in_progress' && (x.status === 'in_progress' || !x.status)) return T('In progress');
+        if (x.state === 'in_progress' && x.status === 'overdue') return T('time passed, still open');
+        if (x.state !== 'open' && x.state !== 'in_progress') return { kept: 'kept', missed: 'missed', cancelled: 'called off' }[x.state] || x.state;
         const timing=x.agendaTiming || agendaDisplayTiming(x,state.hms?.systems?.clock,state.hms?.hud);
         if (timing.dayOnly && Number.isFinite(timing.dayIn)) { const d=timing.dayIn; return d===0?T('today'):d===1?T('tomorrow'):d>1?TT('in {0} days',d):TT('{0} days late',-d); }
         if (timing.dayOnly) return x.when || x.displayDueDate || x.due;

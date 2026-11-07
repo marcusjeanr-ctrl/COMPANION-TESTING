@@ -21,6 +21,9 @@
 - **Merge is real now.** The two rows count as one in the tracker, not only on the card. The first name stays, the latest time and state win, and the Companion is shown the one name, so it stops reporting both. A merged row says what it was merged with and can be split again.
 - An agenda title cut short ("Post pouch back south leaves") is the same item as the full one when the time and the person or place match.
 - Something still "in progress" six hours or more past its time, and not touched in the latest reply, shows as overdue instead of Now (last night's bench talk at the next dawn).
+- **Training:** a Training count with a note after it, "Sword God → Saint (60/60 sessions — count met; proof pending)", was not read, so Sword God had no track and its studies were split between two groups. Read now, studies back under Sword God.
+- Agenda: something "in progress" but set for hours from now (moved to tomorrow's first bell) shows as upcoming, not as happening now. The Now card and the Scene summary follow the same rule.
+- Gear: "travel bags" next to the two bags it names ("taller travel bag", "second travel bag") in the same place is shown once, as the two bags.
 - Dialogue written with angle brackets, `<D:Eris>"…"</D>`, now shows coloured like `[D:Eris]` instead of as raw tags. Display only; the message text is unchanged.
 - Gear: a bag reported "inside the room" is in that room. It no longer makes a phantom item called "room" on you, which also stopped the Companion being told you carry a room.
 - Gear: a bag's contents kept somewhere else (the oilcloth wrap in the chest) say "kept at …", so they don't read as on you.

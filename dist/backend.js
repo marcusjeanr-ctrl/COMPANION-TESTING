@@ -10747,9 +10747,15 @@ function mtTraining(lines) {
     for (const l of lines) {
         const t = String(l);
         if (!/^Training:/i.test(t)) continue;
-        for (const part of t.replace(/^Training:\s*/i, '').split(/\s*[·|;]\s*/)) {
-            const m = part.match(/^(.+?)\s*(?:→|->|⟶)\s*(.+?)\s*\(\s*(\d+(?:\.\d+)?)\s*\/\s*(\d+)\s*sessions?\s*\)/i);
-            if (m && !out.some(x => x.skill === m[1].trim())) out.push({ skill: m[1].trim(), next: m[2].trim(), done: Number(m[3]), needed: Number(m[4]) });
+        // 1.4.0: split only outside brackets, and allow a note after the count: "(60/60 sessions — count met; proof pending)"
+        const body = t.replace(/^Training:\s*/i, ''), parts = [];
+        { let depth = 0, cur = '';
+          for (const ch of body) { if (ch === '(') depth++; else if (ch === ')') depth = Math.max(0, depth - 1);
+            if (!depth && /[·|;]/.test(ch)) { parts.push(cur.trim()); cur = ''; } else cur += ch; }
+          parts.push(cur.trim()); }
+        for (const part of parts) {
+            const m = part.match(/^(.+?)\s*(?:→|->|⟶)\s*(.+?)\s*\(\s*(\d+(?:\.\d+)?)\s*\/\s*(\d+)\s*sessions?\s*(?:[—–,:-]\s*([^)]*?))?\s*\)/i);
+            if (m && !out.some(x => x.skill === m[1].trim())) out.push({ skill: m[1].trim(), next: m[2].trim(), done: Number(m[3]), needed: Number(m[4]), ...(m[5] && m[5].trim() ? { note: m[5].trim().slice(0, 80) } : {}) });
         }
     }
     return out.slice(0, 12);
@@ -14655,7 +14661,17 @@ function hmsGearPanel(chat, st, cfg) {
     const usedUp = awayRows.filter(it => !owned(it) && spentFood(it)).length;
     const containers = [...new Set(list.filter(x => x.state === 'in container' && x.inside).map(x => x.inside))];
     for (const it of list) if (/\b(bag|backpack|pack|pouch|satchel|sack|purse|chest|box|case|quiver|bandolier|bag of holding|inventory)\b/i.test(it.name) && !containers.some(cn => relSameWords(cn, it.name))) containers.push(it.name);
-    return { items: list, gone, elsewhere, usedUp, containers, ask: gc.ask, tell: gc.tell };
+    // 1.4.0: a plural group name ("travel bags") next to two or more of the same things named one by one, in the same
+    // place ("taller travel bag", "second travel bag"), is those bags, not a third set: shown once, as the bags themselves.
+    const plural = new Set();
+    for (const it of list) {
+        const m = String(it.name).toLowerCase().match(/^(.*\b[a-z]+?)(e?s)$/);
+        if (!m || !/\b(?:bags|packs|cases|trunks|chests|bundles|satchels|boxes|crates|sacks)$/.test(String(it.name).toLowerCase())) continue;
+        const one = String(it.name).toLowerCase().replace(/(?:es|s)$/, '').replace(/box$/, 'box');
+        const same = list.filter(x => x !== it && String(x.name).toLowerCase().endsWith(one) && lockKey(x.where || '') === lockKey(it.where || ''));
+        if (same.length >= 2) plural.add(it);
+    }
+    return { items: plural.size ? list.filter(x => !plural.has(x)) : list, gone, elsewhere, usedUp, containers, ask: gc.ask, tell: gc.tell };
 }
 
 // Why a thing left you, from the story's own words about it
@@ -15394,7 +15410,9 @@ function hmsAgendaPanel(chat, st, cfg, forDisplay = false) {
         // 1.4.0: "in progress" six hours or more past its time, and the latest reply did not touch it, is not happening now:
         // last night's bench talk at the next dawn shows as overdue (Loose ends asks whether it happened), not as Now.
         const stale = it.state === 'in_progress' && !ongoing && dueIn !== null && dueIn < -360 && it.changedIn !== lastId;
-        const status = ongoing ? 'ongoing' : stale ? 'overdue' : it.state !== 'open' ? it.state : dueIn === null ? 'unset' : dueIn < -60 ? 'overdue' : dueIn <= 180 ? 'soon' : 'upcoming';
+        // …and "in progress" set for hours from now (moved to tomorrow's first bell) has not started: it is upcoming
+        const later = it.state === 'in_progress' && !ongoing && dueIn !== null && dueIn > 180;
+        const status = ongoing ? 'ongoing' : stale ? 'overdue' : later ? 'upcoming' : it.state !== 'open' ? it.state : dueIn === null ? 'unset' : dueIn < -60 ? 'overdue' : dueIn <= 180 ? 'soon' : 'upcoming';
         const row = { key: it.key, what: it.what, with: it.with, where: it.where, when: it.when, dueIn, kind: it.kind, state: it.state, status, from: it.from, mine: !!it.mine, isNew: it.changedIn === lastId && !!lastId };
         if (it.also && it.also.length) { row.also = it.also; row.alsoKeys = it.alsoKeys; }
         if (it.waitsArrival) Object.defineProperty(row, '_arrival', { value: true, enumerable: false });
@@ -15444,9 +15462,9 @@ function agendaRequest(chat, st, userName, cfg) {
         let open = [];
         try { open = hmsAgendaPanel(chat, st).items.filter(x => x.state === 'open' || x.state === 'in_progress'); } catch { open = []; }
         // 1.4.0: what is happening or due first, then the rest; an "in progress" whose time is long past says so, so it gets closed
-        const rank = x => x.state === 'in_progress' && x.status !== 'overdue' ? -1e9 : x.dueIn ?? (Number.isFinite(x.dayIn) ? x.dayIn * 1440 : 1e9);
+        const rank = x => x.status === 'in_progress' ? -1e9 : x.dueIn ?? (Number.isFinite(x.dayIn) ? x.dayIn * 1440 : 1e9);
         open = open.map((x, i) => [x, i]).sort((a, b) => (rank(a[0]) - rank(b[0])) || (a[1] - b[1])).map(r => r[0]);
-        if (open.length) rules += `\nAgenda now — ${open.slice(0, 8).map(x => `${x.what}${x.with ? ` (with ${x.with})` : ''}${x.where ? ` at ${x.where}` : ''}: ${x.state === 'in_progress' && x.status === 'overdue' ? `in progress, but its time passed ${x.dueIn !== null ? hmsSpan(-x.dueIn) + ' ago' : 'long ago'}: kept, missed or still going?` : x.state === 'in_progress' ? 'in progress' : x.dueIn === null ? (Number.isFinite(x.dayIn) ? agendaDayText(x.dayIn) : (x.when || 'no set time')) : x.dueIn < -60 ? `${hmsSpan(-x.dueIn)} overdue` : x.dueIn <= 0 ? 'due now' : `due in ${hmsSpan(x.dueIn)}`}${x.when && x.dueIn !== null ? ` (story: ${x.when})` : ''}`).join('; ')}. In "when", always use the story's own words ("Day 5, first bell"), never a countdown like "in 3d 14h".`;
+        if (open.length) rules += `\nAgenda now — ${open.slice(0, 8).map(x => `${x.what}${x.with ? ` (with ${x.with})` : ''}${x.where ? ` at ${x.where}` : ''}: ${x.state === 'in_progress' && x.status === 'upcoming' ? `marked in progress, but set for ${hmsSpan(x.dueIn)} from now: open until it starts` : x.state === 'in_progress' && x.status === 'overdue' ? `in progress, but its time passed ${x.dueIn !== null ? hmsSpan(-x.dueIn) + ' ago' : 'long ago'}: kept, missed or still going?` : x.state === 'in_progress' ? 'in progress' : x.dueIn === null ? (Number.isFinite(x.dayIn) ? agendaDayText(x.dayIn) : (x.when || 'no set time')) : x.dueIn < -60 ? `${hmsSpan(-x.dueIn)} overdue` : x.dueIn <= 0 ? 'due now' : `due in ${hmsSpan(x.dueIn)}`}${x.when && x.dueIn !== null ? ` (story: ${x.when})` : ''}`).join('; ')}. In "when", always use the story's own words ("Day 5, first bell"), never a countdown like "in 3d 14h".`;
     }
     return { json, rules };
 }
