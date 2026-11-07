@@ -53,6 +53,13 @@ check('a guess about an item the HUD still carries does not move it (export 26)'
             'He throws you the second wooden sword. The wooden swords go into the snow. You finish the sword and abandon the body.', { time: '12:00' })];
     assert.equal(gearState(chat, 'Plain road sword'), 'sheathed');
 });
+check('a bag "inside" a room is in that room; no phantom "room" item (1.4.0)', () => {
+    const chat = [user('go'), reply({ gear: [{ name: 'taller travel bag', state: 'in container', where: null, inside: 'room, brought in from the corridor' }] }, 'The bags are carried into your room.')];
+    const g = t.gearRead(chat, {});
+    assert.ok(!g.items.some(x => x.name === 'room'), 'no item called room');
+    const bag = g.items.find(x => x.name === 'taller travel bag');
+    assert.equal(bag.state, 'stowed'); assert.match(bag.where, /^room/);
+});
 check('the story leaving the item still moves it', () => {
     const chat = [user('go'), reply(sheathed, 'You buckle the baldric.'), user('I hang my sword on the rack'),
         reply({ gear: [{ name: 'Plain road sword', state: 'stowed', where: 'weapon rack' }] }, 'You hang your sword on the rack by the door.', { time: '12:00' })];

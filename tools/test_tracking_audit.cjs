@@ -278,6 +278,12 @@ check('a short agenda title before ";" or "," is the same item (1.4.0)', () => {
         user('I nod.'), scene('Old Hall, yard', 'Supper waits.', { agenda: [row('Dawn drill with Tess', 'Tess Vale', 'dawn, first bell'), row('Post leaves Day 5, first bell', 'Courier', 'Day 5, first bell')] })];
     assert.equal(t.agendaRead(chat, {}).items.length, 2);
 });
+check('an agenda title cut short, same time and person, is the same item (1.4.0)', () => {
+    const row = (what) => ({ key: what.toLowerCase(), what, with: 'Courier', where: 'seed yard', when: 'Day 5, first bell', kind: 'other', state: 'open' });
+    const chat = [user('Fine.'), scene('Old Hall, yard', 'The post goes Day 5.', { agenda: [row('Post pouch back south leaves Day 5, first bell')] }),
+        user('Ok.'), scene('Old Hall, yard', 'Supper.', { agenda: [row('Post pouch back south leaves')] })];
+    assert.equal(t.agendaRead(chat, {}).items.length, 1);
+});
 check('Merge on two look-alike rows makes them one, and can be split again (1.4.0)', () => {
     const row = (what, wh) => ({ key: what.toLowerCase(), what, with: wh, where: 'Old Hall', when: 'after supper', kind: 'meeting', state: 'open' });
     const chat = [user('Fine.'), scene('Old Hall, hall', 'Talk later.', { agenda: [row('Talk with Kai on the bench', 'Kai'), row('Bench talk with Kai', 'Kai')] })];

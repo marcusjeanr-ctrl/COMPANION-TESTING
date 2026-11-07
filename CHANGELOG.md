@@ -14,6 +14,10 @@
 - **Fewer duplicates on their own.** An agenda title that is the start of a longer one is the same item when they're cut by ";" ("Post pouch leaves Day 5; letters by dusk"), or by "," when they name the same person or place ("Dawn drill with Ghislaine, first bell, every day").
 - **One "Possible duplicates" box** on the Agenda and on Quests, with **Merge** and **Keep both** for each look-alike pair. It replaces the old quest hint and its OOC line.
 - **Merge is real now.** The two rows count as one in the tracker, not only on the card. The first name stays, the latest time and state win, and the Companion is shown the one name, so it stops reporting both. A merged row says what it was merged with and can be split again.
+- An agenda title cut short ("Post pouch back south leaves") is the same item as the full one when the time and the person or place match.
+- Something still "in progress" six hours or more past its time, and not touched in the latest reply, shows as overdue instead of Now (last night's bench talk at the next dawn).
+- Gear: a bag reported "inside the room" is in that room. It no longer makes a phantom item called "room" on you, which also stopped the Companion being told you carry a room.
+- Gear: a bag's contents kept somewhere else (the oilcloth wrap in the chest) say "kept at …", so they don't read as on you.
 - Quests no longer count as look-alikes just because their objectives mention each other: their names must share a word, or their objectives must be close. A different category (main / personal) no longer hides a real duplicate.
 
 **Look and feel**

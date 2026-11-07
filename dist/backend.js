@@ -14146,6 +14146,8 @@ async function hmsFamilyEdit(chatId, p) {
 // from the player's own edits, which hold until the story says something newer about that item.
 
 // Luggage named only as where something went ("in travel bag"): not assumed to be on you (the bags stood by the door).
+// 1.4.0: a container named like a place ("room, brought in from the corridor", "the courier's wagon") is where the item is, not a bag
+const GEAR_PLACE_INSIDE_RE = /^(?:(?:his|her|their|the|a|my|your|marcus'?s?)\s+)?(?:[\w'-]+\s+){0,3}(?:room|bedroom|bedchamber|chamber|hall|hallway|corridor|wagon|cart|carriage|coach|stable|stables|kitchen|yard|courtyard|house|manor|inn|tent|floor|study|library|attic|cellar|barracks|office|quarters|loft|forecourt|garden|shop|store|stall)$/i;
 const GEAR_LUGGAGE_RE = /\b(?:travel(?:ling)? bags?|luggage|trunk|chest|crate|saddlebags?|travel case|bags by the door)\b/i;
 // "(laid beside bags)", "(packed, top bag)": where it is, already shown as its place; not part of its name.
 const GEAR_PLACE_NOTE_RE = /\b(?:laid|set down|beside|next to|by the|on the|in(?:side)? (?:the |a |my )?[\w'’-]*\s*(?:bag|pack|bracer|case|chest|trunk|drawer)|packed|stowed|left (?:at|in|on|by)|top bag|bottom bag)\b/i;
@@ -14424,9 +14426,11 @@ function gearReadUncached(chat, st, cfg) {
         for (const n of Array.isArray(y.got) ? y.got : []) { if (pocketIsMessage(n) || pocketAcquisitionPending(n)) continue; const it = ensure(n, 'story'); if (it && (!it.state || it.state === 'gone' || (reacquiredAfter.has(gearCanon(it.key)) && idx > reacquiredAfter.get(gearCanon(it.key))))) apply(it, 'on body', null, null, at, m.id, idx); }
         for (const n of Array.isArray(y.lost) ? y.lost : []) { const it = find(n); if (it) apply(it, 'gone', null, null, at, m.id, idx); }
         const reported = new Set();
-        for (const r of Array.isArray(d.gear) ? d.gear : []) {
+        for (let r of Array.isArray(d.gear) ? d.gear : []) {
             if (!isPlainObject(r) || !r.name) continue;
             if (pocketIsAuthorization(r?.name)) continue;
+            if (r.state === 'in container' && r.inside && !find(gearBare(r.inside)) && GEAR_PLACE_INSIDE_RE.test(String(r.inside).split(/\s*[,;(]\s*/)[0].trim()))
+                r = { ...r, state: 'stowed', where: r.where || r.inside, inside: null };
             const it = ensure(r.name, 'story', reported);
             if (!it) continue;
             reported.add(it);
@@ -15173,7 +15177,10 @@ function agendaRead(chat, st) {
                 const [sh, lo] = A.length < B.length ? [A, B] : [B, A];
                 const longText = lo === A ? x.what : row.what;
                 const anchored = !!(row.with && x.with && agendaPeopleSame(row.with, x.with)) || !!(row.where && x.where && lockKey(row.where) === lockKey(x.where));
-                return sh.split(' ').length >= 2 && (head(longText) === sh || anchored && head(longText, true) === sh) && (!row.with || !x.with || agendaPeopleSame(row.with, x.with));
+                // …or the short one is the long one cut short, with the same time and the same person or place
+                // ("Post pouch back south leaves" / "Post pouch back south leaves Day 5, first bell", both Day 5, first bell)
+                const cutShort = sh.split(' ').length >= 3 && lo.startsWith(sh + ' ') && anchored && !!(row.when && x.when && lockKey(row.when) === lockKey(x.when));
+                return sh.split(' ').length >= 2 && (head(longText) === sh || anchored && head(longText, true) === sh || cutShort) && (!row.with || !x.with || agendaPeopleSame(row.with, x.with));
             })());
             if (same.length === 1) return same[0];
         }
@@ -15344,7 +15351,10 @@ function hmsAgendaPanel(chat, st, cfg, forDisplay = false) {
         // A standing routine ("Training schedule: dawn to ninth bell …", "every morning") runs on; it is never late.
         const routine = ['open', 'in_progress'].includes(it.state) && (/\b(?:schedule|routine|regimen|rota)\b/i.test(String(it.what || '')) && !/^\s*(?:re)?schedul(?:e|ing)\b/i.test(String(it.what || '')) || /\b(?:daily|every\s+(?:day|morning|evening|night)|each\s+(?:day|morning|evening))\b/i.test(String(it.when || '')));
         const ongoing = routine || ['open', 'in_progress'].includes(it.state) && (dueIn === null || /^\s*(?:for\s+)?(?:the\s+next\s+)?(?:\d+|one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|a few)\s+(?:days?|weeks?|months?|years?)\s*[,;]/i.test(String(it.when || ''))) && /^\s*(?:for\s+)?(?:the\s+next\s+)?(?:\d+|one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|a few)\s+(?:days?|weeks?|months?|years?)\s*(?:$|[,;])|\b(?:daily|every (?:day|morning|evening|night|week)|each (?:day|morning|evening|night)|until (?:the )?(?:departure|seedwake|spring)|ongoing)\b/i.test(String(it.when || ''));
-        const status = ongoing ? 'ongoing' : it.state !== 'open' ? it.state : dueIn === null ? 'unset' : dueIn < -60 ? 'overdue' : dueIn <= 180 ? 'soon' : 'upcoming';
+        // 1.4.0: "in progress" six hours or more past its time, and the latest reply did not touch it, is not happening now:
+        // last night's bench talk at the next dawn shows as overdue (Loose ends asks whether it happened), not as Now.
+        const stale = it.state === 'in_progress' && !ongoing && dueIn !== null && dueIn < -360 && it.changedIn !== lastId;
+        const status = ongoing ? 'ongoing' : stale ? 'overdue' : it.state !== 'open' ? it.state : dueIn === null ? 'unset' : dueIn < -60 ? 'overdue' : dueIn <= 180 ? 'soon' : 'upcoming';
         const row = { key: it.key, what: it.what, with: it.with, where: it.where, when: it.when, dueIn, kind: it.kind, state: it.state, status, from: it.from, mine: !!it.mine, isNew: it.changedIn === lastId && !!lastId };
         if (it.also && it.also.length) { row.also = it.also; row.alsoKeys = it.alsoKeys; }
         if (it.waitsArrival) Object.defineProperty(row, '_arrival', { value: true, enumerable: false });

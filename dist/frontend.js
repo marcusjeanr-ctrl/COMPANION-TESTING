@@ -7798,9 +7798,11 @@ export function setup(ctx) {
                     const inside = contentsOf(cn).filter(it => !used.has(it.key));
                     const box = g.items.find(it => low(it.name) === low(cn));
                     if (!inside.length && !box) continue;
+                    // 1.4.0: a bag kept somewhere else (the oilcloth wrap in the chest) says where it is, so its contents don't read as "on you"
+                    const away = !box ? (g.elsewhere || []).find(e => low(e.name) === low(cn)) : null;
                     inside.forEach(it => used.add(it.key));
                     const boxKey = 'gear-box-' + low(cn);
-                    const det = h('details', { class: 'rpgc-gear-group box' }, h('summary', null, `👜 Inside ${cn}`, h('span', { class: 'meta' }, ` (${inside.length})`), box && box.state ? h('span', { class: 'meta' }, ` · ${box.state === 'in container' ? TT('in {0}', box.inside || T('a container')) : T(GEAR_LABEL[box.state] || box.state)}${box.where ? ` (${box.where})` : ''}`) : null),
+                    const det = h('details', { class: 'rpgc-gear-group box' }, h('summary', null, `👜 Inside ${cn}`, h('span', { class: 'meta' }, ` (${inside.length})`), away && away.where ? h('span', { class: 'meta' }, ' · ' + TT('kept at {0}', away.where)) : null, box && box.state ? h('span', { class: 'meta' }, ` · ${box.state === 'in container' ? TT('in {0}', box.inside || T('a container')) : T(GEAR_LABEL[box.state] || box.state)}${box.where ? ` (${box.where})` : ''}`) : null),
                         inside.length ? h('ul', null, inside.map(it => gearRow(g, it))) : h('p', { class: 'rpgc-note' }, 'Nothing known inside.'));
                     det.open = state.open[boxKey] !== false;
                     det.dataset.openKey = boxKey; det.addEventListener('toggle', () => { state.open[boxKey] = det.open; });
