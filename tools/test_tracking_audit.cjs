@@ -15,7 +15,7 @@ const ctx = {
 };
 ctx.globalThis = ctx;
 vm.createContext(ctx);
-vm.runInContext(source.slice(0, startup) + '\nglobalThis.__t = { chronicleBuild, agendaRead, pairMergeQuests: typeof pairMergeQuests === \'function\' ? pairMergeQuests : null, readingSource, getSwipeData, rewriteReplyText: typeof rewriteReplyText === \'function\' ? rewriteReplyText : null, setChatApi: (fn) => { chatApi.updateMessage = fn; }, factionFromHud, chronBondReworded: typeof chronBondReworded === \'function\' ? chronBondReworded : () => false, chronWhen, parseHud, techStanding: typeof techStanding === \'function\' ? techStanding : () => new Map(), questDetailsLatest, relGuard, relCfg, martialAbilityItems, techListPanel, posMovedNow, keepRoomReading, posRoomKey, setState: (st) => { getChatState = async () => st; saveChatState = async () => {}; }, setPool: p => { loreCatalogPool = () => p; }, spellStoryFold, moneyHudBalance: typeof moneyHudBalance === \'function\' ? moneyHudBalance : commsBalance, commsCfg, messageHud, moneyRead, hintEchoScrub: typeof hintEchoScrub === \'function\' ? hintEchoScrub : (o => o), studyIsTrainingTrack: typeof studyIsTrainingTrack === \'function\' ? studyIsTrainingTrack : () => false, trainingTracksNow: typeof trainingTracksNow === \'function\' ? trainingTracksNow : () => [], worldOf, worldCyberpunk: typeof worldCyberpunk === \'function\' ? worldCyberpunk : null, moneyHudBalance, commsCfg, parseHud, worldLines };', ctx);
+vm.runInContext(source.slice(0, startup) + '\nglobalThis.__t = { chronicleBuild, agendaRead, dialogueSquare: typeof dialogueSquare === \'function\' ? dialogueSquare : null, pairMergeQuests: typeof pairMergeQuests === \'function\' ? pairMergeQuests : null, readingSource, getSwipeData, rewriteReplyText: typeof rewriteReplyText === \'function\' ? rewriteReplyText : null, setChatApi: (fn) => { chatApi.updateMessage = fn; }, factionFromHud, chronBondReworded: typeof chronBondReworded === \'function\' ? chronBondReworded : () => false, chronWhen, parseHud, techStanding: typeof techStanding === \'function\' ? techStanding : () => new Map(), questDetailsLatest, relGuard, relCfg, martialAbilityItems, techListPanel, posMovedNow, keepRoomReading, posRoomKey, setState: (st) => { getChatState = async () => st; saveChatState = async () => {}; }, setPool: p => { loreCatalogPool = () => p; }, spellStoryFold, moneyHudBalance: typeof moneyHudBalance === \'function\' ? moneyHudBalance : commsBalance, commsCfg, messageHud, moneyRead, hintEchoScrub: typeof hintEchoScrub === \'function\' ? hintEchoScrub : (o => o), studyIsTrainingTrack: typeof studyIsTrainingTrack === \'function\' ? studyIsTrainingTrack : () => false, trainingTracksNow: typeof trainingTracksNow === \'function\' ? trainingTracksNow : () => [], worldOf, worldCyberpunk: typeof worldCyberpunk === \'function\' ? worldCyberpunk : null, moneyHudBalance, commsCfg, parseHud, worldLines };', ctx);
 const t = ctx.__t;
 
 let n = 0;
@@ -283,6 +283,11 @@ check('an agenda title cut short, same time and person, is the same item (1.4.0)
     const chat = [user('Fine.'), scene('Old Hall, yard', 'The post goes Day 5.', { agenda: [row('Post pouch back south leaves Day 5, first bell')] }),
         user('Ok.'), scene('Old Hall, yard', 'Supper.', { agenda: [row('Post pouch back south leaves')] })];
     assert.equal(t.agendaRead(chat, {}).items.length, 1);
+});
+check('<D:Eris>"…"</D> is read as the dialogue marker (1.4.0)', () => {
+    assert.ok(t.dialogueSquare, 'exists');
+    assert.equal(t.dialogueSquare('<D:Eris>"Take a stance."</D> She waits. <D:Ghislaine:calm>"Again."</D>'), '[D:Eris]"Take a stance."[/D] She waits. [D:Ghislaine:calm]"Again."[/D]');
+    assert.equal(t.dialogueSquare('<div>plain</div>'), '<div>plain</div>');
 });
 check('Merge on two look-alike rows makes them one, and can be split again (1.4.0)', () => {
     const row = (what, wh) => ({ key: what.toLowerCase(), what, with: wh, where: 'Old Hall', when: 'after supper', kind: 'meeting', state: 'open' });

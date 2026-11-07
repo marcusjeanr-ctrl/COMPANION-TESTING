@@ -4133,12 +4133,19 @@ function speakerColour(st, name) {
 }
 
 const DIALOGUE_ANY_RE = /\[D:[^\]\n]{0,100}\]|\[\/D\]/gi;
+// 1.4.0: some models now and then write the marker with angle brackets, <D:Eris>"…"</D>. Read it as the same marker.
+const DIALOGUE_ANGLE_RE = /<D:\s*([^<>\n]{1,100}?)\s*>|<\/D>/gi;
+function dialogueSquare(text) {
+    if (!/<\/?D[:>]/i.test(text)) return text;
+    return text.replace(DIALOGUE_ANGLE_RE, (m, inner) => inner === undefined ? '[/D]' : `[D:${inner}]`);
+}
 
 /** Draws the markers: colour, emoji and name as set; with everything off, just takes them out. */
 // FrankenSIM's tone tags, as type: the colour stays the speaker's own
 const DIALOGUE_TONES = { whisper: 'font-style:italic;font-size:.92em;opacity:.88;', steady: 'font-weight:500;', tremble: 'font-style:italic;letter-spacing:.06em;', bite: 'font-weight:700;letter-spacing:.01em;' };
 async function renderDialogue(text, chatId, msgId, cfg = chatDisplayCfg()) {
     if (!text) return text;
+    text = dialogueSquare(text);
     if (!/\[D:/i.test(text)) return /\[\/D\]/i.test(text) ? text.replace(DIALOGUE_ANY_RE, '') : text;
     const pal = dialoguePalette(cfg);
     const st = (cfg.colours && chatId) ? await getChatState(chatId) : null;
