@@ -12,6 +12,8 @@
 - **Play style follows the card.** The style you apply (or save) is remembered for that card, and for its world, and comes back when you open a chat on that card. Switching from Cyberpunk back to Mushoku no longer leaves Cyberpunk's style on.
 
 **Better help for the narrator, any model**
+- **Your corrections reach the narrator.** When you fix something by hand in the panel (move or remove gear, close an agenda item, log a debt, merge two names), the narrator is told once, before the next reply: "the pistol is left on the gym bench", "Bench talk with Rudeus is done". The story and the tracker stop disagreeing after a fix.
+- **HUD lines to carry.** When the last reply dropped a HUD line, or copied one back from an older HUD and the Companion put it right, the narrator is shown that line before the next reply so the same slip doesn't come back.
 - **Continuity notes (Separate mode).** The narrator never saw what the Companion tracks. It now gets a short note, about 300 tokens: what you carry, what is kept elsewhere and where, what's coming up, and what is still open past its time. Memory only; the card and the HUD come first. Settings → HUD: *Continuity notes for the narrator*.
 - **A lighter request in Together mode.** Money, holdings, factions and secrets get a one-line rule when nothing in the last exchange points at them, and the full rule as soon as the story does. The time-skip rule only comes with a skip. The Companion's own call in Separate mode still gets everything.
 - **Agenda now** lists what is happening or due first, and asks about an "in progress" whose time passed long ago (kept, missed, or still going?), so stale items get closed.

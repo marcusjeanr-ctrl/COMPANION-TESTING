@@ -2835,7 +2835,7 @@ function companionMarkTurnPurposes(chat) {
 // earlier chat stores a read-only copy of its history (active swipes only) and reads it in front of
 // this chat's own messages, so every panel and reminder continues exactly where the old chat stopped.
 const CARRY_INDEX_FILE = 'carry/index.json';
-const CARRY_SKIP = new Set(['v', 'carry', 'carryDismissed', 'checkpoint', 'encounter', 'encounterLogs', 'trackerSnapshots', 'activeTrackerSnapshot', 'trackerSnapshotSeq', 'immersive', 'song']);
+const CARRY_SKIP = new Set(['v', 'handFixes', 'carry', 'carryDismissed', 'checkpoint', 'encounter', 'encounterLogs', 'trackerSnapshots', 'activeTrackerSnapshot', 'trackerSnapshotSeq', 'immersive', 'song']);
 const carryMem = new Map();      // chatId → { at, msgs, ids, missing }
 let carryIndex = null;            // [{ chatId, count, lastId, date, place, at, carried }]
 let carryIndexSaving = null;
@@ -20667,8 +20667,49 @@ function continuityNote(gear, agenda, dueShown, userName) {
     if (!lines.length) return '';
     return `[RPG Companion: continuity]\nWhat the extension has tracked so far, as memory, not a rule: the card and the HUD come first, nothing here has to happen now, and never decide for ${userName}.\n${lines.join('\n')}`;
 }
+// 1.4.0: what the player fixed by hand in the panel since the last reply (gear moved, an agenda item closed, a debt
+// logged, two names merged). The narrator hears it once, before the next reply, so the story and the tracker agree.
+async function noteHandFix(chatId, text) {
+    try {
+        if (!chatId || !text || chatId === SANDBOX_ID) return;
+        let lastId = null;
+        try { const chat = await chatApi.getMessages(chatId); const a = [...chat].reverse().find(m => m && m.role === 'assistant'); lastId = a ? a.id : null; } catch { lastId = null; }
+        const st = await getChatState(chatId);
+        const list = Array.isArray(st.handFixes) ? st.handFixes.filter(x => x && x.lastId === lastId) : [];
+        const t = String(text).replace(/\s+/g, ' ').trim().slice(0, 160);
+        if (!list.some(x => x.text === t)) list.push({ text: t, lastId, at: Date.now() });
+        st.handFixes = list.slice(-8);
+        await saveChatState(chatId, st);
+    } catch { /* a courtesy note; never blocks the edit */ }
+}
+function handFixesNote(chat, st, userName) {
+    const list = Array.isArray(st && st.handFixes) ? st.handFixes : [];
+    if (!list.length) return '';
+    const a = [...(chat || [])].reverse().find(m => m && m.role === 'assistant');
+    const now = list.filter(x => x.lastId === (a ? a.id : null));
+    if (!now.length) return '';
+    return `[RPG Companion: ${userName}'s corrections]\n${userName} corrected the record by hand since the last reply. Treat these as how things stand; do not narrate the correction itself:\n${now.map(x => `- ${x.text}`).join('\n')}`;
+}
+// 1.4.0: HUD lines the last reply dropped or copied back from an older HUD, which the Companion put right: the
+// narrator is shown the line to carry, so the same slip does not come back next turn.
+function hudKeepNote(chat) {
+    const a = [...(chat || [])].reverse().find(m => m && m.role === 'assistant');
+    if (!a) return '';
+    const d = getSwipeData(a, true);
+    const g = d && d.hudGuard;
+    if (!g) return '';
+    const hud = messageHud(a);
+    const keys = [...new Set([...(g.reverted || []), ...(g.restored || [])])];
+    const lines = [];
+    for (const k of keys) { const l = hud && hud.lines.find(x => x.key === k); if (l) lines.push(l.text); }
+    for (const m of (Array.isArray(g.missing) ? g.missing : []).slice(0, 4)) if (m && m.text && !/^(?:present|time|date)\b/i.test(String(m.key || ''))) lines.push(m.text);
+    if (!lines.length) return '';
+    return `[RPG Companion: HUD lines to carry]\nThe last reply's HUD dropped or rewound these lines. Carry them forward exactly as written unless the story changes them:\n${[...new Set(lines)].slice(0, 6).join('\n')}`;
+}
 function hmsStoryReminders(chat, st, userName) {
     const parts = [], names = [];
+    try { const hf = handFixesNote(chat, st, userName); if (hf) { parts.push(hf); names.push('your corrections'); } } catch { /* optional */ }
+    try { if (settings.hmsGuard) { const hk = hudKeepNote(chat); if (hk) { parts.push(hk); names.push('HUD lines to carry'); } } } catch { /* optional */ }
     let gear = null, agenda = null;
     try { gear = gearCfg(hmsCfg()).on ? hmsGearPanel(chat, st) : null; } catch { gear = null; }
     try { agenda = agendaCfg().on ? hmsAgendaPanel(chat, st) : null; } catch { agenda = null; }
@@ -21264,8 +21305,8 @@ spindle.onFrontendMessage(async (payload, userId) => {
                 break;
             }
             case 'quest_pair': {
-                // the player's call on two quests that look alike: shown as one card, or kept apart and not asked again.
-                // Display only: tracking keeps both rows exactly as the story reports them.
+                // the player's call on two look-alike rows (quests, agenda, people): merged in tracking, or kept apart and
+                // not asked again. The readings themselves stay exactly as the story reported them.
                 if (!payload.chatId || typeof payload.a !== 'string' || typeof payload.b !== 'string') return;
                 const st = await getChatState(payload.chatId);
                 const field = payload.kind === 'agenda' ? 'agendaPairs' : payload.kind === 'people' ? 'peoplePairs' : 'questPairs';
@@ -21276,6 +21317,7 @@ spindle.onFrontendMessage(async (payload, userId) => {
                 for (const k of keys.slice(0, Math.max(0, keys.length - 60))) delete pairs[k];
                 st[field] = pairs;
                 await saveChatState(payload.chatId, st);
+                if (payload.verdict === 'same') await noteHandFix(payload.chatId, `"${payload.a}" and "${payload.b}" are the same ${payload.kind === 'people' ? 'person' : payload.kind === 'agenda' ? 'appointment' : 'quest'}`);
                 await pushState(payload.chatId);
                 break;
             }
@@ -21317,6 +21359,7 @@ spindle.onFrontendMessage(async (payload, userId) => {
             case 'money': {
                 if (!payload.chatId || !['add', 'remove', 'settle', 'review_legacy'].includes(payload.op)) return;
                 await hmsMoneyEdit(payload.chatId, payload);
+                if (payload.op === 'add' && Number.isFinite(Number(payload.amount))) await noteHandFix(payload.chatId, `Money: ${({ debt: 'owes', loan: 'is owed', income: 'received', expense: 'spent', repaid: 'repaid' })[payload.kind] || payload.kind || 'logged'} ${payload.amount}${payload.currency ? ' ' + payload.currency : ''}${payload.what ? ` — ${payload.what}` : ''}`);
                 await pushState(payload.chatId);
                 break;
             }
@@ -21338,6 +21381,8 @@ spindle.onFrontendMessage(async (payload, userId) => {
             case 'agenda': {
                 if (!payload.chatId || !['add', 'set'].includes(payload.op)) return;
                 await hmsAgendaEdit(payload.chatId, payload);
+                if (payload.op === 'set' && payload.state) await noteHandFix(payload.chatId, `Agenda: "${payload.what || payload.key}" is ${({ kept: 'done', missed: 'missed', cancelled: 'called off', in_progress: 'under way', open: 'still open' })[payload.state] || payload.state}`);
+                else if (payload.op === 'add' && payload.what) await noteHandFix(payload.chatId, `Agenda: ${payload.what}${payload.when ? `, ${payload.when}` : ''}${payload.with ? ` (with ${payload.with})` : ''}`);
                 await pushState(payload.chatId);
                 break;
             }
@@ -21396,6 +21441,11 @@ spindle.onFrontendMessage(async (payload, userId) => {
             case 'gear': {
                 if (!payload.chatId || !['add', 'set', 'remove'].includes(payload.op)) return;
                 await hmsGearEdit(payload.chatId, payload);
+                {
+                    const nm = payload.name || payload.key;
+                    if (nm && payload.op === 'remove') await noteHandFix(payload.chatId, `Gear: ${nm} is not ${userNameCache.get(payload.chatId) || "the player"}'s (removed)`);
+                    else if (nm && payload.state) await noteHandFix(payload.chatId, `Gear: ${nm} — ${payload.state === 'dropped' || payload.state === 'stowed' ? 'left' : payload.state}${payload.where ? ` (${payload.where})` : payload.inside ? ` (in ${payload.inside})` : ''}`);
+                }
                 await pushState(payload.chatId);
                 break;
             }
