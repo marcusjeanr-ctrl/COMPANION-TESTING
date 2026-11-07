@@ -10828,6 +10828,22 @@ function hmsTrainingPlan(chat, st, tl, magic, techniques, relations) {
         if (row.fresh) g.fresh = true;
         if (e && Number.isFinite(e.at) && (g.at === null || e.at > g.at)) g.at = e.at;
     }
+    // 1.4.0: martial moves the story shows being practised or tried (not learned yet) are training too: they join their
+    // style's group here, so the Abilities card can keep to what is learned.
+    try {
+        const chatId = chatIdOf(chat);
+        const have = new Set([...groups.values()].flatMap(g => g.studies.map(x => spellKey(x.name))));
+        const FIRM = /^(?:known|reliable|mastered)$/i;
+        for (const it of chatId ? martialAbilityItems(chatId, chat, st) : []) {
+            if (FIRM.test(it.state || '') || have.has(spellKey(it.name))) continue;
+            have.add(spellKey(it.name));
+            const row = { name: it.name, school: null, rank: null, note: null, progress: it.progress ?? null, days: 0, last: null, teacher: null, sessions: null, quiet: false, fresh: false, practice: it.state || 'Practicing' };
+            const n = norm(it.name);
+            const tg = [...groups.values()].find(g => g.track && g.key && ` ${n} `.includes(` ${g.key} `));
+            const g = tg || groupFor('other combat', 'Other combat', 'martial');
+            g.studies.push(row);
+        }
+    } catch { /* display help only */ }
     const out = [...groups.values()].filter(g => g.track || g.studies.length).map(g => ({ ...g, quiet: !g.track && g.studies.length > 0 && g.studies.every(x => x.quiet) }));
     out.sort((a, b) => (a.quiet - b.quiet) || (b.fresh - a.fresh) || (!!b.track - !!a.track) || ((b.at ?? -1) - (a.at ?? -1)) || a.name.localeCompare(b.name));
     return { groups: out, learned: learned.slice(0, 12), six };
@@ -11671,6 +11687,9 @@ function buildCompanionInstructionRead(committed, userName, locks, st = null, ch
     if (yc.on) s += `\n"you" also holds ${userName}'s own state at the end of this reply: mood, ${wantSurvival ? '' : 'stress (L), '}sanity (100 steady, 0 broken)${askXp ? ', and xp earned in this reply for a real accomplishment (0 if none) with why' : ''}. "got" and "lost": physical things ${userName} was handed, picked up, gave away, used up or lost — in their own last message or on screen in this reply — that the HUD does not list (a handout, a key, a note, a booklet), a few words each; [] when nothing changed hands. A message, a notice or news is not a thing.`;
     if (abilitiesSeen) s += '\n"you.abilities": one confirmed player spell/technique/skill per row; no ranks, casting labels, NPCs, catalog entries, instructions or hypotheticals. historical:true for past records, not new learning/current study. Attempts are not knowledge; reliability is not mastery. Exact quote required. Absence is not loss.';
     if (abilitiesSeen) s += '\nStudy requires practice begun now, not assigned/future lessons, demonstrations or failed combat alone. Never invent percentages. Omit empty study/learning.';
+    // 1.4.0: the names already on file, so the same practice keeps one name ("Sword God footing" stays that, not
+    // "off-line entry footwork" one reply and "footwork off-line step" the next). A different technique still gets its own.
+    if (abilitiesSeen && chat) { try { const names = practiceNamesOnFile(chat, st); if (names.length) s += `\nPractice names on file — ${names.join('; ')}. In study and you.abilities, reuse one of these exact names for the same practice, even when the drill is described differently; a new name only for a genuinely different technique or spell.`; } catch { /* hint only */ } }
     if (yc.on) s += `\nA time skip, montage or "over the month" summary in this reply is part of this turn: report what it shows ${userName} practicing, attempting or learning the same way as a scene (an attempt stays an attempt; a spell is learned only when the story says so). Its healed wounds and new gear count too, and so do sleep, meals and drinks in its ordinary days.`;
     if (wantQuests) s += '\nQuest progress is for the whole quest, not the current step. Do not lower it unless the quest restarted.';
     if (wantQuests) s += '\n"quests": accepted goals only. Reuse a Known quest ID for the same assignment despite new titles, progress or stages; null for a genuinely separate assignment. Names are labels, not IDs. Progress requires a measured percentage, else null. Report ended scene-level goals even when omitted from the HUD; use closed if the scene ended without a confirmed success/failure. Preserve broader quests and future commitments. No rewards from completion alone.';
@@ -18316,7 +18335,7 @@ function spellResolver(chatId) {
         // Body and gear handling the story names in plain words ("Bracer wand flick", "Break-fall", "Quick draw") is
         // physical skill, not a spell, unless an element says otherwise.
         if (!/\b(?:water|earth|fire|wind|ice|stone|rock|healing|lightning|frost|flame|mana)\b/i.test(name)
-            && /\b(?:flick|quick.?draw|draw(?:ing)?|sheath(?:e|ing)?|bracer|baldric|break.?falls?|footwork|grappl(?:e|ing)|throws?|parr(?:y|ies|ying)|dodg(?:e|ing)|stance|unarmed|escapes?|kicks?|punch(?:es)?|strikes?|guard)\b/i.test(name)) return 'martial';
+            && /\b(?:flick|quick.?draw|draw(?:ing)?|sheath(?:e|ing)?|bracer|baldric|break.?falls?|footwork|grappl(?:e|ing)|throws?|parr(?:y|ies|ying)|dodg(?:e|ing)|stance|unarmed|escapes?|kicks?|punch(?:es)?|strikes?|guard|(?:counter)?cuts?|counters?|thrusts?|lunges?|feints?|ripostes?|slash(?:es)?|entry|entries)\b/i.test(name)) return 'martial';
         return /\b(?:touki|swordsmanship|swordplay)\b|\b(?:shoulder|physical|sword|blade)\s+feint\b|\bfeint\b.{0,60}\bfootwork\b|\brhythm.breaking footwork\b|\bsword (?:god )?style\b|\b(?:diagonal|hip.driven|compact|sword|blade)\b.{0,60}\b(?:cuts?|slashes?)\b|\bflank (?:advance|step|movement)\b|\b(?:grounding|lowered.center|center recovery)\b.{0,60}\b(?:force|absorption|pressure)\b|\babsorb(?:ing)?\b.{0,100}\b(?:counter.pressure|lowered center)\b|\bbreak(?:ing)?\b.{0,60}\bopponent['’]s footing\b/i.test(name) ? 'martial' : 'magic';
     };
     // Normalize report names once per catalog, not by matching spell names inside prose.
@@ -18761,6 +18780,16 @@ function martialAbilityItems(chatId, chat, st) {
     }).slice(-40);
 }
 
+function practiceNamesOnFile(chat, st) {
+    const chatId = chatIdOf(chat) || reqChatNow || null;
+    if (!chatId) return [];
+    const names = [];
+    try { for (const it of martialAbilityItems(chatId, chat, st || {})) names.push(it.name); } catch { /* none */ }
+    try { const fold = spellStoryFold(chat, chatId); for (const s of spellStudyActive(chat, st || {}, fold, chatId)) names.push(s.name); } catch { /* none */ }
+    const seen = new Set(), out = [];
+    for (const n of names) { const k = spellKey(n); if (!k || seen.has(k)) continue; seen.add(k); out.push(String(n).slice(0, 60)); }
+    return out.slice(-14);
+}
 /** The spells being studied, as the reminder the model sees before it writes. Null when there are none. */
 function spellStudyReminder(chatId, chat, st, userName) {
     const resolved = spellResolveState(chatId, st, spellStoryFold(chat, chatId));

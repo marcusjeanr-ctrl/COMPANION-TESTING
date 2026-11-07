@@ -16,6 +16,12 @@
 - **A lighter request in Together mode.** Money, holdings, factions and secrets get a one-line rule when nothing in the last exchange points at them, and the full rule as soon as the story does. The time-skip rule only comes with a skip. The Companion's own call in Separate mode still gets everything.
 - **Agenda now** lists what is happening or due first, and asks about an "in progress" whose time passed long ago (kept, missed, or still going?), so stale items get closed.
 
+**Combat techniques**
+- **One name per practice.** The Companion is shown the practice names already on file and asked to reuse them for the same drill, so "off-line entry footwork" stops coming back as a new move under a new name every reply.
+- **Abilities stays tidy.** With the Training card on, moves still being trained (attempted, practising, training) are shown on Training under their style, and Abilities keeps the HUD's ranks and what has been learned, with a link: "6 moves still in training: see Training".
+- **Training shows practised moves too,** marked attempted or practising, not only formal studies.
+- A sword move named in plain words ("Hip-driven countercut", a thrust, a feint, an entry) is a technique, not a spell, so it no longer lands in the Spellbook.
+
 **Duplicates on the Agenda and Quests**
 - **Fewer duplicates on their own.** An agenda title that is the start of a longer one is the same item when they're cut by ";" ("Post pouch leaves Day 5; letters by dusk"), or by "," when they name the same person or place ("Dawn drill with Ghislaine, first bell, every day").
 - **One "Possible duplicates" box** on the Agenda and on Quests, with **Merge** and **Keep both** for each look-alike pair. It replaces the old quest hint and its OOC line.

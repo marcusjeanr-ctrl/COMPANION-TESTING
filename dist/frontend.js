@@ -6890,8 +6890,17 @@ export function setup(ctx) {
         const c = sysCfg().abilities || {};
         if (!sys || c.enabled === false || (!sys.abilities.length && !(sys.attributes || []).length)) return null;
         const covers = new Set((state.world && S()?.worldCard !== false && state.world.covers) || []);
-        const groups = sys.abilities.map(g => ({ ...g, items: g.items.filter(it => !(it.src && covers.has(String(it.src).toUpperCase()))) })).filter(g => g.items.length);
-        if (!groups.length && !(sys.attributes || []).length) return null;
+        // 1.4.0: with the Training card on, moves still being trained (attempted, practising, training) are shown there,
+        // so Abilities keeps to what the HUD prints and what has been learned
+        const trainOn = !!(state.hms && state.hms.trainingPlan && Array.isArray(state.hms.trainingPlan.groups) && state.hms.trainingPlan.groups.length);
+        const IN_TRAINING = /^(?:attempted|practi[cs]ing|training|reported maneuver|reported assessment|learning reported)$/i;
+        let movedN = 0;
+        const groups = sys.abilities.map(g => ({ ...g, items: g.items.filter(it => {
+            if (it.src && covers.has(String(it.src).toUpperCase())) return false;
+            if (trainOn && !it.src && IN_TRAINING.test(String(it.state || '').trim())) { movedN++; return false; }
+            return true;
+        }) })).filter(g => g.items.length);
+        if (!groups.length && !(sys.attributes || []).length && !movedN) return null;
         // The reporter words the same practice a new way each reply ("Sword God Style footwork", "Sword God Style
         // under Aurelius's drill"). Display only: those fold under the style's own row; a named move stays its own.
         const PRACTICE_RE = /^(?:(?:basic|basics|footwork|drills?|practice|training|forms?|stance(?: work)?|recovery|conditioning|sparring|lessons?|sessions?|exercises?|fundamentals|refinement|timing|toward\s+\w+)\b|(?:under|with|from)\b.*\b(?:drills?|training|lessons?|instruction|teaching|eye)\b|(?:drills?|training|practice) (?:under|with)\b)/i;
@@ -6957,6 +6966,8 @@ export function setup(ctx) {
                 h('h4', null, g.title.replace(/^\[/, '')),
                 h('div', { class: 'rpgc-attrs' }, g.items.map(it => h('span', { class: 'rpgc-attr' }, h('b', null, it.name), h('span', null, it.value))))));
         }
+        if (movedN) out.push(h('p', { class: 'rpgc-note rpgc-abil-moved' }, TT(movedN === 1 ? '{0} move still in training: see Training.' : '{0} moves still in training: see Training.', movedN), ' ',
+            h('button', { class: 'rpgc-mini', title: T('Open Training'), onclick: () => goTo(currentView(), 'training') }, '\u2192')));
         const n = groups.reduce((a, g) => a + foldGroup(g.items).kept.length, 0);
         return section('abilities', 'Abilities', state.open, n ? String(n) : null, ...out);
     }
@@ -10373,7 +10384,7 @@ html,body{background:${panelBg}!important;}`;
         const first = n => String(n || '').split(/\s+/)[0];
         const studyRow = sp => fold('train-s-' + sp.name.toLowerCase(), 'rpgc-tstudy' + (sp.quiet ? ' quiet' : '') + (sp.fresh ? ' fresh' : ''), [
                 h('b', { class: 'nm' }, sp.name),
-                h('span', { class: 'meta' }, [sp.days ? TT(sp.days === 1 ? '{0} day' : '{0} days', sp.days) : T('not yet practised'), sp.teacher ? TT('with {0}', first(sp.teacher)) : null].filter(Boolean).join(' · ')),
+                h('span', { class: 'meta' }, [sp.days ? TT(sp.days === 1 ? '{0} day' : '{0} days', sp.days) : sp.practice ? T(String(sp.practice).toLowerCase()) : T('not yet practised'), sp.teacher ? TT('with {0}', first(sp.teacher)) : null].filter(Boolean).join(' · ')),
                 sp.sessions ? h('span', { class: 'ses', title: T('Counted by the Companion from the card\u2019s rule (a day of practice is 1 session, 1.5 with a teacher) until the HUD lists it') }, trainMiniBar(sp.sessions.done, sp.sessions.needed), ` ${TT('{0} left', sp.sessions.left)} ⓘ`) : sp.progress !== null && sp.progress !== undefined ? h('span', { class: 'ses' }, trainMiniBar(sp.progress, 100), ` ${sp.progress}%`) : null],
             [sp.note ? h('p', { class: 'rpgc-note' }, sp.note) : null,
              h('div', { class: 'rpgc-row' }, sp.last ? h('span', { class: 'rpgc-note' }, TT('Last: {0}', sp.last)) : null, h('span', { style: 'flex:1' }),
