@@ -31,6 +31,12 @@
 **HUD**
 - **A line copied back from an old HUD** (injuries back to "Raw" after an OOC exchange, when the last HUD said "Treated") keeps the last HUD's line. Only for lines that carry state (Condition, Training, Equipment, Memory, Goals, Active Paths); never Time, Location or Present, and a new wording is always kept.
 
+**Cyberpunk: Living World V1.4**
+- The new HUD lines are read: **Attributes** (Body, Reflexes, Tech, Intelligence, Cool as five tiles, with ▲/▼ when one moves), **Build** (your strengths as chips, the Weak spot in red), **Perks** (each with its level; ✨ new, ▲ levelled up) and **pronouns** after your name.
+- Cyberware shows its **tier** (T1–T3) and ▲ when an implant is upgraded. Implants and perks show the card's own lorebook entry when you hover them.
+- A perk or Build strength on the world card is not repeated in Abilities. Classic, Visual and Compact HUDs all read the same way.
+- Cyberware chips wrap onto a second line instead of running off the card.
+
 **Cyberpunk check**
 - Gear: something pressed into your hands or left for you (Mamá Oca's holster, the stranger's shard) is not yours until you take or keep it, and nothing goes on your body unless the story shows you put it on; "worn" leather is wear, not clothing. The Companion had the pistol "sheathed at Marcus's hip" while it lay on the bench.
 - Money: a debt of yours the story states for the first time (six grand to Vic) is recorded once as a debt, even though it is old.

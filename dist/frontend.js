@@ -1984,7 +1984,16 @@ button.rpgc-chip.intel:hover { border-color: var(--lumiverse-accent, #7aa2f7); }
 .rpgc .rpgc-agenda-occ .occ-head .due,.rpgc .rpgc-agenda-occ .occ-head .meta{font-size:11.5px;color:var(--u-muted)}
 .rpgc .rpgc-agenda-occ>ul{margin:6px 0 0 14px;padding:0 0 0 8px;border-left:2px solid color-mix(in srgb,var(--u-text) 12%,transparent)}
 .rpgc .rpgc-agenda-occ>ul .rpgc-agenda-item .due{display:none}
-.rpgc .rpgc-chiprow .rpgc-chip{white-space:nowrap}
+.rpgc .rpgc-chiprow{display:flex;flex-wrap:wrap;gap:4px}
+.rpgc .rpgc-chiprow .rpgc-chip{white-space:nowrap;margin:0}
+.rpgc .rpgc-cp-attrs{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px;margin:6px 0 8px}
+.rpgc .rpgc-cp-attr{display:flex;flex-direction:column;align-items:center;padding:6px 2px;border-radius:var(--u-radius-s);background:color-mix(in srgb,var(--u-text) 5%,transparent);min-width:0}
+.rpgc .rpgc-cp-attr b{font-size:16px;line-height:1.1}
+.rpgc .rpgc-cp-attr span{font-size:10.5px;color:var(--u-muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%}
+.rpgc .rpgc-cp-attr.up b i{color:var(--u-ok,#4caf50);font-style:normal;font-size:11px}
+.rpgc .rpgc-cp-attr.down b i{color:var(--u-warn);font-style:normal;font-size:11px}
+.rpgc .rpgc-chip b.tier{font-weight:700;opacity:.75;font-size:.9em}
+.rpgc .rpgc-cp-pron{margin:-4px 0 4px}
 `;
 
 // The guide, embedded from GUIDE.md so it ships inside the extension (tools/embed_guide.py refreshes it).
@@ -6922,8 +6931,11 @@ export function setup(ctx) {
         const techOf = n => { const v = [n, String(n).replace(/\bfooting\b/gi, 'footwork'), String(n).replace(/\bstyle\b/gi, ' ').replace(/\bfooting\b/gi, 'footwork')];
             for (const x of v) { const k = String(x).toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim(); if (techNames.has(k)) return techNames.get(k); } return null; };
         const storyMoves = [];
+        // a perk or a Build strength the world card already shows from the HUD (Cyberpunk V1.4) is not repeated here
+        const worldHas = new Set([...(state.world?.perks || []).map(p => p.name), ...(state.world?.build?.strengths || [])].map(x => String(x).toLowerCase().trim()));
         const groups = sys.abilities.map(g => ({ ...g, items: g.items.filter(it => {
             if (it.src && covers.has(String(it.src).toUpperCase())) return false;
+            if (!it.src && worldHas.has(String(it.name).toLowerCase().trim())) return false;
             // still in training: a lorebook technique is on the Training card; a drill counts toward its sessions only
             if (trainOn && !it.src && IN_TRAINING.test(String(it.state || '').trim())) { if (!techNames.size || techOf(it.name)) movedN++; return false; }
             if (techNames.size && !it.src && /martial|combat|sword|fight/i.test(g.category) && !techOf(it.name)) { storyMoves.push(it); return false; }
@@ -9107,11 +9119,20 @@ export function setup(ctx) {
             if (w.heat && w.heat.level) out.push(h('div', { class: 'rpgc-wrow' }, h('span', { class: 'lbl' }, T('Heat')), ladderBar(w.heat.level - 1, 5), h('span', { class: 'val' }, `${w.heat.level}/5${w.heat.who ? ' \u00B7 ' + w.heat.who : ''}${w.heat.level >= 5 ? ' \u00B7 MaxTac' : ''}`)));
             if (w.heat && w.heat.hunted.length) out.push(wRow(T('Hunted by'), ...w.heat.hunted.map(x => chip(x, 'hot'))));
             if (w.identity) out.push(wRow(w.identity.name || T('You'), w.identity.role ? h('b', null, w.identity.role) : null, w.identity.lifepath ? chip(w.identity.lifepath) : null, w.identity.age !== null ? chip(`${w.identity.age}${w.identity.born ? ' \u00B7 b. ' + w.identity.born : ''}`) : null));
+            if (w.identity && w.identity.pronouns) out.push(h('p', { class: 'rpgc-note rpgc-cp-pron' }, w.identity.pronouns));
+            // V1.4: the five attributes (earned 1–20), what you're good at, and the perks you've earned
+            if (Array.isArray(w.attributes) && w.attributes.length) out.push(h('div', { class: 'rpgc-cp-attrs', role: 'list', 'aria-label': T('Attributes') },
+                ...w.attributes.map(a => h('div', { class: 'rpgc-cp-attr' + (a.delta > 0 ? ' up' : a.delta < 0 ? ' down' : ''), role: 'listitem', title: a.value >= 20 ? T('master') : a.value >= 15 ? T('expert') : a.value >= 9 ? T('practised') : a.value >= 4 ? T('apprentice') : T('untrained') },
+                    h('b', null, String(a.value), a.delta ? h('i', null, a.delta > 0 ? ' \u25B2' : ' \u25BC') : null), h('span', null, a.name === 'Technical Ability' ? T('Tech') : T(a.name))))));
+            if (w.build && (w.build.strengths.length || w.build.weak)) out.push(wRow(T('Build'), ...w.build.strengths.map(x => chip(x)), w.build.weak ? chip(TT('Weak: {0}', w.build.weak), 'hot') : null));
+            if (Array.isArray(w.perks) && w.perks.length) out.push(wRow(T('Perks'), ...w.perks.map(p => h('span', { class: 'rpgc-chip' + (p.isNew || p.levelUp ? ' new' : ''), title: p.lore || '' },
+                p.isNew ? '\u2728 ' : '', p.name, p.level ? h('b', { class: 'tier' }, ` L${p.level}`) : null, p.levelUp ? ' \u25B2' : null))));
             if (w.arc) out.push(wRow(T('Arc'), w.arc.code ? chip(w.arc.code) : null, h('span', null, w.arc.title)));
             if (w.faction) out.push(wRow(T('Faction'), h('b', null, w.faction.name), w.faction.rank ? chip(w.faction.rank) : null));
             if (w.passenger) out.push(h('div', { class: 'rpgc-wrow' }, h('span', { class: 'lbl' }, T('Passenger')), levelBar(w.passenger.pct, w.passenger.pct >= 60 ? 'critical' : w.passenger.pct >= 25 ? 'low' : 'ok'), h('span', { class: 'val' }, `${w.passenger.name} \u00B7 ${w.passenger.pct}% \u00B7 ${w.passenger.stage}${w.passenger.delta ? ' (' + signed(w.passenger.delta) + ')' : ''}`)));
             if (w.cyberware.length) out.push(h('div', { class: 'rpgc-set' }, h('h4', null, `${T('Cyberware')} \u00B7 ${w.cyberware.length}`),
-                h('div', { class: 'rpgc-chiprow' }, ...w.cyberware.map(c => h('span', { class: 'rpgc-chip' + (c.isNew ? ' new' : ''), title: c.lore || '' }, c.isNew ? '\u2728 ' + c.name : c.name))),
+                h('div', { class: 'rpgc-chiprow' }, ...w.cyberware.map(c => h('span', { class: 'rpgc-chip' + (c.isNew || c.tierUp ? ' new' : ''), title: c.lore || '' }, c.isNew ? '\u2728 ' + c.name : c.name,
+                    c.tier ? h('b', { class: 'tier' }, ' ' + c.tier) : null, c.tierUp ? ' \u25B2' : null))),
                 w.net && w.net.deck ? h('p', { class: 'rpgc-note' }, `${T('Deck')}: ${w.net.deck}`) : null));
             else if (w.net && w.net.deck) out.push(wRow(T('Deck'), w.net.deck));
             if (w.bonds.length) out.push(wRow(T('Bonds'), ...w.bonds.map(b => chip(b.stage ? `${b.name} \u00B7 ${b.stage}` : b.name, b.rank >= 0 && b.rank <= 2 ? 'hot' : b.rank >= 5 ? 'ok' : ''))));

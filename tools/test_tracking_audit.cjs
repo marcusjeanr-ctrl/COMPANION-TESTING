@@ -15,7 +15,7 @@ const ctx = {
 };
 ctx.globalThis = ctx;
 vm.createContext(ctx);
-vm.runInContext(source.slice(0, startup) + '\nglobalThis.__t = { chronicleBuild, agendaRead, handFixesNote: typeof handFixesNote === \'function\' ? handFixesNote : null, hudKeepNote: typeof hudKeepNote === \'function\' ? hudKeepNote : null, staleRevertLines: typeof staleRevertLines === \'function\' ? staleRevertLines : null, parseHud, hmsAgendaPanel, agendaNamesDay, mtTraining: typeof mtTraining === \'function\' ? mtTraining : null, continuityNote: typeof continuityNote === \'function\' ? continuityNote : null, compactQuietRules: typeof compactQuietRules === \'function\' ? compactQuietRules : null, dialogueSquare: typeof dialogueSquare === \'function\' ? dialogueSquare : null, pairMergeQuests: typeof pairMergeQuests === \'function\' ? pairMergeQuests : null, readingSource, getSwipeData, rewriteReplyText: typeof rewriteReplyText === \'function\' ? rewriteReplyText : null, setChatApi: (fn) => { chatApi.updateMessage = fn; }, factionFromHud, chronBondReworded: typeof chronBondReworded === \'function\' ? chronBondReworded : () => false, chronWhen, parseHud, techStanding: typeof techStanding === \'function\' ? techStanding : () => new Map(), questDetailsLatest, relGuard, relCfg, martialAbilityItems, techListPanel, posMovedNow, keepRoomReading, posRoomKey, setState: (st) => { getChatState = async () => st; saveChatState = async () => {}; }, setPool: p => { loreCatalogPool = () => p; }, spellStoryFold, moneyHudBalance: typeof moneyHudBalance === \'function\' ? moneyHudBalance : commsBalance, commsCfg, messageHud, moneyRead, hintEchoScrub: typeof hintEchoScrub === \'function\' ? hintEchoScrub : (o => o), studyIsTrainingTrack: typeof studyIsTrainingTrack === \'function\' ? studyIsTrainingTrack : () => false, trainingTracksNow: typeof trainingTracksNow === \'function\' ? trainingTracksNow : () => [], worldOf, worldCyberpunk: typeof worldCyberpunk === \'function\' ? worldCyberpunk : null, moneyHudBalance, commsCfg, parseHud, worldLines };', ctx);
+vm.runInContext(source.slice(0, startup) + '\nglobalThis.__t = { chronicleBuild, agendaRead, handFixesNote: typeof handFixesNote === \'function\' ? handFixesNote : null, hudKeepNote: typeof hudKeepNote === \'function\' ? hudKeepNote : null, staleRevertLines: typeof staleRevertLines === \'function\' ? staleRevertLines : null, parseHud, hmsAgendaPanel, agendaNamesDay, mtTraining: typeof mtTraining === \'function\' ? mtTraining : null, continuityNote: typeof continuityNote === \'function\' ? continuityNote : null, compactQuietRules: typeof compactQuietRules === \'function\' ? compactQuietRules : null, dialogueSquare: typeof dialogueSquare === \'function\' ? dialogueSquare : null, pairMergeQuests: typeof pairMergeQuests === \'function\' ? pairMergeQuests : null, readingSource, getSwipeData, rewriteReplyText: typeof rewriteReplyText === \'function\' ? rewriteReplyText : null, setChatApi: (fn) => { chatApi.updateMessage = fn; }, factionFromHud, chronBondReworded: typeof chronBondReworded === \'function\' ? chronBondReworded : () => false, chronWhen, parseHud, techStanding: typeof techStanding === \'function\' ? techStanding : () => new Map(), questDetailsLatest, relGuard, relCfg, martialAbilityItems, techListPanel, posMovedNow, keepRoomReading, posRoomKey, setState: (st) => { getChatState = async () => st; saveChatState = async () => {}; }, setPool: p => { loreCatalogPool = () => p; }, spellStoryFold, moneyHudBalance: typeof moneyHudBalance === \'function\' ? moneyHudBalance : commsBalance, commsCfg, messageHud, moneyRead, hintEchoScrub: typeof hintEchoScrub === \'function\' ? hintEchoScrub : (o => o), studyIsTrainingTrack: typeof studyIsTrainingTrack === \'function\' ? studyIsTrainingTrack : () => false, trainingTracksNow: typeof trainingTracksNow === \'function\' ? trainingTracksNow : () => [], worldOf, WORLD_COVERS: typeof WORLD_COVERS === \'object\' ? WORLD_COVERS : {}, worldCyberpunk: typeof worldCyberpunk === \'function\' ? worldCyberpunk : null, moneyHudBalance, commsCfg, parseHud, worldLines };', ctx);
 const t = ctx.__t;
 
 let n = 0;
@@ -75,6 +75,23 @@ check('a Cyberpunk: Living World HUD is read as Cyberpunk, every module included
     assert.ok(bal && /2,100/.test(bal.value), 'eddies read as the balance');
     // a Dark Souls HUD with a Humanity line stays Dark Souls
     assert.notEqual(t.worldOf(['Souls: 1,204', 'Humanity: 3', 'Estus: 5/5', 'Bonfire: Firelink Shrine']), 'cyberpunk');
+});
+check('a Cyberpunk V1.4 HUD: pronouns, Build, Attributes, Perks and cyberware tiers are read', () => {
+    const hud = (body, slip, extra, sande) => ['### WORLD STATE ###', 'Date: November 3, 2077 | 22:40 (Night)', '◆ Night City → Watson → Kabuki',
+        'Identity: Kaya Thorne (she/her) | Role: Solo | Lifepath: Nomad | Age: 24 (born 2053)', 'Arc 3-B: Konpeki Plaza Heist', 'Eddies: 900 (Streetrat)',
+        'Humanity: 70/100 | Psyche: Steady', 'Build: Boxing, Close Quarters | Weak: Can\'t read ICE',
+        `Attributes: Body ${body} | Reflexes 5 | Technical Ability 3 | Intelligence 2 | Cool 4`, `Perks: Slippery (L${slip})${extra}`,
+        `Cyberware: Kiroshi Optics (T1), Sandevistan (${sande})`, '***', '', 'Rain.'].join('\n');
+    const same = (x, y) => assert.equal(JSON.stringify(x), JSON.stringify(y));
+    const now = t.worldLines(t.parseHud(hud(6, 2, ', Dash (L1)', 'T3'))), before = t.worldLines(t.parseHud(hud(5, 1, '', 'T2')));
+    assert.equal(t.worldOf(now), 'cyberpunk');
+    const w = t.worldCyberpunk(null, now, before);
+    assert.equal(w.identity.name, 'Kaya Thorne'); assert.equal(w.identity.pronouns, 'she/her');
+    same(w.build, { strengths: ['Boxing', 'Close Quarters'], weak: 'Can\'t read ICE' });
+    same(w.attributes.map(a => [a.name, a.value, a.delta]).slice(0, 2), [['Body', 6, 1], ['Reflexes', 5, null]]);
+    same(w.perks.map(p => [p.name, p.level, p.isNew, p.levelUp]), [['Slippery', 2, false, true], ['Dash', 1, true, false]]);
+    same(w.cyberware.map(c => [c.name, c.tier, c.tierUp]), [['Kiroshi Optics', 'T1', false], ['Sandevistan', 'T3', true]]);
+    for (const k of ['BUILD', 'ATTRIBUTES', 'PERKS']) assert.ok(t.WORLD_COVERS.cyberpunk.includes(k), k + ' is covered by the world card');
 });
 check('quest objective follows a new stage under the same Quest ID', () => {
     const chat = [user('go'), reply(quest('Win the mentor\'s approval at the training hall', 80)), user('next'),

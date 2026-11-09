@@ -9882,7 +9882,7 @@ const WORLD_COVERS = {
     undertale: ['SOUL', 'ROUTE', 'KILLS', 'WEAPON', 'ARMOR'],
     darksouls: ['COVENANT', 'HUMANITY', 'FORM', 'HOLLOWING', 'WEAPON'],
     skyrim: ['SHOUTS', 'SHOUT', 'SKILLS', 'STANDING STONE', 'FACTIONS', 'AFFLICTION', 'RACE', 'PERKS', 'PERK'],
-    cyberpunk: ['CYBERWARE', 'NETRUNNING', 'PASSENGER', 'HEAT', 'STREET CRED', 'HUMANITY', 'IDENTITY', 'FACTION', 'BONDS', 'CHANGES', 'GAME MODE'],
+    cyberpunk: ['CYBERWARE', 'NETRUNNING', 'PASSENGER', 'HEAT', 'STREET CRED', 'HUMANITY', 'IDENTITY', 'FACTION', 'BONDS', 'CHANGES', 'GAME MODE', 'BUILD', 'ATTRIBUTES', 'PERKS', 'PERK'],
     bg3: ['TADPOLE', 'POWERS', 'CALL', 'RESOURCES', 'PACT', 'URGE', 'ROMANCE', 'CAMP', 'COUNTDOWN', 'NEXT CANON EVENT', 'STATS']
 };
 
@@ -9995,15 +9995,31 @@ function worldCyberpunk(chatId, lines, prevLines) {
         const parts = idL[1].split(/\s*\|\s*/), kv = {};
         for (const x of parts.slice(1)) { const m = x.match(/^([A-Za-z ]+):\s*(.+)$/); if (m) kv[m[1].trim().toLowerCase()] = m[2].trim(); }
         const age = kv.age ? kv.age.match(/^(\d{1,3})\s*(?:\(born\s*(\d{4})\))?/i) : null;
-        identity = { name: parts[0].trim(), role: kv.role || null, lifepath: kv.lifepath || null, age: age ? Number(age[1]) : null, born: age && age[2] ? Number(age[2]) : null };
+        // V1.4: "Kaya Thorne (she/her)" — the pronouns print in brackets after the name once given
+        const nm = parts[0].trim().match(/^(.*?)\s*\(([^)]*\/[^)]*)\)\s*$/);
+        identity = { name: nm ? nm[1].trim() : parts[0].trim(), role: kv.role || null, lifepath: kv.lifepath || null, age: age ? Number(age[1]) : null, born: age && age[2] ? Number(age[2]) : null };
+        if (nm) identity.pronouns = nm[2].trim();
     }
     const arcL = f(/^Arc\s+(\d+)-([A-Z]):\s*(.+)$/) || f(/^Arc:\s*(Sandbox.*)$/i);
     const modeL = f(/^Game Mode:\s*(.+)$/i);
     const mode = modeL ? { canon: (modeL[1].match(/Canon:\s*([^|]+)/i) || [])[1]?.trim() || null, guide: (modeL[1].match(/Guide:\s*([^|]+)/i) || [])[1]?.trim() || null } : null;
     const cwL = f(/^Cyberware:\s*(.+)$/i), cwP = pf(/^Cyberware:\s*(.+)$/i);
     const split = v => String(v || '').split(/\s*,\s*(?![^()]*\))/).map(x => x.trim()).filter(Boolean);
+    // V1.4: each implant prints its tier, "Mantis Blades (T3)"; a raised tier is surgery worth showing
+    const cwTier = x => { const m = String(x).match(/^(.*?)\s*\((T\d\+{0,2})\)\s*$/i); return m ? { name: m[1].trim(), tier: m[2].toUpperCase() } : { name: String(x).trim(), tier: null }; };
+    const tierN = t => (t ? Number(t.slice(1, 2)) * 10 + (t.length - 2) : 0);
     const cyberware = cwL ? split(cwL[1]) : [];
-    const cwBefore = new Set((cwP ? split(cwP[1]) : []).map(x => x.toLowerCase()));
+    const cwPrev = new Map((cwP ? split(cwP[1]) : []).map(x => { const c = cwTier(x); return [c.name.toLowerCase(), c.tier]; }));
+    const cwBefore = new Set(cwPrev.keys());
+    // V1.4: Build (what you're good at), Attributes (five 1–20 numbers, earned) and Perks (earned, with levels)
+    const buildL = f(/^Build:\s*(.+)$/i);
+    const build = buildL ? (() => { const [str, weak] = buildL[1].split(/\s*\|\s*Weak:\s*/i); return { strengths: split(str), weak: weak ? weak.trim() : null }; })() : null;
+    const attrOf = L => { const out = []; if (!L) return out; for (const m of L[1].matchAll(/(Body|Reflexes|Technical Ability|Intelligence|Cool)\s*:?\s*(\d{1,2})/gi)) out.push({ name: m[1].replace(/\b\w/g, c => c.toUpperCase()).replace('Ability', 'Ability'), value: Number(m[2]) }); return out; };
+    const attrNow = attrOf(f(/^Attributes:\s*(.+)$/i)), attrPrev = attrOf(pf(/^Attributes:\s*(.+)$/i));
+    const attributes = attrNow.map(a => { const p = attrPrev.find(x => x.name.toLowerCase() === a.name.toLowerCase()); return { ...a, delta: p && p.value !== a.value ? a.value - p.value : null }; });
+    const perkOf = L => (L ? split(L[1]).map(x => { const m = x.match(/^(.+?)\s*\(L(\d)\)\s*$/i); return m ? { name: m[1].trim(), level: Number(m[2]) } : { name: x.trim(), level: null }; }) : []);
+    const perksNow = perkOf(f(/^Perks:\s*(.+)$/i)), perksPrevL = pf(/^Perks:\s*(.+)$/i), perksPrev = perkOf(perksPrevL);
+    const perks = perksNow.map(p => { const q = perksPrev.find(x => x.name.toLowerCase() === p.name.toLowerCase()); return { ...p, isNew: !!prevLines && !q, levelUp: !!(q && p.level && q.level && p.level > q.level), lore: worldLore(chatId, p.name) }; });
     const netL = f(/^Netrunning:\s*Net Level\s*(\d+)(?:\s*\|\s*Deck:\s*(.+))?$/i);
     const facL = f(/^Faction:\s*(.+?)\s*(?:\(([^)]+)\))?\s*$/i);
     const heatL = f(/^Heat:\s*(.+)$/i);
@@ -10029,7 +10045,9 @@ function worldCyberpunk(chatId, lines, prevLines) {
         humanity, humanityMax: hum ? Number(hum[2]) : null, psyche: hum && hum[3] ? hum[3].trim() : humanity !== null ? band(humanity, CP_PSYCHE) : null, humanityDelta: delta(humanity, humP ? Number(humP[1]) : null),
         cred: credN, reputation: cred && cred[2] ? cred[2].trim() : credN !== null ? band(credN, CP_CRED) : null, credDelta: delta(credN, credP ? n(credP[1]) : null),
         identity, arc: arcL ? (arcL.length > 3 && arcL[3] ? { code: `${arcL[1]}-${arcL[2]}`, title: arcL[3].trim() } : { code: null, title: arcL[1].trim() }) : null, mode,
-        cyberware: cyberware.map(x => ({ name: x, isNew: cwP ? !cwBefore.has(x.toLowerCase()) : false, lore: worldLore(chatId, x.replace(/\s*\(.*\)$/, '')) })),
+        cyberware: cyberware.map(x => { const c = cwTier(x); const pt = cwPrev.get(c.name.toLowerCase());
+            return { name: c.name, tier: c.tier, isNew: cwP ? !cwBefore.has(c.name.toLowerCase()) : false, tierUp: !!(cwP && pt && c.tier && tierN(c.tier) > tierN(pt)), lore: worldLore(chatId, c.name.replace(/["“”]/g, '').replace(/\s+/g, ' ')) || worldLore(chatId, c.name) }; }),
+        build, attributes, perks,
         net: netL ? { level: Number(netL[1]), deck: netL[2] ? netL[2].trim() : null } : null,
         faction: facL ? { name: facL[1].trim(), rank: facL[2] ? facL[2].trim() : null } : null,
         heat, passenger: passL ? { name: passL[1].trim(), pct: ow, stage: passL[3] ? passL[3].trim() : band(ow, CP_PASSENGER), delta: delta(ow, passP ? Number(passP[1]) : null) } : null,
@@ -10334,14 +10352,21 @@ function worldLore(chatId, name) {
     for (const e of pool.entries) {
         if (!e.content || /^\s*\[(SYSTEM LOGIC|HMS_|CLASS:|PIN:|SECRET|NON-CANONICAL)/i.test(e.content) || /^\s*#*\s*\[?SECRET\b/i.test(e.content)) continue;
         // A module's rulebook ("[HEALING \u2014 CURSE-INFLICTED WOUNDS]", "[CONDITION \u2014 BURNS]") is how the engine runs it, not what it is.
-        if (/^\s*\*{0,2}\[(?!LORE\b)[A-Z][A-Z0-9 &'\/:-]*\s[\u2014\u2013-]\s[^\]]*\]/.test(e.content)) continue;
+        // …but an item's own sheet ("[CYBERWARE — SUBDERMAL ARMOR]", "[WEAPON — …]") is what it is (Cyberpunk V1.4)
+        if (/^\s*\*{0,2}\[(?!(?:LORE|CYBERWARE|WEAPON|ITEM|GEAR|IMPLANT|VEHICLE|PERK|DECK|QUICKHACK|ARMOR|ARMOUR)\b)[A-Z][A-Z0-9 &'\/:-]*\s[\u2014\u2013-]\s[^\]]*\]/.test(e.content)) continue;
         const hit = (e.key || []).find(k => { const kk = k.toLowerCase().trim(); return kk.length >= 4 && (n === kk || n.includes(kk) || kk.includes(n)); });
         if (!hit) continue;
-        const score = hit.length + (n === hit.toLowerCase() ? 100 : 0) + (e.content.trim().toLowerCase().startsWith(n) ? 50 : 0);
+        // an item's own sheet ("[CYBERWARE — GORILLA ARMS]") beats an entry that only mentions it
+        const head = (e.content.match(/^\s*\*{0,2}\[([^\]]{3,80})\]/) || [])[1] || '';
+        const score = hit.length + (n === hit.toLowerCase() ? 100 : 0) + (e.content.trim().toLowerCase().startsWith(n) ? 50 : 0) + (head && head.toLowerCase().replace(/^[a-z ]+\s[\u2014\u2013-]\s/, '') === n ? 80 : 0);
         if (!best || score > best.score) best = { score, e };
     }
     if (!best) return null;
-    const text = best.e.content.replace(/^#+\s.*$/m, '').replace(/\*\*/g, '').replace(/\s+/g, ' ').trim();
+    // an item sheet: drop its bracket title and lead with the overview ("OVERVIEW: …"), the part that says what it is
+    let src = best.e.content.replace(/^\s*\*{0,2}\[[A-Z][^\]]*\]\s*/, '');
+    const ov = src.match(/\bOVERVIEW:\s*([\s\S]+?)(?:\n[A-Z][A-Z /&-]{2,}:|$)/);
+    if (ov) src = ov[1];
+    const text = src.replace(/^#+\s.*$/m, '').replace(/\*\*/g, '').replace(/\s+/g, ' ').trim();
     return text.length > 280 ? text.slice(0, 277).replace(/\s+\S*$/, '') + '\u2026' : text;
 }
 
