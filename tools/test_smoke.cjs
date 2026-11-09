@@ -202,5 +202,34 @@ globalThis.__hooks = (chat, lore, user) => {
     for (const title of ['Quests', 'Gear', 'Agenda']) assert(rendered.includes(title), `panel "${title}" did not render`);
     assert(rendered.includes('Pack for the road'), 'quest objective rendered');
     assert(rendered.includes('Ice Blade'), 'magic panel rendered');
+    // Cyberpunk V1.5: actual world-panel reader through the real frontend; display only.
+    vm.runInContext('globalThis.__cpWorld = chat => { lorePool.set("cp-test", { entries: [] }); return worldPanel("cp-test", chat, {}); };', bctx);
+    const cpHud = ['### WORLD STATE ###', 'Date: May 14, 2077 | 23:40 (Night)', '◆ Night City → Watson',
+        'Identity: Vex (they/them) | Role: Solo | Lifepath: Streetkid | Age: 24 (born 2053)', 'Arc 3-B: The Heist',
+        'Game Mode: Canon: Living | Guide: Off | Leveling: AM', 'Eddies: 0 (Broke)', 'Humanity: 85/100 | Psyche: Stable',
+        'Street Cred: 0 | Reputation: Unknown', 'Level: 12/60 | XP: 35% | Attribute Points: 0 | Perk Points: 2',
+        'Vitals: HP 0/220 | Armor 85 | RAM 0/12', 'Attributes: Body 5 | Reflexes 9 | Technical 4 | Intelligence 12 | Cool 7',
+        'Reflexes Perks: Dash (L2)', 'Relic: Jailbreak | Relic Points: 0', 'Cyberware: Mantis Blades (T4) [Arms]',
+        'Arsenal: Tsumetogi (T4)', 'Goal: Find a cure', 'Condition: Gunshot — Treated',
+        'Canon reference: The Heist (canon: ~May 2077)', 'Canon Ledger: Jackie lives (now canon)',
+        'World event: Convoy — in 2 days (May 2077)', 'Back on canon: Convoy arrives', '***', 'Rain.'].join('\n');
+    const cpChat = [{ id: 'cp1', role: 'assistant', swipe_id: 0, content: cpHud }];
+    const cpBefore = JSON.stringify(cpChat);
+    const cpWorld = bctx.__cpWorld(cpChat);
+    assert.equal(JSON.stringify(cpChat), cpBefore, 'world card does not mutate the chat');
+    for (const uiLook of ['modern', 'storybook', 'minimal']) {
+        receive(JSON.parse(JSON.stringify({ ...state, world: cpWorld, settings: { ...state.settings, uiLook } })));
+        const cpText = textOfTree(tabRoot);
+        for (const value of ['XP: 35%', 'Attribute Points: 0', 'HP 0/220', 'RAM 0/12', 'Reflexes Perks', 'Dash', 'Relic Points: 0',
+            'Mantis Blades', 'Arms', 'Tsumetogi', 'Find a cure', 'Gunshot', 'Jackie lives', 'Convoy arrives', 'Leveling: AM'])
+            assert(cpText.includes(value), `Cyberpunk ${uiLook}: ${value} missing`);
+    }
+    // Compact suppresses unchanged chrome; the existing panel carry-forward still reads the last printed line.
+    const compact = cpHud.replace('Reflexes Perks: Dash (L2)', 'Perks: 1 (Reflexes 1)').replace('Cyberware: Mantis Blades (T4) [Arms]\n', '');
+    const cpCompact = bctx.__cpWorld([...cpChat, { id: 'cp2', role: 'assistant', swipe_id: 0, content: compact }]);
+    assert.equal(cpCompact.cyberware[0].name, 'Mantis Blades');
+    assert.equal(cpCompact.cyberware[0].isNew, false);
+    receive(JSON.parse(JSON.stringify({ ...state, world: cpCompact })));
+    assert(textOfTree(tabRoot).includes('Reflexes: 1'), 'Compact perk count renders');
     console.log('smoke: backend payload, request (injected once) and frontend render all passed');
 })().catch(e => { console.error('smoke FAILED:', e.stack || e); process.exitCode = 1; });

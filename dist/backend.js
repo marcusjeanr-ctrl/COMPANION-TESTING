@@ -9882,7 +9882,7 @@ const WORLD_COVERS = {
     undertale: ['SOUL', 'ROUTE', 'KILLS', 'WEAPON', 'ARMOR'],
     darksouls: ['COVENANT', 'HUMANITY', 'FORM', 'HOLLOWING', 'WEAPON'],
     skyrim: ['SHOUTS', 'SHOUT', 'SKILLS', 'STANDING STONE', 'FACTIONS', 'AFFLICTION', 'RACE', 'PERKS', 'PERK'],
-    cyberpunk: ['CYBERWARE', 'NETRUNNING', 'PASSENGER', 'HEAT', 'STREET CRED', 'HUMANITY', 'IDENTITY', 'FACTION', 'BONDS', 'CHANGES', 'GAME MODE', 'BUILD', 'ATTRIBUTES', 'PERKS', 'PERK'],
+    cyberpunk: ['CYBERWARE', 'NETRUNNING', 'PASSENGER', 'HEAT', 'STREET CRED', 'HUMANITY', 'IDENTITY', 'FACTION', 'BONDS', 'CHANGES', 'GAME MODE', 'BUILD', 'ATTRIBUTES', 'PERKS', 'PERK', 'BODY PERKS', 'REFLEXES PERKS', 'TECHNICAL PERKS', 'INTELLIGENCE PERKS', 'COOL PERKS', 'RELIC', 'ARSENAL', 'LEVEL', 'VITALS', 'GOAL'],
     bg3: ['TADPOLE', 'POWERS', 'CALL', 'RESOURCES', 'PACT', 'URGE', 'ROMANCE', 'CAMP', 'COUNTDOWN', 'NEXT CANON EVENT', 'STATS']
 };
 
@@ -9983,6 +9983,8 @@ const CP_CRED = [[45, 'Night City Legend'], [30, 'Big Name'], [15, 'Rising Star'
 const CP_PASSENGER = [[90, 'Overwrite'], [60, 'Merge'], [25, 'Bleed'], [0, 'Echo']];
 const CP_BOND = ['Hostile', 'Wary', 'Rival', 'Acquaintance', 'Choom', 'Trusted', 'Family', 'Partner'];
 function worldCyberpunk(chatId, lines, prevLines) {
+    lines = Array.isArray(lines) ? lines : [];
+    prevLines = Array.isArray(prevLines) ? prevLines : null;
     const f = re => worldFind(lines, re), pf = re => (prevLines ? worldFind(prevLines, re) : null);
     const band = (n, table) => { for (const [lo, name] of table) if (n >= lo) return name; return table[table.length - 1][1]; };
     const delta = (cur, prev) => (cur !== null && prev !== null && cur !== prev ? cur - prev : null);
@@ -10003,23 +10005,59 @@ function worldCyberpunk(chatId, lines, prevLines) {
     const arcL = f(/^Arc\s+(\d+)-([A-Z]):\s*(.+)$/) || f(/^Arc:\s*(Sandbox.*)$/i);
     const modeL = f(/^Game Mode:\s*(.+)$/i);
     const mode = modeL ? { canon: (modeL[1].match(/Canon:\s*([^|]+)/i) || [])[1]?.trim() || null, guide: (modeL[1].match(/Guide:\s*([^|]+)/i) || [])[1]?.trim() || null } : null;
+    if (mode) mode.branchRun = /(?:^|\|)\s*Branch Run\s*$/i.test(modeL[1]);
+    if (mode) mode.leveling = (modeL[1].match(/Leveling:\s*([^|]+)/i) || [])[1]?.trim() || null;
     const cwL = f(/^Cyberware:\s*(.+)$/i), cwP = pf(/^Cyberware:\s*(.+)$/i);
     const split = v => String(v || '').split(/\s*,\s*(?![^()]*\))/).map(x => x.trim()).filter(Boolean);
     // V1.4: each implant prints its tier, "Mantis Blades (T3)"; a raised tier is surgery worth showing
-    const cwTier = x => { const m = String(x).match(/^(.*?)\s*\((T\d\+{0,2})\)\s*$/i); return m ? { name: m[1].trim(), tier: m[2].toUpperCase() } : { name: String(x).trim(), tier: null }; };
+    const cwTier = x => {
+        const system = String(x).match(/\s*\[([^\]]+)\]\s*$/);
+        const item = system ? String(x).slice(0, system.index).trim() : String(x).trim();
+        const m = item.match(/^(.*?)\s*\((T[1-5]\+{0,2})\)\s*$/i);
+        return { name: m ? m[1].trim() : item, tier: m ? m[2].toUpperCase() : null, system: system ? system[1].trim() : null };
+    };
     const tierN = t => (t ? Number(t.slice(1, 2)) * 10 + (t.length - 2) : 0);
-    const cyberware = cwL ? split(cwL[1]) : [];
-    const cwPrev = new Map((cwP ? split(cwP[1]) : []).map(x => { const c = cwTier(x); return [c.name.toLowerCase(), c.tier]; }));
+    const chromeOf = L => L ? L[1].split(/\s*[|·]\s*/).flatMap(split).filter(x => !/^(none|no chrome|—)$/i.test(x)) : [];
+    const cyberware = chromeOf(cwL);
+    const cwPrev = new Map(chromeOf(cwP).map(x => { const c = cwTier(x); return [c.name.toLowerCase(), c.tier]; }));
     const cwBefore = new Set(cwPrev.keys());
     // V1.4: Build (what you're good at), Attributes (five 1–20 numbers, earned) and Perks (earned, with levels)
     const buildL = f(/^Build:\s*(.+)$/i);
     const build = buildL ? (() => { const [str, weak] = buildL[1].split(/\s*\|\s*Weak:\s*/i); return { strengths: split(str), weak: weak ? weak.trim() : null }; })() : null;
-    const attrOf = L => { const out = []; if (!L) return out; for (const m of L[1].matchAll(/(Body|Reflexes|Technical Ability|Intelligence|Cool)\s*:?\s*(\d{1,2})/gi)) out.push({ name: m[1].replace(/\b\w/g, c => c.toUpperCase()).replace('Ability', 'Ability'), value: Number(m[2]) }); return out; };
+    const attrOf = L => { const out = []; if (!L) return out; for (const m of L[1].matchAll(/(Body|Reflexes|Technical(?: Ability)?|Intelligence|Cool)\s*:?\s*(\d{1,2})/gi)) out.push({ name: m[1].replace(/\b\w/g, c => c.toUpperCase()).replace(/^Technical$/, 'Technical Ability'), value: Number(m[2]) }); return out; };
     const attrNow = attrOf(f(/^Attributes:\s*(.+)$/i)), attrPrev = attrOf(pf(/^Attributes:\s*(.+)$/i));
     const attributes = attrNow.map(a => { const p = attrPrev.find(x => x.name.toLowerCase() === a.name.toLowerCase()); return { ...a, delta: p && p.value !== a.value ? a.value - p.value : null }; });
-    const perkOf = L => (L ? split(L[1]).map(x => { const m = x.match(/^(.+?)\s*\(L(\d)\)\s*$/i); return m ? { name: m[1].trim(), level: Number(m[2]) } : { name: x.trim(), level: null }; }) : []);
-    const perksNow = perkOf(f(/^Perks:\s*(.+)$/i)), perksPrevL = pf(/^Perks:\s*(.+)$/i), perksPrev = perkOf(perksPrevL);
-    const perks = perksNow.map(p => { const q = perksPrev.find(x => x.name.toLowerCase() === p.name.toLowerCase()); return { ...p, isNew: !!prevLines && !q, levelUp: !!(q && p.level && q.level && p.level > q.level), lore: worldLore(chatId, p.name) }; });
+    const perkRows = L => worldAll(L || [], /^(?:(Body|Reflexes|Technical(?: Ability)?|Intelligence|Cool) )?Perks:\s*(.+)$/i);
+    const perkOf = L => {
+        const out = [], seen = new Set();
+        for (const row of perkRows(L)) {
+            if (/^\d+\s*\(/.test(row[2])) continue; // Compact counts do not name owned perks.
+            for (const x of split(row[2])) {
+                const m = x.match(/^(.+?)\s*\(L(\d+)\)\s*$/i), name = m ? m[1].trim() : x.trim();
+                if (!name || /^(none|—)$/i.test(name)) continue;
+                const key = name.toLowerCase(); if (seen.has(key)) continue; seen.add(key);
+                out.push({ name, level: m ? Number(m[2]) : null, attribute: row[1] ? row[1].replace(/^Technical Ability$/i, 'Technical') : null });
+            }
+        }
+        return out;
+    };
+    const summaryL = f(/^Perks:\s*(\d+)\s*\(([^)]+)\)\s*$/i);
+    const perkSummary = summaryL ? { total: Number(summaryL[1]), groups: [...summaryL[2].matchAll(/(Body|Reflexes|Technical(?: Ability)?|Intelligence|Cool)\s+(\d+)/gi)].map(m => ({ attribute: m[1], count: Number(m[2]) })) } : null;
+    const perksNow = perkOf(lines), perksPrev = perkOf(prevLines);
+    const perksKnownBefore = !!prevLines && !pf(/^Perks:\s*\d+\s*\(/i);
+    const perks = perksNow.map(p => { const q = perksPrev.find(x => x.name.toLowerCase() === p.name.toLowerCase()); return { ...p, isNew: perksKnownBefore && !q, levelUp: !!(q && p.level && q.level && p.level > q.level), lore: worldLore(chatId, p.name) }; });
+    const levelL = f(/^Level:\s*(\d+)\s*\/\s*(\d+)(.*)$/i);
+    const numberField = (text, re) => { const m = String(text || '').match(re); return m ? Number(m[1]) : null; };
+    const level = levelL ? { value: Number(levelL[1]), max: Number(levelL[2]), xp: numberField(levelL[3], /\bXP:\s*(\d+(?:\.\d+)?)\s*%/i), attributePoints: numberField(levelL[3], /Attribute Points:\s*(\d+)/i), perkPoints: numberField(levelL[3], /Perk Points:\s*(\d+)/i) } : null;
+    const vitalsL = f(/^Vitals:\s*(.+)$/i);
+    const resource = label => { const m = vitalsL && vitalsL[1].match(new RegExp('\\b' + label + '\\s+(\\d+)\\s*\\/\\s*(\\d+)', 'i')); return m ? { current: Number(m[1]), max: Number(m[2]) } : null; };
+    const vitals = vitalsL ? { hp: resource('HP'), armor: numberField(vitalsL[1], /\bArmor\s+(\d+)/i), ram: resource('RAM') } : null;
+    const relicL = f(/^Relic:\s*(.*?)\s*\|\s*Relic Points:\s*(\d+)\s*$/i);
+    const relic = relicL ? { perks: split(relicL[1]).filter(x => !/^(none|—)$/i.test(x)).map(name => ({ name, lore: worldLore(chatId, name) })), points: Number(relicL[2]) } : null;
+    const arsenalL = f(/^Arsenal:\s*(.+)$/i);
+    const arsenal = arsenalL ? split(arsenalL[1]).map(x => { const item = cwTier(x); return { name: item.name, tier: item.tier, lore: worldLore(chatId, item.name) }; }) : [];
+    const goal = (f(/^Goal:\s*(.+)$/i) || [])[1]?.trim() || null;
+    const condition = (f(/^Condition:\s*(.+)$/i) || [])[1]?.trim() || null;
     const netL = f(/^Netrunning:\s*Net Level\s*(\d+)(?:\s*\|\s*Deck:\s*(.+))?$/i);
     const facL = f(/^Faction:\s*(.+?)\s*(?:\(([^)]+)\))?\s*$/i);
     const heatL = f(/^Heat:\s*(.+)$/i);
@@ -10037,7 +10075,8 @@ function worldCyberpunk(chatId, lines, prevLines) {
     const changes = chL ? split(chL[1]).map(x => { const m = x.match(/^(.+?)\s*\((\d+)\s*\/\s*(\d+)\)$/); return m ? { text: m[1].trim(), done: Number(m[2]), goal: Number(m[3]) } : { text: x, done: null, goal: null }; }) : [];
     const checkpoints = worldAll(lines, /^(?:⚠️\s*)?Checkpoint:\s*(.+?)\s+by\s+(.+?)(?:\s+\(([^)]+)\))?\s*(?:[—–-]\s*in\s+(.+))?$/i).map(m => ({ what: m[1].trim(), by: m[2].trim(), arc: m[3] ? m[3].trim() : null, inText: m[4] ? m[4].trim() : null }));
     const changed = worldAll(lines, /^(?:❌\s*)?Canon changed:\s*(.+)$/i).map(m => m[1].trim());
-    const nextL = f(/^(?:⏳|⚠️)?\s*(Next Canon Event|Next Turning Point|Canon Begins):\s*(.+?)\s*[—–-]\s*in\s+([^()]+?)\s*(?:\(([^)]+)\))?\s*$/i);
+    const clocks = worldAll(lines, /^(?:⏳|⚠️)?\s*(Next Canon Event|Next Turning Point|Canon Begins|World event):\s*(.+?)\s*[—–-]\s*in\s+([^()]+?)\s*(?:\(([^)]+)\))?\s*$/i).map(m => ({ label: m[1], event: m[2].trim(), inText: m[3].trim(), when: m[4] ? m[4].trim() : null }));
+    const backOnCanon = worldAll(lines, /^(?:✅\s*)?Back on canon:\s*(.+)$/i).map(m => m[1].trim());
     const n = v => (v ? worldNum(v) : null);
     const eddies = ed ? n(ed[1]) : null, humanity = hum ? Number(hum[1]) : null, credN = cred ? n(cred[1]) : null, ow = passL ? Number(passL[2]) : null;
     return {
@@ -10046,13 +10085,15 @@ function worldCyberpunk(chatId, lines, prevLines) {
         cred: credN, reputation: cred && cred[2] ? cred[2].trim() : credN !== null ? band(credN, CP_CRED) : null, credDelta: delta(credN, credP ? n(credP[1]) : null),
         identity, arc: arcL ? (arcL.length > 3 && arcL[3] ? { code: `${arcL[1]}-${arcL[2]}`, title: arcL[3].trim() } : { code: null, title: arcL[1].trim() }) : null, mode,
         cyberware: cyberware.map(x => { const c = cwTier(x); const pt = cwPrev.get(c.name.toLowerCase());
-            return { name: c.name, tier: c.tier, isNew: cwP ? !cwBefore.has(c.name.toLowerCase()) : false, tierUp: !!(cwP && pt && c.tier && tierN(c.tier) > tierN(pt)), lore: worldLore(chatId, c.name.replace(/["“”]/g, '').replace(/\s+/g, ' ')) || worldLore(chatId, c.name) }; }),
-        build, attributes, perks,
+            return { name: c.name, tier: c.tier, system: c.system, isNew: cwP ? !cwBefore.has(c.name.toLowerCase()) : false, tierUp: !!(cwP && pt && c.tier && tierN(c.tier) > tierN(pt)), lore: worldLore(chatId, c.name.replace(/["“”]/g, '').replace(/\s+/g, ' ')) || worldLore(chatId, c.name) }; }),
+        build, attributes, perks, perkSummary, level, vitals, relic, arsenal, goal, condition, clocks, backOnCanon,
         net: netL ? { level: Number(netL[1]), deck: netL[2] ? netL[2].trim() : null } : null,
         faction: facL ? { name: facL[1].trim(), rank: facL[2] ? facL[2].trim() : null } : null,
         heat, passenger: passL ? { name: passL[1].trim(), pct: ow, stage: passL[3] ? passL[3].trim() : band(ow, CP_PASSENGER), delta: delta(ow, passP ? Number(passP[1]) : null) } : null,
         bonds, changes, checkpoints, changed,
-        next: nextL ? { label: nextL[1], event: nextL[2].trim(), inText: nextL[3].trim(), when: nextL[4] ? nextL[4].trim() : null } : null
+        canonReference: (f(/^Canon reference:\s*(.+)$/i) || [])[1]?.trim() || null,
+        canonLedger: worldAll(lines, /^Canon Ledger:\s*(.+)$/i).map(m => m[1].trim()),
+        next: clocks[0] || null
     };
 }
 

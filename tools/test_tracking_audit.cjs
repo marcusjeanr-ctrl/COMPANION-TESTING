@@ -93,6 +93,55 @@ check('a Cyberpunk V1.4 HUD: pronouns, Build, Attributes, Perks and cyberware ti
     same(w.cyberware.map(c => [c.name, c.tier, c.tierUp]), [['Kiroshi Optics', 'T1', false], ['Sandevistan', 'T3', true]]);
     for (const k of ['BUILD', 'ATTRIBUTES', 'PERKS']) assert.ok(t.WORLD_COVERS.cyberpunk.includes(k), k + ' is covered by the world card');
 });
+for (const style of ['Classic', 'Visual', 'Compact', 'Panel']) check(`Cyberpunk V1.5 ${style}: core slots and all special rows`, () => {
+    const rows = ['Date: May 14, 2077 | 23:40 (Night)', 'Identity: Vex (they/them) | Role: Netrunner | Lifepath: Streetkid | Age: 24 (born 2053)',
+        'Arc 3-B: The Heist', 'Game Mode: Canon: Living | Guide: Off | Leveling: AM', 'Eddies: 0 (Broke)', 'Humanity: 85/100 | Psyche: Stable',
+        'Street Cred: 0 | Reputation: Unknown', 'Level: 12/60 | XP: 35% | Attribute Points: 0 | Perk Points: 2',
+        'Vitals: HP 0/220 | Armor 85 | RAM 0/12', 'Attributes: Body 5 | Reflexes 9 | Technical 4 | Intelligence 12 | Cool 7',
+        'Build: Blades, Wheelman | Weak: ICE', 'Body Perks: Painkiller (L1)', 'Reflexes Perks: Slippery (L1), Dash (L2)',
+        'Technical Perks: All Things Cyber (L2)', 'Intelligence Perks: Overclock (L3)', 'Cool Perks: Focus (L2)',
+        'Relic: Jailbreak, Machine Learning | Relic Points: 0',
+        'Cyberware: Tetratronic Rippler Mk.3 (T3+) [Operating System] | Kiroshi Stalker Optics (T3) [Face] | Mantis Blades (T4) [Arms]',
+        'Netrunning: Net Level 7 | Deck: Tetratronic Rippler Mk.3 (T3+)', 'Arsenal: Malorian Arms 3516 (T5), Tsumetogi (T4)',
+        'Faction: Aldecaldos (Family)', 'Bonds: Jackie (Choom)', 'Goal: Find a cure', 'Condition: Gunshot — Treated, Fatigued',
+        'Heat: 0 · Arasaka: Hunted', 'Passenger: Johnny | Overwrite: 34% | Stage: Bleed', 'Changes: Save Jackie (1/3)',
+        '⚠️ Checkpoint: Jackie alive by June 2077 (Arc 3-B) — in 17 days', '✅ Back on canon: Convoy arrives', '❌ Canon changed: Tower survives',
+        '⏳ Next Canon Event: Heist — in 2 days (May 2077)', '⚠️ Next Turning Point: Convoy — in today (May 2077)'];
+    if (style === 'Compact') rows.splice(11, 5, 'Perks: 6 (Body 1 · Reflexes 2 · Technical 1 · Intelligence 1 · Cool 1)');
+    const text = rows.map(r => style === 'Visual' ? '🔹 ' + r.replace(/^[^A-Za-z]+/, '').replace(/^([^:]+):/, '**$1:**').replace(/ \| /g, ' · ') : r).join('\n');
+    const lines = t.worldLines(t.parseHud('### WORLD STATE ###\n' + text + '\n***\nRain.'));
+    const w = t.worldCyberpunk(null, lines, null);
+    if (process.env.CP_DUMP_DIR) fs.writeFileSync(path.join(process.env.CP_DUMP_DIR, style + '.json'), JSON.stringify({ ...w, id: 'cyberpunk', name: 'Cyberpunk', covers: t.WORLD_COVERS.cyberpunk }));
+    assert.equal(w.attributes.length, 5); assert.equal(w.attributes[2].name, 'Technical Ability');
+    assert.equal(w.level.value, 12); assert.equal(w.level.xp, 35); assert.equal(w.level.attributePoints, 0); assert.equal(w.level.perkPoints, 2);
+    assert.equal(w.vitals.hp.current, 0); assert.equal(w.vitals.hp.max, 220); assert.equal(w.vitals.ram.current, 0); assert.equal(w.vitals.armor, 85);
+    assert.equal(w.mode.leveling, 'AM'); assert.equal(w.cyberware.length, 3); assert.equal(w.cyberware[0].tier, 'T3+'); assert.equal(w.cyberware[0].system, 'Operating System');
+    assert.equal(w.cyberware[2].name, 'Mantis Blades'); assert.equal(w.relic.points, 0); assert.equal(w.relic.perks.length, 2);
+    assert.equal(w.arsenal[0].tier, 'T5'); assert.equal(w.goal, 'Find a cure'); assert.equal(w.condition, 'Gunshot — Treated, Fatigued');
+    assert.equal(w.clocks.length, 2); assert.equal(w.backOnCanon[0], 'Convoy arrives'); assert.equal(w.changed[0], 'Tower survives');
+    if (style === 'Compact') { assert.equal(w.perks.length, 0); assert.equal(w.perkSummary.total, 6); assert.equal(w.perkSummary.groups.length, 5); }
+    else { assert.equal(w.perks.length, 6); assert.equal(w.perks[2].attribute, 'Reflexes'); assert.equal(w.perks[2].level, 2); }
+});
+
+check('Cyberpunk V1.5: Living canon, removals, legacy chrome and Compact uncertainty', () => {
+    const lines = ['Game Mode: Canon: Keep | Guide: Off | Leveling: Manual | Branch Run',
+        'Cyberware: Neural Link [Neural Processor]', 'Reflexes Perks: Dash (L2)',
+        'Canon reference: The Heist (canon: ~May 2077)', 'Canon Ledger: Jackie lives (now canon); Arc 3 skipped: left town',
+        'World event: Unification War ends — in 2 days (June 2070)'];
+    const before = ['Perks: 1 (Reflexes 1)'];
+    const w = t.worldCyberpunk(null, lines, before);
+    assert.equal(w.cyberware[0].name, 'Neural Link'); assert.equal(w.cyberware[0].tier, null);
+    assert.equal(w.mode.branchRun, true); assert.equal(w.mode.leveling, 'Manual');
+    assert.equal(w.perks[0].isNew, false, 'Compact did not disclose the previous perk names');
+    assert.equal(w.canonLedger.length, 1); assert.match(w.canonReference, /Heist/); assert.equal(w.clocks[0].label, 'World event');
+    const empty = t.worldCyberpunk(null, [], lines);
+    for (const k of ['perks', 'cyberware', 'arsenal', 'clocks', 'canonLedger']) assert.equal(empty[k].length, 0, k + ' is not invented from previous data');
+    for (const k of ['level', 'vitals', 'relic', 'goal', 'condition']) assert.equal(empty[k], null, k + ' stays absent');
+    const upgraded = t.worldCyberpunk(null, ['Cyberware: Mantis Blades (T5++) [Arms]', 'Reflexes Perks: Dash (L2), Slippery (L1)'],
+        ['Cyberware: Mantis Blades (T5+) [Arms]', 'Reflexes Perks: Dash (L1)']);
+    assert.equal(upgraded.cyberware[0].tierUp, true); assert.equal(upgraded.perks[0].levelUp, true); assert.equal(upgraded.perks[1].isNew, true);
+});
+
 check('quest objective follows a new stage under the same Quest ID', () => {
     const chat = [user('go'), reply(quest('Win the mentor\'s approval at the training hall', 80)), user('next'),
         reply(quest('Pack for the road', 20)), user('next'), reply(quest('Pack for the road', 0))];
