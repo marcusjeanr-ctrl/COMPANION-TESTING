@@ -11,6 +11,7 @@ const steps = [
     ['tracking regressions', ['tools/test_tracking_audit.cjs']],
     ['live-play audit (gear guesses, Training line, swipes)', ['tools/test_live_play_audit.cjs']],
     ['Six-Sided World v1.1 HUD', ['tools/test_six_sided_v11.cjs']],
+    ['current Six-Sided card adapter', ['tools/test_six_sided_current.cjs']],
     ['Six-Sided card coverage (every HUD slot, three styles)', ['tools/test_card_coverage.cjs']],
     ['lifecycle (swipes, regenerations, saves, OOC, hypotheticals, time)', ['tools/test_lifecycle.cjs']],
     ['cross-card (every demo world through the real reply pipeline)', ['tools/test_cross_card.cjs']],
