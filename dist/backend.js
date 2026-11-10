@@ -4187,10 +4187,17 @@ async function renderDialogue(text, chatId, msgId, cfg = chatDisplayCfg()) {
         if (tone && cfg.tones) style += DIALOGUE_TONES[tone];
         // A span must not cross a paragraph break; colour each paragraph of a long speech on its own.
         const paras = words.split(/(\n\s*\n)/);
+        // 1.4.0: a marker that also holds narration ("…," Mother says, her hand coming down) colours the spoken words only
+        const QUOTE_RE = /"[^"\n]*"|\u201C[^\u201D\n]*\u201D|\u00AB[^\u00BB\n]*\u00BB|\u300C[^\u300D\n]*\u300D/g;
         return paras.map((p, i) => {
             if (i % 2 === 1 || !p.trim()) return p;
             const pre = i === 0 ? prefix : '';
-            return style ? `<span style="${style}">${pre}${p}</span>` : `${pre}${p}`;
+            if (!style) return `${pre}${p}`;
+            const quotes = p.match(QUOTE_RE);
+            if (!quotes || p.replace(QUOTE_RE, '').trim().length < 3) return `<span style="${style}">${pre}${p}</span>`;
+            const body = p.replace(QUOTE_RE, q => `<span style="${style}">${q}</span>`);
+            const lead = body.match(/^\s*/)[0];
+            return `${lead}${pre ? `<span style="${style}">${pre}</span>` : ''}${body.slice(lead.length)}`;
         }).join('');
     });
     if (freshColour && chatId) { try { await saveChatState(chatId, st); } catch { /* colours are re-derived next time */ } }
@@ -10826,6 +10833,7 @@ function worldMushoku(chatId, lines, st, chat = null) {
             const idx = worldSpellIndex(chatId, /^\s*#+\s*Master Technique Index/i) || techIndexFromCatalog(chatId);
             if (idx) for (const m of list) {
                 const rows = idx[m.name.toLowerCase()] || idx[techStyleKey(m.name)] || [];
+                if (!rows.length) m.personal = true;   // a style the lorebook has no techniques for ("Magic Swordsmanship", a personal discipline)
                 m.spells = m.step === null ? [] : rows.filter(r => r.step <= m.step).sort((a, b) => a.step - b.step).map(r => ({ rank: r.rank === 'Elementary' ? 'Beginner' : r.rank, spells: r.spells }));
                 m.nextRank = m.step === null ? null : (rows.filter(r => r.step > m.step).sort((a, b) => a.step - b.step).map(r => ({ ...r, rank: r.rank === 'Elementary' ? 'Beginner' : r.rank }))[0] || null);
             }

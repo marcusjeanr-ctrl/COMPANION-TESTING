@@ -8865,6 +8865,7 @@ export function setup(ctx) {
     const rankedList = (title, list, keyPrefix, noun) => h('div', { class: 'rpgc-set' }, h('h4', null, title),
         ...list.map(m => {
             const row = h('div', { class: 'rpgc-wrow' }, h('span', { class: 'lbl' }, m.name), m.step !== null ? ladderBar(m.step, 7) : null, h('span', { class: 'val' }, m.rank));
+            if (m.personal && (!m.spells || !m.spells.length)) return h('div', null, row, h('p', { class: 'rpgc-note' }, T('Your own discipline: the lorebook has no techniques for it. What you know of it is in Combat techniques.')));
             if (!m.spells || !m.spells.length) return row;
             return wDetails(keyPrefix + m.name, row,
                 ...m.spells.map(r => h('p', { class: 'rpgc-note' }, h('b', null, `${r.rank}: `), r.spells.join(' \u00B7 '))),

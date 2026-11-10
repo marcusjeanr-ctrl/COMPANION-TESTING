@@ -40,6 +40,8 @@
 - Rules the new card dropped are no longer checked: six on Present, the four language levels, Reserve full after sleep, Touki before 5, Voiceless for Natives; and no birth years are asked for on Present (the new card takes NPC ages from the lorebook).
 - The lorebook's regex keys (`/…/i`) are left to Lumiverse; the Companion's own matcher skips them (each is kilobytes of pattern).
 - Abilities no longer repeats Magic Tiers, Sword Style and your Role when the world card shows them (any Mushoku card).
+- A sword style the lorebook has no techniques for (a personal discipline such as Magic Swordsmanship) says so on the world card instead of sitting under "These techniques appear in the lorebook".
+- Speaker colours: when the model puts narration inside a dialogue marker (`[D:Seraphina]"…" Your mother's hand comes down.[/D]`), only the spoken words are coloured; the narration stays plain (any card).
 
 **Cyberpunk: Living World V1.4**
 - The new HUD lines are read: **Attributes** (Body, Reflexes, Tech, Intelligence, Cool as five tiles, with ▲/▼ when one moves), **Build** (your strengths as chips, the Weak spot in red), **Perks** (each with its level; ✨ new, ▲ levelled up) and **pronouns** after your name.
