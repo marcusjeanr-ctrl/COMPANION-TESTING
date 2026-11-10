@@ -31,6 +31,16 @@
 **HUD**
 - **A line copied back from an old HUD** (injuries back to "Raw" after an OOC exchange, when the last HUD said "Treated") keeps the last HUD's line. Only for lines that carry state (Condition, Training, Equipment, Memory, Goals, Active Paths); never Time, Location or Present, and a new wording is always kept.
 
+**Six-Sided World 2 (the overhauled card)**
+- **The lorebook is separate now.** The card no longer carries its lore; the *Mushoku Tensei Standalone Lorebook* does. The Companion reads lore from whatever books the chat has active, so link that lorebook to the character (or the chat) and everything works as before. If a new-format chat has no Mushoku lore active, *Worth a look* says so.
+- **Its HUD is kept as it is.** The HUD tidy-up was written for the older card and renamed the new lines: `Current Arc` → `Era / Arc`, `Injuries: … | Condition: …` → two Condition fields, `Inventory` → a second Equipment line, and put lines back in the old order. The narrator copies the tidied HUD forward, so the HUD would have drifted further every reply. The new HUD now keeps its labels and its own order; real drift (`Era / Arc`, `Battle Aura:`, lines out of place, you on Present) is still fixed. The older card is unchanged.
+- **New lines read:** `Adventurer: Rank C | Party: Solo`, `Curse: None | Blessing: …` (no more "None" curse), `Contracts: None`, `Casting Method` next to `Voiceless Casting: Active (Attack only)` (voiceless counts), `Injuries: None` (no wound called "None"), `Present: None` (nobody, not a person called None).
+- **Arcs by volume.** The saga timeline uses the lorebook's arc names (Arc 5 Reunion, Arc 7 Northern Adventurer, Arc 8 University… to Arc 23), with years matched to the canon estimates. An arc that starts later the same year is the next one.
+- **Spells:** the extensions list (`Water — Elementary: Mist Veil, Frost Grip | …`) is read per school instead of as a fake school, and Detoxification, Divine Strike and Barrier sit under Healing.
+- Rules the new card dropped are no longer checked: six on Present, the four language levels, Reserve full after sleep, Touki before 5, Voiceless for Natives; and no birth years are asked for on Present (the new card takes NPC ages from the lorebook).
+- The lorebook's regex keys (`/…/i`) are left to Lumiverse; the Companion's own matcher skips them (each is kilobytes of pattern).
+- Abilities no longer repeats Magic Tiers, Sword Style and your Role when the world card shows them (any Mushoku card).
+
 **Cyberpunk: Living World V1.4**
 - The new HUD lines are read: **Attributes** (Body, Reflexes, Tech, Intelligence, Cool as five tiles, with ▲/▼ when one moves), **Build** (your strengths as chips, the Weak spot in red), **Perks** (each with its level; ✨ new, ▲ levelled up) and **pronouns** after your name.
 - Cyberware shows its **tier** (T1–T3) and ▲ when an implant is upgraded. Implants and perks show the card's own lorebook entry when you hover them.

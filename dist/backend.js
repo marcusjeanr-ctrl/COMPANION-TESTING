@@ -1148,6 +1148,9 @@ function loreEntryHits(entry, hay, primaryKeys = null) {
                 re.lastIndex = 0;
                 return re.test(hay);
             }
+            // 1.4.0: a "/…/i" key on an entry without the regex flag is the host's to run (the Six-Sided lorebook keys
+            // HUD rules this way; each is kilobytes of pattern). As literal text it can never match: skip it.
+            if (kk.length > 2 && /^\/[\s\S]+\/[gimsuy]*$/.test(kk)) return false;
             const pattern = entry.wholeWords ? `\\b${loreEscapeRe(kk)}\\b` : loreEscapeRe(kk);
             return new RegExp(pattern, flags).test(hay);
         } catch { return false; }
@@ -9878,7 +9881,7 @@ const WORLD_COVERS = {
     rezero: ['AUTHORITY', 'DIVINE PROTECTION', 'SPIRIT CONTRACT', 'MENTAL COUNCIL', 'CURSE', 'MAGIC', 'SPIRIT AFFINITY'],
     overlord: ['CLASSES', 'RACIAL LVL', 'SYSTEM', 'WORLD ITEM', 'ADVENTURER', 'WORKER', 'ROLE'],
     cote: ['PROTECTION POINT'],
-    mushoku: ['MARTIAL STYLE', 'MAGIC SCHOOL', 'TOUKI', 'CASTING METHOD', 'MANA CAPACITY', 'DEMON EYE', 'CURSE', 'BLESSING', 'CONTRACTS', 'TERM', 'ADVENTURER'],
+    mushoku: ['MARTIAL STYLE', 'MAGIC SCHOOL', 'TOUKI', 'CASTING METHOD', 'MANA CAPACITY', 'DEMON EYE', 'CURSE', 'BLESSING', 'CONTRACTS', 'TERM', 'ADVENTURER', 'MAGIC TIERS', 'SWORD STYLE', 'ROLE'],
     undertale: ['SOUL', 'ROUTE', 'KILLS', 'WEAPON', 'ARMOR'],
     darksouls: ['COVENANT', 'HUMANITY', 'FORM', 'HOLLOWING', 'WEAPON'],
     skyrim: ['SHOUTS', 'SHOUT', 'SKILLS', 'STANDING STONE', 'FACTIONS', 'AFFLICTION', 'RACE', 'PERKS', 'PERK'],
@@ -10647,9 +10650,14 @@ function worldSpellIndex(chatId, marker = /^\s*#+\s*Master Spell Index/i) {
         if (/^#+\s*FAN-EXTENSION SPELLS\b/i.test(l)) { school = null; continue; }
         if (h && !/Master (Spell|Technique) Index/i.test(l)) { school = h[1].split(/\s+[\u2014\u2013]\s+/)[0].trim().toLowerCase().replace(/\s+system$/, ''); continue; }
         if (!school || !l) continue;
-        for (const part of l.split(/\s+\|\s+/)) {
+        // 1.4.0 Six-Sided: a section of extensions names the school on each line, with commas between names:
+        // "Water — Elementary: Mist Veil, Frost Grip | Intermediate: …"
+        const lead = l.match(/^([A-Z][A-Za-z ]{2,30}?)\s+[\u2014\u2013]\s+(?=(?:Beginner|Elementary|Intermediate|Advanced|Saint|King|Emperor|God):)/);
+        const lineSchool = lead ? lead[1].trim().toLowerCase() : school;
+        const body = lead ? l.slice(lead[0].length) : l;
+        for (const part of body.split(/\s+\|\s+/)) {
             const m = part.match(/^(Beginner|Elementary|Intermediate|Advanced|Saint|King|Emperor|God):\s*(.+)$/i);
-            if (m) { (out[school] = out[school] || []).push({ rank: m[1], step: MT_ABBR[m[1].toLowerCase()], spells: m[2].split(/\s*\u00B7\s*/).filter(Boolean) }); continue; }
+            if (m) { (out[lineSchool] = out[lineSchool] || []).push({ rank: m[1], step: MT_ABBR[m[1].toLowerCase()], spells: m[2].split(lead ? /\s*(?:\u00B7|,)\s*/ : /\s*\u00B7\s*/).filter(Boolean), ...(lead ? { fan: true } : {}) }); continue; }
             const s = part.match(/^([A-Z][A-Za-z ]+):\s*(.+)$/);           // "Healing: Healing (Elem) \u00B7 X-Healing (Int)"
             if (s) {
                 const sub = s[1].trim().toLowerCase();
@@ -10700,10 +10708,29 @@ function mtCanonSchedule(chatId) {
     mtScheduleCache.set(entries, rows);
     return rows;
 }
+// 1.4.0: the Six-Sided World 2 lorebook numbers its arcs by light-novel volume (Arc 5 Reunion, Arc 7 Northern Adventurer,
+// Arc 8 University…) and names them in "[arcs] Arc N: Title" entries without dates. The year each begins follows the
+// built-in index's estimate for the same events.
+const MT_ARC_YEARS_LN = { 1: 407, 2: 414, 3: 417, 4: 418, 5: 419, 6: 420, 7: 421, 8: 422, 9: 422, 10: 423, 11: 423, 12: 424, 13: 425,
+    14: 426, 15: 427, 16: 427, 17: 427, 18: 428, 19: 429, 20: 430, 21: 430, 22: 430, 23: 431 };
+const mtArcTitlesCache = new WeakMap();
+function mtLoreArcTitles(entries) {
+    if (mtArcTitlesCache.has(entries)) return mtArcTitlesCache.get(entries);
+    const out = new Map();
+    for (const e of entries || []) {
+        const m = String(e.comment || '').match(/^\s*\[arcs\]\s*Arc\s+(\d{1,2})(?:\s+Synopsis)?\s*:\s*(.+?)\s*$/i);
+        if (m && !out.has(Number(m[1]))) out.set(Number(m[1]), m[2].trim());
+    }
+    mtArcTitlesCache.set(entries, out);
+    return out;
+}
 /** Lorebook descriptions and dated starts augment a complete built-in arc index. */
 function mtArcList(chatId) {
     const out = new Map();
-    for (const [no, year, title] of MT_ARCS) out.set(no, { no, year, title });
+    const lnTitles = mtLoreArcTitles(mtReferenceEntries(chatId));
+    if (lnTitles.size >= 10) for (const [no, title] of lnTitles) out.set(no, { no, year: MT_ARC_YEARS_LN[no] || null, title });
+    for (const [no, year, title] of MT_ARCS) if (lnTitles.size < 10) out.set(no, { no, year, title });
+    for (const [no, row] of out) if (!Number.isFinite(row.year)) out.delete(no);
     for (const e of mtReferenceEntries(chatId)) {
         const m = String(e.content || '').match(/^\s*\[WORLD STATE\s*[\u2014\u2013-]\s*ARC\s+(\d{1,2})\s*:\s*([^\]\n]+?)\s*(?:[\u2014\u2013-]\s*canon[^\]]*)?\]/i)
             || String(e.content || '').match(/^\s*\[ARC\s+(\d{1,2})\s*:\s*([^\]\n]+?)\s*[\u2014\u2013-]\s*SYNOPSIS\b[^\]]*\]/i);
@@ -10739,7 +10766,8 @@ function mtSaga(chatId, year, arcLine, date = null) {
     const reference = latestMark === null ? null : available.find(e => e.year * 12 + e.month - 1 === latestMark);
     let cur = am ? arcs.find(e => e.no === Number(am[1])) || null : !unscheduled && reference ? arcs.find(e => e.no === reference.no) || null : null;
     if (!am && !unscheduled && !cur && (!month || !schedule.length)) cur = arcs.filter(e => e.year <= year).slice(-1)[0] || null;
-    const next = unscheduled || (am && !cur) ? null : cur ? arcs.find(e => e.no > cur.no && (e.year > year || e.year === year && (!month || (e.month || 1) > month))) || null
+    // an arc after the current one that starts this year, with no month known, is still the next one
+    const next = unscheduled || (am && !cur) ? null : cur ? arcs.find(e => e.no > cur.no && (e.year > year || e.year === year && (!month || !e.month || e.month > month))) || null
         : arcs.find(e => e.year > year || e.year === year && (!month || (e.month || 1) >= month)) || null;
     const part = am ? am[2] || am[3] || null : unscheduled ? null : reference?.part || null;
     const curNo = explicit ? Number(am[1]) : cur?.no || null;
@@ -10767,6 +10795,12 @@ function worldMushoku(chatId, lines, st, chat = null) {
     const race = worldFind(lines, /\bRace:\s*([^|]+?)(?:\s*\||$)/i);
     const origin = worldFind(lines, /\bOrigin:\s*([^|]+?)(?:\s*\||$)/i);
     const adv = worldFind(lines, /^Adventurer:\s*([A-S])-?\s*Rank(?:\s*\|\s*(Solo|Party:\s*([^|]+?)))?(?:\s*\|\s*Clan:\s*(.+))?$/i)
+        || (() => {   // 1.4.0 Six-Sided: "Adventurer: Rank C | Party: Solo | Clan: …"
+            const m = worldFind(lines, /^Adventurer:\s*Rank\s+([A-S])\b[^|]*(?:\s*\|\s*Party:\s*([^|]+?))?(?:\s*\|\s*Clan:\s*(.+?))?\s*$/i);
+            if (!m) return null;
+            const party = m[2] ? m[2].trim() : null, solo = !!party && /^solo$/i.test(party);
+            return [m[0], m[1], solo ? 'Solo' : party ? `Party: ${party}` : null, solo ? undefined : party || undefined, m[3] ? m[3].trim() : undefined];
+        })()
         || worldFind(lines, /(?:^|\|\s*)Guild:\s*([FEDCBAS])(?:-Rank)?(?=\s*(?:\(|\||$))/i);
     const one = (re) => { const m = worldFind(lines, re); return m ? m[1].trim() : null; };
     const hg = worldFind(lines, /^\[HITOGAMI:\s*([^\]]+)\]/i);
@@ -10810,9 +10844,13 @@ function worldMushoku(chatId, lines, st, chat = null) {
             return list;
         })(),
         languages: hmsSplitTop(one(/^Languages:\s*(.+)$/i) || '', /\s*,\s*/g).filter(Boolean).map(x => { const m = x.match(/^(.+?)\s*\(([^)]+)\)$/); return m ? { name: m[1].trim(), fluency: m[2].trim() } : { name: x.trim(), fluency: null }; }),
-        contracts: one(/^Contracts:\s*(.+)$/i) || worldAll(lines, /^\[(?:SUMMON PACT|SPIRIT):\s*([^\]]+)\]$/i).map(m => m[1].trim()).join('; ') || null,
+        contracts: (one(/^Contracts:\s*(.+)$/i) && !/^(?:none|no|—|–|-|n\/a)\.?$/i.test(one(/^Contracts:\s*(.+)$/i)) ? one(/^Contracts:\s*(.+)$/i) : null) || worldAll(lines, /^\[(?:SUMMON PACT|SPIRIT):\s*([^\]]+)\]$/i).map(m => m[1].trim()).join('; ') || null,
         eyes: worldAll(lines, /^(?:\[DEMON EYE:\s*([^\]]+)\]|\[?DEMON EYE\]?:\s*(.+))/i).map(m => { const text = (m[1] || m[2]).trim(); return { text, lore: worldLore(chatId, text.split(/\s*[\u2014\u2013-]\s*/)[0]) }; }),
-        marks: worldAll(lines, /^(?:\[(CURSE(?:\s*\/\s*BLESSING)?|BLESSING):\s*([^\]]+)\]|\[?(CURSE(?:\s*\/\s*BLESSING)?|BLESSING)\]?:\s*(.+))/i).map(m => { const name = (m[2] || m[4]).trim(); return { kind: (m[1] || m[3]).toUpperCase().replace(/\s*\/\s*/, ' / '), name, lore: worldLore(chatId, name) }; }),
+        // 1.4.0 Six-Sided: "Curse: None | Blessing: …" is two fields on one row; a "None" is no mark
+        marks: worldAll(lines, /^(?:\[(CURSE(?:\s*\/\s*BLESSING)?|BLESSING):\s*([^\]]+)\]|\[?(CURSE(?:\s*\/\s*BLESSING)?|BLESSING)\]?:\s*(.+))/i)
+            .map(m => { const name = (m[2] || m[4]).split(/\s+\|\s+(?=[^|:]{1,40}:)/)[0].trim(); return { kind: (m[1] || m[3]).toUpperCase().replace(/\s*\/\s*/, ' / '), name }; })
+            .filter((x, i, all) => x.name && !/^(?:none|no|—|–|-|n\/a)\.?$/i.test(x.name) && all.findIndex(y => y.kind === x.kind && y.name === x.name) === i)
+            .map(x => ({ ...x, lore: worldLore(chatId, x.name) })),
         drain: (() => { const condition = worldFind(lines, /^Condition:\s*Drain Syndrome\s*\(([^)]+)\)/i); const m = worldFind(lines, /^Drain Syndrome:\s*([^|]+?)(?:\s*\|\s*Onset:\s*(.+))?$/i); return m ? { stage: m[1].trim(), onset: m[2] ? m[2].trim() : null } : condition ? { stage: condition[1].trim(), onset: null } : null; })(),
         term: (() => { const m = worldFind(lines, /^Term:\s*(.+?)\s*\|\s*Role:\s*(.+)$/i); return m ? { term: m[1].trim(), role: m[2].trim() } : null; })(),
         hitogami: hg ? { state: hg[1].trim(), dreams: dreams ? Number(dreams) : null } : null,
@@ -12626,6 +12664,7 @@ function hmsReadWounds(hud) {
         // An Injuries line can share its row with other fields ("… | Condition: …").
         body = body.split(/\s+\|\s+(?=[^|:]{1,40}:)/)[0];
         for (const part of hmsSplitTop(body, /,\s*/g)) {
+            if (/^\s*(?:none|no|nothing|n\/a|—|–|-|healthy|unhurt|uninjured|unharmed)\s*\.?\s*$/i.test(part)) continue;   // "Injuries: None | Condition: …"
             const m = part.match(/^(.*\S)\s+[—–-]\s+(.+)$/);
             const name = (m ? m[1] : part).trim();
             const tag = m ? m[2].trim() : '';
@@ -18161,7 +18200,8 @@ function spellsFromEntry(e, out) {
     const named = String(e.comment || '').match(/(?:^|\]\s*)Spell:\s*(.+)$/i);
     const fields = text.match(/^Tier:\s*([^\n]+)\nSchool:\s*([^\n]+)\nStatus:\s*([^\n]+)/i);
     if (named && fields) {
-        const school = fields[2].replace(/^Unique & Inherent/i, 'Unique').replace(/^(Summoning)\s*\((?:Fiends|Spirits)\)/i, '$1');
+        // "Healing Branch (Detoxification)" (Six-Sided 1.4.0) is Detoxification under Healing
+        const school = fields[2].replace(/^Unique & Inherent/i, 'Unique').replace(/^(Summoning)\s*\((?:Fiends|Spirits)\)/i, '$1').replace(/^(Healing)\s+Branch\b/i, '$1');
         const description = text.slice(fields[0].length).trim().split('\n')[0];
         spellsFromEntry({ ...e, content: `[SPELL — ${named[1]}]\nSchool: ${school}\nRank: ${fields[1]}\nStatus: ${fields[3]}\nEffect: ${description}` }, out);
         return;
@@ -18270,7 +18310,7 @@ function spellCatalog(chatId) {
         const idx = worldSpellIndex(chatId);
         if (idx) for (const [school, list] of Object.entries(idx)) for (const r of list) for (const n of r.spells) {
             const nm = String(n).replace(/\s*\([^)]*\)\s*$/, '').trim();
-            if (nm) rows.push({ name: nm, school: spellSchoolName(school), parent: null, ladder: 'mt', step: r.step, rank: SPELL_LADDER.mt[r.step] || r.rank, kind: 'ranked', who: null, needs: [], effect: null, chant: null, fan: false, src: null });
+            if (nm) rows.push({ name: nm, school: spellSchoolName(school), parent: null, ladder: 'mt', step: r.step, rank: SPELL_LADDER.mt[r.step] || r.rank, kind: 'ranked', who: null, needs: [], effect: null, chant: null, fan: !!r.fan, src: null });
         }
     } catch { /* optional */ }
     const dedicated = new Map();
@@ -18299,6 +18339,7 @@ function spellCatalog(chatId) {
 /** What the HUD says about the player's magic: each school with its rank, how they cast. */
 function spellStanding(lines) {
     const out = { schools: new Map(), ladder: null, gate: null, casting: null, voiceless: false };
+    let methodSeen = false, voicelessSeen = false;
     const put = (name, rank, step) => { const n = String(name).replace(/[\[\]*]/g, '').trim(); if (n) out.schools.set(spellSchoolKey(n), { name: spellTitle(n), rank: rank || null, step }); };
     for (const raw of lines || []) {
         const l = hudSemanticText(raw && raw.text !== undefined ? raw.text : raw);
@@ -18327,7 +18368,13 @@ function spellStanding(lines) {
             continue;
         }
         m = l.match(/^(?:Casting(?:\s+Method)?|Voiceless Casting)\s*:\s*(.+)$/i);
-        if (m) { out.casting = /^Voiceless Casting/i.test(l) ? `Voiceless (${m[1].trim()})` : m[1].trim(); out.voiceless = /^Voiceless Casting/i.test(l) ? /^(active|yes|available|unlocked|enabled)$/i.test(m[1].trim()) : /voiceless|silent|chantless|no[- ]?chant|without (?:an? )?incantation|incantation-?less/i.test(m[1]); }
+        if (m) {
+            // 1.4.0: a Six-Sided HUD can print both lines ("Casting Method: …" and "Voiceless Casting: Active (Attack only)"):
+            // the method keeps its own wording, and the Voiceless line decides voiceless, a school limit included
+            const vl = /^Voiceless Casting/i.test(l), v = m[1].trim();
+            if (vl) { if (!methodSeen) out.casting = `Voiceless (${v})`; out.voiceless = /^(active|yes|available|unlocked|enabled|mastered)\b/i.test(v); voicelessSeen = true; }
+            else { out.casting = v; methodSeen = true; if (!voicelessSeen) out.voiceless = /voiceless|silent|chantless|no[- ]?chant|without (?:an? )?incantation|incantation-?less/i.test(v); }
+        }
     }
     return out;
 }
@@ -20042,6 +20089,7 @@ function hmsPresentPeople(hud) {
     for (const part of hmsSplitTop(line.replace(/^\s*Present:\s*/i, ''), /\s*[,;]\s*/g)) {
         const p = String(part).trim();
         if (!p || /^\[/.test(p)) continue;                            // "[Guards: 2 at gate]": a group, not a person
+        if (/^(?:none|no ?one|nobody|alone|—|–|-|n\/a)\.?$/i.test(p)) continue;   // "Present: None"
         // "Kessa (240, looks 30) — Migurd": a note after the bracket is the person's, not part of the name
         const m = p.match(/^([^(]+?)\s*(?:\(([^)]*)\)(?:\s+[—–-]\s*[^()]*)?)?\s*$/);
         if (!m) continue;
@@ -20114,7 +20162,8 @@ function hmsChecks(chat, st, gear, userName = null, chatId = null) {
         const f = p.born !== null ? known.first.get(lockKey(p.name)) : null;
         if (f && Math.abs(f.born - p.born) > 1) out.push({ kind: 'age', text: `${p.name}'s birth year changed: b. ${f.approx ? '~' : ''}K${f.born} on most replies, K${p.born} now.`, fix: `(OOC fix: ${p.name} is ${hmsBirthText(f)}, as given before; keep that.)` });
     }
-    const noBirth = noBirthP.map(p => p.name);
+    // Six-Sided World 2 takes NPC ages from the lorebook and prints Present as names only: no birth year is asked for
+    const noBirth = sixIsV2(last.hud.lines.map(l => hudSemanticText(String(l.text || '')))) ? [] : noBirthP.map(p => p.name);
     if (noBirth.length) out.push({ kind: 'birth', fix: `(OOC fix: ${noBirthP.map(p => p.age !== null && cal ? `${p.name} is ${p.age}, born K${cal.year - p.age}` : `${p.name} needs an age and birth year that fit the story`).join('; ')}.)`, text: `No birth year on the Present line for ${noBirth.join(', ')}. The narrator is reminded to fix one; if it still does not, a quick OOC fix keeps the age steady.` });
     // the clock going backwards
     if (tl.length > 1 && last.reset && worldOf(worldLines(last.hud)) !== 'rezero') {
@@ -20299,6 +20348,17 @@ const SIX_LABELS = [
     [/^(?:Language|Tongues)$/i, 'Languages'],
     [/^(?:Here|Nearby|Present Characters|Characters Present|In Scene|With You)$/i, 'Present'],
 ];
+// 1.4.0: Six-Sided World 2 prints its own field set ("Location:", "Current Arc:", "Casting Method:", "Inventory: … | Purse:",
+// "Injuries: … | Condition:", "Canon Ledger:"). Its HUD keeps those labels: the older card's renames would fold Injuries into
+// Condition and Inventory into Equipment. Labels it shares with the older card are fixed the same way.
+const SIX_V2_MARK_RE = /^(?:Location\s*:.*→|Current Arc\s*:|Casting Method\s*:|Canon Ledger\s*:|Active Stance\s*:|Inventory\s*:.*\|\s*Purse\s*:|Injuries\s*:.*\|\s*Condition\s*:)/i;
+function sixIsV2(texts) { return (texts || []).some(t => SIX_V2_MARK_RE.test(String(t || '').trim())); }
+const SIX_LABELS_V2 = [
+    ...SIX_LABELS.filter(([, label]) => !['Era / Arc', 'Condition', 'Equipment', 'Bonds'].includes(label)),
+    [/^(?:Arc|Era\/Arc|Era - Arc|Era \/ Arc)$/i, 'Current Arc'],
+    [/^(?:Injury|Wounds)$/i, 'Injuries'],
+    [/^(?:Status Effects)$/i, 'Condition'],
+];
 const SIX_OPTIONAL_RE = /^\s*\[?\s*(?:DEMON EYE|Demon Eye|CURSE \/ BLESSING|Curse \/ Blessing|Dream Link|Condition|Training|Memory|Bonds|Equipment|Renown|Standing|Languages|Present)\s*:\s*(?:none|nothing|empty|n\/a|—|–|-|\(none\))\s*\.?\s*\]?\s*$/i;
 
 /** Rows of the card's Canon Clock calendar ("K417 · Month 1 — … — The Mana Calamity …"), cached per lore pool. */
@@ -20364,15 +20424,17 @@ function sixUpkeep(items, ctx) {
     const prevLines = ctx.prev ? ctx.prev.lines.filter(l => !l.block).map(l => hudSemanticText(String(l.text || ''))) : [];
     const prevFind = re => prevLines.find(t => re.test(t)) || null;
 
+    const v2 = sixIsV2(items.filter(it => !it.block).map(sem));
     if (ctx.format) {
         // labels copied exactly, as the card says ("Battle Aura:" → "Touki (Battle Aura):")
         for (const it of items) {
             if (!plain(it)) continue;
             const m = String(it.text).match(/^(\s*)([^:\n]{2,40}?)(\s*:\s*)([\s\S]*)$/);
             if (!m) continue;
-            for (const [re, label] of SIX_LABELS) {
+            for (const [re, label] of v2 ? SIX_LABELS_V2 : SIX_LABELS) {
                 if (!re.test(m[2].trim()) || m[2].trim() === label) continue;
                 if (label === 'Armored Dragon Calendar' && !/\bK\.?\s*\d{3}/.test(m[4])) break;
+                if (label === 'Current Arc' && !/\bArc\s+\d/i.test(m[4])) break;   // "Era: …" stands until a route is chosen
                 set(it, `${m[1]}${label}${m[3]}${m[4]}`, `label ${m[2].trim()} → ${label}`);
                 break;
             }
@@ -20390,8 +20452,8 @@ function sixUpkeep(items, ctx) {
             const it = items[i];
             if (it.block || it.divider) continue;
             const t = sem(it);
-            if (SIX_OPTIONAL_RE.test(t)) { notes.push(`empty ${t.split(':')[0].replace(/[[\]]/g, '').trim()} line left out`); items.splice(i, 1); continue; }
-            if (/^\s*Active Paths\s*:\s*$/i.test(t)) {
+            if (!v2 && SIX_OPTIONAL_RE.test(t)) { notes.push(`empty ${t.split(':')[0].replace(/[[\]]/g, '').trim()} line left out`); items.splice(i, 1); continue; }
+            if (!v2 && /^\s*Active Paths\s*:\s*$/i.test(t)) {
                 const next = items[i + 1];
                 if (!next || !/^\s*[-–•]\s*(?:Change|Divergence)\s*:/i.test(sem(next))) { notes.push('empty Active Paths left out'); items.splice(i, 1); }
             }
@@ -20405,14 +20467,16 @@ function sixUpkeep(items, ctx) {
             if (keep.length !== parts.length && keep.length) set(pres, `Present: ${keep.join(', ')}`, 'the player left off Present');
         }
         // the header lines print every turn: a dropped Race or Era / Arc line comes back from the last HUD
-        for (const [re, after] of [[/^\s*Race\s*:/i, /^\s*◆|^\s*📍/], [/^\s*Era\s*\/\s*Arc\s*:/i, /^\s*Race\s*:/i]]) {
+        const headers = v2 ? [[/^\s*Race\s*:/i, /^\s*Location\s*:/i], [/^\s*(?:Current Arc|Era)\s*:/i, /^\s*Race\s*:/i]]
+            : [[/^\s*Race\s*:/i, /^\s*◆|^\s*📍/], [/^\s*Era\s*\/\s*Arc\s*:/i, /^\s*Race\s*:/i]];
+        for (const [re, after] of headers) {
             if (find(re)) continue;
             const old = ctx.prev ? ctx.prev.lines.find(l => !l.block && re.test(hudSemanticText(String(l.text || '')))) : null;
             if (!old) continue;
             const at = items.findIndex(it => !it.block && after.test(sem(it)));
             if (at < 0) continue;
             items.splice(at + 1, 0, { key: old.key, text: old.text, kind: old.kind || 'field', block: null, divider: false });
-            notes.push(`${re.source.includes('Race') ? 'Race' : 'Era / Arc'} line restored`);
+            notes.push(`${re.source.includes('Race') ? 'Race' : v2 ? 'Current Arc' : 'Era / Arc'} line restored`);
         }
     }
 
@@ -20433,15 +20497,23 @@ function sixUpkeep(items, ctx) {
             [/^Sword Style:/i, 14], [/^Skills:/i, 14], [/^Magic Tiers:/i, 15], [/^Voiceless Casting:/i, 16], [/^Languages:/i, 17], [/^Training:/i, 18], [/^\[?DEMON EYE/i, 19], [/^\[?CURSE \/ BLESSING/i, 20],
             [/^Dream Link:/i, 21], [/^Condition:/i, 22], [/^Equipment:/i, 23], [/^Standing:/i, 24], [/^Renown:/i, 25], [/^Bonds:/i, 26], [/TURNING POINT \d+\s*:\s*ACTIVE/i, 27],
             [/^(?:⏳|📖|⚠️)?\s*(?:Canon reference|World event|Next Canon Event|Next Turning Point|Canon Begins)\b/iu, 28], [/^Active Paths:/i, 29], [/^Present:/i, 30], [/^Narrative Mode:/i, 31]];
+        // Six-Sided World 2: the order of its shared field list
+        const RANK_V2 = [[/^Armored Dragon Calendar:/i, 0], [/^Location:/i, 1], [/^Race:/i, 2], [/^(?:Current Arc|Era):/i, 3], [/^Memory:/i, 4], [/^Game Mode:/i, 5],
+            [/^Mana Capacity:/i, 6], [/^Touki \(Battle Aura\):/i, 7], [/^Sword Style:/i, 8], [/^Magic Tiers:/i, 9], [/^Casting Method:/i, 10], [/^Voiceless Casting:/i, 11],
+            [/^Languages:/i, 12], [/^Contracts:/i, 13], [/^Active Stance:/i, 14], [/^\[?DEMON EYE/i, 15], [/^Curse:/i, 16], [/^Blessing:/i, 16], [/^Dream Link:/i, 17],
+            [/^Term:/i, 18], [/^Equipment:/i, 19], [/^Inventory:/i, 20], [/^Adventurer:/i, 21], [/^Injuries:/i, 22], [/^Condition:/i, 22], [/^Drain Syndrome:/i, 23],
+            [/^\[STATUS:/i, 25], [/^(?:⏳|📖|⚠️)?\s*(?:Canon reference|World event|Next Canon Event|Next Turning Point|Canon Begins)\b/iu, 26], [/^Canon Ledger:/i, 27],
+            [/^Active Paths:/i, 28], [/^Present:/i, 29], [/^Narrative Mode:/i, 30]];
         const flatOk = items.every(it => !it.block && !/\*\*/.test(String(it.text || '')));
         if (flatOk) {
             let last = -1;
             const ranked = items.map((it, i) => {
                 const t = hudSemanticText(String(it.text || '')).trim();
-                const hit = RANK.find(([re]) => re.test(t) || re.test(String(it.text || '').trim()));
+                const hit = (v2 ? RANK_V2 : RANK).find(([re]) => re.test(t) || re.test(String(it.text || '').trim()));
                 const raw = String(it.text || '').trim();
                 const child = /^(?:[-–•]\s*(?:Change|Divergence)|(?:⚠️\s*)?Checkpoint\b|✅|❌|Back on canon|Canon changed)/iu.test(t) || /^(?:⚠️\s*Checkpoint|✅|❌)/u.test(raw) || /^\s{2,}/.test(String(it.text || ''));
-                const r = child && last >= 29 && last < 30 ? 29 : hit ? hit[1] : last;
+                const pathsAt = v2 ? 28 : 29;
+                const r = child && last >= pathsAt && last < pathsAt + 1 ? pathsAt : hit ? hit[1] : last;
                 last = r;
                 return { it, r, i };
             });
@@ -20586,7 +20658,18 @@ function hmsCardRuleChecks(chat, tl, userName, chatId = null) {
     if (!last) return out;
     const lines = last.hud.lines.filter(l => !l.block).map(l => hudSemanticText(String(l.text || '')));
     if (!lines.some(t => /^Armored Dragon Calendar:/i.test(t))) return out;
+    const v2 = sixIsV2(lines);   // Six-Sided World 2: rules it no longer has are not checked
     const prev = tl.length > 1 ? tl[tl.length - 2] : null;
+    // Six-Sided World 2 keeps its lore in a separate Standalone Lorebook; once the host has shown this chat's world info
+    // (a reply has run), say so when none of it is that lorebook
+    if (v2 && chatId) {
+        try {
+            const pool = loreCatalogPool(chatId);
+            const entries = pool && Array.isArray(pool.entries) ? pool.entries : null;
+            if (entries && !entries.some(e => /^\s*\[(?:magic core|arcs|arc memory|Mushoku tensei[^\]]*|Magic \d+|character \d+)\]/i.test(String(e.comment || '')) || /Master Spell Index/i.test(String(e.content || '').slice(0, 120))))
+                out.push({ kind: 'card', text: 'No Mushoku lorebook is active in this chat. Six-Sided World now keeps its lore in a separate Standalone Lorebook: link it to the character (or to this chat) so the narrator, spells, sword techniques and arc names can use it.', fix: null });
+        } catch { /* display only */ }
+    }
     const prevLines = prev ? prev.hud.lines.filter(l => !l.block).map(l => hudSemanticText(String(l.text || ''))) : [];
     const first = tl[0] ? tl[0].hud.lines.filter(l => !l.block).map(l => hudSemanticText(String(l.text || ''))) : [];
     const get = (ls, re) => ls.find(t => re.test(t)) || null;
@@ -20610,10 +20693,10 @@ function hmsCardRuleChecks(chat, tl, userName, chatId = null) {
     // A nap is not a night: the reserve rule needs the date to have moved on since the last HUD.
     const dayNo = c => c ? c.year * 360 + ((c.month || 1) - 1) * 30 + c.day : null;
     const night = y.slept === true && cal && pcal && dayNo(cal) > dayNo(pcal);
-    if (night && res && !/^full$/i.test(res[1]) && !(Array.isArray(y.spells) && y.spells.length)) add(`A night's sleep refills the Reserve (card rule), but it reads ${res[1]}.`, '(OOC fix: after the night\'s sleep, Reserve: Full unless magic was used since waking.)');
+    if (!v2 && night && res && !/^full$/i.test(res[1]) && !(Array.isArray(y.spells) && y.spells.length)) add(`A night's sleep refills the Reserve (card rule), but it reads ${res[1]}.`, '(OOC fix: after the night\'s sleep, Reserve: Full unless magic was used since waking.)');
     // limits
     const pres = hmsPresentPeople(last.hud);
-    if (pres.length > 6) add(`${pres.length} people on Present; the card shows at most 6.`, '(OOC fix: keep the 6 who matter most in the scene on the Present line.)');
+    if (!v2 && pres.length > 6) add(`${pres.length} people on Present; the card shows at most 6.`, '(OOC fix: keep the 6 who matter most in the scene on the Present line.)');
     const bonds = (get(lines, /^Bonds:/i) || '').replace(/^Bonds:\s*/i, '');
     const bondParts = bonds ? hmsSplitTop(bonds, /\s*,\s*/g).filter(Boolean) : [];
     if (bondParts.length > 3) add(`${bondParts.length} Bonds; the card keeps the 3 most important.`, '(OOC fix: keep the 3 most important bonds on the Bonds line.)');
@@ -20624,7 +20707,7 @@ function hmsCardRuleChecks(chat, tl, userName, chatId = null) {
     const ren = get(lines, /^Renown:/i);
     if (ren) { const tiers = [...ren.matchAll(/:\s*([A-Za-z ]+?)\s*(?=\||·|$)/g)].map(x => x[1].trim()).filter(x => x && !/^(?:Unknown|Noticed|Local name|Regional|Famous|Legend)$/i.test(x) && !/^[A-Z]{1,2}$/.test(x)); if (tiers.length) add(`Renown tier ${tiers.join(', ')} is not in the card's list (Unknown, Noticed, Local name, Regional, Famous, Legend).`, '(OOC fix: write Renown with the card\'s tiers.)'); }
     const lang = get(lines, /^Languages:/i);
-    if (lang) { const lv = [...lang.matchAll(/\(([^)]+)\)/g)].map(x => x[1].split(',')[0].trim()).filter(x => !/^(?:None|Basic|Conversational|Fluent)$/i.test(x)); if (lv.length) add(`Language level ${lv.join(', ')} is not in the card's list (None, Basic, Conversational, Fluent).`, '(OOC fix: write each tongue with None, Basic, Conversational or Fluent.)'); }
+    if (lang && !v2) { const lv = [...lang.matchAll(/\(([^)]+)\)/g)].map(x => x[1].split(',')[0].trim()).filter(x => !/^(?:None|Basic|Conversational|Fluent)$/i.test(x)); if (lv.length) add(`Language level ${lv.join(', ')} is not in the card's list (None, Basic, Conversational, Fluent).`, '(OOC fix: write each tongue with None, Basic, Conversational or Fluent.)'); }
     // what the start command chose: Game Mode and Narrative Mode
     const userText = (chat || []).filter(m => m.role === 'user').map(m => textOf(m.content)).join('\n').toLowerCase();
     const modes = t => (t || '').replace(/^Game Mode:\s*/i, '').split(/\s*[,|]\s*/).map(s => s.trim()).filter(Boolean);
@@ -20649,10 +20732,10 @@ function hmsCardRuleChecks(chat, tl, userName, chatId = null) {
     const touki = (get(lines, /^Touki \(Battle Aura\):/i) || '').replace(/^Touki \(Battle Aura\):\s*/i, '');
     const sword = get(lines, /^Sword Style:/i) || '';
     if (/\((?:Saint|King|Emperor|God)\)/.test(sword) && /\bLocked\b/i.test(touki)) add('A sword style at Saint or above with Touki Locked; the card says Saint and above require Touki.', '(OOC fix: Saint rank in a sword style needs Touki; keep the rank below Saint until Touki is active.)');
-    if (age !== null && age <= 4 && /\b(?:Active|Mastered)\b/i.test(touki)) add(`Touki ${touki} at age ${age}; the card keeps it Locked from 0 to 4.`, '(OOC fix: Touki (Battle Aura): Locked until age 5.)');
+    if (!v2 && age !== null && age <= 4 && /\b(?:Active|Mastered)\b/i.test(touki)) add(`Touki ${touki} at age ${age}; the card keeps it Locked from 0 to 4.`, '(OOC fix: Touki (Battle Aura): Locked until age 5.)');
     const origin = (get(lines, /^Race:/i) || '').match(/Origin:\s*([A-Za-z]+)/i);
     const vcNow = /^Voiceless Casting:\s*Active/i.test(get(lines, /^Voiceless Casting:/i) || ''), vcFirst = /^Voiceless Casting:\s*Active/i.test(get(first, /^Voiceless Casting:/i) || '');
-    if (origin && /^Native$/i.test(origin[1]) && vcNow && !vcFirst && age !== null && age >= 10) add('Voiceless Casting became Active for a Native at 10 or older; the card allows it only if learned before 10.', '(OOC fix: a Native learns Voiceless Casting only before 10: Voiceless Casting stays Locked.)');
+    if (!v2 && origin && /^Native$/i.test(origin[1]) && vcNow && !vcFirst && age !== null && age >= 10) add('Voiceless Casting became Active for a Native at 10 or older; the card allows it only if learned before 10.', '(OOC fix: a Native learns Voiceless Casting only before 10: Voiceless Casting stays Locked.)');
     const dream = get(lines, /^Dream Link:/i);
     if (dream && !get(prevLines, /^Dream Link:/i) && !(chat || []).some(m => /Hitogami|Man-God|white void|faceless mosaic/i.test(textOf(m.content)))) add('Dream Link appeared before any dream of Hitogami.', '(OOC fix: Dream Link appears only after the first real dream of Hitogami.)');
     // lorebook facts: a canon character not born yet, a dated event already past
@@ -20790,7 +20873,8 @@ function hmsStoryReminders(chat, st, userName) {
         const known = hmsKnownBirths(tl);
         const keep = last ? hmsPresentPeople(last.hud).filter(p => hmsNamedPerson(p.name) && p.born === null && known.first.has(lockKey(p.name))) : [];
         if (keep.length) { parts.push(`[RPG Companion: ages]\nKeep the ages and birth years the Present line already gave: ${keep.map(p => `${p.name} (${hmsBirthText(known.first.get(lockKey(p.name)))}, age moving on with the calendar)`).join('; ')}.`); names.push('ages'); }
-        const missing = last ? hmsPresentPeople(last.hud).filter(p => hmsNamedPerson(p.name) && (p.born === null || p.age === null) && !known.first.has(lockKey(p.name))).map(p => p.name) : [];
+        const v2 = last ? sixIsV2(last.hud.lines.map(l => hudSemanticText(String(l.text || '')))) : false;
+        const missing = last && !v2 ? hmsPresentPeople(last.hud).filter(p => hmsNamedPerson(p.name) && (p.born === null || p.age === null) && !known.first.has(lockKey(p.name))).map(p => p.name) : [];
         if (missing.length) {
             parts.push(`[RPG Companion: ages]\n${missing.join(', ')} ${missing.length === 1 ? 'has' : 'have'} no ${missing.some(n => { const x = hmsPresentPeople(last.hud).find(p => p.name === n); return x && x.age === null; }) ? 'age or ' : ''}birth year on the Present line. Fix ${missing.length === 1 ? 'one' : 'them'} now as the card's age rule says ("Name (age, b. K###)"), fitting what the story has shown, and keep ${missing.length === 1 ? 'it' : 'them'} the same from here on.`);
             names.push('ages');
