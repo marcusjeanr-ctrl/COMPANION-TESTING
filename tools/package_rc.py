@@ -3,7 +3,6 @@
 Usage: python3 tools/package_rc.py /outside/checkout/Companion-RC.zip
 Requires a clean tested checkout; emits a verified ZIP and file hashes.
 """
-import gzip
 import hashlib
 import json
 import pathlib
@@ -31,7 +30,7 @@ def main():
     files = sorted(f for f in tracked if f and (
         f in {'spindle.json', 'README.md', 'CHANGELOG.md', 'LICENSE'}
         or (f.startswith('GUIDE') and f.endswith('.md'))
-        or f.startswith(('dist/', 'i18n/', 'preset/', 'lorebooks/', 'cards/', 'docs/'))))
+        or f.startswith(('dist/', 'i18n/', 'preset/', 'lorebooks/', 'docs/'))))
     manifest = json.loads((ROOT / 'spindle.json').read_text())
     assert all(f in files for f in [manifest['entry_backend'], manifest['entry_frontend'], 'spindle.json'])
     assert output.suffix == '.zip'
@@ -40,12 +39,7 @@ def main():
         path = ROOT / name
         if path.is_symlink() or not path.resolve().is_relative_to(ROOT):
             raise SystemExit('Rejecting non-regular release asset: ' + name)
-        if name == 'cards/six-sided/lorebook.json.gz':
-            contents[name[:-3]] = gzip.decompress(path.read_bytes())
-        else:
-            contents[name] = path.read_bytes()
-    files = sorted(contents)
-    contents = {name: contents[name] for name in files}
+        contents[name] = path.read_bytes()
     output.parent.mkdir(parents=True, exist_ok=True)
     with zipfile.ZipFile(output, 'w', compression=zipfile.ZIP_DEFLATED) as archive:
         for name, data in contents.items():

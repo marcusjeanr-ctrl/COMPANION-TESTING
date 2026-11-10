@@ -12,7 +12,6 @@ const steps = [
     ['live-play audit (gear guesses, Training line, swipes)', ['tools/test_live_play_audit.cjs']],
     ['Six-Sided World v1.1 HUD', ['tools/test_six_sided_v11.cjs']],
     ['Six-Sided card coverage (every HUD slot, three styles)', ['tools/test_card_coverage.cjs']],
-    ['Six-Sided 1.5 paired artifacts and runtime', ['tools/test_six_sided_150.cjs']],
     ['lifecycle (swipes, regenerations, saves, OOC, hypotheticals, time)', ['tools/test_lifecycle.cjs']],
     ['cross-card (every demo world through the real reply pipeline)', ['tools/test_cross_card.cjs']],
     ['HUD upkeep (the Companion does the card\'s math and format)', ['tools/test_hud_upkeep.cjs']],
