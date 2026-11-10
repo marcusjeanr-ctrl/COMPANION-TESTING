@@ -1,24 +1,8 @@
-# RPG Companion HMS Edition 1.5.0 RC
+# RPG Companion HMS Edition 1.0
 
 The side panel for RPG roleplay in Lumiverse: it reads the story's WORLD STATE HUD and keeps your character, the people around you, quests, appointments, gear, magic, places and the story so far, without taking the story over.
 
 > **1.0.0** is the first official release. It is the work developed as 3.4–3.6: the redesigned interface (views, Now card, Find, looks), continuity fixes (one Agenda entry per appointment, the player never tracked as a second person, no repeated Chronicle moments, magic schools not counted as spells) and the nested Gear containers. See [CHANGELOG.md](CHANGELOG.md). Updating keeps your settings and chat data; the extension identifier is unchanged.
-
-## Six-Sided World 1.5.0
-
-Use [the paired character card](cards/six-sided/character.json) and
-[standalone lorebook (gzip)](cards/six-sided/lorebook.json.gz) together. The release ZIP includes the decompressed `lorebook.json`; for a source checkout, decompress the `.gz` file first. Import the card,
-import the book, and attach that book once to the character. Update the extension
-from this branch. The card supports Classic and Visual; existing campaigns can
-continue with their established state.
-
-This pairing lets the narrator own current rules and HUD state while the Companion
-tracks outcomes. It does not impose the old card's fixed training, forced birthdays,
-full-mana-after-sleep or automatic canon events. User pins still apply. Legacy cards
-keep their existing behavior. See the [coverage and release evidence](docs/compatibility/six-sided-1.5/REPORT.md).
-
-Status: release candidate; live Lumiverse import/update/WebView/reload acceptance
-has not been performed. Automated checks do not certify model obedience.
 
 ## Development history
 
