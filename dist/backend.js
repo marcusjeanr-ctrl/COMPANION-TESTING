@@ -1071,7 +1071,7 @@ function loreNormEntry(e) {
     if (!isPlainObject(e)) return null;
     const content = String(e.content || '').trim();
     if (!content) return null;
-    if (e.disabled === true || e.enabled === false) return null;
+    if (e.disabled === true || e.disable === true || e.enabled === false) return null;
     return {
         id: String(e.id ?? ''),
         comment: String(e.comment || '').trim(),
@@ -1092,7 +1092,7 @@ function loreNormEntry(e) {
         scope: e.book_source || e.bookSource || null,
         // General narrator supplements cannot reproduce host stateful activation.
         // Preserve this flag if a normalized entry is passed through the pool again.
-        narratorHostOnly: !!e.narratorHostOnly || loreNarratorHostOnly(e)
+        narratorHostOnly: !!e.narratorHostOnly || e.extensions?.rpg_companion_host_only === true || loreNarratorHostOnly(e)
     };
 }
 
@@ -2783,7 +2783,7 @@ async function pushStateNow(chatId, snapshot = null) {
 // Demo mode plays scripted turns (no tokens); Live mode asks the model, with a small
 // world narrator standing in for a bot card.
 
-const RPGC_VERSION = '1.4.0';
+const RPGC_VERSION = '1.5.0';
 const diagLog = [];
 function diagPush(kind, m) { diagLog.push({ at: new Date().toISOString(), kind, text: String(m).slice(0, 400) }); if (diagLog.length > 60) diagLog.shift(); }
 function logW(m) { diagPush('warn', m); return spindle.log.warn(m); }
@@ -3415,6 +3415,7 @@ async function rpgcSlotRequest(mctx) {
     let chat = await chatApi.getMessages(chatId);
     const card = env.character ? `${env.character.personality || ''}\n${env.character.description || ''}` : '';
     if (!isHmsChat(chatId, card ? [{ content: card }] : null, chat)) return '';      // classic chats keep their own tracker prompt
+    sixNoteContract(chatId, card);
     injNoteCore(chatId, card);                       // a bot that keeps its own wounds: no injuries asked
     const last = chat[chat.length - 1];
     const excludeId = (gt === 'swipe' || gt === 'regenerate') && last && last.role === 'assistant' ? last.id : null;
@@ -3515,6 +3516,7 @@ registerInterceptorKeep(async (messages, context) => {
         let contextMsg = null;
 
         const hmsOn = isHmsChat(chatId, messages, chat);
+        sixNoteContract(chatId, messages.filter(m => !m.__isChatHistory && m.role === 'system').map(m => textOf(m.content)).join('\n'));
         for (const m of messages) injNoteCore(chatId, textOf(m.content));     // a bot that keeps its own wounds
         if (chatId) { const hs = hudStyleFor(messages.filter(m => m && m.role === 'user')); if (hs) hudStyleCache.set(chatId, hs); }
         let contextName = 'RPG Companion: scene context';
@@ -5744,7 +5746,7 @@ async function runSeparateUpdate(chatId, targetId = null) {
             await keepRoomReading(chatId, comp, messageHud(msg));
             await readingsAfterReply(chatId, fresh, msg, comp.injuries || null, comp.hitogami || null);
             // the sessions the reporter counted set the Training line: the last HUD's number plus those
-            if (Array.isArray(comp.sessions) && comp.sessions.length && settings.hmsHudMath !== false) {
+            if (Array.isArray(comp.sessions) && comp.sessions.length && settings.hmsHudMath !== false && !sixNarratorContract(chatId)) {
                 try {
                     const r = sixTrainingFromSessions(textOf(msg.content), previousHudFor(fresh, msg.id), comp.sessions);
                     if (r) { await rewriteReplyText(chatId, msg, { content: r.content }); msg.content = r.content; hmsCache.delete(chatId); spindle.log.info(`[RPG Companion HMS] Training: ${r.notes.join('; ')}`); }
@@ -10766,7 +10768,7 @@ function worldMushoku(chatId, lines, st, chat = null) {
     const ageField = worldFind(lines, /\bAge:\s*(\d{1,6})\b/i);
     const race = worldFind(lines, /\bRace:\s*([^|]+?)(?:\s*\||$)/i);
     const origin = worldFind(lines, /\bOrigin:\s*([^|]+?)(?:\s*\||$)/i);
-    const adv = worldFind(lines, /^Adventurer:\s*([A-S])-?\s*Rank(?:\s*\|\s*(Solo|Party:\s*([^|]+?)))?(?:\s*\|\s*Clan:\s*(.+))?$/i)
+    const adv = worldFind(lines, /^Adventurer:\s*(SS|[FEDCBAS])(?:-?\s*Rank)?(?:\s*\|\s*(Solo|Party:\s*([^|]+?)))?(?:\s*\|\s*Clan:\s*(.+))?$/i)
         || worldFind(lines, /(?:^|\|\s*)Guild:\s*([FEDCBAS])(?:-Rank)?(?=\s*(?:\(|\||$))/i);
     const one = (re) => { const m = worldFind(lines, re); return m ? m[1].trim() : null; };
     const hg = worldFind(lines, /^\[HITOGAMI:\s*([^\]]+)\]/i);
@@ -10811,8 +10813,8 @@ function worldMushoku(chatId, lines, st, chat = null) {
         })(),
         languages: hmsSplitTop(one(/^Languages:\s*(.+)$/i) || '', /\s*,\s*/g).filter(Boolean).map(x => { const m = x.match(/^(.+?)\s*\(([^)]+)\)$/); return m ? { name: m[1].trim(), fluency: m[2].trim() } : { name: x.trim(), fluency: null }; }),
         contracts: one(/^Contracts:\s*(.+)$/i) || worldAll(lines, /^\[(?:SUMMON PACT|SPIRIT):\s*([^\]]+)\]$/i).map(m => m[1].trim()).join('; ') || null,
-        eyes: worldAll(lines, /^(?:\[DEMON EYE:\s*([^\]]+)\]|\[?DEMON EYE\]?:\s*(.+))/i).map(m => { const text = (m[1] || m[2]).trim(); return { text, lore: worldLore(chatId, text.split(/\s*[\u2014\u2013-]\s*/)[0]) }; }),
-        marks: worldAll(lines, /^(?:\[(CURSE(?:\s*\/\s*BLESSING)?|BLESSING):\s*([^\]]+)\]|\[?(CURSE(?:\s*\/\s*BLESSING)?|BLESSING)\]?:\s*(.+))/i).map(m => { const name = (m[2] || m[4]).trim(); return { kind: (m[1] || m[3]).toUpperCase().replace(/\s*\/\s*/, ' / '), name, lore: worldLore(chatId, name) }; }),
+        eyes: worldAll(lines, /^(?:\[DEMON EYE:\s*([^\]]+)\]|\[?DEMON EYE\]?:\s*([^|]+))/i).map(m => { const text = (m[1] || m[2]).trim(); return { text, lore: worldLore(chatId, text.split(/\s*[\u2014\u2013-]\s*/)[0]) }; }),
+        marks: worldAll(lines, /^(?:\[(CURSE(?:\s*\/\s*BLESSING)?|BLESSING):\s*([^\]]+)\]|\[?(CURSE(?:\s*\/\s*BLESSING)?|BLESSING)\]?:\s*([^|]+))/i).map(m => { const name = (m[2] || m[4]).trim(); return { kind: (m[1] || m[3]).toUpperCase().replace(/\s*\/\s*/, ' / '), name, lore: worldLore(chatId, name) }; }),
         drain: (() => { const condition = worldFind(lines, /^Condition:\s*Drain Syndrome\s*\(([^)]+)\)/i); const m = worldFind(lines, /^Drain Syndrome:\s*([^|]+?)(?:\s*\|\s*Onset:\s*(.+))?$/i); return m ? { stage: m[1].trim(), onset: m[2] ? m[2].trim() : null } : condition ? { stage: condition[1].trim(), onset: null } : null; })(),
         term: (() => { const m = worldFind(lines, /^Term:\s*(.+?)\s*\|\s*Role:\s*(.+)$/i); return m ? { term: m[1].trim(), role: m[2].trim() } : null; })(),
         hitogami: hg ? { state: hg[1].trim(), dreams: dreams ? Number(dreams) : null } : null,
@@ -10853,7 +10855,7 @@ function hmsTrainingPlan(chat, st, tl, magic, techniques, relations) {
     const linesOf = e => e.hud.lines.filter(l => !l.block).map(l => String(l.text || ''));
     const tracks = mtTraining(linesOf(last));
     const prevTracks = tl.length > 1 ? mtTraining(linesOf(tl[tl.length - 2])) : [];
-    const six = linesOf(last).some(t => /^Armored Dragon Calendar:/i.test(t));
+    const six = !sixNarratorContract(chatIdOf(chat)) && linesOf(last).some(t => /^Armored Dragon Calendar:/i.test(t));
     const studies = [...((magic && magic.list && magic.list.studying) || []).map(x => ({ ...x, domain: 'magic' })), ...((techniques && techniques.studying) || []).map(x => ({ ...x, domain: 'martial' }))];
     if (!tracks.length && !studies.length) return null;
     const people = Array.isArray(relations && relations.people) ? relations.people : [];
@@ -11124,6 +11126,23 @@ function injHudOwns(hud) {
 // The core's own injury law ("Injuries: [wound] — [Tag]", "INJURIES / CONDITION") or the Re:Zero
 // lorebook's [HMS_INJURY_*] entries: the bot keeps wounds itself.
 const INJ_CORE_RE = /\bInjuries:\s*\[wound\]|INJURIES\s*\/\s*CONDITION|\bCondition:\s*\[wound\b/i;
+const SIX_CONTRACT_MARKER = '[SIX-SIDED COMPANION CONTRACT 1.5]';
+const sixContractChats = new Map();
+const sixContractPools = new WeakMap();
+function sixNoteContract(chatId, core) {
+    if (!chatId) return;
+    sixContractChats.set(chatId, String(core || '').includes(SIX_CONTRACT_MARKER));
+    while (sixContractChats.size > LORE_POOL_MAX_CHATS) sixContractChats.delete(sixContractChats.keys().next().value);
+}
+function sixNarratorContract(chatId) {
+    if (!chatId) return false;
+    if (sixContractChats.get(chatId)) return true;
+    const entries = loreCatalogPool(chatId)?.entries;
+    if (!Array.isArray(entries)) return false;
+    if (!sixContractPools.has(entries)) sixContractPools.set(entries, entries.some(e =>
+        e.constant && e.enabled !== false && !e.disabled && !e.disable && String(e.content || '').startsWith(SIX_CONTRACT_MARKER)));
+    return sixContractPools.get(entries);
+}
 const injOwnedChats = new Set();
 /** Note a bot that keeps its own wounds, from its card or the assembled prompt. */
 function injNoteCore(chatId, text) {
@@ -11131,6 +11150,7 @@ function injNoteCore(chatId, text) {
 }
 /** Whether this chat's bot keeps injuries itself: its card says so, its lore does, or any of its HUDs has printed them. */
 function injBotOwns(chat, chatId = chatIdOf(chat)) {
+    if (sixNarratorContract(chatId)) return true;
     if (chatId && injOwnedChats.has(chatId)) return true;
     let owns = false;
     for (const m of chat || []) {
@@ -11723,7 +11743,7 @@ function buildCompanionInstructionRead(committed, userName, locks, st = null, ch
     const injReq = injActive(chat) ? injRequest(userName) : injWitness(chat) ? injWitnessRequest(userName) : null;
     if (injReq) parts.push(injReq.json);
     const trainNow = tlNow.length ? mtTraining(worldLines(tlNow[tlNow.length - 1].hud)) : [];
-    if (trainNow.length && settings.hmsHudMath !== false) parts.push(`"sessions": [{"skill": "${trainNow.map(t => t.skill).join('|')}", "count": 0, "teacher": true}]`);
+    if (trainNow.length && settings.hmsHudMath !== false && !sixNarratorContract(chatIdOf(chat))) parts.push(`"sessions": [{"skill": "${trainNow.map(t => t.skill).join('|')}", "count": 0, "teacher": true}]`);
     if (wantQuests) parts.push('"quests": [{"id": "existing ID or null for a new assignment", "name": "…", "objective": "current step", "progress": "measured 0..100 or null", "giver": "or null", "where": "or null", "deadline": "in-world time or null", "reward": "or null", "category": "main|side|personal|party", "state": "active|completed|failed|abandoned|closed or null"}]');
     if (party) parts.push(party.json);
     const rel = relRequest(chat, userName, null, st);
@@ -11787,7 +11807,7 @@ function buildCompanionInstructionRead(committed, userName, locks, st = null, ch
     if (plotReq) s += '\n' + plotReq.rules;
     if (momReq) s += '\n' + momReq.rules;
     if (injReq) s += '\n' + injReq.rules;
-    if (trainNow.length && settings.hmsHudMath !== false) s += `\n"sessions": one row per skill on the HUD's Training line that this reply (time skips included) shows ${userName} completing focused days of practice on: "count" = how many full sessions (one focused day each) the story says or shows, "teacher" = true when a good teacher led them. Count what the story states ("twenty-four mornings" = 24); never estimate, never add the HUD's earlier total; [] when no session was completed.`;
+    if (trainNow.length && settings.hmsHudMath !== false && !sixNarratorContract(chatIdOf(chat))) s += `\n"sessions": one row per skill on the HUD's Training line that this reply (time skips included) shows ${userName} completing focused days of practice on: "count" = how many full sessions (one focused day each) the story says or shows, "teacher" = true when a good teacher led them. Count what the story states ("twenty-four mornings" = 24); never estimate, never add the HUD's earlier total; [] when no session was completed.`;
     if (simReq) {
         s += '\n' + simReq.rules;
         // the state itself: in its own message before the reply (or the preset's slot) — here when this is the
@@ -11847,6 +11867,7 @@ function botSidePanel(text) {
 async function hmsProcessContent(chatId, content, prevHud, generationType, committedBefore) {
     const st = await getChatState(chatId);
     const guard = { noHud: false, swapped: false, missing: [], restored: [], at: Date.now() };
+    const narratorOwns = sixNarratorContract(chatId);
     let out = String(content || '');
     let hud = parseHud(out);
     if (!hud) {
@@ -11860,14 +11881,14 @@ async function hmsProcessContent(chatId, content, prevHud, generationType, commi
         // ages and birth years the HUD already gave, kept steady (and growing with the calendar)
         try {
             const cal = hmsCalNow(hud);
-            if (cal && generationType !== 'continue') {
+            if (cal && !narratorOwns && generationType !== 'continue') {
                 const known = await hmsKnownAgesFor(chatId, st);
                 if (known.size) { const r = rewriteHud(out, items => applyAges(items, known, cal)); if (r.changed) { out = r.content; hud = r.hud || hud; guard.agesKept = true; } }
             }
         } catch (e) { logW(`[RPG Companion HMS] Age repair skipped: ${e?.message || e}`); }
         // Six-Sided upkeep: the HUD rules that are arithmetic or format, kept by code (Training, age, countdowns, labels…)
         try {
-            if (generationType !== 'continue' && (settings.hmsHudMath !== false || settings.hmsHudFormat !== false) && hud.lines.some(l => /^Armored Dragon Calendar:/i.test(hudSemanticText(String(l.text || ''))))) {
+            if (!narratorOwns && generationType !== 'continue' && (settings.hmsHudMath !== false || settings.hmsHudFormat !== false) && hud.lines.some(l => /^Armored Dragon Calendar:/i.test(hudSemanticText(String(l.text || ''))))) {
                 const cal = hmsCalNow(hud), pcal = prevHud ? hmsCalNow(prevHud) : null;
                 let chatNow = [];
                 try { chatNow = await chatApi.getMessages(chatId); } catch { chatNow = []; }
@@ -11884,7 +11905,7 @@ async function hmsProcessContent(chatId, content, prevHud, generationType, commi
         // exchange: injuries "Treated" in the last HUD, back to the old "Raw" text) keeps the last HUD's line. Only for
         // lines that carry state forward (Condition, Training, Equipment, Memory, Goals); never Time, Location or Present.
         try {
-            if (settings.hmsGuard && prevHud && generationType !== 'continue') {
+            if (!narratorOwns && settings.hmsGuard && prevHud && generationType !== 'continue') {
                 let chatNow = [];
                 try { chatNow = await chatApi.getMessages(chatId); } catch { chatNow = []; }
                 const older = [];
@@ -11897,14 +11918,14 @@ async function hmsProcessContent(chatId, content, prevHud, generationType, commi
                 }
             }
         } catch (e) { logW(`[RPG Companion HMS] Revert check skipped: ${e?.message || e}`); }
-        if (settings.hmsGuard && prevHud) {
+        if (!narratorOwns && settings.hmsGuard && prevHud) {
             if (isHudSwap(prevHud, hud)) guard.swapped = true;
             else guard.missing = diffHud(prevHud, hud).filter(m => !guard.restored.includes(m.key));
         }
     }
     const comp = parseCompanion(out, partyRoster(st), st, immActive(st) ? st.immersive : null);
     if (comp.found && comp.characters) enforceLocks(comp, committedBefore || {}, st.locks);
-    if (hud && Array.isArray(comp.sessions) && comp.sessions.length && settings.hmsHudMath !== false && generationType !== 'continue') {
+    if (!narratorOwns && hud && Array.isArray(comp.sessions) && comp.sessions.length && settings.hmsHudMath !== false && generationType !== 'continue') {
         try { const r = sixTrainingFromSessions(out, prevHud, comp.sessions); if (r) { out = r.content; hud = parseHud(out) || hud; guard.upkeep = [...(guard.upkeep || []), ...r.notes]; } }
         catch (e) { logW(`[RPG Companion HMS] Training count skipped: ${e?.message || e}`); }
     }
@@ -12602,12 +12623,10 @@ function hmsWoundTag(tag) {
 // A Condition entry tagged like a wound ("Cracked rib — Treated") is a wound; states stay conditions.
 const HMS_CONDITION_WOUND_RE = /^(.*\S)\s+[—–-]\s+(raw|untreated|treated|healing|bandaged|splinted|stitched)\b(?:[^,(]|\([^)]*\))*$/i;
 function hmsConditionParts(l) {
-    const text = hudSemanticText(l.text);
-    if (!/^\s*(?:[^\p{L}\p{N}\s]\s*)?conditions?\s*:/iu.test(text)) return null;
-    let body = hmsAfterLabel(text, text.match(/conditions?/i)[0]);
-    body = body.split(/\s+\|\s+(?=[^|:]{1,40}:)/)[0];
-    return hmsSplitTop(body, /,\s*/g);
+    const fields = hmsFieldsOf(l).filter(f => /^conditions?$/i.test(f.label || ''));
+    return fields.length ? fields.flatMap(f => hmsSplitTop(f.value || '', /,\s*/g)) : null;
 }
+
 function hmsReadWounds(hud) {
     const out = [];
     for (const l of hud.lines) {
@@ -12628,6 +12647,7 @@ function hmsReadWounds(hud) {
         for (const part of hmsSplitTop(body, /,\s*/g)) {
             const m = part.match(/^(.*\S)\s+[—–-]\s+(.+)$/);
             const name = (m ? m[1] : part).trim();
+            if (!name || /^(?:none|nothing|no injuries|uninjured|healthy|n\/a|[—–-])\.?$/i.test(name)) continue;
             const tag = m ? m[2].trim() : '';
             out.push({ name, tag, cls: hmsWoundTag(tag), text: part, key: lockKey(name) });
         }
@@ -12688,11 +12708,8 @@ function hmsReadConditions(hud, cfg) {
     }
     for (const l of hud.lines) {
         if (l.block === 'fence' || l.party) continue;
-        const text = hudSemanticText(l.text);
-        if (!/^\s*(?:[^\p{L}\p{N}\s]\s*)?conditions?\s*:/iu.test(text)) continue;
-        let body = hmsAfterLabel(text, text.match(/conditions?/i)[0]);
-        body = body.split(/\s+\|\s+(?=[^|:]{1,40}:)/)[0];
-        for (const part of hmsSplitTop(body, /,\s*/g)) {
+        for (const part of hmsConditionParts(l) || []) {
+            if (!part || /^(?:none|nothing|n\/a|[—–-])\.?$/i.test(part.trim())) continue;
             if (HMS_CONDITION_WOUND_RE.test(part)) continue;            // a wound: read by hmsReadWounds
             const pm = part.match(/^(.*?)\s*\((.*)\)\s*$/);
             let name = (pm ? pm[1] : part).trim();
@@ -12737,7 +12754,7 @@ function hmsReadFlags(hud, cfg) {
     const out = [];
     for (const l of hud.lines) {
         if (l.block === 'fence' || l.party) continue;
-        const mm = l.text.trim().match(/^\[([^\]:|]{2,40}?)\s*:\s*(.*)\]$/);
+        const mm = hudSemanticText(l.text).match(/^\[([^\]:|]{2,40}?)\s*:\s*(.*)\]$/);
         // A bracket line whose tag is a mind name ([MENTAL COUNCIL: Echidna (Greed), …]) lists who
         // lives in the mind; each one shows under Mind.
         if (mm && !/^(STATUS|WARNING)$/i.test(mm[1].trim()) && mindNames.includes(mm[1].trim().toLowerCase())) {
@@ -12748,7 +12765,7 @@ function hmsReadFlags(hud, cfg) {
             }
             continue;
         }
-        const m = l.text.trim().match(/^\[(STATUS|WARNING)\s*:\s*(.*)\]$/i);
+        const m = hudSemanticText(l.text).match(/^\[(STATUS|WARNING)\s*:\s*(.*)\]$/i);
         if (!m) continue;
         for (const part of hmsSplitTop(m[2], /,\s*/g)) {
             const pm = part.match(/^(.*?)\s*\((.*)\)\s*$/);
@@ -20090,6 +20107,7 @@ function hmsNamedPerson(name) { return !!name && /^\p{Lu}/u.test(name) && !HMS_R
 /** Things worth a look, shown on the World State card. Each check only reports; nothing is changed. */
 function hmsChecks(chat, st, gear, userName = null, chatId = null) {
     const out = [];
+    if (sixNarratorContract(chatId || chatIdOf(chat))) return out;
     const tl = hmsTimeline(chat);
     const last = tl.length ? tl[tl.length - 1] : null;
     if (!last) return out;
@@ -20186,6 +20204,7 @@ function hmsTrainingChecks(tl) {
  *  Read-only. The first four become narrator reminders; the last is a warning only (counting sessions is the card's rule). */
 function hmsHudSync(chat, st, userName) {
     const out = [];
+    if (sixNarratorContract(chatIdOf(chat))) return out;
     const tl = hmsTimeline(chat);
     const last = tl.length ? tl[tl.length - 1] : null;
     if (!last) return out;
@@ -20570,7 +20589,8 @@ function sixUpkeep(items, ctx) {
 }
 
 /** The Training line set from the sessions the reporter counted: the last HUD's number plus those (math only). */
-function sixTrainingFromSessions(content, prevHud, sessions) {
+function sixTrainingFromSessions(content, prevHud, sessions, chatId = null) {
+    if (sixNarratorContract(chatId)) return null;
     const hud = parseHud(content);
     if (!hud || !prevHud) return null;
     const cal = hmsCalNow(hud), pcal = hmsCalNow(prevHud);
@@ -20582,6 +20602,7 @@ function sixTrainingFromSessions(content, prevHud, sessions) {
 /** Card-rule warnings for Worth a look: things only the story can fix. Six-Sided HUDs only. */
 function hmsCardRuleChecks(chat, tl, userName, chatId = null) {
     const out = [];
+    if (sixNarratorContract(chatId || chatIdOf(chat))) return out;
     const last = tl.length ? tl[tl.length - 1] : null;
     if (!last) return out;
     const lines = last.hud.lines.filter(l => !l.block).map(l => hudSemanticText(String(l.text || '')));
@@ -20774,8 +20795,9 @@ function hudKeepNote(chat) {
 }
 function hmsStoryReminders(chat, st, userName) {
     const parts = [], names = [];
+    const narratorOwns = sixNarratorContract(chatIdOf(chat));
     try { const hf = handFixesNote(chat, st, userName); if (hf) { parts.push(hf); names.push('your corrections'); } } catch { /* optional */ }
-    try { if (settings.hmsGuard) { const hk = hudKeepNote(chat); if (hk) { parts.push(hk); names.push('HUD lines to carry'); } } } catch { /* optional */ }
+    try { if (!narratorOwns && settings.hmsGuard) { const hk = hudKeepNote(chat); if (hk) { parts.push(hk); names.push('HUD lines to carry'); } } } catch { /* optional */ }
     let gear = null, agenda = null;
     try { gear = gearCfg(hmsCfg()).on ? hmsGearPanel(chat, st) : null; } catch { gear = null; }
     try { agenda = agendaCfg().on ? hmsAgendaPanel(chat, st) : null; } catch { agenda = null; }
@@ -20784,8 +20806,8 @@ function hmsStoryReminders(chat, st, userName) {
         parts.push(`[RPG Companion: what ${userName} has]\nThe last HUD's Equipment line still lists ${stale.map(x => x.where ? `${x.name} (${x.where})` : x.name).join('; ')}, but the story has ${stale.length === 1 ? 'it' : 'them'} away from ${userName}. ${userName} does not have ${stale.length === 1 ? 'it' : 'them'} now: write the Equipment line without ${stale.length === 1 ? 'it' : 'them'}, and do not narrate ${stale.length === 1 ? 'it' : 'them'} as in hand, until the story gives ${stale.length === 1 ? 'it' : 'them'} back.`);
         names.push('what you have');
     }
-    // a named person on the Present line with no age or birth year: the card fixes both on first appearance
-    try {
+    // Legacy cards require an assigned birth year; the current contract preserves unknown precision.
+    try { if (!narratorOwns) {
         const tl = hmsTimeline(chat), last = tl.length ? tl[tl.length - 1] : null;
         const known = hmsKnownBirths(tl);
         const keep = last ? hmsPresentPeople(last.hud).filter(p => hmsNamedPerson(p.name) && p.born === null && known.first.has(lockKey(p.name))) : [];
@@ -20795,7 +20817,7 @@ function hmsStoryReminders(chat, st, userName) {
             parts.push(`[RPG Companion: ages]\n${missing.join(', ')} ${missing.length === 1 ? 'has' : 'have'} no ${missing.some(n => { const x = hmsPresentPeople(last.hud).find(p => p.name === n); return x && x.age === null; }) ? 'age or ' : ''}birth year on the Present line. Fix ${missing.length === 1 ? 'one' : 'them'} now as the card's age rule says ("Name (age, b. K###)"), fitting what the story has shown, and keep ${missing.length === 1 ? 'it' : 'them'} the same from here on.`);
             names.push('ages');
         }
-    } catch { /* optional */ }
+    } } catch { /* optional */ }
     try {
         const sync = hmsHudSync(chat, st, userName).filter(x => x.auto && x.tell);
         if (sync.length) { parts.push(`[RPG Companion: keep the HUD with the story]\n${sync.map(x => `- ${x.tell}`).join('\n')}`); names.push('HUD in step'); }
@@ -20816,7 +20838,7 @@ function hmsStoryReminders(chat, st, userName) {
         const open = agenda ? agenda.items.filter(x => x.state === 'open' || x.state === 'in_progress').slice(0, 8) : [];
         const away = gear && Array.isArray(gear.gone) ? gear.gone.filter(x => x.owned).slice(0, 6) : [];
         let bdays = [];
-        try { bdays = hmsBirthdays(chat, st, userName).filter(b => b.inMonths !== null && b.inMonths <= 12).slice(0, 6); } catch { bdays = []; }
+        try { bdays = narratorOwns ? [] : hmsBirthdays(chat, st, userName).filter(b => b.inMonths !== null && b.inMonths <= 12).slice(0, 6); } catch { bdays = []; }
         const lines = [
             ...open.map(x => `- ${x.what}${x.with ? ` (with ${x.with})` : ''}${x.when ? `: ${x.when}` : ''}${x.status === 'ongoing' ? ' (ongoing: it runs on through the skip; keep it open until it ends)' : ''}`),
             ...away.map(x => `- ${x.name}: ${x.where || 'left somewhere'}`),

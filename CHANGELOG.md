@@ -1,5 +1,19 @@
 # Changelog — RPG Companion HMS Edition
 
+## 1.5.0 RC — paired Six-Sided compatibility
+
+- Ships the supplied separate character card and standalone lorebook, with a shared
+  contract that preserves narrator-owned state, progression and conditional events.
+- Keeps legacy upkeep and speculative rule reminders out of this contract; explicit
+  user pins, existing tracking, persistence and other cards remain supported.
+- Reads joined Condition fields, multiple eyes/marks, bare and SS guild ranks, and
+  Visual ending flags. An explicit empty injury is no longer shown as a wound.
+- Respects disabled ST entries and marks the paired book's scoped regex entries as
+  host-owned for supplemental narrator injection; activation keys are unchanged.
+- Adds paired-artifact regressions, per-entry inventory and installable packaging.
+- No additional model calls, polling or stored-state schema changes. Live acceptance
+  remains pending; this is not labeled stable.
+
 ## 1.4.0 RC (in development, branch `release/1.4.0`, built on 1.3.0)
 
 **The deck: a new look for the whole panel.** Everything below is display only. The Companion reads what it already has; there are no new tracker fields, no extra model calls and no change to what the story is sent.
