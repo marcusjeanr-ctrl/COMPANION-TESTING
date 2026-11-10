@@ -9114,6 +9114,10 @@ export function setup(ctx) {
                 w.eddies !== null ? h('div', { class: 'rpgc-wstat' }, h('b', null, `\u20AC$ ${fmtNum(w.eddies)}`), h('span', null, w.eddiesBand || T('eddies')), w.eddiesDelta ? h('i', { class: 'd ' + (w.eddiesDelta > 0 ? 'up' : 'down') }, signed(w.eddiesDelta)) : null) : null,
                 w.cred !== null ? h('div', { class: 'rpgc-wstat' }, h('b', null, String(w.cred)), h('span', null, w.reputation || T('street cred')), w.credDelta ? h('i', { class: 'd ' + (w.credDelta > 0 ? 'up' : 'down') }, signed(w.credDelta)) : null) : null,
                 w.net ? h('div', { class: 'rpgc-wstat' }, h('b', null, String(w.net.level)), h('span', null, T('net level'))) : null));
+            if (w.level) out.push(wRow(T('Level'), chip(`${w.level.value}/${w.level.max}`), w.level.xp !== null ? chip(`XP: ${w.level.xp}%`) : null,
+                w.level.attributePoints !== null ? chip(`Attribute Points: ${w.level.attributePoints}`) : null, w.level.perkPoints !== null ? chip(`Perk Points: ${w.level.perkPoints}`) : null));
+            if (w.vitals) out.push(wRow(T('Vitals'), w.vitals.hp ? chip(`HP ${w.vitals.hp.current}/${w.vitals.hp.max}`) : null,
+                w.vitals.armor !== null ? chip(`Armor ${w.vitals.armor}`) : null, w.vitals.ram ? chip(`RAM ${w.vitals.ram.current}/${w.vitals.ram.max}`) : null));
             if (w.humanity !== null) { const pct = Math.round(w.humanity / Math.max(1, w.humanityMax || 100) * 100);
                 out.push(h('div', { class: 'rpgc-wrow' }, h('span', { class: 'lbl' }, T('Humanity')), levelBar(pct, pct < 30 ? 'critical' : pct < 70 ? 'low' : 'ok'), h('span', { class: 'val' }, `${w.humanity}/${w.humanityMax || 100} \u00B7 ${w.psyche || ''}${w.humanityDelta ? ' (' + signed(w.humanityDelta) + ')' : ''}`))); }
             if (w.heat && w.heat.level) out.push(h('div', { class: 'rpgc-wrow' }, h('span', { class: 'lbl' }, T('Heat')), ladderBar(w.heat.level - 1, 5), h('span', { class: 'val' }, `${w.heat.level}/5${w.heat.who ? ' \u00B7 ' + w.heat.who : ''}${w.heat.level >= 5 ? ' \u00B7 MaxTac' : ''}`)));
@@ -9125,23 +9129,35 @@ export function setup(ctx) {
                 ...w.attributes.map(a => h('div', { class: 'rpgc-cp-attr' + (a.delta > 0 ? ' up' : a.delta < 0 ? ' down' : ''), role: 'listitem', title: a.value >= 20 ? T('master') : a.value >= 15 ? T('expert') : a.value >= 9 ? T('practised') : a.value >= 4 ? T('apprentice') : T('untrained') },
                     h('b', null, String(a.value), a.delta ? h('i', null, a.delta > 0 ? ' \u25B2' : ' \u25BC') : null), h('span', null, a.name === 'Technical Ability' ? T('Tech') : T(a.name))))));
             if (w.build && (w.build.strengths.length || w.build.weak)) out.push(wRow(T('Build'), ...w.build.strengths.map(x => chip(x)), w.build.weak ? chip(TT('Weak: {0}', w.build.weak), 'hot') : null));
-            if (Array.isArray(w.perks) && w.perks.length) out.push(wRow(T('Perks'), ...w.perks.map(p => h('span', { class: 'rpgc-chip' + (p.isNew || p.levelUp ? ' new' : ''), title: p.lore || '' },
-                p.isNew ? '\u2728 ' : '', p.name, p.level ? h('b', { class: 'tier' }, ` L${p.level}`) : null, p.levelUp ? ' \u25B2' : null))));
+            if (Array.isArray(w.perks) && w.perks.length) {
+                const groups = new Map();
+                for (const p of w.perks) { const key = p.attribute || ''; if (!groups.has(key)) groups.set(key, []); groups.get(key).push(p); }
+                for (const [attribute, perks] of groups) out.push(wRow(attribute ? `${attribute} Perks` : T('Perks'), ...perks.map(p => h('span', { class: 'rpgc-chip' + (p.isNew || p.levelUp ? ' new' : ''), title: p.lore || '' },
+                    p.isNew ? '\u2728 ' : '', p.name, p.level ? h('b', { class: 'tier' }, ` L${p.level}`) : null, p.levelUp ? ' \u25B2' : null))));
+            }
+            if (w.perkSummary) out.push(wRow(T('Perks'), chip(String(w.perkSummary.total)), ...w.perkSummary.groups.map(g => chip(`${g.attribute}: ${g.count}`))));
+            if (w.relic) out.push(wRow(T('Relic'), ...w.relic.perks.map(p => h('span', { class: 'rpgc-chip', title: p.lore || '' }, p.name)), chip(`Relic Points: ${w.relic.points}`)));
+            if (Array.isArray(w.arsenal) && w.arsenal.length) out.push(wRow(T('Arsenal'), ...w.arsenal.map(item => h('span', { class: 'rpgc-chip', title: item.lore || '' }, item.name, item.tier ? h('b', { class: 'tier' }, ' ' + item.tier) : null))));
+            if (w.goal) out.push(wRow(T('Goal'), w.goal));
+            if (w.condition) out.push(wRow(T('Condition'), w.condition));
             if (w.arc) out.push(wRow(T('Arc'), w.arc.code ? chip(w.arc.code) : null, h('span', null, w.arc.title)));
             if (w.faction) out.push(wRow(T('Faction'), h('b', null, w.faction.name), w.faction.rank ? chip(w.faction.rank) : null));
             if (w.passenger) out.push(h('div', { class: 'rpgc-wrow' }, h('span', { class: 'lbl' }, T('Passenger')), levelBar(w.passenger.pct, w.passenger.pct >= 60 ? 'critical' : w.passenger.pct >= 25 ? 'low' : 'ok'), h('span', { class: 'val' }, `${w.passenger.name} \u00B7 ${w.passenger.pct}% \u00B7 ${w.passenger.stage}${w.passenger.delta ? ' (' + signed(w.passenger.delta) + ')' : ''}`)));
             if (w.cyberware.length) out.push(h('div', { class: 'rpgc-set' }, h('h4', null, `${T('Cyberware')} \u00B7 ${w.cyberware.length}`),
                 h('div', { class: 'rpgc-chiprow' }, ...w.cyberware.map(c => h('span', { class: 'rpgc-chip' + (c.isNew || c.tierUp ? ' new' : ''), title: c.lore || '' }, c.isNew ? '\u2728 ' + c.name : c.name,
-                    c.tier ? h('b', { class: 'tier' }, ' ' + c.tier) : null, c.tierUp ? ' \u25B2' : null))),
+                    c.tier ? h('b', { class: 'tier' }, ' ' + c.tier) : null, c.tierUp ? ' \u25B2' : null, c.system ? ' · ' + c.system : null))),
                 w.net && w.net.deck ? h('p', { class: 'rpgc-note' }, `${T('Deck')}: ${w.net.deck}`) : null));
             else if (w.net && w.net.deck) out.push(wRow(T('Deck'), w.net.deck));
             if (w.bonds.length) out.push(wRow(T('Bonds'), ...w.bonds.map(b => chip(b.stage ? `${b.name} \u00B7 ${b.stage}` : b.name, b.rank >= 0 && b.rank <= 2 ? 'hot' : b.rank >= 5 ? 'ok' : ''))));
-            if (w.next) out.push(h('p', { class: 'rpgc-note' }, '\u23F3 ', h('b', null, w.next.event), ` \u2014 ${w.next.inText}${w.next.when ? ' (' + w.next.when + ')' : ''}`));
+            for (const clock of (w.clocks || (w.next ? [w.next] : []))) out.push(h('p', { class: 'rpgc-note' }, clock.label + ': ', h('b', null, clock.event), ` — ${clock.inText}${clock.when ? ' (' + clock.when + ')' : ''}`));
+            if (w.canonReference) out.push(wRow(T('Canon reference'), w.canonReference));
+            for (const entry of (w.canonLedger || [])) out.push(wRow(T('Canon Ledger'), entry));
+            for (const entry of (w.backOnCanon || [])) out.push(wRow(T('Back on canon'), entry));
             if (w.changes.length || w.checkpoints.length || w.changed.length) out.push(h('div', { class: 'rpgc-set' }, h('h4', null, T('Changes to canon')),
                 ...w.changes.map(c => h('div', { class: 'rpgc-wrow' }, h('span', { class: 'lbl' }, c.text), c.goal ? ladderBar(Math.max(0, c.done - 1), c.goal) : null, h('span', { class: 'val' }, c.goal ? `${c.done}/${c.goal}` : ''))),
                 ...w.checkpoints.map(c => h('p', { class: 'rpgc-note' }, '\u26A0\uFE0F ', h('b', null, c.what), ` \u2014 by ${c.by}${c.inText ? ', in ' + c.inText : ''}`)),
                 ...w.changed.map(c => h('p', { class: 'rpgc-note' }, '\u274C ', c))));
-            if (w.mode && w.mode.canon) out.push(h('p', { class: 'rpgc-note' }, `${T('Canon')}: ${w.mode.canon}${w.mode.guide ? ' \u00B7 ' + T('Guide') + ': ' + w.mode.guide : ''}`));
+            if (w.mode && w.mode.canon) out.push(h('p', { class: 'rpgc-note' }, `${T('Canon')}: ${w.mode.canon}${w.mode.guide ? ' \u00B7 ' + T('Guide') + ': ' + w.mode.guide : ''}${w.mode.leveling ? ' · Leveling: ' + w.mode.leveling : ''}${w.mode.branchRun ? ' · Branch Run' : ''}`));
         } else if (w.id === 'skyrim') {
             out.push(h('div', { class: 'rpgc-wgrid' },
                 w.level !== null ? h('div', { class: 'rpgc-wstat' }, h('b', null, String(w.level)), h('span', null, 'level')) : null,
