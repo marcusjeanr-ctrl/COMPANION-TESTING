@@ -31,6 +31,15 @@
 **HUD**
 - **A line copied back from an old HUD** (injuries back to "Raw" after an OOC exchange, when the last HUD said "Treated") keeps the last HUD's line. Only for lines that carry state (Condition, Training, Equipment, Memory, Goals, Active Paths); never Time, Location or Present, and a new wording is always kept.
 
+**Cyberpunk: Living World V1.8**
+- **Visual HUD fixed.** The Visual style frames the whole HUD in two `━━━` rules, and the Companion took that frame for a sub-block, so the clock, survival and wound timing went blank. A rule pair that opens the HUD is now read as a frame.
+- **Level and XP agree with the HUD.** `XP: 40%` and `XP: Max` are read, so the You panel shows the HUD's Level and XP instead of its own separate count (which could also nudge the narrator about a level-up the card never gave). `Net Level 3` is no longer mistaken for your level.
+- **Vitals.** `Vitals: HP 120/190 | Armor 6 | RAM 3/7` now feeds the HP and RAM bars.
+- **New lines.** `TT Coverage: Silver / Gold / Platinum` shows on the world card; `| Capri Compatible` on the Game Mode line; Changes marked `(done)` or `(goal)`; `XP: Max` at Level 60.
+- **No more asking for cleared lines back.** When Heat cooled to 0 and its line left, the "HUD lines to carry" note told the narrator to put it back. Lines a card removes by its own rule (Heat, a healed Condition, a checkpoint or "Back on canon" shown once, Compact's Cyberware between changes) are no longer asked back; a line the narrator really dropped still is. This applies to every card.
+- **Compact:** a new implant is marked ✨ on the turn the Cyberware line returns. `HUD: Compact` written on a start line among commas is recognised.
+- Role and Lifepath aren't repeated in Abilities; perk hover text no longer repeats the perk's name; long chips (a Build's weak spot) wrap as one piece.
+
 **Six-Sided World 2 (the overhauled card)**
 - **The lorebook is separate now.** The card no longer carries its lore; the *Mushoku Tensei Standalone Lorebook* does. The Companion reads lore from whatever books the chat has active, so link that lorebook to the character (or the chat) and everything works as before. If a new-format chat has no Mushoku lore active, *Worth a look* says so.
 - **Its HUD is kept as it is.** The HUD tidy-up was written for the older card and renamed the new lines: `Current Arc` → `Era / Arc`, `Injuries: … | Condition: …` → two Condition fields, `Inventory` → a second Equipment line, and put lines back in the old order. The narrator copies the tidied HUD forward, so the HUD would have drifted further every reply. The new HUD now keeps its labels and its own order; real drift (`Era / Arc`, `Battle Aura:`, lines out of place, you on Present) is still fixed. The older card is unchanged.

@@ -3941,7 +3941,8 @@ function hudCardHtml(hud, rawHud, cfg = chatDisplayCfg()) {
 function hudStyleFor(chat) {
     // The player's start command or a later switch ("HUD: Panel" on its own line, or among other settings
     // as "Canon: Living | HUD: Panel"), else the style the latest HUD itself reports on its Game Mode line.
-    const STYLE_RE = /\[\s*HUD\s*=\s*(CLASSIC|VISUAL|COMPACT|PANEL|CARD)\s*\]|(?:^|\|)[ \t]*HUD:\s*(Classic|Visual|Compact|Panel|Card)\b/gim;
+    // a start line lists its choices with commas too ("start at arc 5-B, Role: Solo, HUD: Compact", Cyberpunk)
+    const STYLE_RE = /\[\s*HUD\s*=\s*(CLASSIC|VISUAL|COMPACT|PANEL|CARD)\s*\]|(?:^|[|,])[ \t]*HUD:\s*(Classic|Visual|Compact|Panel|Card)\b/gim;
     let fromHud = null;
     for (let i = (chat || []).length - 1; i >= 0; i--) {
         const m = chat[i];
@@ -9892,7 +9893,7 @@ const WORLD_COVERS = {
     undertale: ['SOUL', 'ROUTE', 'KILLS', 'WEAPON', 'ARMOR'],
     darksouls: ['COVENANT', 'HUMANITY', 'FORM', 'HOLLOWING', 'WEAPON'],
     skyrim: ['SHOUTS', 'SHOUT', 'SKILLS', 'STANDING STONE', 'FACTIONS', 'AFFLICTION', 'RACE', 'PERKS', 'PERK'],
-    cyberpunk: ['CYBERWARE', 'NETRUNNING', 'PASSENGER', 'HEAT', 'STREET CRED', 'HUMANITY', 'IDENTITY', 'FACTION', 'BONDS', 'CHANGES', 'GAME MODE', 'BUILD', 'ATTRIBUTES', 'PERKS', 'PERK', 'BODY PERKS', 'REFLEXES PERKS', 'TECHNICAL PERKS', 'INTELLIGENCE PERKS', 'COOL PERKS', 'RELIC', 'ARSENAL', 'LEVEL', 'VITALS', 'GOAL'],
+    cyberpunk: ['CYBERWARE', 'NETRUNNING', 'PASSENGER', 'HEAT', 'STREET CRED', 'HUMANITY', 'IDENTITY', 'FACTION', 'BONDS', 'CHANGES', 'GAME MODE', 'BUILD', 'ATTRIBUTES', 'PERKS', 'PERK', 'BODY PERKS', 'REFLEXES PERKS', 'TECHNICAL PERKS', 'INTELLIGENCE PERKS', 'COOL PERKS', 'RELIC', 'ARSENAL', 'LEVEL', 'VITALS', 'GOAL', 'TT COVERAGE', 'ROLE', 'LIFEPATH'],
     bg3: ['TADPOLE', 'POWERS', 'CALL', 'RESOURCES', 'PACT', 'URGE', 'ROMANCE', 'CAMP', 'COUNTDOWN', 'NEXT CANON EVENT', 'STATS']
 };
 
@@ -10017,6 +10018,8 @@ function worldCyberpunk(chatId, lines, prevLines) {
     const mode = modeL ? { canon: (modeL[1].match(/Canon:\s*([^|]+)/i) || [])[1]?.trim() || null, guide: (modeL[1].match(/Guide:\s*([^|]+)/i) || [])[1]?.trim() || null } : null;
     if (mode) mode.branchRun = /(?:^|\|)\s*Branch Run\s*$/i.test(modeL[1]);
     if (mode) mode.leveling = (modeL[1].match(/Leveling:\s*([^|]+)/i) || [])[1]?.trim() || null;
+    // V1.8: "| Capri Compatible" closes the Game Mode line for a body that can host Capri (start-only)
+    if (mode) mode.capri = /(?:^|\|)\s*Capri Compatible\s*(?:\||$)/i.test(modeL[1]);
     const cwL = f(/^Cyberware:\s*(.+)$/i), cwP = pf(/^Cyberware:\s*(.+)$/i);
     const split = v => String(v || '').split(/\s*,\s*(?![^()]*\))/).map(x => x.trim()).filter(Boolean);
     // V1.4: each implant prints its tier, "Mantis Blades (T3)"; a raised tier is surgery worth showing
@@ -10058,7 +10061,8 @@ function worldCyberpunk(chatId, lines, prevLines) {
     const perks = perksNow.map(p => { const q = perksPrev.find(x => x.name.toLowerCase() === p.name.toLowerCase()); return { ...p, isNew: perksKnownBefore && !q, levelUp: !!(q && p.level && q.level && p.level > q.level), lore: worldLore(chatId, p.name) }; });
     const levelL = f(/^Level:\s*(\d+)\s*\/\s*(\d+)(.*)$/i);
     const numberField = (text, re) => { const m = String(text || '').match(re); return m ? Number(m[1]) : null; };
-    const level = levelL ? { value: Number(levelL[1]), max: Number(levelL[2]), xp: numberField(levelL[3], /\bXP:\s*(\d+(?:\.\d+)?)\s*%/i), attributePoints: numberField(levelL[3], /Attribute Points:\s*(\d+)/i), perkPoints: numberField(levelL[3], /Perk Points:\s*(\d+)/i) } : null;
+    // V1.8: at Level 60 the field reads "XP: Max"
+    const level = levelL ? { value: Number(levelL[1]), max: Number(levelL[2]), xp: /\bXP:\s*Max\b/i.test(levelL[3]) ? 100 : numberField(levelL[3], /\bXP:\s*(\d+(?:\.\d+)?)\s*%/i), xpMax: /\bXP:\s*Max\b/i.test(levelL[3]), attributePoints: numberField(levelL[3], /Attribute Points:\s*(\d+)/i), perkPoints: numberField(levelL[3], /Perk Points:\s*(\d+)/i) } : null;
     const vitalsL = f(/^Vitals:\s*(.+)$/i);
     const resource = label => { const m = vitalsL && vitalsL[1].match(new RegExp('\\b' + label + '\\s+(\\d+)\\s*\\/\\s*(\\d+)', 'i')); return m ? { current: Number(m[1]), max: Number(m[2]) } : null; };
     const vitals = vitalsL ? { hp: resource('HP'), armor: numberField(vitalsL[1], /\bArmor\s+(\d+)/i), ram: resource('RAM') } : null;
@@ -10067,6 +10071,9 @@ function worldCyberpunk(chatId, lines, prevLines) {
     const arsenalL = f(/^Arsenal:\s*(.+)$/i);
     const arsenal = arsenalL ? split(arsenalL[1]).map(x => { const item = cwTier(x); return { name: item.name, tier: item.tier, lore: worldLore(chatId, item.name) }; }) : [];
     const goal = (f(/^Goal:\s*(.+)$/i) || [])[1]?.trim() || null;
+    // V1.8: "TT Coverage: Gold" — the Trauma Team plan (Silver → Gold → Platinum); a plan's note may follow
+    const ttL = f(/^TT Coverage:\s*(Silver|Gold|Platinum)\b\s*(.*)$/i);
+    const tt = ttL ? { plan: ttL[1][0].toUpperCase() + ttL[1].slice(1).toLowerCase(), note: ttL[2].replace(/^[\s(·|—–-]+|[\s)]+$/g, '') || null } : null;
     const condition = (f(/^Condition:\s*(.+)$/i) || [])[1]?.trim() || null;
     const netL = f(/^Netrunning:\s*Net Level\s*(\d+)(?:\s*\|\s*Deck:\s*(.+))?$/i);
     const facL = f(/^Faction:\s*(.+?)\s*(?:\(([^)]+)\))?\s*$/i);
@@ -10082,7 +10089,9 @@ function worldCyberpunk(chatId, lines, prevLines) {
     const bondsL = f(/^Bonds:\s*(.+)$/i);
     const bonds = bondsL ? split(bondsL[1]).map(x => { const m = x.match(/^(.+?)\s*\(([^)]+)\)$/); return m ? { name: m[1].trim(), stage: m[2].trim(), rank: CP_BOND.findIndex(b => b.toLowerCase() === m[2].trim().toLowerCase()) } : { name: x, stage: null, rank: -1 }; }) : [];
     const chL = f(/^Changes?:\s*(.+)$/i);
-    const changes = chL ? split(chL[1]).map(x => { const m = x.match(/^(.+?)\s*\((\d+)\s*\/\s*(\d+)\)$/); return m ? { text: m[1].trim(), done: Number(m[2]), goal: Number(m[3]) } : { text: x, done: null, goal: null }; }) : [];
+    // V1.8 marks each change "(done)" (already true at the start) or "(goal)" (still to make happen)
+    const changes = chL ? split(chL[1]).map(x => { const m = x.match(/^(.+?)\s*\((\d+)\s*\/\s*(\d+)\)$/); if (m) return { text: m[1].trim(), done: Number(m[2]), goal: Number(m[3]) };
+        const st = x.match(/^(.+?)\s*\((done|goal)\)\s*$/i); return st ? { text: st[1].trim(), done: null, goal: null, status: st[2].toLowerCase() } : { text: x, done: null, goal: null }; }) : [];
     const checkpoints = worldAll(lines, /^(?:⚠️\s*)?Checkpoint:\s*(.+?)\s+by\s+(.+?)(?:\s+\(([^)]+)\))?\s*(?:[—–-]\s*in\s+(.+))?$/i).map(m => ({ what: m[1].trim(), by: m[2].trim(), arc: m[3] ? m[3].trim() : null, inText: m[4] ? m[4].trim() : null }));
     const changed = worldAll(lines, /^(?:❌\s*)?Canon changed:\s*(.+)$/i).map(m => m[1].trim());
     const clocks = worldAll(lines, /^(?:⏳|⚠️)?\s*(Next Canon Event|Next Turning Point|Canon Begins|World event):\s*(.+?)\s*[—–-]\s*in\s+([^()]+?)\s*(?:\(([^)]+)\))?\s*$/i).map(m => ({ label: m[1], event: m[2].trim(), inText: m[3].trim(), when: m[4] ? m[4].trim() : null }));
@@ -10096,7 +10105,7 @@ function worldCyberpunk(chatId, lines, prevLines) {
         identity, arc: arcL ? (arcL.length > 3 && arcL[3] ? { code: `${arcL[1]}-${arcL[2]}`, title: arcL[3].trim() } : { code: null, title: arcL[1].trim() }) : null, mode,
         cyberware: cyberware.map(x => { const c = cwTier(x); const pt = cwPrev.get(c.name.toLowerCase());
             return { name: c.name, tier: c.tier, system: c.system, isNew: cwP ? !cwBefore.has(c.name.toLowerCase()) : false, tierUp: !!(cwP && pt && c.tier && tierN(c.tier) > tierN(pt)), lore: worldLore(chatId, c.name.replace(/["“”]/g, '').replace(/\s+/g, ' ')) || worldLore(chatId, c.name) }; }),
-        build, attributes, perks, perkSummary, level, vitals, relic, arsenal, goal, condition, clocks, backOnCanon,
+        build, attributes, perks, perkSummary, level, vitals, relic, arsenal, goal, condition, clocks, backOnCanon, tt,
         net: netL ? { level: Number(netL[1]), deck: netL[2] ? netL[2].trim() : null } : null,
         faction: facL ? { name: facL[1].trim(), rank: facL[2] ? facL[2].trim() : null } : null,
         heat, passenger: passL ? { name: passL[1].trim(), pct: ow, stage: passL[3] ? passL[3].trim() : band(ow, CP_PASSENGER), delta: delta(ow, passP ? Number(passP[1]) : null) } : null,
@@ -10417,6 +10426,7 @@ function worldLore(chatId, name) {
     let src = best.e.content.replace(/^\s*\*{0,2}\[[A-Z][^\]]*\]\s*/, '');
     const ov = src.match(/\bOVERVIEW:\s*([\s\S]+?)(?:\n[A-Z][A-Z /&-]{2,}:|$)/);
     if (ov) src = ov[1];
+    src = src.replace(/^\s*[^\n(]{2,60}\((?:Perk|Relic Perk)\)\s*/i, '');   // "Slippery (Perk) In-game: …" (Cyberpunk V1.8)
     const text = src.replace(/^#+\s.*$/m, '').replace(/\*\*/g, '').replace(/\s+/g, ' ').trim();
     return text.length > 280 ? text.slice(0, 277).replace(/\s+\S*$/, '') + '\u2026' : text;
 }
@@ -11051,7 +11061,9 @@ function worldPanel(chatId, chat, st) {
         // 1.4.0: the Compact HUD style prints Cyberware only on the turn it changes; the last printed line still holds
         const CW = /^\s*(?:\S+\s+)?\**Cyberware:/i;
         let cwLines = lines, cwPrev = prevLines;
-        if (!lines.some(l => CW.test(l))) {
+        const curHas = lines.some(l => CW.test(l)), prevHas = !!(cwPrev && cwPrev.some(l => CW.test(l)));
+        // …and the turn it changes is compared with the last line printed before it, so a new implant is marked new
+        if (!curHas || (cwPrev && !prevHas)) {
             let found = null;
             for (let i = chat.length - 1, n = 0; i >= 0 && n < 60 && !found; i--) {
                 const m = chat[i];
@@ -11059,7 +11071,7 @@ function worldPanel(chatId, chat, st) {
                 const h = messageHud(m); if (!h) continue; n++;
                 found = worldLines(h).find(l => CW.test(l)) || null;
             }
-            if (found) { cwLines = [...lines, found]; if (cwPrev && !cwPrev.some(l => CW.test(l))) cwPrev = [...cwPrev, found]; }
+            if (found) { if (!curHas) cwLines = [...lines, found]; if (cwPrev && !prevHas) cwPrev = [...cwPrev, found]; }
         }
         Object.assign(out, worldCyberpunk(chatId, cwLines, cwPrev));
     }
@@ -12282,15 +12294,16 @@ function hmsPanelStateRead(chatId, chat, st) {
     if (g) {
         const curKeys = new Set(hud ? hud.lines.map(l => l.key) : []);
         const cfg = hmsCfg();
+        let style = null; try { style = hudStyleFor(chat); } catch { style = null; }
         guard = {
             noHud: !!g.noHud && !hud,
             swapped: !!g.swapped,
             // Carrier lines are the ones whose printed text keeps a lorebook entry loaded.
             missing: (g.missing || []).filter(x => !curKeys.has(x.key)).map(x => ({ ...x, carrier: hmsIsCarrier(x.key, cfg) }))
-                .filter(x => x.carrier || !hmsIsSelfClearing(x.key, cfg))
+                .filter(x => x.carrier || !hmsLeavesOnItsOwn(x.key, cfg, style))
                 .sort((a, b) => (b.carrier ? 1 : 0) - (a.carrier ? 1 : 0)),
-            // Injuries healed, a condition passed, an exam resolved: gone by the engine's own rules.
-            cleared: (g.missing || []).filter(x => !curKeys.has(x.key) && !hmsIsCarrier(x.key, cfg) && hmsIsSelfClearing(x.key, cfg)),
+            // Injuries healed, a condition passed, an exam resolved, Heat cooled off: gone by the engine's own rules.
+            cleared: (g.missing || []).filter(x => !curKeys.has(x.key) && !hmsIsCarrier(x.key, cfg) && hmsLeavesOnItsOwn(x.key, cfg, style)),
             restored: g.restored || []
         };
     }
@@ -12494,7 +12507,10 @@ function hmsMarkBlocks(lines) {
         const open = fences[f], close = fences[f + 1];
         const first = lines[open + 1];
         const titled = !!(first && open + 1 < close && /^\[([^\]]{2,80})\]$/.test(first.text.trim()));
-        if (titled || !lines.slice(close + 1).some(l => !HMS_BLOCK_FENCE_RE.test(l.text))) continue;
+        // 1.4.0: Cyberpunk Visual frames the whole HUD in its two ━━━ rules, nothing after them: a rule pair that opens
+        // the HUD is a frame around lines, not a block
+        const frame = !titled && lines.slice(0, open).every(l => HMS_BLOCK_FENCE_RE.test(l.text));
+        if (titled || (!frame && !lines.slice(close + 1).some(l => !HMS_BLOCK_FENCE_RE.test(l.text)))) continue;
         for (const i of [open, close]) { lines[i].block = 'fence'; lines[i].divider = true; }
     }
     return hmsMarkBlocksIn(lines.filter(l => !l.divider));
@@ -12600,20 +12616,23 @@ function hmsReadVitals(hud, cfg) {
     for (const l of hud.lines) {
         if (l.block === 'fence' || l.party) continue;
         const fields = hmsFieldsOf(l);
+        const pushPool = (label, cur, max) => {
+            if (cur === null || !max) return;
+            const pct = Math.max(0, Math.min(100, (cur / max) * 100));
+            const isHealth = hmsLabelIn(label, health);
+            let level = 'ok';
+            if (isHealth && pct <= cfg.vitals.criticalPct) level = 'critical';
+            else if (pct <= cfg.vitals.lowPct) level = 'low';
+            vitals.push({ label: label.replace(/^[^\p{L}\p{N}]+/u, ''), cur, max, pct, health: isHealth, level, lineKey: l.key });
+        };
+        // 1.4.0: "Vitals: HP 190/190 | Armor 6 | RAM 7/7" (Cyberpunk V1.8) names each pool inside its field
+        const vitalsLine = !!(fields[0] && fields[0].label && /^\W*vitals$/i.test(fields[0].label.trim()));
         fields.forEach((f, i) => {
+            const inner = String(f.value || '').match(/^\s*([A-Za-z][A-Za-z ]{0,15}?)\s+(-?[\d,.]+)\s*\/\s*([\d,.]+)\s*$/);
+            if (inner && (vitalsLine || hmsLabelIn(inner[1], pools)) && (!f.label || vitalsLine)) { pushPool(inner[1], hmsNum(inner[2]), hmsNum(inner[3])); return; }
             if (!f.label) return;
             const fm = String(f.value).match(/^\s*(-?[\d,.]+)\s*\/\s*([\d,.]+)/);
-            if (fm && hmsLabelIn(f.label, pools)) {
-                const cur = hmsNum(fm[1]), max = hmsNum(fm[2]);
-                if (cur === null || !max) return;
-                const pct = Math.max(0, Math.min(100, (cur / max) * 100));
-                const isHealth = hmsLabelIn(f.label, health);
-                let level = 'ok';
-                if (isHealth && pct <= cfg.vitals.criticalPct) level = 'critical';
-                else if (pct <= cfg.vitals.lowPct) level = 'low';
-                vitals.push({ label: f.label.replace(/^[^\p{L}\p{N}]+/u, ''), cur, max, pct, health: isHealth, level, lineKey: l.key });
-                return;
-            }
+            if (fm && hmsLabelIn(f.label, pools)) { pushPool(f.label, hmsNum(fm[1]), hmsNum(fm[2])); return; }
             const pm = String(f.value).match(/(-?\d{1,3}(?:\.\d+)?)\s*%/);
             if (pm && !/^(stage|status)$/i.test(f.label)) {
                 const pct = Math.max(0, Math.min(100, Number(pm[1])));
@@ -13386,6 +13405,15 @@ function hmsSystemsPanel(chat, st, cfg) {
 function hmsIsSelfClearing(key, cfg) {
     const c = cfg || hmsCfg();
     return hmsIsCarrier(key, { carriers: c.selfClearing || '' });
+}
+// 1.4.0: lines a card removes by its own rule, so a HUD without them is not a dropped line: Heat cools off with time,
+// a checkpoint or "Back on canon" shows once (Cyberpunk), and the Compact style prints Cyberware only the turn it changes.
+const HMS_LEAVES_OWN_RE = /^(?:heat|checkpoint|back on canon|canon changed|guide)\b/i;
+function hmsLeavesOnItsOwn(key, cfg, style) {
+    const c = cfg || hmsCfg(), k = String(key || '').toLowerCase().replace(/^[^a-z\[]+/, '');
+    if (hmsIsCarrier(k, c)) return false;
+    if (hmsIsSelfClearing(k, c) || HMS_LEAVES_OWN_RE.test(k)) return true;
+    return /^compact$/i.test(String(style || '')) && /^cyberware\b/.test(k);
 }
 
 function hmsIsCarrier(key, cfg) {
@@ -17899,15 +17927,18 @@ function questsDetailOn(cfg) { const q = ((cfg || hmsCfg()).quests) || {}; retur
 /** XP and level as the HUD prints them: "XP: 120/300", "Lv 4 · 120/300 XP", "Level: 5", "Overall Lvl: 100". */
 function hudXp(hud) {
     if (!hud) return null;
-    let cur = null, max = null, level = null;
+    let cur = null, max = null, level = null, pct = false, capped = false;
     for (const l of hud.lines) {
-        const t = l.text;
+        const t = String(l.text || '').replace(/\*\*|__/g, '');   // the Visual style bolds its labels
         const a = t.match(/\b(?:XP|EXP|Experience)\s*:?\s*([\d,]+)\s*\/\s*([\d,]+)/i) || t.match(/([\d,]+)\s*\/\s*([\d,]+)\s*(?:XP|EXP)\b/i);
         if (a && cur === null) { cur = Number(a[1].replace(/,/g, '')); max = Number(a[2].replace(/,/g, '')); }
+        // 1.4.0: "XP: 40%" fills toward the next level, "XP: Max" at the cap (Cyberpunk V1.8): the HUD owns the bar
+        const pc = cur === null ? t.match(/\b(?:XP|EXP)\s*:\s*(?:(\d{1,3}(?:\.\d+)?)\s*%|(Max)\b)/i) : null;
+        if (pc) { cur = pc[2] ? 100 : Math.min(100, Number(pc[1])); max = 100; pct = true; capped = !!pc[2]; }
         const lv = t.match(/\b(?:Overall\s+Lvl|Level|Lvl|Lv)\.?\s*:?\s*(\d{1,4})\b/i);
-        if (lv && level === null && !/racial|job/i.test(t.slice(0, lv.index))) level = Number(lv[1]);
+        if (lv && level === null && !/racial|job|\bnet\s*$/i.test(t.slice(0, lv.index))) level = Number(lv[1]);   // "Net Level 3" is a netrunner's rank
     }
-    return cur === null && level === null ? null : { cur, max, level };
+    return cur === null && level === null ? null : { cur, max, level, ...(pct ? { pct: true, capped } : {}) };
 }
 
 function youReadings(chat) {
@@ -17937,7 +17968,10 @@ function hmsYouPanelRead(chat, st, cfg, sys) {
         xp.nextAt = yc.curve[idx] || null;
         xp.prevAt = idx > 0 ? yc.curve[idx - 1] : 0;
         xp.levelUp = !!(xp.level && xp.nextAt && tracked >= xp.nextAt);
-    } else xp.levelUp = !!(xp.max && xp.total >= xp.max);
+    } else {
+        if (hx.pct) { xp.pct = true; xp.capped = hx.capped; }
+        xp.levelUp = !hx.pct && !!(xp.max && xp.total >= xp.max);   // a percentage bar rolls over on its own
+    }
     const tl = hmsTimeline(chat);
     const si = worldStandardIssue(tl.length ? tl[tl.length - 1].hud : null);
     const gone = new Set(gearRead(chat, st, c).items.filter(item => item.state === 'gone').map(item => gearCanon(item.key)));
@@ -20859,7 +20893,10 @@ function hudKeepNote(chat) {
     const keys = [...new Set([...(g.reverted || []), ...(g.restored || [])])];
     const lines = [];
     for (const k of keys) { const l = hud && hud.lines.find(x => x.key === k); if (l) lines.push(l.text); }
-    for (const m of (Array.isArray(g.missing) ? g.missing : []).slice(0, 4)) if (m && m.text && !/^(?:present|time|date)\b/i.test(String(m.key || ''))) lines.push(m.text);
+    let style = null; try { style = hudStyleFor(chat); } catch { style = null; }
+    const cfg = hmsCfg();
+    // a line the card removes by its own rule (Heat at 0, a healed Condition, Compact's Cyberware) is not asked back
+    for (const m of (Array.isArray(g.missing) ? g.missing : []).filter(m => m && !hmsLeavesOnItsOwn(m.key, cfg, style)).slice(0, 4)) if (m.text && !/^(?:present|time|date)\b/i.test(String(m.key || ''))) lines.push(m.text);
     if (!lines.length) return '';
     return `[RPG Companion: HUD lines to carry]\nThe last reply's HUD dropped or rewound these lines. Carry them forward exactly as written unless the story changes them:\n${[...new Set(lines)].slice(0, 6).join('\n')}`;
 }

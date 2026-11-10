@@ -1263,6 +1263,7 @@ button.rpgc-chip.intel:hover { border-color: var(--lumiverse-accent, #7aa2f7); }
 .rpgc .rpgc-wrow{padding:3px 6px;margin:0 -6px;border-radius:7px;transition:background .12s}
 .rpgc .rpgc-wrow:hover{background:var(--u-hover)}
 .rpgc .rpgc-wrow .lbl{font-size:10.5px;letter-spacing:.04em;text-transform:uppercase}
+.rpgc .rpgc-wrow .val .rpgc-chip{display:inline-block;max-width:100%;vertical-align:middle}
 /* the view switcher: a lit segmented control */
 .rpgc .rpgc-views{background:color-mix(in srgb,var(--u-text) 5%,var(--lumiverse-bg,#0e1016) 90%);backdrop-filter:blur(10px);border:1px solid var(--u-line);box-shadow:0 10px 24px -18px #000}
 .rpgc .rpgc-viewtab{transition:color .15s,background .2s,transform .15s}
@@ -9115,7 +9116,7 @@ export function setup(ctx) {
                 w.eddies !== null ? h('div', { class: 'rpgc-wstat' }, h('b', null, `\u20AC$ ${fmtNum(w.eddies)}`), h('span', null, w.eddiesBand || T('eddies')), w.eddiesDelta ? h('i', { class: 'd ' + (w.eddiesDelta > 0 ? 'up' : 'down') }, signed(w.eddiesDelta)) : null) : null,
                 w.cred !== null ? h('div', { class: 'rpgc-wstat' }, h('b', null, String(w.cred)), h('span', null, w.reputation || T('street cred')), w.credDelta ? h('i', { class: 'd ' + (w.credDelta > 0 ? 'up' : 'down') }, signed(w.credDelta)) : null) : null,
                 w.net ? h('div', { class: 'rpgc-wstat' }, h('b', null, String(w.net.level)), h('span', null, T('net level'))) : null));
-            if (w.level) out.push(wRow(T('Level'), chip(`${w.level.value}/${w.level.max}`), w.level.xp !== null ? chip(`XP: ${w.level.xp}%`) : null,
+            if (w.level) out.push(wRow(T('Level'), chip(`${w.level.value}/${w.level.max}`), w.level.xpMax ? chip('XP: Max') : w.level.xp !== null ? chip(`XP: ${w.level.xp}%`) : null,
                 w.level.attributePoints !== null ? chip(`Attribute Points: ${w.level.attributePoints}`) : null, w.level.perkPoints !== null ? chip(`Perk Points: ${w.level.perkPoints}`) : null));
             if (w.vitals) out.push(wRow(T('Vitals'), w.vitals.hp ? chip(`HP ${w.vitals.hp.current}/${w.vitals.hp.max}`) : null,
                 w.vitals.armor !== null ? chip(`Armor ${w.vitals.armor}`) : null, w.vitals.ram ? chip(`RAM ${w.vitals.ram.current}/${w.vitals.ram.max}`) : null));
@@ -9139,6 +9140,8 @@ export function setup(ctx) {
             if (w.perkSummary) out.push(wRow(T('Perks'), chip(String(w.perkSummary.total)), ...w.perkSummary.groups.map(g => chip(`${g.attribute}: ${g.count}`))));
             if (w.relic) out.push(wRow(T('Relic'), ...w.relic.perks.map(p => h('span', { class: 'rpgc-chip', title: p.lore || '' }, p.name)), chip(`Relic Points: ${w.relic.points}`)));
             if (Array.isArray(w.arsenal) && w.arsenal.length) out.push(wRow(T('Arsenal'), ...w.arsenal.map(item => h('span', { class: 'rpgc-chip', title: item.lore || '' }, item.name, item.tier ? h('b', { class: 'tier' }, ' ' + item.tier) : null))));
+            // V1.8: the Trauma Team plan (Silver → Gold → Platinum)
+            if (w.tt) out.push(wRow(T('TT Coverage'), chip(w.tt.plan, w.tt.plan === 'Platinum' ? 'ok' : ''), w.tt.note ? h('span', null, w.tt.note) : null));
             if (w.goal) out.push(wRow(T('Goal'), w.goal));
             if (w.condition) out.push(wRow(T('Condition'), w.condition));
             if (w.arc) out.push(wRow(T('Arc'), w.arc.code ? chip(w.arc.code) : null, h('span', null, w.arc.title)));
@@ -9155,10 +9158,10 @@ export function setup(ctx) {
             for (const entry of (w.canonLedger || [])) out.push(wRow(T('Canon Ledger'), entry));
             for (const entry of (w.backOnCanon || [])) out.push(wRow(T('Back on canon'), entry));
             if (w.changes.length || w.checkpoints.length || w.changed.length) out.push(h('div', { class: 'rpgc-set' }, h('h4', null, T('Changes to canon')),
-                ...w.changes.map(c => h('div', { class: 'rpgc-wrow' }, h('span', { class: 'lbl' }, c.text), c.goal ? ladderBar(Math.max(0, c.done - 1), c.goal) : null, h('span', { class: 'val' }, c.goal ? `${c.done}/${c.goal}` : ''))),
+                ...w.changes.map(c => h('div', { class: 'rpgc-wrow' }, h('span', { class: 'lbl' }, c.text), c.goal ? ladderBar(Math.max(0, c.done - 1), c.goal) : null, h('span', { class: 'val' }, c.goal ? `${c.done}/${c.goal}` : c.status === 'done' ? T('done') : c.status === 'goal' ? T('goal') : ''))),
                 ...w.checkpoints.map(c => h('p', { class: 'rpgc-note' }, '\u26A0\uFE0F ', h('b', null, c.what), ` \u2014 by ${c.by}${c.inText ? ', in ' + c.inText : ''}`)),
                 ...w.changed.map(c => h('p', { class: 'rpgc-note' }, '\u274C ', c))));
-            if (w.mode && w.mode.canon) out.push(h('p', { class: 'rpgc-note' }, `${T('Canon')}: ${w.mode.canon}${w.mode.guide ? ' \u00B7 ' + T('Guide') + ': ' + w.mode.guide : ''}${w.mode.leveling ? ' · Leveling: ' + w.mode.leveling : ''}${w.mode.branchRun ? ' · Branch Run' : ''}`));
+            if (w.mode && w.mode.canon) out.push(h('p', { class: 'rpgc-note' }, `${T('Canon')}: ${w.mode.canon}${w.mode.guide ? ' \u00B7 ' + T('Guide') + ': ' + w.mode.guide : ''}${w.mode.leveling ? ' · Leveling: ' + w.mode.leveling : ''}${w.mode.branchRun ? ' · Branch Run' : ''}${w.mode.capri ? ' · Capri Compatible' : ''}`));
         } else if (w.id === 'skyrim') {
             out.push(h('div', { class: 'rpgc-wgrid' },
                 w.level !== null ? h('div', { class: 'rpgc-wstat' }, h('b', null, String(w.level)), h('span', null, 'level')) : null,
@@ -10225,7 +10228,7 @@ html,body{background:${panelBg}!important;}`;
                 const span = x.mode === 'hud' ? x.max : (x.nextAt ? x.nextAt - (x.prevAt || 0) : null);
                 const into = x.mode === 'hud' ? x.total : x.total - (x.prevAt || 0);
                 out.push(h('div', { class: 'rpgc-vital' + (x.levelUp ? ' levelup' : '') },
-                    h('div', { class: 'head' }, h('span', { class: 'lbl' }, lv ? `Level ${lv}` : 'Experience'), h('span', { class: 'num' }, span ? `${fmtNum(into)} / ${fmtNum(span)} XP` : `${fmtNum(x.total)} XP`),
+                    h('div', { class: 'head' }, h('span', { class: 'lbl' }, lv ? `Level ${lv}` : 'Experience'), h('span', { class: 'num' }, x.pct ? (x.capped ? 'XP: Max' : `XP: ${fmtNum(into)}%`) : span ? `${fmtNum(into)} / ${fmtNum(span)} XP` : `${fmtNum(x.total)} XP`),
                         x.levelUp ? h('span', { class: 'rpgc-chip levelup' }, 'level-up ready') : null),
                     span ? levelBar(Math.max(0, Math.min(100, into / span * 100)), 'ok') : null,
                     x.lastGain ? h('p', { class: 'rpgc-note' }, `Last: +${x.lastGain.xp}${x.lastGain.why ? ' \u2014 ' + x.lastGain.why : ''}`) : null,
