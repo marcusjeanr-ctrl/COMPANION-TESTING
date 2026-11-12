@@ -1986,6 +1986,15 @@ button.rpgc-chip.intel:hover { border-color: var(--lumiverse-accent, #7aa2f7); }
 .rpgc .rpgc-agenda-occ>ul{margin:6px 0 0 14px;padding:0 0 0 8px;border-left:2px solid color-mix(in srgb,var(--u-text) 12%,transparent)}
 .rpgc .rpgc-agenda-occ>ul .rpgc-agenda-item .due{display:none}
 .rpgc .rpgc-chiprow{display:flex;flex-wrap:wrap;gap:4px}
+.rpgc .rpgc-mt-scene{display:flex;flex-direction:column;gap:2px;margin:6px 0;padding:7px 10px;border-left:3px solid var(--u-accent,var(--lumiverse-accent));border-radius:0 8px 8px 0;background:color-mix(in srgb,var(--u-accent,var(--lumiverse-accent)) 8%,transparent);font-style:italic;overflow-wrap:anywhere}
+.rpgc .rpgc-mt-scene .lbl{font-style:normal;font-size:10.5px;letter-spacing:.04em;text-transform:uppercase;opacity:.75}
+.rpgc .rpgc-mt-settings{margin:4px 0 6px}
+.rpgc .rpgc-chip.mt-season-winter{background:color-mix(in srgb,#7fb2e5 22%,transparent)}
+.rpgc .rpgc-chip.mt-season-spring{background:color-mix(in srgb,#7cc07a 22%,transparent)}
+.rpgc .rpgc-chip.mt-season-summer{background:color-mix(in srgb,#e8b64c 24%,transparent)}
+.rpgc .rpgc-chip.mt-season-autumn,.rpgc .rpgc-chip.mt-season-fall{background:color-mix(in srgb,#d27a3c 22%,transparent)}
+.rpgc .rpgc-mt-wounds .rpgc-wrow{display:flex;flex-wrap:wrap;align-items:center;gap:6px}
+.rpgc .rpgc-mt-wounds .rpgc-wrow .lbl{text-transform:none;letter-spacing:0;font-size:12px;flex:1 1 140px;overflow-wrap:anywhere}
 .rpgc .rpgc-chiprow .rpgc-chip{white-space:nowrap;margin:0}
 .rpgc .rpgc-cp-attrs{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px;margin:6px 0 8px}
 .rpgc .rpgc-cp-attr{display:flex;flex-direction:column;align-items:center;padding:6px 2px;border-radius:var(--u-radius-s);background:color-mix(in srgb,var(--u-text) 5%,transparent);min-width:0}
@@ -9013,10 +9022,17 @@ export function setup(ctx) {
                 h('p', { class: 'rpgc-note' }, 'The engine rolls these itself; the sheet is read from its block.')));
         } else if (w.id === 'mushoku') {
             if (w.year !== null) out.push(h('div', { class: 'rpgc-wgrid' },
-                h('div', { class: 'rpgc-wstat' }, h('b', null, `K. ${w.year}`), h('span', null, w.day ? (w.monthName ? w.monthName + ' \u00B7 ' : '') + TT('day {0}', w.day) + (w.period ? ' \u00B7 ' + w.period : '') : T('year'))),
+                // Six-Sided v2.5's named calendar reads as written: "Rainveil 12 · Stoneday"
+                h('div', { class: 'rpgc-wstat' }, h('b', null, `K. ${w.year}`), h('span', null, w.day ? (w.weekday && w.monthName ? `${w.monthName} ${w.day} \u00B7 ${w.weekday}` : (w.monthName ? w.monthName + ' \u00B7 ' : '') + TT('day {0}', w.day)) + (w.period ? ' \u00B7 ' + w.period : '') : T('year'))),
                 w.age !== null ? h('div', { class: 'rpgc-wstat' }, h('b', null, String(w.age)), h('span', null, 'years old')) : null,
                 w.adventurer ? h('div', { class: 'rpgc-wstat' }, h('b', null, `${w.adventurer.rank}-Rank`), h('span', null, w.adventurer.party || (w.adventurer.solo ? 'solo' : 'adventurer'))) : null));
+            // Six-Sided v2.5: season, the scene in play, and the campaign's own settings
+            if (w.season) out.push(wRow('\uD83C\uDF31 ' + T('Season'), h('span', { class: 'rpgc-chip mt-season mt-season-' + (String(w.season).match(/^(winter|spring|summer|autumn|fall)/i) || ['', 'local'])[1].toLowerCase() }, w.season)));
+            if (w.scene) out.push(h('div', { class: 'rpgc-mt-scene' }, h('span', { class: 'lbl' }, '\uD83C\uDFAC ' + T('Scene')), h('span', null, w.scene)));
+            if (Array.isArray(w.players) && w.players.length) out.push(wRow(T('Party'), ...w.players.map(n => h('span', { class: 'rpgc-chip' + (state.userName && String(n).toLowerCase().split(' ')[0] === String(state.userName).toLowerCase().split(' ')[0] ? ' ok' : '') }, n))));
             if (w.saga) out.push(renderMtSaga(w.saga));
+            const mtSet = [w.rudeusMode ? `Rudeus: ${w.rudeusMode}` : null, w.guide ? `${T('Guide')}: ${w.guide}` : null, w.hudStyle ? `HUD: ${w.hudStyle}` : null, w.calendarProfile ? `${T('Calendar')}: ${w.calendarProfile}` : null].filter(Boolean);
+            if (mtSet.length) out.push(h('div', { class: 'rpgc-chiprow rpgc-mt-settings', role: 'list', 'aria-label': T('Campaign settings') }, ...mtSet.map(x => h('span', { class: 'rpgc-chip kind', role: 'listitem' }, x))));
             if (w.birth !== null || w.race) out.push(wRow(w.birth !== null ? 'Born' : 'Race', [w.birth !== null ? `K. ${w.birth}` : null, w.race].filter(Boolean).join(' \u00B7 '), w.origin ? h('span', { class: 'rpgc-chip' + (/outworlder/i.test(w.origin) ? ' hot' : '') }, w.origin) : null));
             if (w.mana) out.push(h('div', { class: 'rpgc-wability' }, wRow('Mana capacity', h('b', null, w.mana)), loreNote(w.manaLore)));
             if (w.reserve) out.push(wRow('Mana reserve', w.reserve));
@@ -9035,6 +9051,16 @@ export function setup(ctx) {
             for (const e of w.eyes) out.push(h('div', { class: 'rpgc-wability' }, h('div', { class: 'rpgc-wrow' }, h('span', { class: 'rpgc-chip kind' }, 'Demon Eye'), h('b', null, e.text)), loreNote(e.lore)));
             for (const m of w.marks) out.push(h('div', { class: 'rpgc-wability' }, h('div', { class: 'rpgc-wrow' }, h('span', { class: 'rpgc-chip kind' + (m.kind === 'CURSE' ? ' hot' : '') }, m.kind === 'CURSE' ? 'Curse' : m.kind === 'BLESSING' ? 'Blessing' : 'Curse / Blessing'), h('b', null, m.name)), loreNote(m.lore)));
             if (w.drain) out.push(h('p', { class: 'rpgc-status warning' }, `Drain Syndrome: ${w.drain.stage}${w.drain.onset ? ` \u00B7 onset ${w.drain.onset}` : ''}`));
+            // Six-Sided v2.5 tracks each wound's care: Raw → Treated → Magic-Healed, or Lasting / Permanent
+            if (Array.isArray(w.injuries) && w.injuries.length) {
+                const CARE = { Raw: 0, Treated: 1, 'Magic-Healed': 2 };
+                out.push(h('div', { class: 'rpgc-set rpgc-mt-wounds' }, h('h4', null, '\uD83E\uDE79 ' + T('Injuries')),
+                    ...w.injuries.map(x => h('div', { class: 'rpgc-wrow' }, h('span', { class: 'lbl' }, x.site),
+                        x.stage && CARE[x.stage] !== undefined ? ladderBar(CARE[x.stage], 3) : null,
+                        x.stage ? h('span', { class: 'rpgc-chip' + (x.stage === 'Raw' ? ' hot' : x.stage === 'Magic-Healed' ? ' ok' : /Lasting|Permanent/.test(x.stage) ? ' kind' : '') }, x.stage) : null,
+                        x.note ? h('span', { class: 'rpgc-note' }, x.note) : null))));
+            }
+            if (w.condition && Array.isArray(w.injuries)) out.push(wRow('\u2764\uFE0F ' + T('Condition'), w.condition));
             if (w.term) out.push(wRow('Ranoa', `${w.term.term} \u00B7 ${w.term.role}`));
             if (w.hitogami) {
                 out.push(h('div', { class: 'rpgc-set rpgc-hitogami' }, h('h4', null, 'The Man-God'),
@@ -10566,7 +10592,9 @@ html,body{background:${panelBg}!important;}`;
     function renderSpellList(L, kind = 'spell') {
         const tech = kind === 'tech';
         const fKey = tech ? 'techFilter' : 'spellFilter', qKey = tech ? 'techFind' : 'spellFind';
-        const rankLabel = (v) => state.world?.id === 'mushoku' ? String(v ?? '').replace(/\bElementary\b/gi, 'Beginner') : String(v ?? '');
+        // the HUD's own rank words: older Six-Sided cards say Beginner, v2.5 says Elementary
+        const hudSaysElementary = Array.isArray(state.world?.magic) && state.world.magic.some(m => /\belementary\b/i.test(String(m && m.rank || '')));
+        const rankLabel = (v) => state.world?.id === 'mushoku' && !hudSaysElementary ? String(v ?? '').replace(/\bElementary\b/gi, 'Beginner') : String(v ?? '');
         const raw = (v) => document.createTextNode(String(v ?? ''));
         const filter = state[fKey] === 'all' ? 'all' : 'mine';
         const shown = (sp) => filter === 'all' || !['locked', 'special', 'unranked'].includes(sp.status);

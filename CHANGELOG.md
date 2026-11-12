@@ -40,6 +40,16 @@
 - **Compact:** a new implant is marked ✨ on the turn the Cyberware line returns. `HUD: Compact` written on a start line among commas is recognised.
 - Role and Lifepath aren't repeated in Abilities; perk hover text no longer repeats the perk's name; long chips (a Build's weak spot) wrap as one piece.
 
+**Six-Sided World v2.5 (Preset Friendly)**
+- **Panel and Collapsed HUDs are read.** `### WORLD STATE [PANEL] ###` and `[COLLAPSED]` were not recognised as a HUD at all; now they are, and the header stays as written for the card's display scripts.
+- **The named calendar.** `K414, Rainveil 12, Stoneday`, the Familiar (`April 12, Thursday`) and Numbered profiles; a time in words ("Late afternoon") drives the clock and sky at day precision.
+- **The card's own words and order.** Magic ranks stay Elementary … Emperor, God; the HUD keeps v2.5's row order; `NPCs Present` keeps its label; the route marker `[MT-ARC:2-B]` is read and kept off titles.
+- **World card:** season, the current scene, Rudeus Mode / Guide / HUD style / calendar chips, and each injury with its care stage (Raw → Treated → Magic-Healed, Lasting, Permanent).
+- **Party Mode:** each `Player:` record keeps its rows; your card is your own record.
+- **Saves:** the two fenced blocks of `Mushoku_Save` come through intact (the fences between two blocks were stripped on every card).
+- Visual HUDs with bold labels now have their clock. v1 card rules (Training session counts, Bonds limits, Renown tiers) are not applied to v2.5.
+- Notes: docs/compatibility/six-sided/V2_5.md, including the card's `use_regex` lorebook keys.
+
 **Six-Sided World 2 (the overhauled card)**
 - **The lorebook is separate now.** The card no longer carries its lore; the *Mushoku Tensei Standalone Lorebook* does. The Companion reads lore from whatever books the chat has active, so link that lorebook to the character (or the chat) and everything works as before. If a new-format chat has no Mushoku lore active, *Worth a look* says so.
 - **Its HUD is kept as it is.** The HUD tidy-up was written for the older card and renamed the new lines: `Current Arc` → `Era / Arc`, `Injuries: … | Condition: …` → two Condition fields, `Inventory` → a second Equipment line, and put lines back in the old order. The narrator copies the tidied HUD forward, so the HUD would have drifted further every reply. The new HUD now keeps its labels and its own order; real drift (`Era / Arc`, `Battle Aura:`, lines out of place, you on Present) is still fixed. The older card is unchanged.
