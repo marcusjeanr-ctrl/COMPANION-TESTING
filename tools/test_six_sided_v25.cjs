@@ -13,6 +13,7 @@ ctx.globalThis = ctx; vm.createContext(ctx);
 vm.runInContext(src.slice(0, startup) + `
 globalThis.__T = {
   parseHud, hmsClock, mtCalendar,
+  standing: t => { const r = spellStanding(parseHud(t).lines); return JSON.parse(JSON.stringify({ voiceless: r.voiceless, schools: [...r.schools].map(([k, v]) => [k, v.name, v.rank]) })); },
   sys: t => JSON.parse(JSON.stringify(hmsReadSystems(parseHud(t)))),
   fix: (text, prevText, user) => { const prev = prevText ? parseHud(prevText) : null; const hud = parseHud(text); let notes = [];
     const r = rewriteHud(text, items => { notes = sixUpkeep(items, { cal: hmsCalNow(hud), prev, userName: user || 'Kael', rows: [], sessions: null, elapsedDays: 0, math: true, format: true }); return notes.length > 0; });
@@ -142,6 +143,26 @@ const check = async (name, fn) => { try { await fn(); results.push(name); } catc
         const w = (await api.push()).world;
         assert.equal(w.mana, 'Modest'); assert.deepEqual(J(w.magic), []); assert.deepEqual(J(w.players), ['Ana', 'Leo']);
         assert.deepEqual(J(w.injuries.map(x => x.site)), ['right hand blister']);
+    });
+    await check('icons before schools, a noted hybrid style, and Voiceless Casting listing its schools', async () => {
+        const t = HUD().replace(/^Magic Tiers:.*$/m, 'Magic Tiers: 💧 Water — Advanced | 🪨 Earth — Intermediate | 🔥 Fire — Elementary')
+            .replace(/^Sword Style:.*$/m, 'Sword Style: Sword God Style — Advanced · Magic Swordsmanship (personal hybrid discipline) — Advanced')
+            .replace(/^(Languages:.*)$/m, 'Voiceless Casting: Water, Earth, Fire\n$1');
+        const api = T.hooks([{ id: 'u1', role: 'user', content: 'Start' }, { id: 'a1', role: 'assistant', content: t, swipe_id: 0 }], 'Kael');
+        const s = await api.push();
+        assert.deepEqual(J(s.world.magic.map(m => [m.name, m.rank])), [['Water', 'Advanced'], ['Earth', 'Intermediate'], ['Fire', 'Elementary']]);
+        assert.deepEqual(J(s.world.martial.map(m => m.name)), ['Sword God Style', 'Magic Swordsmanship']);
+        const st = T.standing(t);
+        assert.equal(st.voiceless, true);
+        assert.deepEqual(J(st.schools), [['water', 'Water', 'Advanced'], ['earth', 'Earth', 'Intermediate'], ['fire', 'Fire', 'Elementary']]);
+        assert.deepEqual(J(T.sys(t).abilities.find(a => a.category === 'Magic').items.map(i => [i.name, i.state])), [['Water', 'Advanced'], ['Earth', 'Intermediate'], ['Fire', 'Elementary']]);
+    });
+    await check('"Race/Origin/Age: Human / Native / 12 (born …)" is read, and written as the card\'s Race row', async () => {
+        const t = HUD().replace(/^Race:.*$/m, 'Race/Origin/Age: Human / Native / 9 (born K404, Goldfall 3)');   // K414 Rainveil: 9 until Goldfall
+        assert.match(T.fix(t, HUD()).text, /^Race: Human \| Origin: Native \| Age: 9 \(born K404, Goldfall 3\)$/m);
+        const api = T.hooks([{ id: 'u1', role: 'user', content: 'Start' }, { id: 'a1', role: 'assistant', content: t, swipe_id: 0 }], 'Kael');
+        const w = (await api.push()).world;
+        assert.deepEqual(J([w.race, w.origin, w.age, w.birth, w.birthMonth]), ['Human', 'Native', 9, 404, 10]);
     });
     await check('Mushoku_Save: both fenced blocks come through intact', async () => {
         const hudOnly = HUD().split('***')[0] + '***';

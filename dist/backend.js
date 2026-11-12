@@ -7426,7 +7426,10 @@ function mtRankRows(text, ranks) {
         const m = part.match(/^(.+?)\s*:\s*(.+)$/) || part.match(/^(.+?)\s*\(([^)]+)\)$/) || part.match(/^(.+?)\s+[—–-]\s+(.+)$/);
         if (!m) return null;
         const rank = ranks.find(x => new RegExp(`\\b${x}\\b`, 'i').test(m[2])) || (/beginner/i.test(m[2]) ? ranks[0] : null);
-        return { name: m[1].trim(), rank: m[2].trim(), step: rank ? ranks.indexOf(rank) : spellMtStep(m[2]) };
+        // Six-Sided v2.5 puts an icon before a school ("💧 Water — Advanced") and may note a style ("Magic Swordsmanship (personal hybrid discipline) — Advanced")
+        let name = m[1].replace(/^[^\p{L}\p{N}]+/u, '').trim();
+        if (/\s[—–-]\s/.test(part)) name = name.replace(/\s*\([^)]*\)\s*$/, '').trim() || name;
+        return { name, rank: m[2].trim(), step: rank ? ranks.indexOf(rank) : spellMtStep(m[2]) };
     }).filter(Boolean);
 }
 
@@ -10892,7 +10895,11 @@ function worldMushoku(chatId, lines, st, chat = null) {
     const standingRow = one(/^Standing:\s*([^|]+)/i);
     const dreams = hg ? (hg[1].match(/Dreams:\s*(\d+)/i) || [])[1] : null;
     const w = isPlainObject(st.world) ? st.world : {};
-    return {
+    // Six-Sided v2.5 may print its order-list label as one row: "Race/Origin/Age: Human / Native / 12 (born K404, Deepfrost 12)"
+    const rao = worldFind(lines, /^Race\s*\/\s*Origin\s*\/\s*Age\s*:\s*([^/]+?)\s*\/\s*([^/]+?)\s*\/\s*(\d{1,4})\b(.*)$/i);
+    const raoBorn = rao ? rao[4].match(/\bborn\s+K\.?\s*(\d{3,4})(?:\s*,\s*(?:Month\s*(\d{1,2})|([A-Za-z]+)))?/i) : null;
+    const raoMonth = raoBorn ? (raoBorn[2] ? Number(raoBorn[2]) : raoBorn[3] ? (MT_THEMED_MONTHS.indexOf(raoBorn[3].toLowerCase()) + 1 || MONTHS.indexOf(raoBorn[3].toLowerCase()) + 1 || null) : null) : null;
+    const out = {
         year: date ? date.year : null, month: date ? date.month : null, monthName: date ? date.monthName : null, day: date ? date.day : null, period: yr && yr[4] ? yr[4] : clockPeriod ? clockPeriod[1].trim() : wordTime,
         birth: birth ? Number(birth[1]) : born ? Number(born[2]) : bornField ? Number(bornField[1]) : null, birthMonth: born && born[3] ? Number(born[3]) : bornField && bornField[2] ? Number(bornField[2]) : null, race: birth ? birth[2].trim() : race ? race[1].trim() : null, age: birth ? Number(birth[3]) : born ? Number(born[1]) : ageField ? Number(ageField[1]) : null, origin: birth ? birth[4].trim() : origin ? origin[1].trim() : null,
         adventurer: adv ? { rank: adv[1], party: adv[3] ? adv[3].trim() : (adv[2] && /solo/i.test(adv[2]) ? null : null), solo: !!(adv[2] && /solo/i.test(adv[2])), clan: adv[4] ? adv[4].trim() : null } : null,
@@ -10941,6 +10948,13 @@ function worldMushoku(chatId, lines, st, chat = null) {
         // Six-Sided World v2.5 rows
         ...mtV25Rows(lines, date)
     };
+    if (rao) {
+        if (out.race === null) out.race = rao[1].trim();
+        if (out.origin === null) out.origin = rao[2].trim();
+        if (out.age === null) out.age = Number(rao[3]);
+        if (out.birth === null && raoBorn) { out.birth = Number(raoBorn[1]); out.birthMonth = raoMonth; }
+    }
+    return out;
 }
 
 /** Party Mode (Six-Sided v2.5): the shared rows plus your own "Player:" record, so another player's sheet never fills your card.
@@ -13061,7 +13075,10 @@ function hmsReadAbilities(hud, cfg) {
             if (/^[\d,.\s]+$/.test(value)) continue;   // "Job Lvl: 70" is a number, not an ability
             const lbl = f.label.replace(/^[^\p{L}\p{N}]+/u, '').trim();
             const showLabel = hmsSing(lbl) !== hmsSing(cat.name) ? lbl : null;
-            for (const it of (/^touki(?: \(battle aura\))?$/i.test(lbl) ? [{ name: value.trim(), state: null, level: null }] : hmsItemsOf(value))) add(cat.name, { ...it, state: [it.state, status].filter(Boolean).join(' · ') || null, label: showLabel, lineKey: l.key, src: lbl.toUpperCase() });
+            // Six-Sided v2.5: "Magic Tiers: 💧 Water — Advanced | 🪨 Earth — Intermediate", a school and its rank per part
+            const dashRanks = /^(?:magic tiers?|sword styles?)$/i.test(lbl) && /\s[—–]\s/.test(value)
+                ? mtRankRows(value, /^magic/i.test(lbl) ? MT_MAGIC : MT_MARTIAL).map(r => ({ name: r.name, state: r.rank, level: null })) : null;
+            for (const it of (/^touki(?: \(battle aura\))?$/i.test(lbl) ? [{ name: value.trim(), state: null, level: null }] : dashRanks && dashRanks.length ? dashRanks : hmsItemsOf(value))) add(cat.name, { ...it, state: [it.state, status].filter(Boolean).join(' · ') || null, label: showLabel, lineKey: l.key, src: lbl.toUpperCase() });
         }
     }
     return cats.filter(c => groups.has(c.name)).map(c => ({ category: c.name, items: groups.get(c.name) }));
@@ -18548,7 +18565,9 @@ function spellStanding(lines) {
             // 1.4.0: a Six-Sided HUD can print both lines ("Casting Method: …" and "Voiceless Casting: Active (Attack only)"):
             // the method keeps its own wording, and the Voiceless line decides voiceless, a school limit included
             const vl = /^Voiceless Casting/i.test(l), v = m[1].trim();
-            if (vl) { if (!methodSeen) out.casting = `Voiceless (${v})`; out.voiceless = /^(active|yes|available|unlocked|enabled|mastered)\b/i.test(v); voicelessSeen = true; }
+            // v2.5 lists the schools it is learned for ("Voiceless Casting: Water, Earth, Fire")
+            const schoolsListed = !/^(?:none|no|locked|inactive|unavailable|not learned|n\/a|—|–|-)\b/i.test(v) && v.split(/\s*[,;/]\s*|\s+and\s+/i).some(x => SPELL_ELEMENTS.test(x.replace(/\s*\(.*$/, '').replace(/\s+magic$/i, '').trim()));
+            if (vl) { if (!methodSeen) out.casting = `Voiceless (${v})`; out.voiceless = /^(active|yes|available|unlocked|enabled|mastered)\b/i.test(v) || schoolsListed; voicelessSeen = true; }
             else { out.casting = v; methodSeen = true; if (!voicelessSeen) out.voiceless = /voiceless|silent|chantless|no[- ]?chant|without (?:an? )?incantation|incantation-?less/i.test(v); }
         }
     }
@@ -20627,6 +20646,12 @@ function sixUpkeep(items, ctx) {
             }
             if (/^\s*Mana\s*:/i.test(it.text) && /Reserve/i.test(it.text)) set(it, it.text.replace(/^(\s*)Mana\s*:/i, '$1Mana Capacity:'), 'label Mana → Mana Capacity');
         }
+        // v2.5's order list names the identity row "Race/Origin/Age"; the HUD line is "Race: … | Origin: … | Age: …" (its Panel draws "Race")
+        for (const it of items) {
+            if (!plain(it)) continue;
+            const m = String(it.text).match(/^(\s*)Race\s*\/\s*Origin\s*\/\s*Age\s*:\s*([^/|]+?)\s*\/\s*([^/|]+?)\s*\/\s*(\d{1,4}\b.*)$/i);
+            if (m) set(it, `${m[1]}Race: ${m[2]} | Origin: ${m[3]} | Age: ${m[4].trim()}`, 'Race/Origin/Age written as Race | Origin | Age');
+        }
         // rank words exactly as the engine writes them
         for (const it of items) {
             if (!plain(it)) continue;
@@ -20732,9 +20757,11 @@ function sixUpkeep(items, ctx) {
         if (race && plain(race)) {
             const t = String(race.text);
             const m = t.match(/\bAge\s*:\s*(\d{1,4})(\s*\((?:mind:\s*(\d{1,4})[^)]*|born K(\d{3,4})(?:,\s*Month\s*(\d{1,2}))?)\))?/i);
-            const bm = t.match(/\bborn\s+K(\d{3,4})(?:,\s*Month\s*(\d{1,2}))?/i);
-            if (m && bm && !/looks|body|ageless|unaging/i.test(t)) {
-                const born = Number(bm[1]), month = bm[2] ? Number(bm[2]) : null;
+            // v2.5 names the birth month: "(born K404, Deepfrost 12)", "(born K404, January 12)"
+            const bm = t.match(/\bborn\s+K(\d{3,4})(?:,\s*(?:Month\s*(\d{1,2})|([A-Za-z]+)\s+\d{1,2}\b))?/i);
+            const namedMonth = bm && bm[3] ? (MT_THEMED_MONTHS.indexOf(bm[3].toLowerCase()) + 1 || MONTHS.indexOf(bm[3].toLowerCase()) + 1 || null) : null;
+            if (m && bm && !/looks|body|ageless|unaging/i.test(t) && !(bm[3] && !namedMonth)) {
+                const born = Number(bm[1]), month = bm[2] ? Number(bm[2]) : namedMonth;
                 const age = cal.year - born - (month && cal.month < month ? 1 : 0);
                 let next = t;
                 if (Number(m[1]) !== age && age >= 0) next = next.replace(/\bAge\s*:\s*\d{1,4}/i, `Age: ${age}`);
