@@ -12063,6 +12063,13 @@ async function hmsProcessContent(chatId, content, prevHud, generationType, commi
                 let notes = [];
                 const r = rewriteHud(out, items => { notes = sixUpkeep(items, ctx); return notes.length > 0; });
                 if (r.changed) { out = r.content; hud = r.hud || hud; guard.upkeep = notes; }
+                // v2.5's Panel and Collapsed headers close with "###"; the card's display scripts draw the panel only then
+                if (ctx.format && hud.find && /WORLD STATE\s*\[\s*(?:PANEL|COLLAPSED)\s*\]\s*$/i.test(hud.find.headLine) && !/###\s*(?:\*\*)?\s*$/.test(hud.find.headLine)) {
+                    const head = hud.find.headLine, fixed = head.replace(/\s*$/, '') + ' ###';
+                    out = out.slice(0, hud.find.headStart) + fixed + out.slice(hud.find.headStart + head.length);
+                    hud = parseHud(out) || hud;
+                    guard.upkeep = (guard.upkeep || []).concat('Panel header closed with ###');
+                }
             }
         } catch (e) { logW(`[RPG Companion HMS] HUD upkeep skipped: ${e?.message || e}`); }
         // 1.4.0: a line that jumps back to an older version word for word (the narrator copying an old HUD after an OOC

@@ -49,6 +49,7 @@
 - **Saves:** the two fenced blocks of `Mushoku_Save` come through intact (the fences between two blocks were stripped on every card).
 - Visual HUDs with bold labels now have their clock. v1 card rules (Training session counts, Bonds limits, Renown tiers) are not applied to v2.5.
 - **Spell list fixed for v2.5 HUDs:** an icon before a school (`💧 Water — Advanced`) kept the school from matching the lorebook, so the list showed nothing usable and "Not one of your schools" for every spell. `Voiceless Casting: Water, Earth, Fire` now counts as voiceless; `Magic Swordsmanship (personal hybrid discipline) — Advanced` reads as Magic Swordsmanship; `Race/Origin/Age: Human / Native / 12 (born K404, Deepfrost 12)` is read and written as the card's Race row, and named birth months count for age.
+- A Panel or Collapsed header written without its closing `###` (`### WORLD STATE [PANEL]`) gets it back, so the card's display scripts draw the panel.
 - Notes: docs/compatibility/six-sided/V2_5.md, including the card's `use_regex` lorebook keys.
 
 **Six-Sided World 2 (the overhauled card)**

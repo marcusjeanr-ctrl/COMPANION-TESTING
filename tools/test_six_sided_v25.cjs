@@ -164,6 +164,16 @@ const check = async (name, fn) => { try { await fn(); results.push(name); } catc
         const w = (await api.push()).world;
         assert.deepEqual(J([w.race, w.origin, w.age, w.birth, w.birthMonth]), ['Human', 'Native', 9, 404, 10]);
     });
+    await check('a Panel header written without its closing ### gets it, so the card can draw the panel', async () => {
+        const t = HUD({ head: '### WORLD STATE [PANEL]', style: 'Panel' });
+        const api = T.hooks([{ id: 'u1', role: 'user', content: 'Start\nHUD: Panel' }, { id: 'a1', role: 'assistant', content: HUD({ head: '### WORLD STATE [PANEL] ###', style: 'Panel' }), swipe_id: 0 }, { id: 'u2', role: 'user', content: 'go' }], 'Kael');
+        const r = await api.process(t, T.parseHud(t));
+        const out = typeof r === 'string' ? r : (r && (r.content || r.text)) || t;
+        assert.match(out, /^### WORLD STATE \[PANEL\] ###\n/);
+        const ok = HUD({ head: '### WORLD STATE [PANEL] ###', style: 'Panel' });
+        const r2 = await api.process(ok, T.parseHud(ok));
+        assert.match(typeof r2 === 'string' ? r2 : (r2 && (r2.content || r2.text)) || ok, /^### WORLD STATE \[PANEL\] ###\n/);
+    });
     await check('Mushoku_Save: both fenced blocks come through intact', async () => {
         const hudOnly = HUD().split('***')[0] + '***';
         const save = '```text\n' + hudOnly + '\n```\n\n```text\n### SAVE NOTES ###\nSchema: MT-Standalone-2\nSystem revision: 2.5\n***\n```\n\n(OOC: Copy both blocks.)';
