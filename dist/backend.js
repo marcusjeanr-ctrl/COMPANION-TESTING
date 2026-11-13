@@ -19116,6 +19116,8 @@ function martialIdentity(name) {
     return core;
 }
 
+// A school's fundamentals named as if they were a move: "Sword God Style cutting path", "Water God footwork"
+const MT_STYLE_DRILL_RE = /^(?:Sword|Water|North)\s+God(?:\s+Style)?(?:'s)?\s+(?:cutting\s+path|cuts?|swings?|footwork|stances?|forms?|basics|fundamentals|drills?|kata|grip|posture|balance|guard|strikes?)\b/i;
 /** Read-only projection of non-catalogue martial observations into the existing Abilities group. */
 function martialAbilityItems(chatId, chat, st) {
     const classify = spellResolver(chatId), fold = spellStoryFold(chat, chatId);
@@ -19129,6 +19131,7 @@ function martialAbilityItems(chatId, chat, st) {
         const event = saved || assessment || practice;
         if (!event || saved?.from === 'you' || manualStudy.has(key) || techs.has(key) || classify.domain(event.name) !== 'martial') continue;
         if (/^touki(?: battle aura)?$/.test(key)) continue; // current Active status already belongs to the HUD
+        if (MT_STYLE_DRILL_RE.test(String(event.name || ''))) continue; // practising a school's basics ("Sword God Style cutting path") is the school, shown with its rank
         if ((fold.withdrawn.get(key)?.at ?? -1) >= Math.max(fold.learned.get(key)?.at ?? -1, practice?.at ?? -1, assessment?.at ?? -1)) continue;
         const latestKnowledge = Math.max(fold.learned.get(key)?.at ?? -1, fold.mastered.get(key)?.at ?? -1);
         const verified = assessment && assessment.at >= latestKnowledge ? assessment : null;

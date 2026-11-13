@@ -12,7 +12,7 @@ const ctx = { console: quiet, structuredClone, URL, TextEncoder, TextDecoder, se
 ctx.globalThis = ctx; vm.createContext(ctx);
 vm.runInContext(src.slice(0, startup) + `
 globalThis.__T = {
-  parseHud, hmsClock, mtCalendar, abil: (t, v) => JSON.parse(JSON.stringify(hmsReadAbilities(parseHud(t), mergeDeep(HMS_SYS_DEFAULTS, { abilities: { vocabulary: v } })).map(g => [g.category, g.items.map(i => [i.name, i.state])]))), leaves: (key, text) => hmsLeavesOnItsOwn(key, null, null, parseHud(text)),
+  parseHud, hmsClock, mtCalendar, moves: (chat) => { chatApi.getMessages = async () => chat; settings.hmsSystems = { abilities: { vocabulary: 'Martial: Martial Style, Touki' } }; try { return JSON.parse(JSON.stringify(martialAbilityItems('c1', chat, {}).map(i => i.name))); } finally { settings.hmsSystems = undefined; } }, abil: (t, v) => JSON.parse(JSON.stringify(hmsReadAbilities(parseHud(t), mergeDeep(HMS_SYS_DEFAULTS, { abilities: { vocabulary: v } })).map(g => [g.category, g.items.map(i => [i.name, i.state])]))), leaves: (key, text) => hmsLeavesOnItsOwn(key, null, null, parseHud(text)),
   standing: t => { const r = spellStanding(parseHud(t).lines); return JSON.parse(JSON.stringify({ voiceless: r.voiceless, schools: [...r.schools].map(([k, v]) => [k, v.name, v.rank]) })); },
   sys: t => JSON.parse(JSON.stringify(hmsReadSystems(parseHud(t)))),
   fix: (text, prevText, user) => { const prev = prevText ? parseHud(prevText) : null; const hud = parseHud(text); let notes = [];
@@ -192,6 +192,14 @@ const check = async (name, fn) => { try { await fn(); results.push(name); } catc
     await check('Abilities: "Touki (Battle Aura): Active — not mastered" is the Touki chip with its status', () => {
         const t = HUD().replace(/^(Sword Style:.*)$/m, 'Touki (Battle Aura): Active — not mastered\n$1');
         assert.deepEqual(J(T.abil(t, 'Martial: Martial Style, Touki, Active Stance')), [['Martial', [['Touki', 'Active — not mastered']]]]);
+    });
+    await check('a school\'s basics reported as a move ("Sword God Style cutting path") are not listed as another move', () => {
+        T.hooks([], 'Kael');
+        const meta = (name) => ({ rpg_companion: { swipes: { 0: { survival: { abilities: [{ name, owner: 'you', state: 'practiced', historical: false, evidence: 'The correction holds. Then the full cut.' }] } } } } });
+        const chat = n => [{ id: 'u1', role: 'user', content: 'I rehearse the cut.' }, { id: 'a1', role: 'assistant', content: HUD() + '\n\nThe correction holds. Then the full cut.', swipe_id: 0, metadata: meta(n) }];
+        assert.deepEqual(J(T.moves(chat('Sword God Style cutting path'))), []);
+        assert.deepEqual(J(T.moves(chat('Water God footwork'))), []);
+        assert.deepEqual(J(T.moves(chat('Crescent Feint'))), ['Crescent Feint']);   // a move of his own is still listed
     });
     await check('Mushoku_Save: both fenced blocks come through intact', async () => {
         const hudOnly = HUD().split('***')[0] + '***';
