@@ -54,6 +54,7 @@
 - A note after a style's rank (`Sword God Style — Advanced (studying Longsword of Light)`) no longer hides the style: the technique list shows what is usable and next again.
 - Abilities: a Touki row shows as **Touki · Active — not mastered** instead of a bare status chip.
 - Abilities: a school's fundamentals the narrator reports as a move ("Sword God Style cutting path", "Sword God footwork") are not listed under "Other moves from the story"; the school and its rank already show. Saved story data is unchanged.
+- Spell list: magic practice the narrator reports as a spell ("Water Magic shaping drills", "mana control", "Water Arrow compression") is not listed as another spell under Other; the school or spell is already there. Spells of your own still show.
 - Notes: docs/compatibility/six-sided/V2_5.md, including the card's `use_regex` lorebook keys.
 
 **Six-Sided World 2 (the overhauled card)**

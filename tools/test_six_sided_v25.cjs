@@ -12,7 +12,7 @@ const ctx = { console: quiet, structuredClone, URL, TextEncoder, TextDecoder, se
 ctx.globalThis = ctx; vm.createContext(ctx);
 vm.runInContext(src.slice(0, startup) + `
 globalThis.__T = {
-  parseHud, hmsClock, mtCalendar, moves: (chat) => { chatApi.getMessages = async () => chat; settings.hmsSystems = { abilities: { vocabulary: 'Martial: Martial Style, Touki' } }; try { return JSON.parse(JSON.stringify(martialAbilityItems('c1', chat, {}).map(i => i.name))); } finally { settings.hmsSystems = undefined; } }, abil: (t, v) => JSON.parse(JSON.stringify(hmsReadAbilities(parseHud(t), mergeDeep(HMS_SYS_DEFAULTS, { abilities: { vocabulary: v } })).map(g => [g.category, g.items.map(i => [i.name, i.state])]))), leaves: (key, text) => hmsLeavesOnItsOwn(key, null, null, parseHud(text)),
+  parseHud, hmsClock, mtCalendar, drill: (n, cat) => spellIsDrill(n, cat), moves: (chat) => { chatApi.getMessages = async () => chat; settings.hmsSystems = { abilities: { vocabulary: 'Martial: Martial Style, Touki' } }; try { return JSON.parse(JSON.stringify(martialAbilityItems('c1', chat, {}).map(i => i.name))); } finally { settings.hmsSystems = undefined; } }, abil: (t, v) => JSON.parse(JSON.stringify(hmsReadAbilities(parseHud(t), mergeDeep(HMS_SYS_DEFAULTS, { abilities: { vocabulary: v } })).map(g => [g.category, g.items.map(i => [i.name, i.state])]))), leaves: (key, text) => hmsLeavesOnItsOwn(key, null, null, parseHud(text)),
   standing: t => { const r = spellStanding(parseHud(t).lines); return JSON.parse(JSON.stringify({ voiceless: r.voiceless, schools: [...r.schools].map(([k, v]) => [k, v.name, v.rank]) })); },
   sys: t => JSON.parse(JSON.stringify(hmsReadSystems(parseHud(t)))),
   fix: (text, prevText, user) => { const prev = prevText ? parseHud(prevText) : null; const hud = parseHud(text); let notes = [];
@@ -200,6 +200,11 @@ const check = async (name, fn) => { try { await fn(); results.push(name); } catc
         assert.deepEqual(J(T.moves(chat('Sword God Style cutting path'))), []);
         assert.deepEqual(J(T.moves(chat('Water God footwork'))), []);
         assert.deepEqual(J(T.moves(chat('Crescent Feint'))), ['Crescent Feint']);   // a move of his own is still listed
+    });
+    await check('magic practice reported as a spell ("Water Magic shaping drills", "Water Arrow compression") is not another spell', () => {
+        for (const n of ['Water Magic shaping drills', 'mana control', 'Earth magic fundamentals', 'Spellcasting precision work']) assert.equal(T.drill(n, []), true, n);
+        assert.equal(T.drill('Water Arrow compression', ['water arrow']), true);
+        for (const n of ['Water Arrow', 'Boiling Mist', 'Frost Lance Variant', 'Healing Rain']) assert.equal(T.drill(n, ['water arrow']), false, n);   // spells, including his own
     });
     await check('Mushoku_Save: both fenced blocks come through intact', async () => {
         const hudOnly = HUD().split('***')[0] + '***';

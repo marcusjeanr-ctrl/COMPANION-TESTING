@@ -19072,8 +19072,8 @@ function spellListPanel(chatId, chat, st, sys) {
     });
     // a known spell the lorebook does not have still shows, under its own heading
     const catKeys = cat.map(r => r.key);
-    for (const [k, v] of known) if (!techKeys.has(k) && (v.from === 'you' || classify.domain(v.name) !== 'martial') && !catKeys.some(c => spellSame(c, k))) spells.push({ name: v.name, key: k, school: 'Other', rank: null, step: null, status: v.mastered ? 'mastered' : 'known', why: v.from === 'you' ? 'Marked by you' : 'From the story', who: null, effect: null, chant: null, fan: false, progress: null, note: [v.note, 'Not found in loaded spell references'].filter(Boolean).join(' · '), ...(v.evidence ? { evidence: v.evidence } : {}) });
-    for (const [key, evidence] of fold.abilityEvidence || []) if (!known.has(key) && !techKeys.has(key) && classify.domain(evidence.name) !== 'martial' && !catKeys.includes(key) && SPELL_MAGIC_WORD_RE.test(evidence.name))
+    for (const [k, v] of known) if (!techKeys.has(k) && (v.from === 'you' || classify.domain(v.name) !== 'martial') && !catKeys.some(c => spellSame(c, k)) && (v.from === 'you' || !spellIsDrill(v.name, catKeys))) spells.push({ name: v.name, key: k, school: 'Other', rank: null, step: null, status: v.mastered ? 'mastered' : 'known', why: v.from === 'you' ? 'Marked by you' : 'From the story', who: null, effect: null, chant: null, fan: false, progress: null, note: [v.note, 'Not found in loaded spell references'].filter(Boolean).join(' · '), ...(v.evidence ? { evidence: v.evidence } : {}) });
+    for (const [key, evidence] of fold.abilityEvidence || []) if (!known.has(key) && !techKeys.has(key) && classify.domain(evidence.name) !== 'martial' && !catKeys.includes(key) && SPELL_MAGIC_WORD_RE.test(evidence.name) && !spellIsDrill(evidence.name, catKeys))
         spells.push({ name:evidence.name, key, school:'Other', rank:null, step:null, status:'unranked', why:'No confirmed current knowledge', evidence, effect:null, chant:null, fan:false, progress:null, note:null });
     const bySchool = new Map();
     for (const s of spells) { const k = spellSchoolKey(s.school); if (!bySchool.has(k)) bySchool.set(k, { key: k, name: s.school, spells: [] }); bySchool.get(k).spells.push(s); }
@@ -19116,7 +19116,18 @@ function martialIdentity(name) {
     return core;
 }
 
-// A school's fundamentals named as if they were a move: "Sword God Style cutting path", "Water God footwork"
+// Practice the narrator reports as if it were a spell: a school's basics ("Water Magic shaping drills", "mana control")
+// or a spell the lorebook has, with what is being practised on it ("Water Arrow compression"). The school or spell is already listed.
+const SPELL_DRILL_WORDS = '(?:shaping|control|compression|release|timing|drills?|practice|exercises?|fundamentals|basics|theory|focus|speed|accuracy|precision|refinement|variants?|specialization|work|training)';
+const SPELL_SCHOOL_DRILL_RE = new RegExp(`^(?:(?:fire|water|wind|earth|healing|detoxification|barrier|summoning|divine|holy|attack|healing)\\s+magic|magic|spell(?:casting)?|mana)\\s+(?:\\w+\\s+){0,2}${SPELL_DRILL_WORDS}\\b`, 'i');
+function spellIsDrill(name, catKeys) {
+    const n = String(name || '').trim();
+    if (SPELL_SCHOOL_DRILL_RE.test(n)) return true;
+    const k = spellKey(n);
+    const rest = (catKeys || []).filter(c => c && k.startsWith(c + ' ')).map(c => k.slice(c.length + 1));
+    return rest.some(r => new RegExp(`^(?:\\w+\\s+){0,2}${SPELL_DRILL_WORDS}$`, 'i').test(r));
+}
+// A school's fundamentals named as if they were a move: "Sword God Style cutting path", "Water God footwork""
 const MT_STYLE_DRILL_RE = /^(?:Sword|Water|North)\s+God(?:\s+Style)?(?:'s)?\s+(?:cutting\s+path|cuts?|swings?|footwork|stances?|forms?|basics|fundamentals|drills?|kata|grip|posture|balance|guard|strikes?)\b/i;
 /** Read-only projection of non-catalogue martial observations into the existing Abilities group. */
 function martialAbilityItems(chatId, chat, st) {
