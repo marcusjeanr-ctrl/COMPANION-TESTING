@@ -191,7 +191,7 @@ const check = async (name, fn) => { try { await fn(); results.push(name); } catc
     });
     await check('Abilities: "Touki (Battle Aura): Active — not mastered" is the Touki chip with its status', () => {
         const t = HUD().replace(/^(Sword Style:.*)$/m, 'Touki (Battle Aura): Active — not mastered\n$1');
-        assert.deepEqual(T.abil(t, 'Martial: Martial Style, Touki, Active Stance'), [['Martial', [['Touki', 'Active — not mastered']]]]);
+        assert.deepEqual(J(T.abil(t, 'Martial: Martial Style, Touki, Active Stance')), [['Martial', [['Touki', 'Active — not mastered']]]]);
     });
     await check('Mushoku_Save: both fenced blocks come through intact', async () => {
         const hudOnly = HUD().split('***')[0] + '***';
