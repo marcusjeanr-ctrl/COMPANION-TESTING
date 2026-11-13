@@ -12,7 +12,7 @@ const ctx = { console: quiet, structuredClone, URL, TextEncoder, TextDecoder, se
 ctx.globalThis = ctx; vm.createContext(ctx);
 vm.runInContext(src.slice(0, startup) + `
 globalThis.__T = {
-  parseHud, hmsClock, mtCalendar,
+  parseHud, hmsClock, mtCalendar, leaves: (key, text) => hmsLeavesOnItsOwn(key, null, null, parseHud(text)),
   standing: t => { const r = spellStanding(parseHud(t).lines); return JSON.parse(JSON.stringify({ voiceless: r.voiceless, schools: [...r.schools].map(([k, v]) => [k, v.name, v.rank]) })); },
   sys: t => JSON.parse(JSON.stringify(hmsReadSystems(parseHud(t)))),
   fix: (text, prevText, user) => { const prev = prevText ? parseHud(prevText) : null; const hud = parseHud(text); let notes = [];
@@ -173,6 +173,15 @@ const check = async (name, fn) => { try { await fn(); results.push(name); } catc
         const ok = HUD({ head: '### WORLD STATE [PANEL] ###', style: 'Panel' });
         const r2 = await api.process(ok, T.parseHud(ok));
         assert.match(typeof r2 === 'string' ? r2 : (r2 && (r2.content || r2.text)) || ok, /^### WORLD STATE \[PANEL\] ###\n/);
+    });
+    await check('2.5.3 hidden groups: a row the player turned off is not put back or asked for', () => {
+        const basic = ['### WORLD STATE [PANEL] ###', 'Armored Dragon Calendar: K414, Rainveil 12, Stoneday | Time: Late afternoon', 'Season: Spring (calendar)',
+            'Location: Central Continent → Asura Kingdom → Fittoa Region → Buena Village', 'Current Arc: [MT-ARC:2-B]', 'Rudeus Mode: NPC', 'Condition: Stable', '***', '', 'Paul waits.'].join('\n');
+        const r = T.fix(basic, HUD());   // the last HUD still had Race, Magic Tiers, Injuries…
+        assert.equal(r.text, basic, r.notes.join('; '));
+        for (const k of ['race', 'magic tiers', 'injuries', 'npcs present', 'bonds', 'mana capacity']) assert.equal(T.leaves(k, basic), true, k);
+        for (const k of ['location', 'current arc', 'rudeus mode', 'season']) assert.equal(T.leaves(k, basic), false, k);
+        assert.equal(T.leaves('race', '### WORLD STATE ###\nYear: K419 | Day: 12\nRace: Human\n***'), false);   // other cards: unchanged
     });
     await check('Mushoku_Save: both fenced blocks come through intact', async () => {
         const hudOnly = HUD().split('***')[0] + '***';

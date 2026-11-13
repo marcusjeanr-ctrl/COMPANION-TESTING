@@ -12436,10 +12436,10 @@ function hmsPanelStateRead(chatId, chat, st) {
             swapped: !!g.swapped,
             // Carrier lines are the ones whose printed text keeps a lorebook entry loaded.
             missing: (g.missing || []).filter(x => !curKeys.has(x.key)).map(x => ({ ...x, carrier: hmsIsCarrier(x.key, cfg) }))
-                .filter(x => x.carrier || !hmsLeavesOnItsOwn(x.key, cfg, style))
+                .filter(x => !sixRowHideable(x.key, hud) && (x.carrier || !hmsLeavesOnItsOwn(x.key, cfg, style)))
                 .sort((a, b) => (b.carrier ? 1 : 0) - (a.carrier ? 1 : 0)),
             // Injuries healed, a condition passed, an exam resolved, Heat cooled off: gone by the engine's own rules.
-            cleared: (g.missing || []).filter(x => !curKeys.has(x.key) && !hmsIsCarrier(x.key, cfg) && hmsLeavesOnItsOwn(x.key, cfg, style)),
+            cleared: (g.missing || []).filter(x => !curKeys.has(x.key) && (sixRowHideable(x.key, hud) || !hmsIsCarrier(x.key, cfg) && hmsLeavesOnItsOwn(x.key, cfg, style))),
             restored: g.restored || []
         };
     }
@@ -13566,8 +13566,15 @@ function hmsIsSelfClearing(key, cfg) {
 // 1.4.0: lines a card removes by its own rule, so a HUD without them is not a dropped line: Heat cools off with time,
 // a checkpoint or "Back on canon" shows once (Cyberpunk), and the Compact style prints Cyberware only the turn it changes.
 const HMS_LEAVES_OWN_RE = /^(?:heat|checkpoint|back on canon|canon changed|guide)\b/i;
-function hmsLeavesOnItsOwn(key, cfg, style) {
+// Six-Sided v2.5.3 shows only its control rows by default and lets the player hide every other group ([HUD SKILLS = OFF]…)
+const SIX_V253_CONTROL_RE = /^(?:armored dragon calendar|time|season|location|condition|current arc|rudeus mode|player)\b/i;
+function sixRowHideable(key, hud) {
+    const k = String(key || '').toLowerCase().replace(/^[^a-z\[]+/, '');
+    return !!hud && !SIX_V253_CONTROL_RE.test(k) && sixIsV25(hud.lines.filter(l => !l.block).map(l => hudSemanticText(String(l.text || ''))));
+}
+function hmsLeavesOnItsOwn(key, cfg, style, hud) {
     const c = cfg || hmsCfg(), k = String(key || '').toLowerCase().replace(/^[^a-z\[]+/, '');
+    if (sixRowHideable(k, hud)) return true;
     if (hmsIsCarrier(k, c)) return false;
     if (hmsIsSelfClearing(k, c) || HMS_LEAVES_OWN_RE.test(k)) return true;
     // Compact leaves out Cyberware (Cyberpunk) and Memory (Six-Sided v2.5: "Compact only, retained in saves")
@@ -20690,7 +20697,8 @@ function sixUpkeep(items, ctx) {
         }
         // the header lines print every turn: a dropped Race or Era / Arc line comes back from the last HUD
         // v2.5: Location, Current Arc, Current Scene, then Race
-        const headers = v25 ? [[/^\s*(?:Current Arc|Era)\s*:/i, [/^\s*Location\s*:/i]], [/^\s*Race\s*:/i, [/^\s*Current Scene\s*:/i, /^\s*(?:Current Arc|Era)\s*:/i, /^\s*Location\s*:/i]]]
+        // v2.5: Current Arc after Location. Race is not put back: 2.5.3 hides it when the player turns IDENTITY off
+        const headers = v25 ? [[/^\s*(?:Current Arc|Era)\s*:/i, [/^\s*Location\s*:/i]]]
             : v2 ? [[/^\s*Race\s*:/i, /^\s*Location\s*:/i], [/^\s*(?:Current Arc|Era)\s*:/i, /^\s*Race\s*:/i]]
             : [[/^\s*Race\s*:/i, /^\s*◆|^\s*📍/], [/^\s*Era\s*\/\s*Arc\s*:/i, /^\s*Race\s*:/i]];
         for (const [re, after] of headers) {
@@ -21093,7 +21101,7 @@ function hudKeepNote(chat) {
     let style = null; try { style = hudStyleFor(chat); } catch { style = null; }
     const cfg = hmsCfg();
     // a line the card removes by its own rule (Heat at 0, a healed Condition, Compact's Cyberware) is not asked back
-    for (const m of (Array.isArray(g.missing) ? g.missing : []).filter(m => m && !hmsLeavesOnItsOwn(m.key, cfg, style)).slice(0, 4)) if (m.text && !/^(?:(?:npcs\s+)?present|time|date)\b/i.test(String(m.key || ''))) lines.push(m.text);
+    for (const m of (Array.isArray(g.missing) ? g.missing : []).filter(m => m && !hmsLeavesOnItsOwn(m.key, cfg, style, hud)).slice(0, 4)) if (m.text && !/^(?:(?:npcs\s+)?present|time|date)\b/i.test(String(m.key || ''))) lines.push(m.text);
     if (!lines.length) return '';
     return `[RPG Companion: HUD lines to carry]\nThe last reply's HUD dropped or rewound these lines. Carry them forward exactly as written unless the story changes them:\n${[...new Set(lines)].slice(0, 6).join('\n')}`;
 }
