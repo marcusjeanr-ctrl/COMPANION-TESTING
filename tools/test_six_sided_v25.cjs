@@ -12,7 +12,7 @@ const ctx = { console: quiet, structuredClone, URL, TextEncoder, TextDecoder, se
 ctx.globalThis = ctx; vm.createContext(ctx);
 vm.runInContext(src.slice(0, startup) + `
 globalThis.__T = {
-  parseHud, hmsClock, mtCalendar, leaves: (key, text) => hmsLeavesOnItsOwn(key, null, null, parseHud(text)),
+  parseHud, hmsClock, mtCalendar, abil: (t, v) => JSON.parse(JSON.stringify(hmsReadAbilities(parseHud(t), mergeDeep(HMS_SYS_DEFAULTS, { abilities: { vocabulary: v } })).map(g => [g.category, g.items.map(i => [i.name, i.state])]))), leaves: (key, text) => hmsLeavesOnItsOwn(key, null, null, parseHud(text)),
   standing: t => { const r = spellStanding(parseHud(t).lines); return JSON.parse(JSON.stringify({ voiceless: r.voiceless, schools: [...r.schools].map(([k, v]) => [k, v.name, v.rank]) })); },
   sys: t => JSON.parse(JSON.stringify(hmsReadSystems(parseHud(t)))),
   fix: (text, prevText, user) => { const prev = prevText ? parseHud(prevText) : null; const hud = parseHud(text); let notes = [];
@@ -188,6 +188,10 @@ const check = async (name, fn) => { try { await fn(); results.push(name); } catc
         const api = T.hooks([{ id: 'u1', role: 'user', content: 'Start' }, { id: 'a1', role: 'assistant', content: t, swipe_id: 0 }], 'Kael');
         const w = (await api.push()).world;
         assert.deepEqual(J(w.martial.map(m => [m.name, m.rank, m.step, m.note])), [['Sword God Style', 'Advanced', 2, 'studying Longsword of Light'], ['Magic Swordsmanship', 'Advanced', 2, 'personal']]);
+    });
+    await check('Abilities: "Touki (Battle Aura): Active — not mastered" is the Touki chip with its status', () => {
+        const t = HUD().replace(/^(Sword Style:.*)$/m, 'Touki (Battle Aura): Active — not mastered\n$1');
+        assert.deepEqual(T.abil(t, 'Martial: Martial Style, Touki, Active Stance'), [['Martial', [['Touki', 'Active — not mastered']]]]);
     });
     await check('Mushoku_Save: both fenced blocks come through intact', async () => {
         const hudOnly = HUD().split('***')[0] + '***';

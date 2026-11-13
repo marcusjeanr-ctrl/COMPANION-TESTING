@@ -13092,7 +13092,7 @@ function hmsReadAbilities(hud, cfg) {
             // Six-Sided v2.5: "Magic Tiers: 💧 Water — Advanced | 🪨 Earth — Intermediate", a school and its rank per part
             const dashRanks = /^(?:magic tiers?|sword styles?)$/i.test(lbl) && /\s[—–]\s/.test(value)
                 ? mtRankRows(value, /^magic/i.test(lbl) ? MT_MAGIC : MT_MARTIAL).map(r => ({ name: r.name, state: r.rank, level: null })) : null;
-            for (const it of (/^touki(?: \(battle aura\))?$/i.test(lbl) ? [{ name: value.trim(), state: null, level: null }] : dashRanks && dashRanks.length ? dashRanks : hmsItemsOf(value))) add(cat.name, { ...it, state: [it.state, status].filter(Boolean).join(' · ') || null, label: showLabel, lineKey: l.key, src: lbl.toUpperCase() });
+            for (const it of (/^touki(?: \(battle aura\))?$/i.test(lbl) ? [{ name: 'Touki', state: value.trim() || null, level: null }] : dashRanks && dashRanks.length ? dashRanks : hmsItemsOf(value))) add(cat.name, { ...it, state: [it.state, status].filter(Boolean).join(' · ') || null, label: showLabel, lineKey: l.key, src: lbl.toUpperCase() });
         }
     }
     return cats.filter(c => groups.has(c.name)).map(c => ({ category: c.name, items: groups.get(c.name) }));

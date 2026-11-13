@@ -52,6 +52,7 @@
 - A Panel or Collapsed header written without its closing `###` (`### WORLD STATE [PANEL]`) gets it back, so the card's display scripts draw the panel.
 - **Six-Sided v2.5.3 field visibility:** rows the player hides (`[HUD IDENTITY = OFF]`, BASIC profile) are not put back by the upkeep or asked for again by the HUD guard; the always-visible rows (date, season, location, condition, Current Arc, Rudeus Mode) are guarded as before.
 - A note after a style's rank (`Sword God Style — Advanced (studying Longsword of Light)`) no longer hides the style: the technique list shows what is usable and next again.
+- Abilities: a Touki row shows as **Touki · Active — not mastered** instead of a bare status chip.
 - Notes: docs/compatibility/six-sided/V2_5.md, including the card's `use_regex` lorebook keys.
 
 **Six-Sided World 2 (the overhauled card)**
