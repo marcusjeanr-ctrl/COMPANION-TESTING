@@ -7423,6 +7423,13 @@ function mtRankRows(text, ranks) {
         const tv = part.match(/^(.+?)\s*\(([^)]+)\)\s*[—–-]\s*True\s*:\s*(.+)$/i);
         if (tv) { const rank = ranks.find(x => new RegExp(`\\b${x}\\b`, 'i').test(tv[3].split(/\s*\(/)[0])) || (/beginner/i.test(tv[3]) ? ranks[0] : null);
             return { name: tv[1].trim(), rank: tv[3].split(/\s*\(/)[0].trim(), step: rank ? ranks.indexOf(rank) : spellMtStep(tv[3]) }; }
+        // Six-Sided v2.5 may add a note after the rank: "Sword God Style — Advanced (studying Longsword of Light)"
+        const dn = part.match(/^(.+?)\s+[—–]\s+([^()]+?)\s*\(([^)]*)\)\s*$/);
+        if (dn && (ranks.some(x => new RegExp(`\\b${x}\\b`, 'i').test(dn[2])) || /beginner/i.test(dn[2]))) {
+            const rank = ranks.find(x => new RegExp(`\\b${x}\\b`, 'i').test(dn[2])) || ranks[0];
+            const name = dn[1].replace(/^[^\p{L}\p{N}]+/u, '').replace(/\s*\([^)]*\)\s*$/, '').trim() || dn[1].trim();
+            return { name, rank: dn[2].trim(), step: ranks.indexOf(rank), note: dn[3].trim() || null };
+        }
         const m = part.match(/^(.+?)\s*:\s*(.+)$/) || part.match(/^(.+?)\s*\(([^)]+)\)$/) || part.match(/^(.+?)\s+[—–-]\s+(.+)$/);
         if (!m) return null;
         const rank = ranks.find(x => new RegExp(`\\b${x}\\b`, 'i').test(m[2])) || (/beginner/i.test(m[2]) ? ranks[0] : null);

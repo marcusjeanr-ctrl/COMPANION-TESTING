@@ -183,6 +183,12 @@ const check = async (name, fn) => { try { await fn(); results.push(name); } catc
         for (const k of ['location', 'current arc', 'rudeus mode', 'season']) assert.equal(T.leaves(k, basic), false, k);
         assert.equal(T.leaves('race', '### WORLD STATE ###\nYear: K419 | Day: 12\nRace: Human\n***'), false);   // other cards: unchanged
     });
+    await check('a note after the rank ("Sword God Style — Advanced (studying Longsword of Light)") keeps the style and rank', async () => {
+        const t = HUD().replace(/^Sword Style:.*$/m, 'Sword Style: Sword God Style — Advanced (studying Longsword of Light); Magic Swordsmanship — Advanced (personal)');
+        const api = T.hooks([{ id: 'u1', role: 'user', content: 'Start' }, { id: 'a1', role: 'assistant', content: t, swipe_id: 0 }], 'Kael');
+        const w = (await api.push()).world;
+        assert.deepEqual(J(w.martial.map(m => [m.name, m.rank, m.step, m.note])), [['Sword God Style', 'Advanced', 2, 'studying Longsword of Light'], ['Magic Swordsmanship', 'Advanced', 2, 'personal']]);
+    });
     await check('Mushoku_Save: both fenced blocks come through intact', async () => {
         const hudOnly = HUD().split('***')[0] + '***';
         const save = '```text\n' + hudOnly + '\n```\n\n```text\n### SAVE NOTES ###\nSchema: MT-Standalone-2\nSystem revision: 2.5\n***\n```\n\n(OOC: Copy both blocks.)';
