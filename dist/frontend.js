@@ -1989,6 +1989,16 @@ button.rpgc-chip.intel:hover { border-color: var(--lumiverse-accent, #7aa2f7); }
 .rpgc .rpgc-mt-scene{display:flex;flex-direction:column;gap:2px;margin:6px 0;padding:7px 10px;border-left:3px solid var(--u-accent,var(--lumiverse-accent));border-radius:0 8px 8px 0;background:color-mix(in srgb,var(--u-accent,var(--lumiverse-accent)) 8%,transparent);font-style:italic;overflow-wrap:anywhere}
 .rpgc .rpgc-mt-scene .lbl{font-style:normal;font-size:10.5px;letter-spacing:.04em;text-transform:uppercase;opacity:.75}
 .rpgc .rpgc-mt-settings{margin:4px 0 6px}
+.rpgc .rpgc-mt-hud{display:flex;flex-wrap:wrap;gap:4px;margin:4px 0 8px;padding:6px 8px;border:1px solid color-mix(in srgb,var(--u-accent,var(--lumiverse-accent)) 30%,transparent);border-radius:10px;background:linear-gradient(135deg,color-mix(in srgb,var(--u-accent,var(--lumiverse-accent)) 10%,transparent),transparent)}
+.rpgc .rpgc-mt-hud .lbl{flex:1 0 100%;font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;opacity:.8}
+.rpgc .rpgc-mt-hud .g{font-size:10.5px;padding:2px 7px;border-radius:999px;border:1px solid color-mix(in srgb,currentColor 25%,transparent);opacity:.95}
+.rpgc .rpgc-mt-hud .g.on{background:color-mix(in srgb,var(--u-accent,var(--lumiverse-accent)) 24%,transparent);border-color:transparent}
+.rpgc .rpgc-mt-hud .g.off{opacity:.5;text-decoration:line-through}
+.rpgc .rpgc-mt-hud .g.carried{opacity:.8;text-decoration:none;border-style:dashed}
+.rpgc .rpgc-mt-paths{margin:4px 0;padding-left:18px}
+.rpgc .rpgc-mt-paths li{margin:2px 0;overflow-wrap:anywhere}
+.rpgc .rpgc-mt-canon{margin:6px 0;padding:7px 10px;border-radius:8px;background:color-mix(in srgb,#d9a441 14%,transparent);overflow-wrap:anywhere}
+.rpgc .rpgc-mt-purse{display:inline-flex;align-items:center;gap:4px;font-variant-numeric:tabular-nums}
 .rpgc .rpgc-chip.mt-season-winter{background:color-mix(in srgb,#7fb2e5 22%,transparent)}
 .rpgc .rpgc-chip.mt-season-spring{background:color-mix(in srgb,#7cc07a 22%,transparent)}
 .rpgc .rpgc-chip.mt-season-summer{background:color-mix(in srgb,#e8b64c 24%,transparent)}
@@ -9033,19 +9043,36 @@ export function setup(ctx) {
             if (w.saga) out.push(renderMtSaga(w.saga));
             const mtSet = [w.rudeusMode ? `Rudeus: ${w.rudeusMode}` : null, w.guide ? `${T('Guide')}: ${w.guide}` : null, w.hudStyle ? `HUD: ${w.hudStyle}` : null, w.calendarProfile ? `${T('Calendar')}: ${w.calendarProfile}` : null].filter(Boolean);
             if (mtSet.length) out.push(h('div', { class: 'rpgc-chiprow rpgc-mt-settings', role: 'list', 'aria-label': T('Campaign settings') }, ...mtSet.map(x => h('span', { class: 'rpgc-chip kind', role: 'listitem' }, x))));
+            // Six-Sided v2.5.3: which HUD groups the player has switched on; a hidden group keeps its last-seen values here
+            if (w.hudFields) {
+                const hf = w.hudFields, GROUPS = ['IDENTITY', 'SCENE', 'POLICIES', 'MANA', 'SKILLS', 'GIFTS', 'DREAM', 'HEALTH', 'EQUIPMENT', 'INVENTORY', 'SOCIAL', 'BONDS', 'PATHS', 'CANON', 'NPCS'];
+                const isOn = g => hf.profile === 'FULL' ? !(hf.off || []).includes(g) : (hf.on || []).includes(g);
+                out.push(h('div', { class: 'rpgc-mt-hud', role: 'list', 'aria-label': T('HUD fields') }, h('span', { class: 'lbl' }, `HUD \u00B7 ${hf.profile}`),
+                    ...GROUPS.map(g => { const on = isOn(g), car = !on && (hf.carried || []).includes(g);
+                        return h('span', { class: 'g ' + (on ? 'on' : car ? 'off carried' : 'off'), role: 'listitem', title: on ? T('Shown in the HUD') : car ? T('Hidden in the HUD; showing the last values it gave') : T('Hidden in the HUD') }, (g === 'NPCS' ? 'NPCs' : g.charAt(0) + g.slice(1).toLowerCase()) + (car ? ' \u21BA' : '')); })));
+            }
+            if (Array.isArray(w.gameModes) && w.gameModes.length || w.narrative) out.push(wRow(T('Mode'), ...(w.gameModes || []).map(x => h('span', { class: 'rpgc-chip' + (/twin|hardcore|ironman/i.test(x) ? ' hot' : '') }, x)), w.narrative ? h('span', { class: 'rpgc-chip kind' }, w.narrative) : null));
+            if (w.canonRef) out.push(h('div', { class: 'rpgc-mt-canon' }, h('b', null, '\u23F3 ' + T('Canon') + ': '), w.canonRef));
+            if (Array.isArray(w.present) && w.present.length) out.push(wRow('\uD83D\uDC65 ' + T('Present'), ...w.present.map(n => h('span', { class: 'rpgc-chip' }, n))));
             if (w.birth !== null || w.race) out.push(wRow(w.birth !== null ? 'Born' : 'Race', [w.birth !== null ? `K. ${w.birth}` : null, w.race].filter(Boolean).join(' \u00B7 '), w.origin ? h('span', { class: 'rpgc-chip' + (/outworlder/i.test(w.origin) ? ' hot' : '') }, w.origin) : null));
             if (w.mana) out.push(h('div', { class: 'rpgc-wability' }, wRow('Mana capacity', h('b', null, w.mana)), loreNote(w.manaLore)));
             if (w.reserve) out.push(wRow('Mana reserve', w.reserve));
+            if (w.manaStatus) out.push(wRow('Mana status', h('span', { class: 'rpgc-chip' + (/low|empty|depleted|drained|exhaust/i.test(w.manaStatus) ? ' hot' : /full|rested/i.test(w.manaStatus) ? ' ok' : '') }, w.manaStatus)));
             if (w.casting) out.push(wRow('Casting', w.casting));
             if (w.touki) out.push(h('div', { class: 'rpgc-wability' }, wRow('Touki', w.touki), loreNote(w.toukiLore)));
             if (w.martial.length) { out.push(rankedList('Sword styles', w.martial, 'mt-tech-', 'techniques')); if (w.triangle) out.push(h('p', { class: 'rpgc-note' }, h('b', null, 'The triangle: '), w.triangle)); }
             if (w.magic.length) out.push(rankedList('Magic', w.magic, 'spells-', 'spells'));
             if (w.languages.length) out.push(wRow('Languages', ...w.languages.map(l => h('span', { class: 'rpgc-chip' }, l.fluency ? `${l.name} \u00B7 ${l.fluency}` : l.name))));
+            if (w.dreamLink) out.push(wRow('\uD83C\uDF19 Dream Link', h('span', { class: 'rpgc-chip' + (/apostle/i.test(w.dreamLink) ? ' hot' : /estranged/i.test(w.dreamLink) ? ' kind' : '') }, w.dreamLink)));
+            if (Array.isArray(w.purse) && w.purse.length) out.push(wRow('\uD83E\uDE99 ' + T('Purse'), ...w.purse.map(c => h('span', { class: 'rpgc-chip rpgc-mt-purse' }, h('b', null, fmtNum(c.count)), ' ' + c.coin))));
             // Training has its own card in the You view
             if (w.standing) out.push(wRow(T('Standing'), h('b', null, [w.standing.kind, w.standing.rank].filter(Boolean).join(' \u00B7 ') || w.standing.text),
                 w.standing.house ? h('span', { class: 'rpgc-chip' }, w.standing.nation ? `${w.standing.house} (${w.standing.nation})` : w.standing.house) : null,
                 w.standing.birth ? h('span', { class: 'rpgc-chip kind' }, w.standing.birth) : null));
             if (w.faction) out.push(wRow(T('Faction'), w.faction));
+            if (w.renown) out.push(wRow('\u2B50 ' + T('Renown'), w.renown));
+            if (Array.isArray(w.bonds) && w.bonds.length) out.push(wRow('\uD83E\uDD1D ' + T('Bonds'), ...w.bonds.map(x => h('span', { class: 'rpgc-chip', title: x.note || '' }, x.note ? `${x.name} \u00B7 ${x.note}` : x.name))));
+            if (Array.isArray(w.paths) && w.paths.length) out.push(h('div', { class: 'rpgc-set' }, h('h4', null, '\uD83E\uDDED ' + T('Active paths')), h('ul', { class: 'rpgc-mt-paths' }, ...w.paths.map(x => h('li', null, x)))));
             if (w.familyPlots && w.familyPlots.length) out.push(wRow(T('Family plots'), ...w.familyPlots.map(f => h('span', { class: 'rpgc-chip hot' }, f))));
             if (w.contracts) out.push(wRow('Contracts', w.contracts));
             for (const e of w.eyes) out.push(h('div', { class: 'rpgc-wability' }, h('div', { class: 'rpgc-wrow' }, h('span', { class: 'rpgc-chip kind' }, 'Demon Eye'), h('b', null, e.text)), loreNote(e.lore)));

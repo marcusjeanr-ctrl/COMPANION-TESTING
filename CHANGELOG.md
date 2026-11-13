@@ -4,6 +4,13 @@
 
 **The deck: a new look for the whole panel.** Everything below is display only. The Companion reads what it already has; there are no new tracker fields, no extra model calls and no change to what the story is sent.
 
+**Six-Sided World v2.5.3 (Customizable HUD)**
+- **Hidden HUD groups keep their values.** With `[HUD = BASIC]` or `[HUD <GROUP> = OFF]`, the HUD stops printing mana, skills, gifts, inventory, bonds and paths. The card says that absence is not a deletion, so the world card keeps showing each hidden group's last values. The scene, injuries, canon reference and NPCs present are about this moment and are not carried.
+- **HUD fields strip.** The world card shows the HUD profile (Basic / Full / Custom) and the 15 groups: on, off, or off and showing last-seen values (↺).
+- **New rows on the world card:** game mode and narrative mode, canon reference, NPCs present, mana status, Dream Link, purse (coin counts in order), renown, bonds, and active paths.
+- Languages written as "Human God Language — fluent; reads and writes; Beast God Language — basic" read as two languages, each with its fluency.
+- "Renown: None yet" is not shown as renown.
+
 **Carry-over across cards**
 - A new version of a card picks up a chat from the old one. The carry-over list now names each chat's **card**, groups chats **by story** (Mushoku Tensei, Cyberpunk, …) and tags them *this card* or *other card · same story*. Chats of this story come first.
 - Your pins follow you to the new card the first time you carry over, when that card has none yet.

@@ -51,7 +51,7 @@ const HUD = (o = {}) => [o.head || '### WORLD STATE ###',
     'Standing: Commoner, Greyrat household guest', `Bonds: ${o.bonds || 'Paul (mentor, warm), Zenith (kind)'}`,
     `${o.presentLabel || 'NPCs Present'}: ${o.present || 'Paul Greyrat'}`, 'Narrative Mode: Strict Agency', '***', '', 'Paul waits over an untouched cup.'].filter(x => x !== null).join('\n');
 const results = [], failed = [];
-const check = async (name, fn) => { try { await fn(); results.push(name); } catch (e) { failed.push(`${name}: ${String(e && e.message || e).split('\n')[0]}`); } };
+const check = async (name, fn) => { try { await fn(); results.push(name); } catch (e) { failed.push(`${name}: ${String(e && e.message || e).split('\n').slice(0, process.env.DBG ? 30 : 1).join('\n')}`); } };
 
 (async () => {
     await check('Panel and Collapsed headers ("### WORLD STATE [PANEL] ###") are read as the HUD', () => {
@@ -213,6 +213,71 @@ const check = async (name, fn) => { try { await fn(); results.push(name); } catc
         const r = await api.process(save, T.parseHud(HUD()));
         const out = typeof r === 'string' ? r : (r && (r.content || r.text)) || save;
         assert.equal((out.match(/```/g) || []).length, 4); assert.match(out, /```\n\n```text\n### SAVE NOTES ###/);
+    });
+
+    // v2.5.3: the Customizable HUD. Synthetic fixture.
+    const FULL253 = ['### WORLD STATE [PANEL] ###',
+        'Armored Dragon Calendar: K420, Rainveil 8, Stoneday | Time: Midday',
+        'Season: Spring (calendar)',
+        'Location: Central Continent → Asura Kingdom → Fittoa Region → Roa — Market',
+        'Current Arc: [MT-ARC:3]',
+        'Current Scene: Haggling for a whetstone',
+        'Race: Human | Origin: Native | Age: 13 (born K407)',
+        'Rudeus Mode: Off',
+        'Game Mode: Standard | Canon: Living | Guide: Off',
+        'Mana Capacity: Above Average',
+        'Mana Reserve: Half | Mana Status: Low',
+        'Sword Style: North God Style — Intermediate',
+        'Magic Tiers: 🔥 Fire — Beginner',
+        'Languages: Human God Language — fluent; Beast God Language — basic',
+        'Dream Link: Estranged',
+        'Equipment: Short sword',
+        'Inventory: 3 Asuran silver, 12 Asuran copper; rope',
+        'Renown: None yet',
+        'Bonds: Tomas (mentor, warm); Lena — rival',
+        'Active Paths: Reach D-Rank; Find the missing courier',
+        'Canon reference: Fittoa unrest',
+        'NPCs Present: Merchant Brann',
+        'Narrative Mode: Strict Agency',
+        '***', '', 'The stall smells of oil.'].join('\n');
+    const BASIC253 = ['### WORLD STATE [PANEL] ###',
+        'Armored Dragon Calendar: K420, Rainveil 9, Fireday | Time: Morning',
+        'Season: Spring (calendar)',
+        'Location: Central Continent → Asura Kingdom → Fittoa Region → Roa — Inn',
+        'Current Arc: [MT-ARC:3]',
+        'Rudeus Mode: Off',
+        'Condition: Stable',
+        '***', '', 'Morning comes grey.'].join('\n');
+    await check('v2.5.3 FULL HUD: bonds, paths, renown, purse, dream link, canon, present and modes reach the world card', async () => {
+        const api = T.hooks([{ id: 'u1', role: 'user', content: '[HUD = FULL]' }, { id: 'a1', role: 'assistant', content: FULL253, swipe_id: 0 }], 'Kael');
+        const w = J((await api.push()).world);
+        assert.deepEqual(w.purse, [{ count: 3, coin: 'Asuran silver' }, { count: 12, coin: 'Asuran copper' }]);
+        assert.deepEqual(w.bonds, [{ name: 'Tomas', note: 'mentor, warm' }, { name: 'Lena', note: 'rival' }]);
+        assert.deepEqual(w.paths, ['Reach D-Rank', 'Find the missing courier']);
+        assert.deepEqual(w.present, ['Merchant Brann']);
+        assert.deepEqual(w.gameModes, ['Standard']);
+        assert.equal(w.dreamLink, 'Estranged'); assert.equal(w.manaStatus, 'Low'); assert.equal(w.canonRef, 'Fittoa unrest');
+        assert.equal(w.narrative, 'Strict Agency'); assert.equal(w.renown, undefined);   // "None yet" is not renown
+        assert.deepEqual(w.languages.map(l => [l.name, l.fluency]), [['Human God Language', 'fluent'], ['Beast God Language', 'basic']]);
+        assert.equal(w.hudFields.profile, 'FULL'); assert.deepEqual(w.hudFields.carried, []);
+    });
+    await check('v2.5.3 BASIC HUD: hidden groups keep their last values (the card: absence is not deletion); scene, NPCs and canon do not', async () => {
+        const api = T.hooks([{ id: 'u1', role: 'user', content: 'Start' }, { id: 'a1', role: 'assistant', content: FULL253, swipe_id: 0 },
+            { id: 'u2', role: 'user', content: '[HUD = BASIC]' }, { id: 'a2', role: 'assistant', content: BASIC253, swipe_id: 0 }], 'Kael');
+        const w = J((await api.push()).world);
+        assert.equal(w.hudFields.profile, 'BASIC');
+        for (const g of ['MANA', 'SKILLS', 'INVENTORY', 'BONDS', 'PATHS', 'DREAM']) assert.ok(w.hudFields.carried.includes(g), g);
+        assert.equal(w.mana, 'Above Average'); assert.deepEqual(w.paths, ['Reach D-Rank', 'Find the missing courier']);
+        assert.equal(w.purse.length, 2); assert.equal(w.dreamLink, 'Estranged');
+        assert.equal(w.scene, undefined); assert.equal(w.present, undefined); assert.equal(w.canonRef, undefined);
+        assert.ok(w.martial.some(m => /North God/.test(m.name)));
+    });
+    await check('v2.5.3: [HUD BONDS = OFF] on FULL hides only that group; older Six-Sided HUDs get no HUD-fields strip', async () => {
+        const api = T.hooks([{ id: 'u1', role: 'user', content: '[HUD = FULL]\n[HUD BONDS = OFF]' }, { id: 'a1', role: 'assistant', content: FULL253, swipe_id: 0 }], 'Kael');
+        const w = J((await api.push()).world);
+        assert.deepEqual(w.hudFields.off, ['BONDS']); assert.equal(w.hudFields.profile, 'CUSTOM');
+        const old = T.hooks([{ id: 'u1', role: 'user', content: 'Start' }, { id: 'a1', role: 'assistant', content: HUD(), swipe_id: 0 }], 'Kael');
+        assert.equal(J((await old.push()).world).hudFields, undefined);
     });
 
     for (const r of results) console.log(`  ✓ ${r}`);

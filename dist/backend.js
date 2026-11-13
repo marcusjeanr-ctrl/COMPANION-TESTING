@@ -10937,7 +10937,8 @@ function worldMushoku(chatId, lines, st, chat = null) {
             }
             return list;
         })(),
-        languages: hmsSplitTop(one(/^Languages:\s*(.+)$/i) || '', /\s*,\s*/g).filter(Boolean).map(x => { const m = x.match(/^(.+?)\s*\(([^)]+)\)$/); return m ? { name: m[1].trim(), fluency: m[2].trim() } : { name: x.trim(), fluency: null }; }),
+        // "Human God Language (Native, literate)" or v2.5's "Human God Language — fluent; reads and writes"
+        languages: mtLanguageParts(one(/^Languages:\s*(.+)$/i)).map(x => { const m = x.match(/^(.+?)\s*\(([^)]+)\)$/) || x.match(/^(.+?)\s+[—–]\s+(.+)$/); return m ? { name: m[1].trim(), fluency: m[2].trim() } : { name: x.trim(), fluency: null }; }),
         contracts: (one(/^Contracts:\s*(.+)$/i) && !/^(?:none|no|—|–|-|n\/a)\.?$/i.test(one(/^Contracts:\s*(.+)$/i)) ? one(/^Contracts:\s*(.+)$/i) : null) || worldAll(lines, /^\[(?:SUMMON PACT|SPIRIT):\s*([^\]]+)\]$/i).map(m => m[1].trim()).join('; ') || null,
         eyes: worldAll(lines, /^(?:\[DEMON EYE:\s*([^\]]+)\]|\[?DEMON EYE\]?:\s*(.+))/i).map(m => { const text = (m[1] || m[2]).trim(); return { text, lore: worldLore(chatId, text.split(/\s*[\u2014\u2013-]\s*/)[0]) }; }),
         // 1.4.0 Six-Sided: "Curse: None | Blessing: …" is two fields on one row; a "None" is no mark
@@ -10981,10 +10982,37 @@ function mtPartyView(hud, userName) {
     return out;
 }
 
+/** Coins named on the Inventory row ("2 Asuran silver, 5 Asuran copper", "3 gold coins"): [{ count, coin }], largest first. */
+const MT_COIN_ORDER = ['king', 'gold', 'large silver', 'silver', 'large copper', 'copper', 'stone', 'iron', 'scrap'];
+/** "Human God Language — fluent; reads and writes; Beast God Language — basic": a part after a language's fluency that names
+ * no language ("reads and writes") belongs to that fluency; a part that names one starts the next language. */
+function mtLanguageParts(text) {
+    if (!text) return [];
+    const LANG = /\b(?:language|tongue|god|common|dialect|script|speech|sign|cant)\b|[(—–]/i, out = [];
+    for (const raw of String(text).match(/(?:\([^()]*\)|[^,;])+(?:[,;]|$)/g) || []) {
+        const sep = /[,;]$/.test(raw) ? raw.slice(-1) : '', part = raw.replace(/[,;]$/, '').trim();
+        if (!part) continue;
+        const prev = out[out.length - 1];
+        if (prev && /[(—–]/.test(prev.text) && !LANG.test(part)) { prev.text += `${prev.sep} ${part}`; prev.sep = sep; continue; }
+        out.push({ text: part, sep });
+    }
+    return out.map(x => x.text);
+}
+function mtPurse(text) {
+    if (!text) return [];
+    const out = [];
+    for (const m of String(text).matchAll(/\b(\d[\d,]*)\s+((?:(?:Asuran?|Millis|Shirone|Ranoa|Begaritt|Demon|Holy)\s+)?(?:large\s+|small\s+)?(?:king|gold|silver|copper|stone|iron|scrap)(?:\s+(?:coins?|pieces?|bits?|crowns?))?)\b/gi)) {
+        const coin = m[2].replace(/\s+(?:coins?|pieces?|bits?|crowns?)$/i, '').trim();
+        out.push({ count: Number(m[1].replace(/,/g, '')), coin });
+    }
+    const rank = c => { const k = c.toLowerCase().replace(/^(?:asuran?|millis|shirone|ranoa|begaritt|demon|holy)\s+/, ''); const i = MT_COIN_ORDER.findIndex(x => k.startsWith(x) || k === x); return i < 0 ? 99 : i; };
+    return out.sort((a, b) => rank(a.coin) - rank(b.coin)).slice(0, 8);
+}
+
 /** Six-Sided World v2.5's own rows: season, scene, campaign settings, the weekday, and Injuries with their care stage. */
 const MT_CARE_RE = /\s*(?:[—–]|-(?=\s))\s*(Raw|Treated|Magic-Healed|Lasting|Permanent)\b\s*(.*)$/i;
 function mtV25Rows(lines, date) {
-    const one = (re) => { const m = worldFind(lines, re); const v = m ? m[1].trim() : null; return v && !/^(?:none|n\/a|—|–|-)\.?$/i.test(v) ? v : null; };
+    const one = (re) => { const m = worldFind(lines, re); const v = m ? m[1].trim() : null; return v && !/^(?:none(?: yet)?|n\/a|—|–|-)\.?$/i.test(v) ? v : null; };
     const injuries = (() => {
         const row = one(/^Injuries:\s*([^|]+?)\s*$/i);
         if (!row) return [];
@@ -10999,7 +11027,19 @@ function mtV25Rows(lines, date) {
         season: one(/^Season:\s*(.+)$/i), scene: one(/^Current Scene:\s*(.+)$/i), rudeusMode: one(/^Rudeus Mode:\s*([^|]+)/i),
         guide: one(/^Guide:\s*([^|]+)/i), hudStyle: one(/^HUD Style:\s*([^|]+)/i), calendarProfile: one(/^Calendar Profile:\s*([^|]+)/i),
         injuries, condition: one(/^Condition:\s*([^|]+)/i),
-        players: worldAll(lines, /^\W*Player:\s*([^|—–]+?)\s*(?:\||$)/i).map(m => m[1].trim()).filter((x, i, a) => x && a.indexOf(x) === i)
+        players: worldAll(lines, /^\W*Player:\s*([^|—–]+?)\s*(?:\||$)/i).map(m => m[1].trim()).filter((x, i, a) => x && a.indexOf(x) === i),
+        manaStatus: one(/^(?:Mana Status|Status):\s*([^|]+)/i),
+        dreamLink: one(/^Dream Link:\s*([^|]+)/i),
+        renown: one(/^Renown:\s*([^|]+)/i),
+        narrative: one(/^Narrative Mode:\s*([^|]+)/i),
+        gameModes: (one(/^Game Mode:\s*([^|]+)/i) || '').split(/\s*[,;+·]\s*/).map(x => x.trim()).filter(x => x && !/^(?:none|n\/a|—|-)$/i.test(x)),
+        bonds: hmsSplitTop(one(/^(?:Bonds|Relationships):\s*(.+)$/i) || '', /\s*[,;]\s*/g).map(x => String(x).trim()).filter(Boolean).slice(0, 12)
+            .map(x => { const m = x.match(/^(.+?)\s*\(([^()]+)\)\s*$/) || x.match(/^(.+?)\s+[—–]\s+(.+)$/); return m ? { name: m[1].trim(), note: m[2].trim() } : { name: x, note: null }; }),
+        paths: hmsSplitTop(one(/^Active Paths:\s*(.+)$/i) || '', /\s*;\s*/g).map(x => String(x).trim()).filter(x => x && !/^(?:none|n\/a|—|-)\.?$/i.test(x)).slice(0, 10),
+        canonRef: one(/^(?:⏳|📖|⚠️)?\s*(?:Canon reference|Next Canon Event|Next Turning Point|World event)\s*:\s*(.+)$/iu),
+        present: hmsSplitTop(one(/^(?:NPCs\s+)?Present:\s*(.+)$/i) || '', /\s*[,;]\s*/g).map(x => String(x).trim()).filter(x => x && !/^(?:none|nobody|no one|alone|—|-)\.?$/i.test(x)).slice(0, 12),
+        trainingText: one(/^Training:\s*(.+)$/i),
+        purse: mtPurse(one(/^(?:Inventory|Purse|Money):\s*(.+)$/i))
     };
     // only what the HUD shows: an older card's panel payload stays as it was
     for (const k of Object.keys(rows)) if (rows[k] === null || (Array.isArray(rows[k]) && !rows[k].length)) delete rows[k];
@@ -11168,7 +11208,8 @@ function worldPanel(chatId, chat, st) {
         break;
     }
     if (!msg) return null;
-    const lines = worldLines(msg.h);
+    const effective = sixEffectiveHud(chat, msg.h);
+    const lines = worldLines(effective);
     const id = worldOf(lines);
     if (!id) return null;
     if (!lorePool.has(chatId) && !worldLoreTried.has(chatId) && chatId !== SANDBOX_ID) {
@@ -11184,6 +11225,9 @@ function worldPanel(chatId, chat, st) {
         const view = mtPartyView(msg.h, userNameCache.get(chatId));
         Object.assign(out, worldMushoku(chatId, view || lines, st, chat));
         if (view) out.players = worldAll(lines, /^\W*Player:\s*([^|—–]+?)\s*(?:\||$)/i).map(m => m[1].trim()).filter((x, i, a) => x && a.indexOf(x) === i);
+        // v2.5.3: which row groups the HUD shows, and which hidden ones the card keeps from their last value
+        const vis = sixHudVisibility(chat);
+        if (vis.v253) out.hudFields = { profile: vis.profile, on: vis.on, off: vis.off, carried: effective.carried || [] };
     }
     else if (id === 'undertale') Object.assign(out, worldUndertale(chatId, lines));
     else if (id === 'darksouls') Object.assign(out, worldDarkSouls(chatId, lines));
@@ -12509,7 +12553,7 @@ function hmsPanelStateRead(chatId, chat, st) {
             try { family = hmsFamilyPanel(chat, st); } catch (e) { logW(`[RPG Companion HMS] Family read failed: ${e?.message || e}`); }
             try { comms = hmsCommsPanel(chat, st); } catch (e) { logW(`[RPG Companion HMS] Phone read failed: ${e?.message || e}`); }
             try {
-                const tl = hmsTimeline(chat), sysNow = tl.length ? hmsReadSystems(tl[tl.length - 1].hud) : null;
+                const tl = hmsTimeline(chat), sysNow = tl.length ? hmsReadSystems(sixEffectiveHud(chat, tl[tl.length - 1].hud, tl.length - 1)) : null;
                 you = hmsYouPanel(chat, st, null, sysNow); magic = hmsMagicPanel(chat, st, null, sysNow, chatId);
                 if (magicCfg().on && sysNow) { try { techniques = techListPanel(chatId, chat, st, sysNow); } catch (e) { logW(`[RPG Companion HMS] Technique list failed: ${e?.message || e}`); } }
                 if (you && comms && comms.balance) you.balance = comms.balance;
@@ -13498,8 +13542,9 @@ function hmsSystemsPanel(chat, st, cfg) {
     if (!timeline.length) return null;
     const lastIdx = timeline.length - 1;
     const cur = timeline[lastIdx];
-    const sys = hmsReadSystems(cur.hud, c);
-    const prevSys = lastIdx > 0 ? hmsReadSystems(timeline[lastIdx - 1].hud, c) : null;
+    // Six-Sided v2.5.3: rows the player hid keep their last value ("absence in the new HUD is not a deletion signal")
+    const sys = hmsReadSystems(sixEffectiveHud(chat, cur.hud, lastIdx), c);
+    const prevSys = lastIdx > 0 ? hmsReadSystems(sixEffectiveHud(chat, timeline[lastIdx - 1].hud, lastIdx - 1), c) : null;
     const latestAssistant = latestHudMessage(chat);
     const now = cur.clock;
 
@@ -13573,6 +13618,77 @@ function hmsIsSelfClearing(key, cfg) {
 // 1.4.0: lines a card removes by its own rule, so a HUD without them is not a dropped line: Heat cools off with time,
 // a checkpoint or "Back on canon" shows once (Cyberpunk), and the Compact style prints Cyberware only the turn it changes.
 const HMS_LEAVES_OWN_RE = /^(?:heat|checkpoint|back on canon|canon changed|guide)\b/i;
+// 1.4.0 Six-Sided v2.5.3 field visibility. The card hides optional row groups from the live HUD (BASIC by default,
+// [HUD = FULL], [HUD SKILLS = ON] …) and says an external companion may keep previously parsed facts: a hidden row is
+// not a deletion. The groups and their rows, as the card's own table lists them.
+const SIX_GROUPS = [
+    ['IDENTITY', /^(?:Race|Origin|Age|Memory|Race\s*\/\s*Origin\s*\/\s*Age)\s*:/i, true],
+    ['SCENE', /^Current Scene\s*:/i, false],
+    ['POLICIES', /^(?:Game Mode|Canon|Guide|HUD Style|Calendar Profile|Narrative Mode)\s*:/i, true],
+    ['MANA', /^(?:Mana Capacity|Mana Reserve|Mana Status)\s*:/i, true],
+    ['SKILLS', /^(?:Touki(?: \(Battle Aura\))?|Sword Style|Magic Tiers|Voiceless Casting|Casting Method|Languages|Training|Skills|Active Stance|Contracts)\s*:/i, true],
+    ['GIFTS', /^(?:\[?DEMON EYE\]?|Curse|Blessing|Drain Syndrome)\s*:/i, true],
+    ['DREAM', /^Dream Link\s*:/i, true],
+    ['HEALTH', /^Injuries\s*:/i, false],
+    ['EQUIPMENT', /^Equipment\s*:/i, true],
+    ['INVENTORY', /^(?:Inventory|Purse|Money)\s*:/i, true],
+    ['SOCIAL', /^(?:Standing|Faction|Renown|Adventurer|Party|Clan|Term|Role)\s*:/i, true],
+    ['BONDS', /^(?:Bonds|Relationships)\s*:/i, true],
+    ['PATHS', /^(?:Active Paths|Quests?|Objectives?)\s*:/i, true],
+    ['CANON', /^(?:⏳|📖|⚠️)?\s*(?:Canon reference|Next Canon Event|Next Turning Point|World event|Canon Begins)\b/iu, false],
+    ['NPCS', /^(?:NPCs\s+)?Present\s*:/i, false]
+];
+const SIX_GROUP_NAMES = SIX_GROUPS.map(g => g[0]);
+function sixGroupOf(text) { const t = String(text || '').replace(/^[^\p{L}\[]+/u, ''); const g = SIX_GROUPS.find(([, re]) => re.test(t)); return g ? g[0] : null; }
+/** The player's HUD visibility settings, read from their own commands in order. v253 is false for older Six-Sided HUDs. */
+function sixHudVisibility(chat) {
+    return memoRead(chat, 'sixHudVisibility', () => {
+        const on = new Set(), cmd = /\[\s*HUD\s*=\s*(BASIC|FULL)\s*\]|\[\s*HUD\s+([A-Z]+)\s*=\s*(ON|OFF)\s*\]/gi;
+        let v253 = false, any = false;
+        for (const m of chat || []) {
+            const t = textOf(m && m.content);
+            if (!t) continue;
+            if (m.role !== 'user' && !m.is_user) {
+                // 2.5.3 prints Current Arc as its bare marker, and its save notes name the field profile
+                if (/^\s*(?:\*\*)?Current Arc(?:\*\*)?\s*:\s*\[\s*MT-ARC\s*:[^\]]+\]\s*$/im.test(t) || /System revision:\s*2\.5\.[3-9]|field profile\s*\(?(?:BASIC|FULL|CUSTOM)/i.test(t)) v253 = true;
+                continue;
+            }
+            for (const c of t.matchAll(cmd)) {
+                if (!any) { any = true; v253 = true; }
+                if (c[1]) { on.clear(); if (/full/i.test(c[1])) SIX_GROUP_NAMES.forEach(g => on.add(g)); }
+                else if (SIX_GROUP_NAMES.includes(c[2].toUpperCase())) { if (/on/i.test(c[3])) on.add(c[2].toUpperCase()); else on.delete(c[2].toUpperCase()); }
+            }
+        }
+        if (!v253) return { v253: false, profile: null, on: SIX_GROUP_NAMES.slice(), off: [] };
+        const list = SIX_GROUP_NAMES.filter(g => on.has(g));
+        return { v253: true, profile: !list.length ? 'BASIC' : list.length === SIX_GROUP_NAMES.length ? 'FULL' : 'CUSTOM', on: list, off: SIX_GROUP_NAMES.filter(g => !on.has(g)) };
+    });
+}
+/** The HUD the panels read: a v2.5.3 HUD plus the last value of each row whose group the player has hidden.
+ *  Rows that change from scene to scene (Current Scene, Injuries, Canon reference, NPCs Present) are not carried. */
+function sixEffectiveHud(chat, hud, before = null) {
+    try {
+        if (!hud || !hud.lines || !sixIsV25(hud.lines.filter(l => !l.block).map(l => hudSemanticText(String(l.text || ''))))) return hud;
+        const vis = sixHudVisibility(chat);
+        if (!vis.v253 || !vis.off.length) return hud;
+        const carry = new Set(SIX_GROUPS.filter(([g, , c]) => c && vis.off.includes(g)).map(g => g[0]));
+        if (!carry.size) return hud;
+        const labelOf = l => { const t = hudSemanticText(String(l.text || '')).replace(/^[^\p{L}\[]+/u, ''); const m = t.match(/^([^:|]{1,40}?)\s*:/); return m ? m[1].trim().toLowerCase() : null; };
+        const have = new Set(hud.lines.filter(l => !l.block).map(labelOf).filter(Boolean));
+        const tl = hmsTimeline(chat), at = before !== null ? before : tl.findIndex(e => e.hud === hud);
+        const added = [], seen = new Set();
+        for (let i = (at >= 0 ? at : tl.length) - 1; i >= 0 && i >= (at >= 0 ? at : tl.length) - 80; i--) {
+            for (const l of tl[i].hud.lines) {
+                if (l.block || l.party || l.carried) continue;
+                const g = sixGroupOf(hudSemanticText(String(l.text || ''))), lab = labelOf(l);
+                if (!g || !carry.has(g) || !lab || have.has(lab) || seen.has(lab)) continue;
+                seen.add(lab); added.push({ ...l, carried: true, carriedFrom: tl[i].msg && tl[i].msg.id || null });
+            }
+        }
+        if (!added.length) return hud;
+        return { ...hud, lines: hud.lines.concat(added), carried: added.map(l => sixGroupOf(hudSemanticText(String(l.text || '')))).filter((x, i, a) => a.indexOf(x) === i) };
+    } catch { return hud; }
+}
 // Six-Sided v2.5.3 shows only its control rows by default and lets the player hide every other group ([HUD SKILLS = OFF]…)
 const SIX_V253_CONTROL_RE = /^(?:armored dragon calendar|time|season|location|condition|current arc|rudeus mode|player)\b/i;
 function sixRowHideable(key, hud) {
