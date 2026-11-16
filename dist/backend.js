@@ -7652,7 +7652,8 @@ function classifyHudLine(raw) {
     const t = hudSemanticText(text);
     let m;
     const tl = t.replace(LOC_LABEL_RE, '');
-    if (LOC_MARK_RE.test(tl) || (LOC_ARROW_RE.test(tl) && /→/.test(tl) && !/^[^:→]{1,40}:\s/.test(tl))) {
+    // "Sword God → Saint (86/200)" under a Training row is a track, not a place
+    if (LOC_MARK_RE.test(tl) || (LOC_ARROW_RE.test(tl) && /→/.test(tl) && !/^[^:→]{1,40}:\s/.test(tl) && !/\(\s*\d+(?:\.\d+)?\s*\/\s*\d+\b/.test(tl))) {
         // an arrow inside brackets belongs to its segment: "[In Transit: Lugunica → Vollachia]" is one
         const body = tl.replace(LOC_MARK_RE, '').trim().replace(/\[[^\]]*\]/g, (m) => m.replace(/\s*(?:→|⟶|➜|›|»)\s*/g, '\u0001'));
         const segments = body.split(LOC_ARROW_RE).map(x => x.trim()).filter(Boolean).map(x => x.replace(/\u0001/g, ' → '));
@@ -7703,7 +7704,13 @@ function parseHud(text) {
         if (seen[next] !== undefined) { seen[next]++; next = `${next}~${seen[next]}`; } else seen[next] = 1;
         l.key = next;
     }
-    const loc = lines.find(l => l.kind === 'location');
+    let loc = lines.find(l => l.kind === 'location');
+    // "Location: Manor yard, Boreas Manor, Roa": a place written smallest first with commas, read largest first
+    if (!loc) {
+        const lf = lines.find(l => l.kind === 'field' && l.fields && l.fields[0] && /^(?:current\s+)?location$/i.test(l.fields[0].label || ''));
+        const parts = lf ? hmsSplitTop(String(lf.fields[0].value || ''), /\s*,\s*/g).map(x => String(x).trim()).filter(Boolean) : [];
+        if (parts.length >= 2) loc = { segments: parts.reverse() };
+    }
     const arc = lines.find(l => l.key === 'arc') || lines.find(l => l.key === 'era / arc');
     let time = null;
     for (const l of lines.slice(0, 3)) {

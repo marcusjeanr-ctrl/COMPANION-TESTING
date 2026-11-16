@@ -330,6 +330,12 @@ const check = async (name, fn) => { try { await fn(); results.push(name); } catc
         assert.deepEqual(J(T.base('Waterball size control', lore)), { name: 'Waterball', aspect: 'size control' });
     });
 
+    await check('a Training line ("Sword God → Saint (86/200)") is never the location; "Location: Manor yard, Boreas Manor, Roa" is read largest first', () => {
+        const hud = HUD().replace(/^Location:.*$/m, 'Location: Manor yard, Boreas Manor, Roa').replace('Languages:', 'Training:\nSword God → Saint (86/200)\nLanguages:');
+        assert.deepEqual(J(T.parseHud(hud).location), ['Roa', 'Boreas Manor', 'Manor yard']);
+        assert.deepEqual(J(T.parseHud(HUD()).location).slice(-2), ['Buena Village', 'Greyrat House — Kitchen']);   // the card's arrows: unchanged
+    });
+
     for (const r of results) console.log(`  ✓ ${r}`);
     for (const f of failed) console.log(`  ✗ ${f}`);
     console.log(failed.length ? `${failed.length} of ${results.length + failed.length} failed` : `all ${results.length} passed`);

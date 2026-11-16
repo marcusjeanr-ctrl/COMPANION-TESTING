@@ -8,6 +8,10 @@
 - Some models wrote "[RPG Companion: continuity]", "[RPG Companion — minds]" and similar notes into the reply. Those notes are now removed from what is shown, and from the history sent back to the narrator, so one slip is not copied into the next reply. Chats where this already happened are cleaned the same way.
 - The request header no longer says "for after your reply" (which read as "write this after your reply"). It now says to add only the block asked for, and that every other Companion note is memory, never written into the reply.
 
+**Location header**
+- A Training line ("Sword God → Saint (86/200)") showed as the location in the Now header. A line with a session count is never read as a place.
+- "Location: Manor yard, Boreas Manor, Roa" (commas, smallest first) is read as a place, largest first, when the HUD has no arrow path. The header, map and Chronicle show it.
+
 **Training goes to the spell or technique it trains**
 - Practice on one part of a spell or technique counts as practice on it, for every spell, technique and Touki: "Water Arrow compression" studies **Water Arrow** (Water, Elementary) with "compression" in its note; "Waterball size control" studies Waterball; "Touki control" trains Touki. This only happens when the first part is a spell or technique the lorebook or story already names. School names never count ("Water Magic drills" stays a drill), and a spell whose full name is its own stays itself.
 - The Training card puts the HUD's track, the study and its days in one group (Water Arrow: the track 8/40, the study and its note), not one group for "Water Arrow compression" and another for Water.
