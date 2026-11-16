@@ -3514,7 +3514,8 @@ registerInterceptorKeep(async (messages, context) => {
         const userName = await getUserName(chatId);
         const locks = (await getChatState(chatId)).locks;
 
-        const out = messages.map(m => ({ ...m }));
+        // a reply where the narrator copied our notes: the copy is not sent back, so it is not copied again
+        const out = messages.map(m => m.__isChatHistory && m.role === 'assistant' && typeof m.content === 'string' && m.content.includes('[RPG Companion') ? { ...m, content: stripEchoedNotes(m.content) } : { ...m });
         const injected = []; // { msg, name }
 
         // Positions relative to chat history (depth semantics like ST extension prompts)
@@ -3684,7 +3685,7 @@ registerInterceptorKeep(async (messages, context) => {
             // Default: its own system message just before the player's turn, so the turn stays the last
             // thing the model reads and the block reads as an extra rather than the task.
             if (settings.injectPlacement !== 'append' && anchor && anchor.role === 'user' && anchor.__isChatHistory) {
-                block = `[RPG Companion — for after your reply] Write your full reply first, at its usual length and in its usual form, following all your own instructions. This is an extra, never a replacement for any of it:\n\n${block}`;
+                block = `[RPG Companion — request] Write your full reply first, at its usual length and in its usual form, following all your own instructions. This is an extra, never a replacement for any of it. Add only the block asked for below; every other [RPG Companion …] note is memory for you and is never written into the reply:\n\n${block}`;
                 const msg = { role: 'system', content: block };
                 out.splice(lastHistoryIdx, 0, msg);
                 lastHistoryIdx++;
@@ -11572,9 +11573,16 @@ function stripLeakedReasoning(text) {
     const kept = keptParas.join('\n\n').replace(/^\s+/, '');
     return (src.slice(0, after) + kept).replace(/\n{3,}/g, '\n\n').replace(/\s+$/, '');
 }
+/** A note of ours the narrator copied into its reply ("[RPG Companion: continuity]", "[RPG Companion — minds]"…): each
+ * paragraph that opens with one is ours, never story, and is removed with the lines under it. */
+const ECHOED_NOTE_RE = /(^|\n)[ \t]*\[RPG Companion\b[^\n]*(?:\n(?![ \t]*\n)[^\n]*)*/g;
+function stripEchoedNotes(text) {
+    const t = String(text || '');
+    return t.includes('[RPG Companion') ? t.replace(ECHOED_NOTE_RE, '$1').replace(/\n{3,}/g, '\n\n').replace(/\s+$/, '') : t;
+}
 function stripCompanion(text) {
     if (!text) return text;
-    let out = String(text).replace(/<rpg_companion>[\s\S]*?<\/rpg_companion>/gi, '');
+    let out = stripEchoedNotes(String(text).replace(/<rpg_companion>[\s\S]*?<\/rpg_companion>/gi, ''));
     out = out.replace(/<rpg_companion>[\s\S]*$/i, '');
     // a fence the model wrapped around the block, now empty; never the closing fence of one block and the opening of the next
     // (Six-Sided v2.5's save prints two fenced blocks in a row)

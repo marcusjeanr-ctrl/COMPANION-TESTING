@@ -4,6 +4,10 @@
 
 **The deck: a new look for the whole panel.** Everything below is display only. The Companion reads what it already has; there are no new tracker fields, no extra model calls and no change to what the story is sent.
 
+**Narrator copying the Companion's notes into the story**
+- Some models wrote "[RPG Companion: continuity]", "[RPG Companion — minds]" and similar notes into the reply. Those notes are now removed from what is shown, and from the history sent back to the narrator, so one slip is not copied into the next reply. Chats where this already happened are cleaned the same way.
+- The request header no longer says "for after your reply" (which read as "write this after your reply"). It now says to add only the block asked for, and that every other Companion note is memory, never written into the reply.
+
 **Six-Sided World v2.5.3 (Customizable HUD)**
 - **Hidden HUD groups keep their values.** With `[HUD = BASIC]` or `[HUD <GROUP> = OFF]`, the HUD stops printing mana, skills, gifts, inventory, bonds and paths. The card says that absence is not a deletion, so the world card keeps showing each hidden group's last values. The scene, injuries, canon reference and NPCs present are about this moment and are not carried.
 - **HUD fields strip.** The world card shows the HUD profile (Basic / Full / Custom) and the 15 groups: on, off, or off and showing last-seen values (↺).

@@ -26,7 +26,7 @@ globalThis.__T = {
     healRecent = async () => false;
     const pool = { entries: [] }; loreCatalogPool = () => pool; try { lorePool.set('c1', pool); } catch {}
     globalThis.__state = null; toFrontend = p => { if (p && p.type === 'state') globalThis.__state = p; };
-    return { push: async () => { await pushState('c1'); return JSON.parse(JSON.stringify(globalThis.__state)); }, process: (content, prev) => hmsProcessContent('c1', content, prev, 'normal', {}) };
+    return { push: async () => { await pushState('c1'); return JSON.parse(JSON.stringify(globalThis.__state)); }, process: (content, prev) => hmsProcessContent('c1', content, prev, 'normal', {}), intercept: (m) => rpgcInterceptor(m, { chatId: 'c1' }), display: t => stripForDisplay(t) };
   }
 };`, ctx);
 const T = ctx.__T;
@@ -278,6 +278,18 @@ const check = async (name, fn) => { try { await fn(); results.push(name); } catc
         assert.deepEqual(w.hudFields.off, ['BONDS']); assert.equal(w.hudFields.profile, 'CUSTOM');
         const old = T.hooks([{ id: 'u1', role: 'user', content: 'Start' }, { id: 'a1', role: 'assistant', content: HUD(), swipe_id: 0 }], 'Kael');
         assert.equal(J((await old.push()).world).hudFields, undefined);
+    });
+
+    await check('notes the narrator copied into its reply ("[RPG Companion: continuity]"…) are not shown and not sent back', async () => {
+        const echo = HUD() + '\n\n[RPG Companion: continuity]\n- Carried: practice sword (in hand).\n- Kept elsewhere: wand (nightstand).\n\n[RPG Companion — minds]\n• Paul — inside: approval (low) at you.\nAgendas: Paul — kitchen, waiting.';
+        const shown = T.hooks([], 'Kael').display(echo);
+        assert.ok(!shown.includes('RPG Companion')); assert.match(shown, /Paul waits over an untouched cup\.$/);
+        const chat = [{ id: 'u1', role: 'user', content: 'Start' }, { id: 'a1', role: 'assistant', content: echo, swipe_id: 0 }, { id: 'u2', role: 'user', content: 'I nod.' }];
+        const api = T.hooks(chat, 'Kael');
+        const req = await api.intercept([{ role: 'system', content: 'SYS' }, ...chat.map(m => ({ role: m.role, content: m.content, __isChatHistory: true }))]);
+        const hist = (Array.isArray(req) ? req : req.messages).find(m => m.role === 'assistant');
+        assert.ok(!hist.content.includes('[RPG Companion')); assert.match(hist.content, /Paul waits over an untouched cup\.$/);
+        assert.equal(T.hooks([], 'Kael').display('Story.\n\nHe calls it [RPG Companion] in passing.'), 'Story.\n\nHe calls it [RPG Companion] in passing.');   // only a note that opens a paragraph
     });
 
     for (const r of results) console.log(`  ✓ ${r}`);
