@@ -11051,8 +11051,14 @@ function mtV25Rows(lines, date) {
 /** "Training: Healing → Advanced (7/25 sessions)": one row per skill (the card shows at most two). */
 function mtTraining(lines) {
     // every skill on a Training line: "Training: Sword God → Saint (0/60 sessions) · Water Magic → Saint (0/60 sessions)"
-    const out = [];
-    for (const l of lines) {
+    const out = [], src = [];
+    // "Training:" on its own, then one "Skill → next (done/needed)" per line under it
+    for (let i = 0; i < (lines || []).length; i++) {
+        const t = String(lines[i]);
+        if (/^Training:\s*$/i.test(t)) { const parts = []; for (let j = i + 1; j < lines.length && /(?:→|->|⟶)/.test(String(lines[j])) && !/^[^→:]{1,40}:/.test(String(lines[j])); j++) parts.push(String(lines[j]).replace(/^\s*[-•*]\s*/, '')); if (parts.length) src.push('Training: ' + parts.join(' · ')); }
+        else src.push(t);
+    }
+    for (const l of src) {
         const t = String(l);
         if (!/^Training:/i.test(t)) continue;
         // 1.4.0: split only outside brackets, and allow a note after the count: "(60/60 sessions — count met; proof pending)"
@@ -11062,7 +11068,7 @@ function mtTraining(lines) {
             if (!depth && /[·|;]/.test(ch)) { parts.push(cur.trim()); cur = ''; } else cur += ch; }
           parts.push(cur.trim()); }
         for (const part of parts) {
-            const m = part.match(/^(.+?)\s*(?:→|->|⟶)\s*(.+?)\s*\(\s*(\d+(?:\.\d+)?)\s*\/\s*(\d+)\s*sessions?\s*(?:[—–,:-]\s*([^)]*?))?\s*\)/i);
+            const m = part.match(/^(.+?)\s*(?:→|->|⟶)\s*(.+?)\s*\(\s*(\d+(?:\.\d+)?)\s*\/\s*(\d+)\s*(?:sessions?)?\s*(?:[—–,:-]\s*([^)]*?))?\s*\)/i);
             if (m && !out.some(x => x.skill === m[1].trim())) out.push({ skill: m[1].trim(), next: m[2].trim(), done: Number(m[3]), needed: Number(m[4]), ...(m[5] && m[5].trim() ? { note: m[5].trim().slice(0, 80) } : {}) });
         }
     }
@@ -11086,6 +11092,7 @@ function hmsTrainingPlan(chat, st, tl, magic, techniques, relations) {
     const teachers = new Set(people.filter(p => TEACH.test(`${p.bond || ''} ${p.role || ''} ${p.standing || ''}`)).map(p => p.name));
     const esc = x => String(x).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     const when = hudWhenMap(chat);
+    const trainResolver = (() => { try { return spellResolver(chatIdOf(chat)); } catch { return null; } })();
     const seen = new Map();
     for (const t of tl) {
         const d = getSwipeData(t.msg) || {};
@@ -11094,14 +11101,22 @@ function hmsTrainingPlan(chat, st, tl, magic, techniques, relations) {
         const present = (Array.isArray(d.characters) ? d.characters : []).map(c => c && c.name).filter(Boolean);
         const day = Number.isFinite(t.clock) ? Math.floor(t.clock / 1440) : null;
         for (const r of list) {
-            const name = String((r && (r.spell || r.name)) || '').trim();
-            if (!name) continue;
+            const raw = String((r && (r.spell || r.name)) || '').trim();
+            if (!raw) continue;
+            const base = studyBaseName(chatIdOf(chat), raw), name = base ? base.name : raw;
             const k = spellKey(name);
             const e = seen.get(k) || { days: new Set(), teach: new Set(), at: null, when: null, teacher: null };
             const note = String(r.note || '');
             // the teacher: a person the note names; else the one known teacher present that reply
             let teacher = [...new Set([...present, ...people.map(p => p.name)])].find(n => n && new RegExp(`(^|[^\\p{L}])${esc(String(n).split(/\s+/)[0])}([^\\p{L}]|$)`, 'u').test(note)) || null;
-            if (!teacher) { const here = present.filter(n => teachers.has(n)); if (here.length === 1) teacher = here[0]; }
+            // a sword teacher present at a magic study is not its teacher (and the other way round), unless the note names them
+            if (!teacher) {
+                const dom = trainResolver ? trainResolver.domain(name) : null;
+                const fits = n => { const p = people.find(x => x.name === n); const t = `${p?.bond || ''} ${p?.role || ''}`;
+                    return dom === 'magic' ? !/\b(?:sword|blade|fencing|martial|swordsman|swordswoman)\b/i.test(t) || /\b(?:magic|mage|magician|spell)/i.test(t)
+                        : dom === 'martial' ? !/\b(?:magic|mage|magician|spell)/i.test(t) || /\b(?:sword|blade|martial)\b/i.test(t) : true; };
+                const here = present.filter(n => teachers.has(n) && fits(n)); if (here.length === 1) teacher = here[0];
+            }
             if (day !== null) { e.days.add(day); if (teacher) e.teach.add(day); }
             if (teacher) e.teacher = teacher;
             e.at = t.clock; e.when = String((when.get(t.msg.id) || {}).when || '').trim() || null;
@@ -11111,9 +11126,11 @@ function hmsTrainingPlan(chat, st, tl, magic, techniques, relations) {
     const norm = x => String(x || '').toLowerCase().replace(/\b(?:style|styles|magic|school|arts?|techniques?)\b/g, ' ').replace(/[^\p{L}\p{N}]+/gu, ' ').trim();
     const groups = new Map();
     const groupFor = (key, name, domain) => { let g = groups.get(key); if (!g) { g = { key, name, domain, track: null, studies: [], at: null, fresh: false }; groups.set(key, g); } return g; };
-    for (const t of tracks) {
+    for (let t of tracks) {
+        const orig = t.skill;
+        { const b = studyBaseName(chatIdOf(chat), t.skill); if (b) t = { ...t, skill: b.name, note: [b.aspect, t.note].filter(Boolean).join(' · ') }; }
         const g = groupFor(norm(t.skill), t.skill, /\b(?:touki|sword|style|blade|aura)\b/i.test(t.skill) && !/\bmagic\b/i.test(t.skill) ? 'martial' : 'magic');
-        const before = prevTracks.find(p => p.skill === t.skill);
+        const before = prevTracks.find(p => p.skill === orig);
         g.track = { ...t, left: Math.max(0, t.needed - t.done), fromHud: true, moved: !!(before && t.done > before.done) };
         if (g.track.moved) g.fresh = true;
     }
@@ -11130,7 +11147,7 @@ function hmsTrainingPlan(chat, st, tl, magic, techniques, relations) {
         if (e && Number.isFinite(e.at) && Number.isFinite(nowAt)) { row.quiet = nowAt - e.at > 14 * 1440; row.fresh = e.at === nowAt; }
         // its group: a track whose skill it names, else its school or style, else Other
         const n = norm(sItem.name);
-        const tg = [...groups.values()].find(g => g.track && g.key && (` ${n} `.includes(` ${g.key} `) || norm(row.school) === g.key));
+        const tg = [...groups.values()].find(g => g.track && g.key === n) || [...groups.values()].find(g => g.track && g.key && (` ${n} `.includes(` ${g.key} `) || norm(row.school) === g.key));
         const g = tg || (row.school ? groupFor(norm(row.school), row.school, sItem.domain) : groupFor(sItem.domain === 'magic' ? 'other magic' : 'other combat', sItem.domain === 'magic' ? 'Other magic' : 'Other combat', sItem.domain));
         g.studies.push(row);
         if (row.fresh) g.fresh = true;
@@ -18999,6 +19016,27 @@ function abilityReportMerge(report, previous) {
     return report;
 }
 
+/** Practice on one part of a spell or technique is practice on it: "Water Arrow compression" is Water Arrow (compression),
+ * "Longsword of Light footwork" is Longsword of Light, "Touki control" is Touki. Only when the head is a spell or technique
+ * the lorebook (or the story) already names, and the whole name is not one of its own. null when nothing applies. */
+function studyBaseName(chatId, raw, knownKeys = null) {
+    const name = String(raw || '').trim().replace(/\s+/g, ' ');
+    if (!name || /[→>]/.test(name)) return null;
+    const resolve = spellResolver(chatId), tech = new Map((chatId ? techCatalog(chatId) : []).map(r => [r.key, r]));
+    if (resolve.reference(name) || tech.has(spellKey(name))) return null;
+    const words = name.split(' ');
+    for (let n = words.length - 1; n >= 1 && words.length - n <= 4; n--) {
+        const head = words.slice(0, n).join(' '), rest = words.slice(n).join(' '), hk = spellKey(head);
+        if (/^(?:of|and|the|&|in|on|to|for)\b/i.test(rest)) continue;
+        if (/^(?:touki|toki|battle aura)$/i.test(head)) return { name: 'Touki', aspect: rest };
+        const ref = resolve.reference(head), t = tech.get(hk);
+        // a one-word head only when it is that spell's own name ("Fireball"), never a school ("Water")
+        if (ref && (n > 1 || spellKey(ref.name) === hk)) return { name: ref.name, aspect: rest };
+        if (t) return { name: t.name, aspect: rest };
+        if (n > 1 && knownKeys && knownKeys.has(hk)) return { name: knownKeys.get(hk) || head, aspect: rest };
+    }
+    return null;
+}
 function spellStoryFoldUncached(chat, chatId = null) {
     const playerName = chatId ? userNameCache.get(chatId) || '' : '';
     const resolve = spellResolver(chatId);
@@ -19039,9 +19077,13 @@ function spellStoryFoldUncached(chat, chatId = null) {
         else if (!rejectedClaims.has(target.key)) learned.set(target.key, { ...target, ...((target.note || learned.get(target.key)?.note || established.get(target.key)?.note) ? { note: target.note || learned.get(target.key)?.note || established.get(target.key)?.note } : {}), msgId: m.id, at: order.get(m.id), newlyLearned: false });
         for (const n of Array.isArray(y.learned) ? y.learned : []) for (const target of resolve.records(n)) if (named(target) && !rejectedClaims.has(target.key)) learned.set(target.key, { ...target, msgId: m.id, at: order.get(m.id), newlyLearned: true });
         for (const n of Array.isArray(y.mastered) ? y.mastered : []) for (const target of resolve.records(n)) if (!rejectedClaims.has(target.key)) mastered.set(target.key, { ...target, msgId: m.id, at: order.get(m.id) });
-        for (const s of Array.isArray(y.study) ? y.study : []) if (s && s.spell) for (const target of resolve.records(s)) progress.set(target.key, { name: target.name, progress: s.progress, note: s.note || target.note || null, msgId: m.id, at: order.get(m.id) });
+        const knownNames = new Map([...established.values(), ...learned.values()].map(x => [x.key, x.name]));
+        const toBase = s0 => { const b = s0 && s0.spell ? studyBaseName(chatId, s0.spell, knownNames) : null; return b ? { ...s0, spell: b.name, note: [b.aspect, s0.note].filter(Boolean).join(': ') } : s0; };
+        for (const s of (Array.isArray(y.study) ? y.study : []).map(toBase)) if (s && s.spell) for (const target of resolve.records(s)) progress.set(target.key, { name: target.name, progress: s.progress, note: s.note || target.note || null, msgId: m.id, at: order.get(m.id) });
         if (assessments.length) {
-            for (const row of assessments) {
+            for (const row0 of assessments) {
+                const b = /^(?:attempted|practiced)$/.test(row0.state) ? studyBaseName(chatId, row0.name, knownNames) : null;
+                const row = b ? { ...row0, name: b.name, note: [b.aspect, row0.note].filter(Boolean).join(': ') || undefined } : row0;
                 for (const target of resolve.records(row.name)) {
                     const key = target.key, previous = abilityEvidence.get(key);
                     // Unknown historical dates never overrule an established current assessment.

@@ -12,19 +12,19 @@ const ctx = { console: quiet, structuredClone, URL, TextEncoder, TextDecoder, se
 ctx.globalThis = ctx; vm.createContext(ctx);
 vm.runInContext(src.slice(0, startup) + `
 globalThis.__T = {
-  parseHud, hmsClock, mtCalendar, touki: techToukiStep, drill: (n, cat) => spellIsDrill(n, cat), moves: (chat) => { chatApi.getMessages = async () => chat; settings.hmsSystems = { abilities: { vocabulary: 'Martial: Martial Style, Touki' } }; try { return JSON.parse(JSON.stringify(martialAbilityItems('c1', chat, {}).map(i => i.name))); } finally { settings.hmsSystems = undefined; } }, abil: (t, v) => JSON.parse(JSON.stringify(hmsReadAbilities(parseHud(t), mergeDeep(HMS_SYS_DEFAULTS, { abilities: { vocabulary: v } })).map(g => [g.category, g.items.map(i => [i.name, i.state])]))), leaves: (key, text) => hmsLeavesOnItsOwn(key, null, null, parseHud(text)),
+  parseHud, hmsClock, mtCalendar, touki: techToukiStep, base: (n, lore) => { const pool = { entries: lore || [] }; loreCatalogPool = () => pool; try { lorePool.set('c1', pool); } catch {} return studyBaseName('c1', n); }, drill: (n, cat) => spellIsDrill(n, cat), moves: (chat) => { chatApi.getMessages = async () => chat; settings.hmsSystems = { abilities: { vocabulary: 'Martial: Martial Style, Touki' } }; try { return JSON.parse(JSON.stringify(martialAbilityItems('c1', chat, {}).map(i => i.name))); } finally { settings.hmsSystems = undefined; } }, abil: (t, v) => JSON.parse(JSON.stringify(hmsReadAbilities(parseHud(t), mergeDeep(HMS_SYS_DEFAULTS, { abilities: { vocabulary: v } })).map(g => [g.category, g.items.map(i => [i.name, i.state])]))), leaves: (key, text) => hmsLeavesOnItsOwn(key, null, null, parseHud(text)),
   standing: t => { const r = spellStanding(parseHud(t).lines); return JSON.parse(JSON.stringify({ voiceless: r.voiceless, schools: [...r.schools].map(([k, v]) => [k, v.name, v.rank]) })); },
   sys: t => JSON.parse(JSON.stringify(hmsReadSystems(parseHud(t)))),
   fix: (text, prevText, user) => { const prev = prevText ? parseHud(prevText) : null; const hud = parseHud(text); let notes = [];
     const r = rewriteHud(text, items => { notes = sixUpkeep(items, { cal: hmsCalNow(hud), prev, userName: user || 'Kael', rows: [], sessions: null, elapsedDays: 0, math: true, format: true }); return notes.length > 0; });
     return { text: r.content, notes: JSON.parse(JSON.stringify(notes)) }; },
   rules: (msgs) => { const pool = { entries: [] }; loreCatalogPool = () => pool; return JSON.parse(JSON.stringify(hmsCardRuleChecks(msgs, hmsTimeline(msgs), 'Kael', null))); },
-  hooks: (chat, user) => {
+  hooks: (chat, user, lore) => {
     chatApi.getMessages = async () => chat;
     const state = {}; getChatState = async () => state; saveChatState = async () => {};
     getUserName = async () => { userNameCache.set('c1', user); return user; }; userNameCache.set('c1', user);
     healRecent = async () => false;
-    const pool = { entries: [] }; loreCatalogPool = () => pool; try { lorePool.set('c1', pool); } catch {}
+    const pool = { entries: lore || [] }; loreCatalogPool = () => pool; try { lorePool.set('c1', pool); } catch {}
     globalThis.__state = null; toFrontend = p => { if (p && p.type === 'state') globalThis.__state = p; };
     return { push: async () => { await pushState('c1'); return JSON.parse(JSON.stringify(globalThis.__state)); }, process: (content, prev) => hmsProcessContent('c1', content, prev, 'normal', {}), intercept: (m) => rpgcInterceptor(m, { chatId: 'c1' }), display: t => stripForDisplay(t) };
   }
@@ -305,6 +305,29 @@ const check = async (name, fn) => { try { await fn(); results.push(name); } catc
         const w = J((await T.hooks([...chat, { id: 'u2', role: 'user', content: 'Go on.' }, { id: 'a2', role: 'assistant', content: second, swipe_id: 0 }], 'Kael').push()).world);
         assert.deepEqual(w.present, ['Merchant Brann', 'Lena']);
         assert.deepEqual(w.languages.map(l => l.name), ['Human God Language']);
+    });
+
+    await check('practice on part of a spell or technique trains that spell or technique ("Water Arrow compression" → Water Arrow); a multi-line Training row is read', async () => {
+        const lore = [{ key: ['Water Elementary'], content: '## Water — Elementary Rank\n\n* Waterball — Hurls a sphere of water.\n* Water Arrow — Fires a narrow arrow of water.\n* Water Shield — Raises a wall of water.' }];
+        const hud = HUD().replace(/^Training:.*\n?/m, '').replace('Languages:', 'Training:\nSword God → Intermediate (12/30)\nWater Arrow compression → mastery (8/40)\nLanguages:');
+        const meta = { rpg_companion: { swipes: { 0: { survival: { study: [{ spell: 'Water Arrow compression', progress: null, note: 'holds shape to ten paces' }, { spell: 'Touki control', progress: null, note: 'even burn' }] } } } } };
+        const chat = [{ chat_id: 'c1', id: 'u1', role: 'user', content: 'Start' }, { chat_id: 'c1', id: 'a1', role: 'assistant', content: hud, swipe_id: 0, metadata: meta }];
+        const st = J(await T.hooks(chat, 'Kael', lore).push());
+        const find = (o, k) => { if (o && typeof o === 'object') { if (o[k] !== undefined) return o[k]; for (const x of Object.values(o)) { const r = find(x, k); if (r !== undefined) return r; } } };
+        const studying = st.hms.magic.list.studying;
+        assert.deepEqual(studying.map(x => [x.name, x.school, x.rank]), [['Water Arrow', 'Water', 'Elementary']]);
+        assert.match(studying[0].note, /^compression: holds shape/);
+        const plan = find(st, 'trainingPlan');
+        const wa = plan.groups.find(g => g.name === 'Water Arrow');
+        assert.ok(wa && wa.track && wa.track.done === 8 && wa.track.needed === 40, 'Water Arrow track');
+        assert.deepEqual(wa.studies.map(x => x.name), ['Water Arrow']);
+        assert.ok(plan.groups.some(g => g.name === 'Sword God' && g.track && g.track.done === 12));
+        assert.ok(!plan.groups.some(g => /compression/i.test(g.name)));
+        // a different spell keeps its name; a school is never a head ("Water Magic shaping drills" is not Water Arrow)
+        const ctx2 = T.hooks(chat, 'Kael', lore);
+        assert.equal(T.base('Water Arrow', lore), null); assert.equal(T.base('Water Magic shaping drills', lore), null);
+        assert.deepEqual(J(T.base('Touki control', lore)), { name: 'Touki', aspect: 'control' });
+        assert.deepEqual(J(T.base('Waterball size control', lore)), { name: 'Waterball', aspect: 'size control' });
     });
 
     for (const r of results) console.log(`  ✓ ${r}`);
