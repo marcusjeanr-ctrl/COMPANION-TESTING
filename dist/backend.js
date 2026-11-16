@@ -11036,9 +11036,9 @@ function mtV25Rows(lines, date) {
         gameModes: (one(/^Game Mode:\s*([^|]+)/i) || '').split(/\s*[,;+·]\s*/).map(x => x.trim()).filter(x => x && !/^(?:none|n\/a|—|-)$/i.test(x)),
         bonds: hmsSplitTop(one(/^(?:Bonds|Relationships):\s*(.+)$/i) || '', /\s*[,;]\s*/g).map(x => String(x).trim()).filter(Boolean).slice(0, 12)
             .map(x => { const m = x.match(/^(.+?)\s*\(([^()]+)\)\s*$/) || x.match(/^(.+?)\s+[—–]\s+(.+)$/); return m ? { name: m[1].trim(), note: m[2].trim() } : { name: x, note: null }; }),
-        paths: hmsSplitTop(one(/^Active Paths:\s*(.+)$/i) || '', /\s*;\s*/g).map(x => String(x).trim()).filter(x => x && !/^(?:none|n\/a|—|-)\.?$/i.test(x)).slice(0, 10),
+        paths: hmsSplitTop(one(/^(?:Active )?Paths:\s*(.+)$/i) || '', /\s*;\s*/g).map(x => String(x).trim()).filter(x => x && !/^(?:none|n\/a|—|-)\.?$/i.test(x)).slice(0, 10),
         canonRef: one(/^(?:⏳|📖|⚠️)?\s*(?:Canon reference|Next Canon Event|Next Turning Point|World event)\s*:\s*(.+)$/iu),
-        present: hmsSplitTop(one(/^(?:NPCs\s+)?Present:\s*(.+)$/i) || '', /\s*[,;]\s*/g).map(x => String(x).trim()).filter(x => x && !/^(?:none|nobody|no one|alone|—|-)\.?$/i.test(x)).slice(0, 12),
+        present: (v => /^\s*(?:none|nobody|no one|alone)\b/i.test(v) ? [] : hmsSplitTop(v, /\s*[,;]\s*/g).map(x => String(x).replace(/\s*\([^()]*\)\s*$/, '').trim()).filter(x => x && !/^(?:none|nobody|no one|alone|—|-)\.?$/i.test(x)))(one(/^(?:NPCs\s+)?Present:\s*(.+)$/i) || '').slice(0, 12),
         trainingText: one(/^Training:\s*(.+)$/i),
         purse: mtPurse(one(/^(?:Inventory|Purse|Money):\s*(.+)$/i))
     };
@@ -13642,7 +13642,7 @@ const SIX_GROUPS = [
     ['INVENTORY', /^(?:Inventory|Purse|Money)\s*:/i, true],
     ['SOCIAL', /^(?:Standing|Faction|Renown|Adventurer|Party|Clan|Term|Role)\s*:/i, true],
     ['BONDS', /^(?:Bonds|Relationships)\s*:/i, true],
-    ['PATHS', /^(?:Active Paths|Quests?|Objectives?)\s*:/i, true],
+    ['PATHS', /^(?:Active Paths|Paths|Quests?|Objectives?)\s*:/i, true],
     ['CANON', /^(?:⏳|📖|⚠️)?\s*(?:Canon reference|Next Canon Event|Next Turning Point|World event|Canon Begins)\b/iu, false],
     ['NPCS', /^(?:NPCs\s+)?Present\s*:/i, false]
 ];
@@ -13674,13 +13674,14 @@ function sixHudVisibility(chat) {
 }
 /** The HUD the panels read: a v2.5.3 HUD plus the last value of each row whose group the player has hidden.
  *  Rows that change from scene to scene (Current Scene, Injuries, Canon reference, NPCs Present) are not carried. */
+// rows that hold until the story changes them: kept when the narrator leaves one out of a group that is ON
+const SIX_STABLE_ROW_RE = /^(?:race|origin|age|languages|voiceless casting|casting method|sword style|magic tiers|mana capacity|\[?demon eye\]?|standing)$/i;
 function sixEffectiveHud(chat, hud, before = null) {
     try {
         if (!hud || !hud.lines || !sixIsV25(hud.lines.filter(l => !l.block).map(l => hudSemanticText(String(l.text || ''))))) return hud;
         const vis = sixHudVisibility(chat);
-        if (!vis.v253 || !vis.off.length) return hud;
+        if (!vis.v253) return hud;
         const carry = new Set(SIX_GROUPS.filter(([g, , c]) => c && vis.off.includes(g)).map(g => g[0]));
-        if (!carry.size) return hud;
         const labelOf = l => { const t = hudSemanticText(String(l.text || '')).replace(/^[^\p{L}\[]+/u, ''); const m = t.match(/^([^:|]{1,40}?)\s*:/); return m ? m[1].trim().toLowerCase() : null; };
         const have = new Set(hud.lines.filter(l => !l.block).map(labelOf).filter(Boolean));
         const tl = hmsTimeline(chat), at = before !== null ? before : tl.findIndex(e => e.hud === hud);
@@ -13689,7 +13690,7 @@ function sixEffectiveHud(chat, hud, before = null) {
             for (const l of tl[i].hud.lines) {
                 if (l.block || l.party || l.carried) continue;
                 const g = sixGroupOf(hudSemanticText(String(l.text || ''))), lab = labelOf(l);
-                if (!g || !carry.has(g) || !lab || have.has(lab) || seen.has(lab)) continue;
+                if (!g || !lab || have.has(lab) || seen.has(lab) || !(carry.has(g) || SIX_STABLE_ROW_RE.test(lab))) continue;
                 seen.add(lab); added.push({ ...l, carried: true, carriedFrom: tl[i].msg && tl[i].msg.id || null });
             }
         }
@@ -19408,7 +19409,8 @@ function techStyleName(v) {
 const TOUKI_LADDER = ['Awakening', 'Active', 'Mastered'];
 function techIsTouki(style) { return /^(?:touki|toki|battle aura|fighting spirit)$/.test(techStyleKey(style)); }
 function techToukiStep(s) {
-    const t = String(s || '').toLowerCase();
+    // "Active, consciously activated; not mastered": a mastery the row denies is not one
+    const t = String(s || '').toLowerCase().replace(/\b(?:not(?:\s+yet)?|never|un)[\s-]*master(?:ed|y)?\b/g, ' ');
     if (/\b(?:locked|none|sealed|unavailable|absent|cannot)\b/.test(t)) return -1;
     if (/\bmaster(?:ed|y)?\b|\bcomplete\b|\bperfect\b/.test(t)) return 2;
     if (/\bactive\b|\bcontrolled\b|\bconscious\b/.test(t)) return 1;

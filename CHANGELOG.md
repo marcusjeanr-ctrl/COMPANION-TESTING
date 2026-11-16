@@ -8,6 +8,12 @@
 - Some models wrote "[RPG Companion: continuity]", "[RPG Companion — minds]" and similar notes into the reply. Those notes are now removed from what is shown, and from the history sent back to the narrator, so one slip is not copied into the next reply. Chats where this already happened are cleaned the same way.
 - The request header no longer says "for after your reply" (which read as "write this after your reply"). It now says to add only the block asked for, and that every other Companion note is memory, never written into the reply.
 
+**Fixes from a Twin Soul playtest**
+- Touki "Active, consciously activated; not mastered" showed as **Mastered**. A row that says "not mastered" / "unmastered" is now read as what it is (Active).
+- NPCs Present chips no longer carry ages ("Eris Boreas Greyrat (12, born K405)" → Eris Boreas Greyrat), and "None in the room; …" means nobody is present.
+- v2.5.3: when the narrator leaves out a row that holds until the story changes it (Languages, Sword Style, Magic Tiers, Mana Capacity, Voiceless Casting, Race/Origin/Age, Demon Eye, Standing), the world card keeps its last value, even when that group is on.
+- "Paths:" is read like "Active Paths:".
+
 **Six-Sided World v2.5.3 (Customizable HUD)**
 - **Hidden HUD groups keep their values.** With `[HUD = BASIC]` or `[HUD <GROUP> = OFF]`, the HUD stops printing mana, skills, gifts, inventory, bonds and paths. The card says that absence is not a deletion, so the world card keeps showing each hidden group's last values. The scene, injuries, canon reference and NPCs present are about this moment and are not carried.
 - **HUD fields strip.** The world card shows the HUD profile (Basic / Full / Custom) and the 15 groups: on, off, or off and showing last-seen values (↺).

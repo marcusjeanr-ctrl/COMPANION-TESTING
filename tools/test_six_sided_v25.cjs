@@ -12,7 +12,7 @@ const ctx = { console: quiet, structuredClone, URL, TextEncoder, TextDecoder, se
 ctx.globalThis = ctx; vm.createContext(ctx);
 vm.runInContext(src.slice(0, startup) + `
 globalThis.__T = {
-  parseHud, hmsClock, mtCalendar, drill: (n, cat) => spellIsDrill(n, cat), moves: (chat) => { chatApi.getMessages = async () => chat; settings.hmsSystems = { abilities: { vocabulary: 'Martial: Martial Style, Touki' } }; try { return JSON.parse(JSON.stringify(martialAbilityItems('c1', chat, {}).map(i => i.name))); } finally { settings.hmsSystems = undefined; } }, abil: (t, v) => JSON.parse(JSON.stringify(hmsReadAbilities(parseHud(t), mergeDeep(HMS_SYS_DEFAULTS, { abilities: { vocabulary: v } })).map(g => [g.category, g.items.map(i => [i.name, i.state])]))), leaves: (key, text) => hmsLeavesOnItsOwn(key, null, null, parseHud(text)),
+  parseHud, hmsClock, mtCalendar, touki: techToukiStep, drill: (n, cat) => spellIsDrill(n, cat), moves: (chat) => { chatApi.getMessages = async () => chat; settings.hmsSystems = { abilities: { vocabulary: 'Martial: Martial Style, Touki' } }; try { return JSON.parse(JSON.stringify(martialAbilityItems('c1', chat, {}).map(i => i.name))); } finally { settings.hmsSystems = undefined; } }, abil: (t, v) => JSON.parse(JSON.stringify(hmsReadAbilities(parseHud(t), mergeDeep(HMS_SYS_DEFAULTS, { abilities: { vocabulary: v } })).map(g => [g.category, g.items.map(i => [i.name, i.state])]))), leaves: (key, text) => hmsLeavesOnItsOwn(key, null, null, parseHud(text)),
   standing: t => { const r = spellStanding(parseHud(t).lines); return JSON.parse(JSON.stringify({ voiceless: r.voiceless, schools: [...r.schools].map(([k, v]) => [k, v.name, v.rank]) })); },
   sys: t => JSON.parse(JSON.stringify(hmsReadSystems(parseHud(t)))),
   fix: (text, prevText, user) => { const prev = prevText ? parseHud(prevText) : null; const hud = parseHud(text); let notes = [];
@@ -290,6 +290,21 @@ const check = async (name, fn) => { try { await fn(); results.push(name); } catc
         const hist = (Array.isArray(req) ? req : req.messages).find(m => m.role === 'assistant');
         assert.ok(!hist.content.includes('[RPG Companion')); assert.match(hist.content, /Paul waits over an untouched cup\.$/);
         assert.equal(T.hooks([], 'Kael').display('Story.\n\nHe calls it [RPG Companion] in passing.'), 'Story.\n\nHe calls it [RPG Companion] in passing.');   // only a note that opens a paragraph
+    });
+
+    await check('Touki "Active, consciously activated; not mastered" is Active, not Mastered', () => {
+        assert.equal(T.touki('Active, consciously activated; not mastered'), 1);
+        assert.equal(T.touki('Active (unmastered)'), 1); assert.equal(T.touki('Not yet mastered; active'), 1);
+        assert.equal(T.touki('Mastered'), 2);
+    });
+    await check('v2.5.3: NPCs Present drops "(12, born K405)"; "None in the room; …" is nobody; a Languages row the narrator left out is kept', async () => {
+        const first = FULL253.replace('Languages: Human God Language — fluent; Beast God Language — basic', 'Languages: Human God Language — fluent').replace('NPCs Present: Merchant Brann', 'NPCs Present: None in the room; Tomas downstairs');
+        const second = FULL253.replace(/^Languages:.*\n/m, '').replace('NPCs Present: Merchant Brann', 'NPCs Present: Merchant Brann (40s, born K378), Lena');
+        const chat = [{ id: 'u1', role: 'user', content: '[HUD = FULL]' }, { id: 'a1', role: 'assistant', content: first, swipe_id: 0 }];
+        assert.equal(J((await T.hooks(chat, 'Kael').push()).world).present, undefined);
+        const w = J((await T.hooks([...chat, { id: 'u2', role: 'user', content: 'Go on.' }, { id: 'a2', role: 'assistant', content: second, swipe_id: 0 }], 'Kael').push()).world);
+        assert.deepEqual(w.present, ['Merchant Brann', 'Lena']);
+        assert.deepEqual(w.languages.map(l => l.name), ['Human God Language']);
     });
 
     for (const r of results) console.log(`  ✓ ${r}`);
